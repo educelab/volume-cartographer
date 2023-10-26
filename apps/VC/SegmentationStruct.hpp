@@ -26,6 +26,7 @@
 #include <SDL2/SDL.h>
 #include <cmath>
 #include <unordered_map>
+#include <set>
 
 namespace ChaoVis
 {
@@ -49,7 +50,8 @@ struct SegmentationStruct {
     volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
     volcart::OrderedPointSet<cv::Vec2i> fAnnotationCloud;
     std::vector<cv::Vec3d> fStartingPath;
-    std::map<int, AnnotationStruct> fAnnotations; // parsed annotations
+    std::map<int, AnnotationStruct> fAnnotations; // decoded annotations
+    std::set<int> fBufferedChangedPoints; // values are in range [1..(number of points on curve)] (not global cloud index, but locally to the edited curve)
     int fPathOnSliceIndex = 0;
     bool display = false;
     bool compute = false;
@@ -97,6 +99,8 @@ struct SegmentationStruct {
         fMinSegIndex = 0;
         fMasterCloud.clear();
         fUpperPart.clear();
+        fAnnotationCloud.clear();
+        fAnnotations.clear();
         fStartingPath.clear();
         fPathOnSliceIndex = 0;
         display = false;
@@ -125,8 +129,7 @@ struct SegmentationStruct {
         if (fSegmentation->hasAnnotations()) {
             fAnnotationCloud = fSegmentation->getAnnotationSet();
         } else {
-            // If it does not exist, create one now the same sice as the point master cloud
-            CreateInitialAnnotationSet(fMasterCloud.height(), fMasterCloud.width());
+            fAnnotationCloud.reset();
         }
 
         if (fSegmentation->hasVolumeID()) {
@@ -370,10 +373,10 @@ struct SegmentationStruct {
         fAnnotationCloud = fUpperAnnotations;
     }
 
-    inline void MergeChangedCurveIntoPointCloud(int nSliceIndex)
+    inline void MergeChangedCurveIntoPointCloud(int sliceIndex)
     {
         // Check if we have a buffered changed curve for this index. If not exit.
-        auto it = fIntersectionsChanged.find(nSliceIndex);
+        auto it = fIntersectionsChanged.find(sliceIndex);
         if(it == fIntersectionsChanged.end())
             return;
 
@@ -409,13 +412,13 @@ struct SegmentationStruct {
         }
     }
 
-    inline void SetSliceAsAnchor(int nSliceIndex, bool anchor)
+    inline void SetSliceAsAnchor(int sliceIndex, bool anchor)
     {
         // Calculate index via master point cloud
         int pointIndex;
         for (int i= 0; i < fMasterCloud.height(); i++) {
             auto masterRowI = fMasterCloud.getRow(i);
-            if (nSliceIndex <= masterRowI[0][2]){
+            if (sliceIndex <= masterRowI[0][2]){
                 pointIndex = i * fMasterCloud.width();
                 break;
             }
@@ -425,16 +428,61 @@ struct SegmentationStruct {
             fAnnotationCloud[i][0] = anchor;
         }
 
-        auto it = fAnnotations.find(nSliceIndex);
+        auto it = fAnnotations.find(sliceIndex);
         if(it != fAnnotations.end()) {
-            // Update existing entry
             it->second.anchor = anchor;
-        } else {
-            // Create new entry
-            AnnotationStruct ano;
-            ano.anchor = anchor;
-            fAnnotations[nSliceIndex] = ano;
         }
+    }
+
+    inline void AddPointsToManualBuffer(std::set<int> pointIndexes)
+    {
+        // We need to buffer the points that we potentially have to store as "manually changed" in
+        // annotations, but we cannot directly update the cloud, since the manual changes might be
+        // discarded, e.g. by leaving the segmentation tool. Only once they are "confirmed" by
+        // being used ina  segmentation run, can we update the annotation cloud.
+        fBufferedChangedPoints.insert(pointIndexes.begin(), pointIndexes.end());
+    }
+
+    inline void ConfirmPointsAsManual(int sliceIndex)
+    {
+        if(fBufferedChangedPoints.size() > 0) {
+            for (auto index : fBufferedChangedPoints) {
+                fAnnotationCloud[sliceIndex * fAnnotationCloud.width() - 1 + index][1] = true;
+            }
+
+            auto it = fAnnotations.find(sliceIndex);
+            if(it != fAnnotations.end()) {
+                it->second.manual = true;
+            }     
+
+            fBufferedChangedPoints.clear();
+        }
+    }
+
+    inline int FindNearestLowerAnchor(int sliceIndex)
+    {
+        // From provided start slice go backwards until we have an anchor
+        for(int i = sliceIndex - 1; i > fMinSegIndex; i--) {
+            if(fAnnotations[i].anchor) {
+                return i;
+            }
+        }
+
+        // First segment is by default an anchor
+        return fMinSegIndex;
+    }
+
+    inline int FindNearestHigherAnchor(int sliceIndex)
+    {
+        // From provided start slice go forward until we have an anchor or reached the end
+        for(int i = sliceIndex + 1; i < currentVolume->numSlices(); i++) {
+            if(fAnnotations[i].anchor) {
+                return i;
+            }
+        }
+
+        // No anchor found
+        return -1;
     }
 
     // Handle path change event

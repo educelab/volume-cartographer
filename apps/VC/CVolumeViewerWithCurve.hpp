@@ -75,6 +75,7 @@ private slots:
 
 signals:
     void SendSignalPathChanged(void);
+    void SendSignalAnnotationChanged(void);
 
 private:
     // for interaction

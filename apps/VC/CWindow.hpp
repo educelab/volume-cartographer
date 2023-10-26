@@ -40,6 +40,17 @@ namespace ChaoVis
 
 class CVolumeViewerWithCurve;
 
+class AnnotationTreeWidgetItem : public QTreeWidgetItem {
+  public:
+    AnnotationTreeWidgetItem(QTreeWidget* parent) : QTreeWidgetItem(parent){}
+
+  private:
+    bool operator<(const QTreeWidgetItem &other) const {
+        int column = treeWidget()->sortColumn();
+        return text(column).toInt() < other.text(column).toInt();
+    }
+};
+
 class CWindow : public QMainWindow
 {
 
@@ -81,7 +92,7 @@ public:
         bool enable_edge;
         int edge_jump_distance;
         int edge_bounce_distance;
-        int backwards_smoothnes_interpolation_window;
+        int backwards_smoothness_interpolation_window;
         int backwards_length;
     };
 
@@ -207,6 +218,7 @@ private slots:
     void OnLoadPrevSliceShift(int shift);
 
     void OnPathChanged(void);
+    void OnAnnotationChanged(void);
 
     void UpdateSegmentCheckboxes(std::string aSegID);
     void toggleDisplayAll(bool checked);
@@ -224,7 +236,6 @@ private:
     bool fVpkgChanged;
 
     std::string fSegmentationId;
-    volcart::Segmentation::Pointer fSegmentation;
     volcart::Volume::Pointer currentVolume;
 
     static const int AMPLITUDE = 28000;
@@ -276,6 +287,12 @@ private:
     QLineEdit* fEdtK1;
     QLineEdit* fEdtK2;
     QCheckBox* fOptIncludeMiddle;
+
+    // Dynamic OFS algo widgets
+    QLabel* lblBackwardsLength;    
+    QSpinBox* edtBackwardsLength;
+    QLabel* lblBackwardsInterpolationWindow;
+    QSpinBox* edtBackwardsInterpolationWindow;
 
     QSpinBox* fEdtStartIndex;
     QSpinBox* fEdtEndIndex;

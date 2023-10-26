@@ -34,7 +34,7 @@ size_t OpticalFlowSegmentationClass::progressIterations() const
         startingChain_.begin(), startingChain_.end(),
         [](auto a, auto b) { return a[2] < b[2]; });
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
-    return static_cast<size_t>((std::abs(endIndex_ - startIndex) + backwards_length_ + backwards_smoothnes_interpolation_window_) / stepSize_);
+    return static_cast<size_t>((std::abs(endIndex_ - startIndex) + backwards_length_ + backwards_smoothness_interpolation_window_) / stepSize_);
 }
 
 // print curve points with the help of this function
@@ -647,8 +647,8 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         throw std::domain_error("end index out of the volume");
     }
     bool backwards = startIndex > endIndex_;
-    int backwards_smoothnes_interpolation_w = backwards_smoothnes_interpolation_window_;
-    int backwards_length = backwards_length_ + backwards_smoothnes_interpolation_w;
+    int backwards_smoothness_interpolation_w = backwards_smoothness_interpolation_window_;
+    int backwards_length = backwards_length_ + backwards_smoothness_interpolation_w;
     int backwards_endIndex = startIndex + (backwards ? backwards_length : -backwards_length);
     if (backwards_endIndex < 0) {
         backwards_endIndex = 0;
@@ -656,7 +656,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     if (vol_->numSlices() <= backwards_endIndex) {
         backwards_endIndex = vol_->numSlices() - 1;
     }
-    // std::cout << "Backwards Window and Length: " << backwards_smoothnes_interpolation_w << " " << backwards_length << std::endl;
+    // std::cout << "Backwards Window and Length: " << backwards_smoothness_interpolation_w << " " << backwards_length << std::endl;
     // Generate an overlap to interpolate and smooth point locations in z direction
 
     // Update the user-defined boundary
@@ -825,7 +825,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     // Add starting line
     points.push_back(currentVs);
 
-    points = interpolatePoints(points, backwards_smoothnes_interpolation_w, backwards);
+    points = interpolatePoints(points, backwards_smoothness_interpolation_w, backwards);
 
     // for loop with adjustments for direction
     for (int zIndex = startIndex; backwards ? zIndex > endIndex_ : zIndex < endIndex_;

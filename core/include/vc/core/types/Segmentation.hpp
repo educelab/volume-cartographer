@@ -54,7 +54,7 @@ public:
     /** @brief Return if this Segmentation has an associated PointSet file */
     bool hasPointSet() const
     {
-        return !metadata_.get<std::string>("vcps").empty();
+        return metadata_.hasKey("vcps") && !metadata_.get<std::string>("vcps").empty();
     }
 
     /**
@@ -75,12 +75,7 @@ public:
     /** @brief Return if this Segmentation has an associated AnnotationSet file */
     bool hasAnnotations() const
     {
-        try {
-            return !metadata_.get<std::string>("vcano").empty();
-        } catch(std::runtime_error) {
-            // catch since annotations are optional and do not have to exist neither as file nor metadata key
-            return false;
-        }
+        return metadata_.hasKey("vcano") && !metadata_.get<std::string>("vcano").empty();
     }
 
     /**

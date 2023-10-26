@@ -370,6 +370,18 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 
         fSegStructMapRef[fSelectedSegID].fIntersectionCurve.SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
+
+        // Mark involved points as manually changed
+        std::set<int> pointIndexes;
+        for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
+            // If value is in valid range, so >= 0 and <= number of points on curve,
+            // it is valid for buffering.
+            if((fSelectedPointIndex + i) >= 1 && (fSelectedPointIndex + i) <= fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
+                pointIndexes.insert(fSelectedPointIndex + i);
+            }
+        }
+        fSegStructMapRef[fSelectedSegID].AddPointsToManualBuffer(pointIndexes);
+
         fVertexIsChanged = true;
 
         UpdateView();

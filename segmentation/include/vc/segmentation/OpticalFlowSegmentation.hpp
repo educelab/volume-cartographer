@@ -104,15 +104,15 @@ public:
      */
     void setCacheSlices(int cache_slices) { nr_cache_slices_ = cache_slices; }
 
-    /** @brief Set how many slices should be cached
+    /** @brief 
      */
     void setLineSmoothenByBrightness(int brightness) { smoothen_by_brightness_ = brightness; }
 
-    /** @brief Set how many slices should be cached
+    /** @brief 
      */
-    void setBackwardsInterpolationWindow(int window) { backwards_smoothnes_interpolation_window_ = window; }
+    void setBackwardsInterpolationWindow(int window) { backwards_smoothness_interpolation_window_ = window; }
 
-    /** @brief Set how many slices should be cached
+    /** @brief Set how many slices the flow should go backwards
      */
     void setBackwardsLength(int len) { backwards_length_ = len; }
 
@@ -239,7 +239,7 @@ private:
     int edge_jump_distance_{6};
     int edge_bounce_distance_{3};
     bool interpolate_master_cloud{true};
-    int backwards_smoothnes_interpolation_window_{5};
+    int backwards_smoothness_interpolation_window_{5};
     int backwards_length_{25};
     volcart::OrderedPointSet<cv::Vec3d> masterCloud_;
     mutable std::shared_mutex display_mutex_;

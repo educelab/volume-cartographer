@@ -92,8 +92,6 @@ CWindow::CWindow()
 {
 
     ui.setupUi(this);
-    ui.splitterLeft->setSizes(QList<int>() << 100 << 300);
-    ui.splitterRight->setSizes(QList<int>() << 300 << 100);
     SDL_Init(SDL_INIT_AUDIO);
     fVpkgChanged = false;
 
@@ -119,7 +117,7 @@ CWindow::CWindow()
     fSegParams.enable_edge = false;
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
-    fSegParams.backwards_smoothnes_interpolation_window = 5;
+    fSegParams.backwards_smoothness_interpolation_window = 5;
     fSegParams.backwards_length = 25;
 
     // Process the raw impact range step string and convert to step vector
@@ -234,6 +232,9 @@ void CWindow::CreateWidgets(void)
     connect(
         fVolumeViewerWidget, SIGNAL(SendSignalPathChanged()), this,
         SLOT(OnPathChanged()));
+    connect(
+        fVolumeViewerWidget, SIGNAL(SendSignalAnnotationChanged()), this,
+        SLOT(OnAnnotationChanged()));
 
     // new path button
     QPushButton* aBtnNewPath = this->findChild<QPushButton*>("btnNewPath");
@@ -334,11 +335,11 @@ void CWindow::CreateWidgets(void)
     auto* edtEdgeBounceDistance = new QSpinBox();
     edtEdgeBounceDistance->setMinimum(0);
     edtEdgeBounceDistance->setValue(3);
-    auto* edtBackwardsLength = new QSpinBox();
+    edtBackwardsLength = new QSpinBox();
     edtBackwardsLength->setMinimum(0);
     edtSmoothenPixelThreshold->setMaximum(1000);
     edtBackwardsLength->setValue(25);
-    auto* edtBackwardsInterpolationWindow = new QSpinBox();
+    edtBackwardsInterpolationWindow = new QSpinBox();
     edtBackwardsInterpolationWindow->setMinimum(0);
     edtBackwardsInterpolationWindow->setValue(5);
     auto* chkPurgeCache = new QCheckBox(tr("Purge Cache"));
@@ -357,7 +358,7 @@ void CWindow::CreateWidgets(void)
     connect(edtEdgeJumpDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_jump_distance = v;});
     connect(edtEdgeBounceDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_bounce_distance = v;});
     connect(edtBackwardsLength, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_length = v;});
-    connect(edtBackwardsInterpolationWindow, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_smoothnes_interpolation_window = v;});
+    connect(edtBackwardsInterpolationWindow, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_smoothness_interpolation_window = v;});
     connect(chkPurgeCache, &QCheckBox::toggled, [=](bool checked){fSegParams.purge_cache = checked;});
     connect(edtCacheSize, &QSpinBox::valueChanged, [=](int v){fSegParams.cache_slices = v;});
 
@@ -378,9 +379,11 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(edtEdgeJumpDistance);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Bounce Distance")));
     opticalFlowParamsLayout->addWidget(edtEdgeBounceDistance);
-    opticalFlowParamsLayout->addWidget(new QLabel(tr("Backwards Length")));
+    lblBackwardsLength = new QLabel(tr("Backwards Length"));
+    opticalFlowParamsLayout->addWidget(lblBackwardsLength);
     opticalFlowParamsLayout->addWidget(edtBackwardsLength);
-    opticalFlowParamsLayout->addWidget(new QLabel(tr("Backwards Interpolation Window")));
+    lblBackwardsInterpolationWindow = new QLabel(); // text is set dynamically upon entering the segmentation tool
+    opticalFlowParamsLayout->addWidget(lblBackwardsInterpolationWindow);
     opticalFlowParamsLayout->addWidget(edtBackwardsInterpolationWindow);
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Maximum Cache Size")));
@@ -978,7 +981,7 @@ void CWindow::DoSegmentation(void)
     }
 
     // Setup LRPS
-    auto segIdx = this->ui.cmbSegMethods->currentIndex();
+    auto algoIdx = this->ui.cmbSegMethods->currentIndex();
     // Reminder to activate the segments for computation
     bool segmentedSomething = false;
     for (auto& seg : fSegStructMap) {
@@ -1010,9 +1013,10 @@ void CWindow::DoSegmentation(void)
         // This curve is now considered an anchor as it was used as the starting point for a segmentation run.
         // Update the annotations accordingly.
         seg.second.SetSliceAsAnchor(fEdtStartIndex->value(), true);
+        seg.second.ConfirmPointsAsManual(fEdtStartIndex->value());
 
         Segmenter::Pointer segmenter;
-        if (segIdx == 0) {
+        if (algoIdx == 0) {
             auto lrps = vcs::LocalResliceSegmentation::New();
             lrps->setMaterialThickness(fVpkg->materialThickness());
             lrps->setTargetZIndex(fSegParams.targetIndex);
@@ -1026,8 +1030,7 @@ void CWindow::DoSegmentation(void)
             lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
             lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
             segmenter = lrps;
-        }
-        if (segIdx == 1) {
+        } else if (algoIdx == 1) {
             auto ofsc = vcs::OpticalFlowSegmentationClass::New();
             ofsc->setMaterialThickness(fVpkg->materialThickness());
             ofsc->setTargetZIndex(fSegParams.targetIndex);
@@ -1043,8 +1046,27 @@ void CWindow::DoSegmentation(void)
             ofsc->setPurgeCache(fSegParams.purge_cache);
             ofsc->setCacheSlices(fSegParams.cache_slices);
             ofsc->setOrderedPointSet(fSegStructMap[segID].fMasterCloud);
-            ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothnes_interpolation_window);
-            ofsc->setBackwardsLength(fSegParams.backwards_length);
+
+            if(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
+
+                // Find nearest anchor for backwards end slice
+                auto anchorLow = fSegStructMap[fSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
+                ofsc->setBackwardsLength(fEdtStartIndex->value() - anchorLow);
+
+                // With annotations, this parameters is considered to be a percentage of the delta between
+                // current slice (= segmentation start slice) and the backwards anchor slice.
+                //ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_length / 100 * (fEdtStartIndex->value() - anchorLow));
+
+                // Ensure we stop before the next higher anchor if there is one
+                auto anchorHigh = fSegStructMap[fSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
+                if(anchorHigh != -1) {
+                    ofsc->setTargetZIndex(anchorHigh - 1);
+                }
+
+            } else {
+                ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothness_interpolation_window);
+                ofsc->setBackwardsLength(fSegParams.backwards_length);
+            }
             segmenter = ofsc;
         }
         // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
@@ -1091,6 +1113,11 @@ void CWindow::executeNextSegmentation()
         SetUpCurves();
         SetUpAnnotations();
         UpdateView();
+
+        // Needs to be called here since there never might be an callback to onSegmentationFinished()
+        worker_progress_updater_.stop();
+        worker_progress_.close();
+
         playPing();
     }
 }
@@ -1140,9 +1167,6 @@ void CWindow::playPing() {
 
 void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
 {
-    worker_progress_updater_.stop();
-    worker_progress_.close();
-
     // 3) concatenate the two parts to form the complete point cloud
 
     fSegStructMap[submittedSegmentationId].MergePointSetIntoPointCloud(ps);
@@ -1405,7 +1429,7 @@ void CWindow::UpdateAnnotationList(void)
     // Note: This method does not handle removal of existing entries.
 
     // PA check condition
-    if (fVpkg != nullptr && !fSegmentationId.empty() && fSegStructMap[fSegmentationId].fSegmentation && fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
+    if (fVpkg != nullptr && fSegStructMap[fSegmentationId].fSegmentation && fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
         
         // show the existing annotations
         for (auto& a : fSegStructMap[fSegmentationId].fAnnotations) {
@@ -1414,7 +1438,7 @@ void CWindow::UpdateAnnotationList(void)
             if(a.second.anchor || a.second.manual) {
                 // Anchor or manually changed => add to list if not already in there
                 if(fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0).size() == 0) {                    
-                    QTreeWidgetItem *item = new QTreeWidgetItem(fAnnotationListWidget);
+                    AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
                     item->setText(0, QString::number(a.first));
                     item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
                     item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
@@ -1541,7 +1565,6 @@ void CWindow::CloseVolume(void)
 {
     fVpkg = nullptr;
     fSegmentationId = "";
-    fSegmentation = nullptr;
     currentVolume = nullptr;
     fWindowState = EWindowState::WindowStateIdle;  // Set Window State to Idle
     fPenTool->setChecked(false);                   // Reset PenTool Button
@@ -1701,7 +1724,7 @@ void CWindow::OnNewPathClicked(void)
     }
 
     // Add a new path to the tree widget
-    QTreeWidgetItem *newItem = new QTreeWidgetItem(fPathListWidget);
+    QTreeWidgetItem* newItem = new QTreeWidgetItem(fPathListWidget);
     newItem->setText(0, QString(newSegmentationId.c_str()));
     newItem->setCheckState(1, Qt::Unchecked);
     newItem->setCheckState(2, Qt::Unchecked);
@@ -2067,7 +2090,7 @@ void CWindow::NextSelectedId() {
 void CWindow::addNewAnnotationsItem(int sliceIndex, bool anchor, bool manual)
 {
     // Add a new annotation to the tree widget
-    QTreeWidgetItem *newItem = new QTreeWidgetItem(fAnnotationListWidget);
+    AnnotationTreeWidgetItem* newItem = new AnnotationTreeWidgetItem(fAnnotationListWidget);
     newItem->setText(0, QString::number(sliceIndex));
     newItem->setCheckState(1, anchor ? Qt::Checked : Qt::Unchecked);
     newItem->setCheckState(2, manual ? Qt::Checked : Qt::Unchecked);
@@ -2181,6 +2204,12 @@ void CWindow::ToggleSegmentationTool(void)
 
         fWindowState = EWindowState::WindowStateSegmentation;
         SplitCloud();
+
+        // Adjust the algorithm widgets based on whether we have annotations
+        lblBackwardsLength->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
+        edtBackwardsLength->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
+        lblBackwardsInterpolationWindow->setText(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations() 
+            ? tr("Backwards Interpolation Percent") : tr("Backwards Interpolation Window"));
 
         // turn off pen tool
         fPenTool->setChecked(false);
@@ -2434,6 +2463,12 @@ void CWindow::OnPathChanged(void)
             seg.second.OnPathChanged();
         }
     }
+}
+
+// Handle annotation change event
+void CWindow::OnAnnotationChanged(void)
+{
+    UpdateAnnotationList();
 }
 
 bool CWindow::can_change_volume_()
