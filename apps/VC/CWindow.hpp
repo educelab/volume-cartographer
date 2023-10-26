@@ -59,7 +59,7 @@ class CWindow : public QMainWindow
 public:
     enum EWindowState {
         WindowStateSegment,       // under segmentation state
-        WindowStateRefine,        // under mesh refinemen state
+        WindowStateRefine,        // under mesh refinemetn state
         WindowStateDrawPath,      // draw new path
         WindowStateSegmentation,  // segmentation mode
         WindowStateIdle
@@ -188,6 +188,7 @@ private slots:
     void ScanRangeUp();
     void ScanRangeDown();
     void ReturnToEditSlice();
+    void ToggleAnchor();
 
     void ActivatePenTool();
     void ActivateSegmentationTool();
@@ -206,7 +207,6 @@ private slots:
     void OnOptIncludeMiddleClicked(bool clicked);
 
     // void OnEdtSampleDistValChange( QString nText );
-    void OnEdtStartingSliceValChange(int index);
     void OnEdtEndingSliceValChange();
 
     void OnBtnStartSegClicked(void);
@@ -329,6 +329,7 @@ private:
     QShortcut* scanRangeUp;
     QShortcut* scanRangeDown;
     QShortcut* returnToEditSlice;
+    QShortcut* toggleAnchor;
 
     Ui_VCMainWindow ui;
 

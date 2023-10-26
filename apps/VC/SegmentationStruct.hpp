@@ -118,17 +118,19 @@ struct SegmentationStruct {
         // Activate requested segmentation
         fSegmentation = fVpkg->segmentation(fSegmentationId);
 
-        // load proper point cloud
+        // load master point cloud
         if (fSegmentation->hasPointSet()) {
             fMasterCloud = fSegmentation->getPointSet();
+
+            // load annotations
+            if (fSegmentation->hasAnnotations()) {
+                fAnnotationCloud = fSegmentation->getAnnotationSet();
+            } else {
+                // create and store annotation set if not present            
+                fSegmentation->setAnnotationSet(CreateInitialAnnotationSet(fMasterCloud.height(), fMasterCloud.width()));
+            }  
         } else {
             fMasterCloud.reset();
-        }
-
-        // load annotations
-        if (fSegmentation->hasAnnotations()) {
-            fAnnotationCloud = fSegmentation->getAnnotationSet();
-        } else {
             fAnnotationCloud.reset();
         }
 
@@ -238,20 +240,20 @@ struct SegmentationStruct {
         
         fAnnotations.clear();
         for (size_t i = 0; i < fAnnotationCloud.height(); ++i) {
-            AnnotationStruct sliceAno;
+            AnnotationStruct an;
             int pointIndex;
 
             for (size_t j = 0; j < fAnnotationCloud.width(); ++j) {
                 pointIndex = j + (i * fAnnotationCloud.width());
                 
                 if(fAnnotationCloud[pointIndex][0] == 1)
-                    sliceAno.anchor = true;
+                    an.anchor = true;
                 
                 if(fAnnotationCloud[pointIndex][1] == 1)
-                    sliceAno.manual = true;
+                    an.manual = true;
             }
 
-            fAnnotations[fMasterCloud[pointIndex][2]] = sliceAno;
+            fAnnotations[fMasterCloud[pointIndex][2]] = an;
         }
     }
 
@@ -288,6 +290,10 @@ struct SegmentationStruct {
         // Ensure that everything matches
         if(fMasterCloud.width() != ps.width() || fMasterCloud.width() != fAnnotationCloud.width()) {
             std::cout << "Error: Width mismatch during cloud merging" << std::endl;
+            return;
+        }
+        if(fMasterCloud.height() != fAnnotationCloud.height()) {
+            std::cout << "Error: Height mismatch during cloud merging" << std::endl;
             return;
         }
 
@@ -394,7 +400,7 @@ struct SegmentationStruct {
         MergePointSetIntoPointCloud(ps);
     }
 
-    inline void CreateInitialAnnotationSet(int height, int width)
+    inline volcart::OrderedPointSet<cv::Vec2i> CreateInitialAnnotationSet(int height, int width)
     {
         fAnnotationCloud.reset();
         fAnnotationCloud = volcart::OrderedPointSet<cv::Vec2i>(width);
@@ -410,6 +416,8 @@ struct SegmentationStruct {
             }
             fAnnotationCloud.pushRow(annotations);
         }
+
+        return fAnnotationCloud;
     }
 
     inline void SetSliceAsAnchor(int sliceIndex, bool anchor)
@@ -430,8 +438,18 @@ struct SegmentationStruct {
 
         auto it = fAnnotations.find(sliceIndex);
         if(it != fAnnotations.end()) {
+            // Update existing entry
             it->second.anchor = anchor;
+        } else {
+            // Create new entry
+            AnnotationStruct an;
+            an.anchor = anchor;
+            fAnnotations[sliceIndex] = an;
         }
+    }
+
+    inline bool IsSliceAnAnchor(int sliceIndex) {
+        return fAnnotations[sliceIndex].anchor;
     }
 
     inline void AddPointsToManualBuffer(std::set<int> pointIndexes)
@@ -468,8 +486,8 @@ struct SegmentationStruct {
             }
         }
 
-        // First segment is by default an anchor
-        return fMinSegIndex;
+        // No anchor found
+        return -1;
     }
 
     inline int FindNearestHigherAnchor(int sliceIndex)

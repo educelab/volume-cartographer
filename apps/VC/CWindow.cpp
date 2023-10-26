@@ -428,10 +428,8 @@ void CWindow::CreateWidgets(void)
 
     fEdtStartIndex = this->findChild<QSpinBox*>("spinStartingSliceVal");
     fEdtStartIndex->setMinimum(0);
+    fEdtStartIndex->setEnabled(false);
     fEdtEndIndex = this->findChild<QSpinBox*>("spinEndingSliceVal");
-    connect(
-        fEdtStartIndex, SIGNAL(valueChanged(int)), this,
-        SLOT(OnEdtStartingSliceValChange(int)));
     connect(
         fEdtEndIndex, SIGNAL(editingFinished()), this,
         SLOT(OnEdtEndingSliceValChange()));
@@ -489,6 +487,8 @@ void CWindow::CreateWidgets(void)
     scanRangeUp = new QShortcut(QKeySequence(Qt::Key_E), this);
     scanRangeDown = new QShortcut(QKeySequence(Qt::Key_Q), this);
     returnToEditSlice = new QShortcut(QKeySequence(Qt::Key_F), this);
+    toggleAnchor = new QShortcut(QKeySequence(Qt::Key_L), this);
+
 
     connect(
         slicePrev, &QShortcut::activated, fVolumeViewerWidget,
@@ -560,6 +560,7 @@ void CWindow::CreateWidgets(void)
     connect(scanRangeUp, &QShortcut::activated, this, &CWindow::ScanRangeUp);
     connect(scanRangeDown, &QShortcut::activated, this, &CWindow::ScanRangeDown);
     connect(returnToEditSlice, &QShortcut::activated, this, &CWindow::ReturnToEditSlice);
+    connect(toggleAnchor, &QShortcut::activated, this, &CWindow::ToggleAnchor);
 }
 
 // Create menus
@@ -866,18 +867,19 @@ void CWindow::UpdateView(void)
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
     bool availableSegments = false;
     bool availableNewSegments = false;
-    for (auto& seg : fSegStructMap) {
-        auto& segStruct = seg.second;
-        if (!segStruct.display && !segStruct.compute) {
-            continue;
+    if(fPathListWidget->selectedItems().size() > 0) {
+        
+        auto seg = fSegStructMap[fPathListWidget->selectedItems().at(0)->text(0).toStdString()];
+     
+        if (seg.display || seg.compute) {              
+            // segments with already existing line
+            availableSegments = seg.fIntersectionCurve.GetPointsNum() > 0;
+            // completely empty segments, for drawing curve
+            availableNewSegments = (!seg.fSegmentationId.empty() && seg.fMasterCloud.empty());
         }
-        // segments with already existing line
-        availableSegments = availableSegments || segStruct.fIntersectionCurve.GetPointsNum() > 0;
-        // completely empty segments, for drawing curve
-        availableNewSegments = availableNewSegments || (!segStruct.fSegmentationId.empty() && segStruct.fMasterCloud.empty());
     }
-    fSegTool->setEnabled(!availableNewSegments && availableSegments);
-    fPenTool->setEnabled(availableNewSegments);
+    fSegTool->setEnabled(fSegTool->isChecked() || !availableNewSegments && availableSegments);
+    fPenTool->setEnabled(fPenTool->isChecked() || availableNewSegments);
 
     volSelect->setEnabled(can_change_volume_());
     assignVol->setEnabled(can_change_volume_());
@@ -901,9 +903,7 @@ void CWindow::UpdateView(void)
         this->findChild<QGroupBox*>("grpSeg")->setEnabled(true);
     } else {
         // something else
-    }
-
-    fEdtStartIndex->setEnabled(false);
+    }    
 
     fVolumeViewerWidget->UpdateView();
     UpdateAnnotationList();
@@ -926,8 +926,11 @@ void CWindow::ChangePathItem(std::string segID)
     statusBar->clearMessage();
     fSegmentationId = segID;
 
-    // write new Segment to fSegStructMap
-    fSegStructMap[fSegmentationId] = SegmentationStruct(fVpkg, segID, fPathOnSliceIndex);
+    // Write new Segment to fSegStructMap if we are accessing it now for the first time
+    // or if it has been cleared out of the memory already
+    if(fSegStructMap.find(fSegmentationId) == fSegStructMap.end()) {
+        fSegStructMap[fSegmentationId] = SegmentationStruct(fVpkg, fSegmentationId, fPathOnSliceIndex);
+    }
 
     if (fSegStructMap[fSegmentationId].currentVolume != nullptr && fSegStructMap[fSegmentationId].fSegmentation->hasVolumeID()) {
         currentVolume = fSegStructMap[fSegmentationId].currentVolume;
@@ -1051,7 +1054,7 @@ void CWindow::DoSegmentation(void)
 
                 // Find nearest anchor for backwards end slice
                 auto anchorLow = fSegStructMap[fSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
-                ofsc->setBackwardsLength(fEdtStartIndex->value() - anchorLow);
+                ofsc->setBackwardsLength((anchorLow != -1) ? fEdtStartIndex->value() - anchorLow : 0);
 
                 // With annotations, this parameters is considered to be a percentage of the delta between
                 // current slice (= segmentation start slice) and the backwards anchor slice.
@@ -1426,35 +1429,62 @@ void CWindow::InitPathList(void)
 // Update annotation list
 void CWindow::UpdateAnnotationList(void)
 {
-    // Note: This method does not handle removal of existing entries.
+    if (fVpkg != nullptr) {
 
-    // PA check condition
-    if (fVpkg != nullptr && fSegStructMap[fSegmentationId].fSegmentation && fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
-        
-        // show the existing annotations
-        for (auto& a : fSegStructMap[fSegmentationId].fAnnotations) {
-
-            // Check if at least one of the flags is true
-            if(a.second.anchor || a.second.manual) {
-                // Anchor or manually changed => add to list if not already in there
-                if(fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0).size() == 0) {                    
-                    AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
-                    item->setText(0, QString::number(a.first));
-                    item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
-                    item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
-                    item->setDisabled(true);
-                }
+        // Find currently highlighted segment
+        std::string highlightId;
+        for(auto& seg : fSegStructMap) {
+            if (seg.second.highlighted) {
+                highlightId = seg.first;
+                break;
             }
         }
 
-        // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
-        fAnnotationListWidget->resizeColumnToContents(0);
-        fAnnotationListWidget->resizeColumnToContents(1);
-        fAnnotationListWidget->resizeColumnToContents(2); 
+        if(fSegStructMap[highlightId].fSegmentation && fSegStructMap[highlightId].fSegmentation->hasAnnotations()) {
+            
+            // First check if there are entries that we need to remove, because annotations were changed
+            QTreeWidgetItemIterator it(fAnnotationListWidget);
+            while (*it) {
+                auto an = fSegStructMap[highlightId].fAnnotations.find((*it)->text(0).toInt())->second;
+                if (!an.anchor && !an.manual) {
+                    // Displayed row is no longer an annotation => remove
+                    delete (*it);
+                }
+                ++it;
+            }
 
-        fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
-    } else {
-        fAnnotationListWidget->clear();
+            // Add or update the annotation rows
+            for (auto a : fSegStructMap[highlightId].fAnnotations) {
+
+                // Check if at least one of the flags is true
+                if(a.second.anchor || a.second.manual) {
+
+                    // Anchor or manually changed => add to list if not already in there
+                    auto items = fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0);
+
+                    if(items.size() == 0) {                    
+                        AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
+                        item->setText(0, QString::number(a.first));
+                        item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
+                        item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                        item->setDisabled(true);
+                    } if(items.size() == 1) {
+                        // Row does already exists => update it
+                        items.at(0)->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
+                        items.at(0)->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                    }
+                }
+            }
+
+            // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
+            fAnnotationListWidget->resizeColumnToContents(0);
+            fAnnotationListWidget->resizeColumnToContents(1);
+            fAnnotationListWidget->resizeColumnToContents(2); 
+
+            fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
+        } else {
+            fAnnotationListWidget->clear();
+        }
     }
 }
 
@@ -1567,8 +1597,8 @@ void CWindow::CloseVolume(void)
     fSegmentationId = "";
     currentVolume = nullptr;
     fWindowState = EWindowState::WindowStateIdle;  // Set Window State to Idle
-    fPenTool->setChecked(false);                   // Reset PenTool Button
-    fSegTool->setChecked(false);                   // Reset Segmentation Button
+    fPenTool->setChecked(false);                   // Reset Pen Tool Button
+    fSegTool->setChecked(false);                   // Reset Segmentation Tool Button
     ResetPointCloud();
     OpenSlice();
     InitPathList();
@@ -1736,6 +1766,9 @@ void CWindow::OnNewPathClicked(void)
     newItem->setCheckState(2, Qt::Checked); 
     fSegStructMap[newSegmentationId].display = true;
     fSegStructMap[newSegmentationId].compute = true;
+    newItem->setSelected(true);
+
+    fAnnotationListWidget->clear();
     UpdateView();
 
     // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
@@ -1922,12 +1955,18 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             fPathOnSliceIndex = fSegStructMap[aSegID].fMinSegIndex;
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
+
+            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
+            item->setSelected(true);
         }
         // Go to ending position if Alt or Ctrl is pressed
         else if (qga::keyboardModifiers() == Qt::AltModifier || qga::keyboardModifiers() == Qt::ControlModifier) {
             fPathOnSliceIndex = fSegStructMap[aSegID].fMaxSegIndex;
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
+
+            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
+            item->setSelected(true);
         }
     }
     else if (column == 1) // Display
@@ -2001,8 +2040,9 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
     }
 
     UpdateSegmentCheckboxes(aSegID);
-
     fAnnotationListWidget->clear();
+    UpdateAnnotationList();
+
     UpdateView();
 }
 
@@ -2138,6 +2178,13 @@ void CWindow::ReturnToEditSlice() {
     }
 }
 
+void CWindow::ToggleAnchor() {
+    if(fSegTool->isChecked()) {
+        fSegStructMap[fSegmentationId].SetSliceAsAnchor(fPathOnSliceIndex, !fSegStructMap[fSegmentationId].IsSliceAnAnchor(fPathOnSliceIndex));
+        UpdateAnnotationList();
+    }
+}
+
 // Logic to activate pen tool
 void CWindow::ActivatePenTool() {
     // Pen tool available
@@ -2166,6 +2213,7 @@ void CWindow::TogglePenTool(void)
 
         // turn off segmentation tool
         fSegTool->setChecked(false);
+        // pass focus so that viewer can directly listen to keyboard events
         fVolumeViewerWidget->setFocus();
     } else {
         fWindowState = EWindowState::WindowStateIdle;
@@ -2213,11 +2261,12 @@ void CWindow::ToggleSegmentationTool(void)
 
         // turn off pen tool
         fPenTool->setChecked(false);
+        // pass focus so that viewer can directly listen to keyboard events
         fVolumeViewerWidget->setFocus();
     } else {
         CleanupSegmentation();
-        fSliceIndexToolStart = 0;
-        fVolumeViewerWidget->SetSliceIndexToolStart(0);
+        fSliceIndexToolStart = -1;
+        fVolumeViewerWidget->SetSliceIndexToolStart(-1);
     }
     UpdateView();
 }
@@ -2347,14 +2396,6 @@ void CWindow::OnEdtSampleDistValChange( QString nText )
 }
 */
 
-// Handle starting slice value change
-void CWindow::OnEdtStartingSliceValChange(int index)
-{
-    // REVISIT - FILL ME HERE
-    // REVISIT - should be equivalent to "set current slice", the same as
-    // navigation through slices
-}
-
 // Handle ending slice value change
 void CWindow::OnEdtEndingSliceValChange()
 {
@@ -2423,7 +2464,7 @@ void CWindow::OnLoadNextSliceShift(int shift)
 
     if (!fVolumeViewerWidget->fNextBtn->isEnabled()) {
         statusBar->showMessage(
-            tr("Changing Slices is deactivated in the Pen Tool!"), 10000);
+            tr("Changing slices is deactivated in the Pen Tool!"), 10000);
     } else if (shift != 0) {
         fPathOnSliceIndex += shift;
         OpenSlice();
@@ -2442,7 +2483,7 @@ void CWindow::OnLoadPrevSliceShift(int shift)
 
     if (!fVolumeViewerWidget->fPrevBtn->isEnabled()) {
         statusBar->showMessage(
-            tr("Changing Slices is deactivated in the Pen Tool!"), 10000);
+            tr("Changing slices is deactivated in the Pen Tool!"), 10000);
     } else if (shift != 0) {
         fPathOnSliceIndex -= shift;
         OpenSlice();

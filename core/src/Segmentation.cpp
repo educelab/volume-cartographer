@@ -72,7 +72,7 @@ Segmentation::PointSet Segmentation::getPointSet() const
 void Segmentation::setAnnotationSet(const AnnotationSet& ps)
 {
     // Set a name into the metadata if we haven't set one already
-    if (metadata_.get<std::string>("vcano").empty()) {
+    if (!metadata_.hasKey("vcano") || metadata_.get<std::string>("vcano").empty()) {
         metadata_.set("vcano", "pointset.vcano");
         metadata_.save();
     }

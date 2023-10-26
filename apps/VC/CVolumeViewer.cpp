@@ -41,14 +41,18 @@ void CVolumeViewerView::setup()
 
 void CVolumeViewerView::keyPressEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_W)
+    if(event->key() == Qt::Key_W) {
         rangeKeyPressed = true;
+        event->accept();
+    }
 }
 
 void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_W)
+    if(event->key() == Qt::Key_W) {
         rangeKeyPressed = false;
+        event->accept();
+    }
 }
 
 void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label, const QColor& color)
