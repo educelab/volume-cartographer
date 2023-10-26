@@ -6,7 +6,7 @@
 using namespace ChaoVis;
 using qga = QGuiApplication;
 
-#define BGND_RECT_MARGIN 10
+#define BGND_RECT_MARGIN 8
 
 // Constructor
 CVolumeViewerView::CVolumeViewerView(QWidget* parent)
@@ -25,6 +25,10 @@ void CVolumeViewerView::setup()
     textAboveCursor->setVisible(false);    
     textAboveCursor->setDefaultTextColor(QColor(255, 0, 0));
     scene()->addItem(textAboveCursor);
+
+    QFont f;
+    f.setPointSize(f.pointSize() + 2);
+    textAboveCursor->setFont(f);
 
     backgroundBehindText = new QGraphicsRectItem();
     backgroundBehindText->setFlag(QGraphicsItem::ItemIgnoresTransformations);
@@ -48,7 +52,7 @@ void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
 
 void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label)
 {
-    timerTextAboveCursor->start(1500);
+    timerTextAboveCursor->start(150);
 
     QFontMetrics fm(textAboveCursor->font());
     QPointF p = mapToScene(mapFromGlobal(QPoint(QCursor::pos().x() + 10, QCursor::pos().y())));
@@ -59,7 +63,7 @@ void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString&
     
     backgroundBehindText->setVisible(true);
     backgroundBehindText->setPos(p);
-    backgroundBehindText->setRect(0, 0, fm.horizontalAdvance(label) + BGND_RECT_MARGIN, fm.height() * 2 + BGND_RECT_MARGIN);
+    backgroundBehindText->setRect(0, 0, fm.horizontalAdvance((label.isEmpty() ? value : label)) + BGND_RECT_MARGIN, fm.height() * (label.isEmpty() ? 1 : 2) + BGND_RECT_MARGIN);
 }
 
 void CVolumeViewerView::hideTextAboveCursor()
@@ -70,12 +74,12 @@ void CVolumeViewerView::hideTextAboveCursor()
 
 void CVolumeViewerView::showCurrentImpactRange(int range)
 {
-    showTextAboveCursor(QString::number(range), tr("Impact Range"));
+    showTextAboveCursor(QString::number(range), ""); // tr("Impact Range")
 }
 
 void CVolumeViewerView::showCurrentScanRange(int range)
 {
-    showTextAboveCursor(QString::number(range), tr("Scan Range"));
+    showTextAboveCursor(QString::number(range), ""); // tr("Scan Range")
 }
 
 // Constructor
