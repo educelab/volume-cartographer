@@ -456,10 +456,11 @@ void CWindow::CreateWidgets(void)
     next10 = new QShortcut(QKeySequence(Qt::Key_8), this);
     prev100 = new QShortcut(QKeySequence(Qt::Key_9), this);
     next100 = new QShortcut(QKeySequence(Qt::Key_0), this);
-    prevSelectedId = new QShortcut(QKeySequence(Qt::Key_Q), this);
-    nextSelectedId = new QShortcut(QKeySequence(Qt::Key_E), this);
+    prevSelectedId = new QShortcut(QKeySequence(Qt::Key_K), this);
+    nextSelectedId = new QShortcut(QKeySequence(Qt::Key_J), this);
     goToSlice = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this);
-
+    scanRangeUp = new QShortcut(QKeySequence(Qt::Key_E), this);
+    scanRangeDown = new QShortcut(QKeySequence(Qt::Key_Q), this);
 
     connect(
         slicePrev, &QShortcut::activated, fVolumeViewerWidget,
@@ -528,7 +529,8 @@ void CWindow::CreateWidgets(void)
     connect(prevSelectedId, &QShortcut::activated, this, &CWindow::PreviousSelectedId);
     connect(nextSelectedId, &QShortcut::activated, this, &CWindow::NextSelectedId);
     connect(goToSlice, &QShortcut::activated, this, &CWindow::ShowGoToSliceDlg);
-
+    connect(scanRangeUp, &QShortcut::activated, this, &CWindow::ScanRangeUp);
+    connect(scanRangeDown, &QShortcut::activated, this, &CWindow::ScanRangeDown);
 }
 
 // Create menus
@@ -1499,6 +1501,7 @@ void CWindow::Keybindings(void)
         "Ctrl+S: Save Volume Package \n"
         "A,D: Impact Range down/up by 1 \n"        
         "[, ]: Alternative Impact Range down/up by 1 \n"
+        "Q,E: Slice scan range down/up (moure mouse wheel scanning) \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
         "1,2: Slice down/up by 1 \n"
         "3,4: Slice down/up by 2 \n"
@@ -1510,8 +1513,8 @@ void CWindow::Keybindings(void)
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
         "C: Alternate Toggle Curve Visibility \n"
-        "Q: Highlight Previous Curve that is selected for Computation \n"
-        "E: Highlight Next Curve that is selected for Computation \n" 
+        "J: Highlight Next Curve that is selected for Computation \n" 
+        "K: Highlight Previous Curve that is selected for Computation \n"        
         "\n"   
         "Mouse: \n"
         "------------------- \n"    
@@ -1978,6 +1981,25 @@ void CWindow::ShowGoToSliceDlg() {
     if(status) {
         OnLoadAnySlice(sliceIndex);
     }
+}
+
+void CWindow::ScanRangeUp() {
+    if(currentScanRangeIndex < std::size(scanRanges) - 1) {
+        currentScanRangeIndex++;
+    }    
+
+    // Always inform the UI/user, even if the value stayed the same
+    fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
+}
+
+void CWindow::ScanRangeDown() {
+    if(currentScanRangeIndex > 0) {
+        currentScanRangeIndex--;
+        fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
+    }    
+
+    // Always inform the UI/user, even if the value stayed the same
+    fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
 }
 
 // Logic to activate pen tool

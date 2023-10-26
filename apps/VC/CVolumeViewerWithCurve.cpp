@@ -154,6 +154,13 @@ void CVolumeViewerWithCurve::SetImpactRange(int nImpactRange)
     fGraphicsView->showCurrentImpactRange(nImpactRange);
 }
 
+// Set the scan range
+void CVolumeViewerWithCurve::SetScanRange(int nScanRange)
+{
+    fScanRange = nScanRange;
+    fGraphicsView->showCurrentScanRange(nScanRange);
+}
+
 // Update the B-spline curve
 void CVolumeViewerWithCurve::UpdateSplineCurve(void)
 {
@@ -372,8 +379,8 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         {
             isPanning = true;
             setCursor(Qt::ClosedHandCursor);
-            fGraphicsView->horizontalScrollBar()->setValue(fGraphicsView->horizontalScrollBar()->value() - (event->position().x() - panStartX));
-            fGraphicsView->verticalScrollBar()->setValue(fGraphicsView->verticalScrollBar()->value() - (event->position().y() - panStartY));
+            fGraphicsView->horizontalScrollBar()->setValue(fGraphicsView->horizontalScrollBar()->value() - 2 * (event->position().x() - panStartX));
+            fGraphicsView->verticalScrollBar()->setValue(fGraphicsView->verticalScrollBar()->value() - 2 * (event->position().y() - panStartY));
             panStartX = event->position().x();
             panStartY = event->position().y();
         } else {

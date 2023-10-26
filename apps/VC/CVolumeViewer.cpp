@@ -6,14 +6,32 @@
 using namespace ChaoVis;
 using qga = QGuiApplication;
 
+#define BGND_RECT_MARGIN 10
+
 // Constructor
 CVolumeViewerView::CVolumeViewerView(QWidget* parent)
 : QGraphicsView(parent)
 {
-    // rangeImpactText = new QGraphicsTextItem(QString("0, 0"), 0);
-    // QFont f;
-    // f.setPointSize(25);
-    // rangeImpactText->setFont(f);
+    timerTextAboveCursor = new QTimer(this);
+    connect(timerTextAboveCursor, &QTimer::timeout, this, &CVolumeViewerView::hideTextAboveCursor);
+    timerTextAboveCursor->setSingleShot(true);
+}
+
+void CVolumeViewerView::setup() 
+{
+    textAboveCursor = new QGraphicsTextItem("", 0);
+    textAboveCursor->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+    textAboveCursor->setZValue(100);
+    textAboveCursor->setVisible(false);    
+    textAboveCursor->setDefaultTextColor(QColor(255, 0, 0));
+    scene()->addItem(textAboveCursor);
+
+    backgroundBehindText = new QGraphicsRectItem();
+    backgroundBehindText->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+    backgroundBehindText->setBrush(QBrush(QColor(125, 125, 125, 200)));
+    backgroundBehindText->setPen(Qt::NoPen);
+    backgroundBehindText->setZValue(99);
+    scene()->addItem(backgroundBehindText);
 }
 
 void CVolumeViewerView::keyPressEvent(QKeyEvent* event)
@@ -28,9 +46,36 @@ void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
         rangeKeyPressed = false;
 }
 
+void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label)
+{
+    timerTextAboveCursor->start(1500);
+
+    QFontMetrics fm(textAboveCursor->font());
+    QPointF p = mapToScene(mapFromGlobal(QPoint(QCursor::pos().x() + 10, QCursor::pos().y())));
+
+    textAboveCursor->setVisible(true);
+    textAboveCursor->setHtml("<b>" + value + "</b><br>" + label);    
+    textAboveCursor->setPos(p);
+    
+    backgroundBehindText->setVisible(true);
+    backgroundBehindText->setPos(p);
+    backgroundBehindText->setRect(0, 0, fm.horizontalAdvance(label) + BGND_RECT_MARGIN, fm.height() * 2 + BGND_RECT_MARGIN);
+}
+
+void CVolumeViewerView::hideTextAboveCursor()
+{
+    textAboveCursor->setVisible(false);
+    backgroundBehindText->setVisible(false);
+}
+
 void CVolumeViewerView::showCurrentImpactRange(int range)
 {
-    //rangeImpactText->setPlainText("Range: " + QString::number(range));
+    showTextAboveCursor(QString::number(range), tr("Impact Range"));
+}
+
+void CVolumeViewerView::showCurrentScanRange(int range)
+{
+    showTextAboveCursor(QString::number(range), tr("Scan Range"));
 }
 
 // Constructor
@@ -48,6 +93,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     , fBaseImageItem(nullptr)
     , fScaleFactor(1.0)
     , fImageIndex(0)
+    , fScanRange(1)
 {
     // buttons
     fZoomInBtn = new QPushButton(tr("Zoom In"), this);
@@ -77,6 +123,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
 
     // Set the scene
     fGraphicsView->setScene(fScene);
+    fGraphicsView->setup();
 
     fGraphicsView->viewport()->installEventFilter(this);
 
@@ -197,9 +244,9 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
-                SendSignalOnNextSliceShift(numDegrees > 30 ? 10 : 1);
+                SendSignalOnNextSliceShift(fScanRange);
             } else if (numDegrees < 0) {
-                SendSignalOnPrevSliceShift(numDegrees < -30 ? 10 : 1);
+                SendSignalOnPrevSliceShift(fScanRange);
             }
             return true;
         }

@@ -47,6 +47,7 @@ public:
     // for editing mode
     void SetIntersectionCurve(CXCurve& nCurve);
     void SetImpactRange(int nImpactRange);
+    void SetScanRange(int nScanRange);
     void SetSliceIndexToolStart(int index) { sliceIndexToolStart = index; }
 
     void UpdateView();

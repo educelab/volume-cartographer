@@ -22,18 +22,26 @@ class CVolumeViewerView : public QGraphicsView
     public:
         CVolumeViewerView(QWidget* parent = nullptr);
 
+        void setup();
+
         void keyPressEvent(QKeyEvent* event) override;
         void keyReleaseEvent(QKeyEvent* event) override;
 
         bool isRangeKeyPressed() { return rangeKeyPressed; }
 
+        void showTextAboveCursor(const QString& value, const QString& label);
+        void hideTextAboveCursor();
+
     public slots:
         void showCurrentImpactRange(int range);
+        void showCurrentScanRange(int range);
 
     protected:
         bool rangeKeyPressed{false};
 
-        QGraphicsTextItem* rangeImpactText;
+        QGraphicsTextItem* textAboveCursor;
+        QGraphicsRectItem* backgroundBehindText;
+        QTimer* timerTextAboveCursor;
 };
 
 class CVolumeViewer : public QWidget
@@ -103,6 +111,7 @@ protected:
     QImage* fImgQImage;
     double fScaleFactor;
     int fImageIndex;
+    int fScanRange;  // how many slices a mouse wheel step will jump
 
     bool fCenterOnZoomEnabled;
 

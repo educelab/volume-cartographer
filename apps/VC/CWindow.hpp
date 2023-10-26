@@ -55,6 +55,8 @@ public:
     };  // idle
     enum SaveResponse : bool { Cancelled, Continue };
 
+    static constexpr const int scanRanges[] = {1, 2, 5, 10, 20, 100};
+
     // Structure for segmentation parameters
     // Declare parameters for new algos here and update SetUpSegParams()
     using SSegParams = struct SSegParams_tag {
@@ -170,6 +172,8 @@ private slots:
     void PreviousSelectedId();
     void NextSelectedId();
     void ShowGoToSliceDlg();
+    void ScanRangeUp();
+    void ScanRangeDown();
 
     void ActivatePenTool();
     void ActivateSegmentationTool();
@@ -226,6 +230,7 @@ private:
     int fPathOnSliceIndex; // currently visible slice
     int fSliceIndexToolStart{0}; // slice for which the currently active tool was started / toggled
     int fEndTargetOffset{5};
+    int currentScanRangeIndex{0}; // Index 0 = range size 1 as starting value
 
     // for drawing mode
     CBSpline fSplineCurve;  // the curve at current slice
@@ -298,6 +303,8 @@ private:
     QShortcut* prevSelectedId;
     QShortcut* nextSelectedId;
     QShortcut* goToSlice;
+    QShortcut* scanRangeUp;
+    QShortcut* scanRangeDown;
 
     Ui_VCMainWindow ui;
 

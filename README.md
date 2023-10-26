@@ -12,10 +12,11 @@ This fork contains the following changes compared to upstream currently:
   * Added new keyboard shortcuts so that now via number keys slice navigation in 1, 2, 5, 10 and 100 steps is available
   * Added option to scan through slices while in the Segmentation Tool without losing any made curve changes
 - Implemented image dragging/panning via right mouse button
+- Fixed a bug in the OFS segmentation implementation that would (during the backwards interpolation part), output invalid `vcps` point sets, as the first two segment rows both list slice number 0 (should be of course 0 for the first and 1 for the second slice/row)
 - Changed curve changes / point snapping to only use the left mouse button (without any additional modifiers)
 - Adjusted mouse wheel usage:
   * Mouse Wheel + Ctrl = Zoom in/out (as in most image apps); was previously Mouse Wheel + Shift in VC
-  * Mouse Wheel + Shift = Next/previous slice (test-wise for big mouse wheel movements 10 slices; might need to be made user-configurable for different mouse models)
+  * Mouse Wheel + Shift = Next/previous slice (scan range can be set via Q/E keys with visual feedback)
   * Mouse Wheel + W Key Hold = Adjust impact range
 - Added Ctrl + G to easily jump to a given slice (opens an input popup to type in the slice index) => no more need to manually click into the spinner below the viewer
 - Added settings dialog (using an INI file `VC.ini`) to make some features configurable
