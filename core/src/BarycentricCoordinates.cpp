@@ -57,7 +57,7 @@ auto vc::BarycentricNormalInterpolation(
     const cv::Vec3d& nC) -> cv::Vec3d
 {
     return cv::normalize(
-        uvw[0] * nA + uvw[1] * nB + (1 - uvw[0] - uvw[1]) * nC);
+        uvw[0] * nA + uvw[1] * nB + (1. - uvw[0] - uvw[1]) * nC);
 }
 
 bool vc::CartesianPointIsInTriangle(
