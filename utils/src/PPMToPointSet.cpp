@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/OBJWriter.hpp"
+#include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/util/String.hpp"
@@ -23,9 +23,9 @@ struct ROI {
 };
 
 // Converts ROI string to ROI struct
-ROI ParseROI(const std::string& opt);
+auto ParseROI(const std::string& opt) -> ROI;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -35,9 +35,9 @@ int main(int argc, char* argv[])
         ("help,h", "Show this message")
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
         ("output-mesh,o", po::value<std::string>()->required(),
-             "Output OBJ mesh file")
+             "Output mesh file")
         ("roi", po::value<std::string>(), "String describing origin and width "
-             "and height of region-of-interest. Format: X+Y+WxH");
+             "and height of region-of-interest. Format: WxH+X+Y");
 
     po::options_description all("Usage");
     all.add(required);
@@ -93,25 +93,23 @@ int main(int argc, char* argv[])
             }
 
             auto id = mesh->GetNumberOfPoints();
-            auto pos = ppm.getAsPixelMap(y, x).pos;
-            mesh->SetPoint(id, pos.val);
+            auto pt = ppm.getAsPixelMap(y, x);
+            mesh->SetPoint(id, pt.pos.val);
+            mesh->SetPointData(id, pt.normal.val);
         }
     }
 
     // Write the mesh
     std::cout << "Write OBJ file..." << std::endl;
     fs::path outputPath = parsed["output-mesh"].as<std::string>();
-    vc::io::OBJWriter writer;
-    writer.setPath(outputPath);
-    writer.setMesh(mesh);
-    writer.write();
+    vc::WriteMesh(outputPath, mesh);
 }
 
 // Convert ROI string to ROI struct
-ROI ParseROI(const std::string& opt)
+auto ParseROI(const std::string& opt) -> ROI
 {
     // Match against regex
-    std::regex roiRegex{"^[0-9]*\\+[0-9]*\\+[0-9]*x[0-9]*$"};
+    std::regex roiRegex{"^[0-9]*x[0-9]*\\+[0-9]*\\+[0-9]*$"};
     if (!std::regex_match(opt.begin(), opt.end(), roiRegex)) {
         std::cerr << "Cannot parse ROI: " << opt << std::endl;
         exit(EXIT_FAILURE);
@@ -128,6 +126,6 @@ ROI ParseROI(const std::string& opt)
     }
 
     return {
-        std::stoull(strs[0]), std::stoull(strs[1]), std::stoull(strs[2]),
-        std::stoull(strs[3])};
+        std::stoull(strs[2]), std::stoull(strs[3]), std::stoull(strs[0]),
+        std::stoull(strs[1])};
 }
