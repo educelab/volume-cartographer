@@ -79,7 +79,7 @@ signals:
 private:
     // for interaction
     QTimer *timer;
-    Qt::MouseButton lastPressedButton{Qt::NoButton};
+    Qt::MouseButton lastPressedSideButton{Qt::NoButton};
     cv::Vec2f scrollPositionModifier{cv::Vec2f(0.0, 0.0)};
 
     // for drawing
@@ -101,7 +101,7 @@ private:
     std::string fSelectedSegID;
 
     bool fVertexIsChanged;
-    bool fIsMousePressed{false};
+    bool lineGrabbed{false};
     QPointF fLastPos;  // last mouse position on the image
     int fImpactRange;  // how many points a control point movement can affect
 

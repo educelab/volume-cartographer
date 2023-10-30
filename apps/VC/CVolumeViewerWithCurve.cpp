@@ -219,7 +219,7 @@ void CVolumeViewerWithCurve::UpdateView()
 
 void CVolumeViewerWithCurve::handleMouseHold()
 {
-    if (lastPressedButton & Qt::BackButton || lastPressedButton & Qt::ForwardButton) {
+    if (lastPressedSideButton & Qt::BackButton || lastPressedSideButton & Qt::ForwardButton) {
         auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
 
         auto res = SelectPointOnCurves(p2, false, true);
@@ -234,10 +234,10 @@ void CVolumeViewerWithCurve::handleMouseHold()
         double speed = 50.0;
         int pointDifference = static_cast<int>(speed / fScaleFactor);
         // qDebug() << "pointDifference: " << pointDifference << " fSelectedPointIndex: " << fSelectedPointIndex;
-        if (lastPressedButton & Qt::BackButton) {
+        if (lastPressedSideButton & Qt::BackButton) {
             fSelectedPointIndex -= pointDifference;
         }
-        else if (lastPressedButton & Qt::ForwardButton) {
+        else if (lastPressedSideButton & Qt::ForwardButton) {
             fSelectedPointIndex += pointDifference;
         }
         fSelectedPointIndex = std::max(0, std::min(numCurvePoints - 1, fSelectedPointIndex));
@@ -268,22 +268,22 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 {
     // Check if back or forward button was pressed
     if (event->buttons() & Qt::BackButton || event->buttons() & Qt::ForwardButton) {
-        lastPressedButton = event->button();
+        lastPressedSideButton = event->button();
         scrollPositionModifier = cv::Vec2f(0.0, 0.0);
         timer->start(fwdBackMsJump); // start timer with millisec delay value from settings
         return;
     }
 
-    if (lastPressedButton & Qt::NoButton) {
+    if (lastPressedSideButton & Qt::NoButton) {
         return;
     }
 
     // Return if not left or right click
-    if (!(event->buttons() & Qt::RightButton) && !(event->buttons() & Qt::LeftButton) && !fIsMousePressed) {
+    if (!(event->buttons() & Qt::RightButton) && !(event->buttons() & Qt::LeftButton)) {
         return;
     }
 
-    if((event->buttons() & Qt::LeftButton) || fIsMousePressed) {
+    if((event->button() == Qt::LeftButton)) {
         // Get the mouse position in widget coordinates
         cv::Vec2f aWidgetLoc, aImgLoc, res;
         // For some reason the mouse position in the relase event are different and slightly off.
@@ -294,19 +294,15 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
         // Convert to image coordinates
         WidgetLoc2ImgLoc(aWidgetLoc, aImgLoc);
 
-        // Update the last tracked position
-        fLastPos.setX(aImgLoc[0]);
-        fLastPos.setY(aImgLoc[1]);
-
         // Handle draw and edit
-        if (fViewState == EViewState::ViewStateDraw && (event->buttons() & Qt::LeftButton)) {
+        if (fViewState == EViewState::ViewStateDraw && event->buttons() == Qt::LeftButton) {
             // With left click, add control points to the curve
             fControlPoints.push_back(aImgLoc);
             UpdateSplineCurve();
             UpdateView();
                 
-        } else if (fViewState == EViewState::ViewStateEdit && ((event->buttons() & Qt::LeftButton) || fIsMousePressed)) {
-            fIsMousePressed = true;        
+        } else if (fViewState == EViewState::ViewStateEdit && event->button() == Qt::LeftButton) {
+            lineGrabbed = true;        
 
             if(fImageIndex != sliceIndexToolStart) {
                 SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now.").arg(QString::number(sliceIndexToolStart)), 3000);
@@ -334,7 +330,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
                 // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
             }
         }
-    } else if (event->buttons() & Qt::RightButton) {
+    } else if (event->button() == Qt::RightButton) {
         // Attempt to start the panning. We only consider us in panning mode, if in the mouse move event
         // we actually detect movement.
         
@@ -349,18 +345,18 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 // Handle mouse move event, currently only when we're editing
 void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 {
-    // If we have an active last pressed button from the backwards/forwards move feature,
-    // we cannot do any panning at the same time, nor do we want to move any paths.
-    if(lastPressedButton) {
+    // If we have an active last pressed side button from the backwards/forwards move feature,
+    // we cannot do any panning at the same time, nor do we want to move any curves.
+    if(lastPressedSideButton) {
         return;
     }
         
-    if (!wantsPanning && !rightPressed & !fIsMousePressed) {
+    if (!wantsPanning && !rightPressed && !lineGrabbed) {
         return;
     }
 
     // Update the curve if we have a selected point
-    if (fSelectedPointIndex != -1) {
+    if (fSelectedPointIndex != -1 && lineGrabbed) {
         // Get the mouse position in widget coordinates
         cv::Vec2f aWidgetLoc, aImgLoc;
         aWidgetLoc[0] = event->position().x();
@@ -397,16 +393,16 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 // Handle mouse release event
 void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (((lastPressedButton & Qt::BackButton) && !(event->buttons() & Qt::BackButton)) || ((lastPressedButton & Qt::ForwardButton) && !(event->buttons() & Qt::ForwardButton))) {
+    if (((lastPressedSideButton & Qt::BackButton) && !(event->buttons() & Qt::BackButton)) || ((lastPressedSideButton & Qt::ForwardButton) && !(event->buttons() & Qt::ForwardButton))) {
         timer->stop();
-        lastPressedButton = Qt::NoButton;  // unset the last pressed button
+        lastPressedSideButton = Qt::NoButton;  // unset the last pressed button
     }
 
-    if (!(event->buttons() & Qt::RightButton) && !(event->buttons() & Qt::LeftButton)) {
-        fIsMousePressed = false;
+    if (event->button() == Qt::LeftButton) {
+        lineGrabbed = false;
     }
 
-    // End panning
+    // end panning
     if(event->button() == Qt::RightButton) {
         isPanning = wantsPanning = rightPressed = false;
         setCursor(Qt::ArrowCursor);
@@ -415,7 +411,6 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
     }
 
     if (fIntersectionCurveRef != nullptr && fVertexIsChanged) {
-
         // update the point positions in the path point cloud
         SendSignalPathChanged();
 
