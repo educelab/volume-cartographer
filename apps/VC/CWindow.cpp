@@ -121,6 +121,27 @@ CWindow::CWindow()
     fSegParams.backwards_smoothnes_interpolation_window = 5;
     fSegParams.backwards_length = 25;
 
+    // Process the raw impact range step string and convert to step vector
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    QString impactRangeStr = settings.value("viewer/impact_range_steps", "1-20").toString();
+    impactRangeStr = impactRangeStr.simplified();
+    impactRangeStr.replace(" ", "");
+    auto commaSplit = impactRangeStr.split(",");
+    for(auto str : commaSplit) {
+        if(str.contains("-")) {
+            // Expand the range to distinct values
+            auto dashSplit = str.split("-");
+            // We need to have two split results (before and after the dash), otherwise skip
+            if(dashSplit.size() == 2) {
+                for(int i = dashSplit.at(0).toInt(); i <= dashSplit.at(1).toInt(); i++) {
+                    impactRangeSteps.push_back(i);
+                }
+            }
+        } else {
+            impactRangeSteps.push_back(str.toInt());
+        }
+    }
+
     // create UI widgets
     CreateWidgets();
 
@@ -143,7 +164,6 @@ CWindow::CWindow()
     }
 
     // If enabled, auto open the last used volpkg
-    QSettings settings("VC.ini", QSettings::IniFormat);
     if (settings.value("volpkg/auto_open", false).toInt() != 0) {
         
         QStringList files = settings.value("volpkg/recent").toStringList();
@@ -151,7 +171,7 @@ CWindow::CWindow()
         if(files.size() > 0 && !files.at(0).isEmpty()) {
             Open(files[0]);
         }
-    }
+    }    
 }
 
 // Destructor
@@ -426,7 +446,11 @@ void CWindow::CreateWidgets(void)
     QSlider* fEdtImpactRng = this->findChild<QSlider*>("sldImpactRange");
     connect(
         fEdtImpactRng, SIGNAL(valueChanged(int)), this,
-        SLOT(OnEdtImpactRange(int)));
+        SLOT(OnEdtImpactRange(int)));    
+    // We use the slider to provide us an index into the vector of real impact values
+    // => range 0..size()-1
+    fEdtImpactRng->setMinimum(0);
+    fEdtImpactRng->setMaximum(impactRangeSteps.size() - 1);
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
     fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
 
@@ -1501,9 +1525,9 @@ void CWindow::Keybindings(void)
         "------------------- \n"
         "Ctrl+O: Open Volume Package \n"
         "Ctrl+S: Save Volume Package \n"
-        "A,D: Impact Range down/up by 1 \n"        
-        "[, ]: Alternative Impact Range down/up by 1 \n"
-        "Q,E: Slice scan range down/up (moure mouse wheel scanning) \n"
+        "A,D: Impact Range down/up \n"        
+        "[, ]: Alternative Impact Range down/up \n"
+        "Q,E: Slice scan range down/up (mouse wheel scanning) \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
         "1,2: Slice down/up by 1 \n"
         "3,4: Slice down/up by 2 \n"
@@ -2237,10 +2261,12 @@ void CWindow::OnEdtEndingSliceValChange()
 void CWindow::OnBtnStartSegClicked(void) { DoSegmentation(); }
 
 // Handle changes to impact range
-void CWindow::OnEdtImpactRange(int nImpactRange)
+void CWindow::OnEdtImpactRange(int nImpactRangeIndex)
 {
-    fVolumeViewerWidget->SetImpactRange(nImpactRange);
-    fLabImpactRange->setText(QString::number(nImpactRange));
+    // Translate value from slider (treated as index into steps) to actual impact range value
+    auto impactRange = impactRangeSteps.at(nImpactRangeIndex);
+    fVolumeViewerWidget->SetImpactRange(impactRange);
+    fLabImpactRange->setText(QString::number(impactRange));
 }
 
 // Handle request to step impact range up

@@ -19,7 +19,9 @@ This fork contains the following changes compared to upstream currently:
   * Mouse Wheel + Shift = Next/previous slice (scan range can be set via Q/E keys with visual feedback)
   * Mouse Wheel + W Key Hold = Adjust impact range
 - Added Ctrl + G to easily jump to a given slice (opens an input popup to type in the slice index) => no more need to manually click into the spinner below the viewer
+- Added shortcut F to jump back to the slice the segmentation tool was started on
 - Added settings dialog (using an INI file `VC.ini`) to make some features configurable
+- Added user configurable impact ranges (default remains 1-20)
 - Added a "Recent volpkg" list and menu option to easily reopen one of the last 10 volume packages
 - Added option to auto open the last volpkg upon app start
 - Added the feature to remove a segment/path from the volpkg

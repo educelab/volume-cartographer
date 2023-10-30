@@ -18,6 +18,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
 
     spinFwdBackStepMs->setValue(settings.value("viewer/fwd_back_step_ms", 25).toInt());
     chkCenterOnZoom->setChecked(settings.value("viewer/center_on_zoom", false).toInt() != 0);
+    edtImpactRange->setText(settings.value("viewer/impact_range_steps", "1-20").toString());
 }
 
 void SettingsDialog::accept()
@@ -29,6 +30,7 @@ void SettingsDialog::accept()
 
     settings.setValue("viewer/fwd_back_step_ms", spinFwdBackStepMs->value());
     settings.setValue("viewer/center_on_zoom", chkCenterOnZoom->isChecked() ? "1" : "0");
+    settings.setValue("viewer/impact_range_steps", edtImpactRange->text());
 
     QMessageBox::information(this, tr("Restart required"), tr("Note: Some settings only take effect once you restarted the app."));
 

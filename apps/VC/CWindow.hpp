@@ -232,6 +232,7 @@ private:
     int fSliceIndexToolStart{0}; // slice for which the currently active tool was started / toggled
     int fEndTargetOffset{5};
     int currentScanRangeIndex{0}; // Index 0 = range size 1 as starting value
+    std::vector<int> impactRangeSteps;
 
     // for drawing mode
     CBSpline fSplineCurve;  // the curve at current slice
