@@ -68,21 +68,29 @@ void CalculateNormals::compute_normals_()
         v0(0) = vert[0];
         v0(1) = vert[1];
         v0(2) = vert[2];
-        facePoint += vert;
+        facePoint[0] += vert[0];
+        facePoint[1] += vert[1];
+        facePoint[2] += vert[2];
 
         vert = input_->GetPoint(pointIds[1]);
         v1(0) = vert[0];
         v1(1) = vert[1];
         v1(2) = vert[2];
-        facePoint += vert;
+        facePoint[0] += vert[0];
+        facePoint[1] += vert[1];
+        facePoint[2] += vert[2];
 
         vert = input_->GetPoint(pointIds[2]);
         v2(0) = vert[0];
         v2(1) = vert[1];
         v2(2) = vert[2];
-        facePoint += vert;
+        facePoint[0] += vert[0];
+        facePoint[1] += vert[1];
+        facePoint[2] += vert[2];
 
-        facePoint /= 3.0;
+        facePoint[0] /= 3.0;
+        facePoint[1] /= 3.0;
+        facePoint[2] /= 3.0;
 
         // Get the edge vectors
         e0 = v2 - v0;
@@ -93,7 +101,8 @@ void CalculateNormals::compute_normals_()
         normals = e1.cross(e0);
 
         // Accumulate the relative direction of the normals for this face.
-        if (normals.dot(facePoint - pointAverage) > 0) {
+        cv::Vec3d itkVecToCvVec(facePoint[0] - pointAverage[0], facePoint[1] - pointAverage[1], facePoint[2] - pointAverage[2]);
+        if (normals.dot(itkVecToCvVec) > 0) {
             outwardNormalsCount++;
         } else {
             inwardNormalsCount++;
@@ -115,10 +124,9 @@ void CalculateNormals::assign_to_mesh_()
         cv::Vec3d norm = vertexNormals_[point.Index()];
         cv::normalize(norm, norm);
 
-        auto val = norm.val;
         if (flippedNormals_) {
-            val = -val;
+            norm = -norm;
         }
-        output_->SetPointData(point.Index(), val);
+        output_->SetPointData(point.Index(), norm.val);
     }
 }
