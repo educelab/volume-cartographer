@@ -7,6 +7,7 @@ using namespace ChaoVis;
 using qga = QGuiApplication;
 
 #define BGND_RECT_MARGIN 8
+#define DEFAULT_TEXT_COLOR QColor(255, 255, 120)
 
 // Constructor
 CVolumeViewerView::CVolumeViewerView(QWidget* parent)
@@ -23,7 +24,7 @@ void CVolumeViewerView::setup()
     textAboveCursor->setFlag(QGraphicsItem::ItemIgnoresTransformations);
     textAboveCursor->setZValue(100);
     textAboveCursor->setVisible(false);    
-    textAboveCursor->setDefaultTextColor(QColor(255, 0, 0));
+    textAboveCursor->setDefaultTextColor(DEFAULT_TEXT_COLOR);
     scene()->addItem(textAboveCursor);
 
     QFont f;
@@ -50,7 +51,7 @@ void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
         rangeKeyPressed = false;
 }
 
-void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label)
+void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label, const QColor& color)
 {
     timerTextAboveCursor->start(150);
 
@@ -60,6 +61,7 @@ void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString&
     textAboveCursor->setVisible(true);
     textAboveCursor->setHtml("<b>" + value + "</b><br>" + label);    
     textAboveCursor->setPos(p);
+    textAboveCursor->setDefaultTextColor(color);
     
     backgroundBehindText->setVisible(true);
     backgroundBehindText->setPos(p);
@@ -74,12 +76,17 @@ void CVolumeViewerView::hideTextAboveCursor()
 
 void CVolumeViewerView::showCurrentImpactRange(int range)
 {
-    showTextAboveCursor(QString::number(range), ""); // tr("Impact Range")
+    showTextAboveCursor(QString::number(range), "", DEFAULT_TEXT_COLOR); // tr("Impact Range")
 }
 
 void CVolumeViewerView::showCurrentScanRange(int range)
 {
-    showTextAboveCursor(QString::number(range), ""); // tr("Scan Range")
+    showTextAboveCursor(QString::number(range), "", DEFAULT_TEXT_COLOR); // tr("Scan Range")
+}
+
+void CVolumeViewerView::showCurrentSliceIndex(int slice, bool highlight)
+{
+    showTextAboveCursor(QString::number(slice), "", (highlight ? QColor(255, 0, 0) : DEFAULT_TEXT_COLOR)); // tr("Slice")
 }
 
 // Constructor
@@ -93,6 +100,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     , fResetBtn(nullptr)
     , fNextBtn(nullptr)
     , fPrevBtn(nullptr)
+    , fViewState(EViewState::ViewStateIdle)
     , fImgQImage(nullptr)
     , fBaseImageItem(nullptr)
     , fScaleFactor(1.0)
@@ -249,8 +257,10 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
 
             if (numDegrees > 0) {
                 SendSignalOnNextSliceShift(fScanRange);
+                fGraphicsView->showCurrentSliceIndex(fImageIndex, (GetViewState() == EViewState::ViewStateEdit && fImageIndex == sliceIndexToolStart));
             } else if (numDegrees < 0) {
                 SendSignalOnPrevSliceShift(fScanRange);
+                fGraphicsView->showCurrentSliceIndex(fImageIndex, (GetViewState() == EViewState::ViewStateEdit && fImageIndex == sliceIndexToolStart));
             }
             return true;
         }

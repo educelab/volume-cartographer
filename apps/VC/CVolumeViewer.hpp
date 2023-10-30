@@ -29,12 +29,13 @@ class CVolumeViewerView : public QGraphicsView
 
         bool isRangeKeyPressed() { return rangeKeyPressed; }
 
-        void showTextAboveCursor(const QString& value, const QString& label);
+        void showTextAboveCursor(const QString& value, const QString& label, const QColor& color);
         void hideTextAboveCursor();
 
     public slots:
         void showCurrentImpactRange(int range);
         void showCurrentScanRange(int range);
+        void showCurrentSliceIndex(int slice, bool highlight);
 
     protected:
         bool rangeKeyPressed{false};
@@ -50,11 +51,20 @@ class CVolumeViewer : public QWidget
     Q_OBJECT
 
 public:
+    enum EViewState {
+        ViewStateEdit,  // edit mode
+        ViewStateDraw,  // draw mode
+        ViewStateIdle   // idle mode
+    };  
+
     QPushButton* fNextBtn;
     QPushButton* fPrevBtn;
     CVolumeViewer(QWidget* parent = 0);
     ~CVolumeViewer(void);
     virtual void setButtonsEnabled(bool state);
+
+    void SetViewState(EViewState nViewState) { fViewState = nViewState; }
+    EViewState GetViewState(void) { return fViewState; }
 
     virtual void SetImage(const QImage& nSrc);
     void SetImageIndex(int nImageIndex)
@@ -108,9 +118,11 @@ protected:
     QHBoxLayout* fButtonsLayout;
 
     // data
+    EViewState fViewState;
     QImage* fImgQImage;
     double fScaleFactor;
     int fImageIndex;
+    int sliceIndexToolStart;
     int fScanRange;  // how many slices a mouse wheel step will jump
 
     bool fCenterOnZoomEnabled;

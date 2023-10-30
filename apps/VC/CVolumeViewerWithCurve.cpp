@@ -23,7 +23,6 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     , fSelectedPointIndex(-1)
     , fVertexIsChanged(false)
     , fImpactRange(8)
-    , fViewState(EViewState::ViewStateIdle)
     , fSegStructMapRef(nSegStructMapRef)
 {
     timer = new QTimer(this);
@@ -159,6 +158,12 @@ void CVolumeViewerWithCurve::SetScanRange(int nScanRange)
 {
     fScanRange = nScanRange;
     fGraphicsView->showCurrentScanRange(nScanRange);
+}
+
+// Return to the slice that the tool was started on 
+void CVolumeViewerWithCurve::ReturnToSliceIndexToolStart()
+{
+    SendSignalOnLoadAnyImage(sliceIndexToolStart);
 }
 
 // Update the B-spline curve
@@ -397,19 +402,13 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
         lastPressedButton = Qt::NoButton;  // unset the last pressed button
     }
 
-    if (!isPanning && !fIsMousePressed) {
-        return;
-    }
-
     if (!(event->buttons() & Qt::RightButton) && !(event->buttons() & Qt::LeftButton)) {
         fIsMousePressed = false;
     }
 
     // End panning
     if(event->button() == Qt::RightButton) {
-        rightPressed = false;
-
-        isPanning = wantsPanning = false;
+        isPanning = wantsPanning = rightPressed = false;
         setCursor(Qt::ArrowCursor);
         event->accept();
         return;

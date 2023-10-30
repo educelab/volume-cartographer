@@ -174,6 +174,7 @@ private slots:
     void ShowGoToSliceDlg();
     void ScanRangeUp();
     void ScanRangeDown();
+    void ReturnToEditSlice();
 
     void ActivatePenTool();
     void ActivateSegmentationTool();
@@ -305,6 +306,7 @@ private:
     QShortcut* goToSlice;
     QShortcut* scanRangeUp;
     QShortcut* scanRangeDown;
+    QShortcut* returnToEditSlice;
 
     Ui_VCMainWindow ui;
 

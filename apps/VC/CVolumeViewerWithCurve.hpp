@@ -28,13 +28,6 @@ class CVolumeViewerWithCurve : public CVolumeViewer
     Q_OBJECT
 
 public:
-    enum EViewState {
-        ViewStateEdit,  // edit mode
-        ViewStateDraw,  // draw mode
-        ViewStateIdle   // idle mode
-    };  
-
-public:
     CVolumeViewerWithCurve(std::unordered_map<std::string, SegmentationStruct>& nSegStructMapRef);
     ~CVolumeViewerWithCurve();
 
@@ -49,13 +42,11 @@ public:
     void SetImpactRange(int nImpactRange);
     void SetScanRange(int nScanRange);
     void SetSliceIndexToolStart(int index) { sliceIndexToolStart = index; }
+    void ReturnToSliceIndexToolStart();
 
     void UpdateView();
     void SetShowCurve(bool b) { showCurve = b; }
     void toggleShowCurveBox();
-
-    void SetViewState(EViewState nViewState) { fViewState = nViewState; }
-    EViewState GetViewState(void) { return fViewState; }
 
     void setButtonsEnabled(bool state);
 
@@ -108,7 +99,6 @@ private:
     CXCurve* fIntersectionCurveRef;
     int fSelectedPointIndex;
     std::string fSelectedSegID;
-    int sliceIndexToolStart;
 
     bool fVertexIsChanged;
     bool fIsMousePressed{false};
@@ -124,8 +114,6 @@ private:
     // image drawn
     cv::Mat fImgMat;
     cv::Mat fImgMatCache;
-
-    EViewState fViewState;
 
     // Global or class-level storage for ellipse items
     QList<QGraphicsEllipseItem*> ellipseItems;

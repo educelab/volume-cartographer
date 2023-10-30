@@ -461,6 +461,7 @@ void CWindow::CreateWidgets(void)
     goToSlice = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_G), this);
     scanRangeUp = new QShortcut(QKeySequence(Qt::Key_E), this);
     scanRangeDown = new QShortcut(QKeySequence(Qt::Key_Q), this);
+    returnToEditSlice = new QShortcut(QKeySequence(Qt::Key_F), this);
 
     connect(
         slicePrev, &QShortcut::activated, fVolumeViewerWidget,
@@ -531,6 +532,7 @@ void CWindow::CreateWidgets(void)
     connect(goToSlice, &QShortcut::activated, this, &CWindow::ShowGoToSliceDlg);
     connect(scanRangeUp, &QShortcut::activated, this, &CWindow::ScanRangeUp);
     connect(scanRangeDown, &QShortcut::activated, this, &CWindow::ScanRangeDown);
+    connect(returnToEditSlice, &QShortcut::activated, this, &CWindow::ReturnToEditSlice);
 }
 
 // Create menus
@@ -1514,7 +1516,8 @@ void CWindow::Keybindings(void)
         "Space: Toggle Curve Visibility \n"
         "C: Alternate Toggle Curve Visibility \n"
         "J: Highlight Next Curve that is selected for Computation \n" 
-        "K: Highlight Previous Curve that is selected for Computation \n"        
+        "K: Highlight Previous Curve that is selected for Computation \n"       
+        "F: Return to slice that the currently active tool was started on \n" 
         "\n"   
         "Mouse: \n"
         "------------------- \n"    
@@ -2000,6 +2003,12 @@ void CWindow::ScanRangeDown() {
 
     // Always inform the UI/user, even if the value stayed the same
     fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
+}
+
+void CWindow::ReturnToEditSlice() {
+    if(fSegTool->isChecked()) {
+        fVolumeViewerWidget->ReturnToSliceIndexToolStart();
+    }
 }
 
 // Logic to activate pen tool
