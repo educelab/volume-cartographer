@@ -84,5 +84,7 @@ private:
 
     /** Storage for summed normals, organized by vertex ID */
     std::vector<cv::Vec3d> vertexNormals_;
+
+    bool flippedNormals_;
 };
 }  // namespace volcart::meshing
