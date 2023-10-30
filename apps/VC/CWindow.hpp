@@ -59,7 +59,7 @@ class CWindow : public QMainWindow
 public:
     enum EWindowState {
         WindowStateSegment,       // under segmentation state
-        WindowStateRefine,        // under mesh refinemetn state
+        WindowStateRefine,        // under mesh refinement state
         WindowStateDrawPath,      // draw new path
         WindowStateSegmentation,  // segmentation mode
         WindowStateIdle

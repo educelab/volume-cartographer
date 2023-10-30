@@ -69,7 +69,7 @@ Segmentation::PointSet Segmentation::getPointSet() const
 }
 
 // Save the AnnotationSet to disk
-void Segmentation::setAnnotationSet(const AnnotationSet& ps)
+void Segmentation::setAnnotationSet(const AnnotationSet& as)
 {
     // Set a name into the metadata if we haven't set one already
     if (!metadata_.hasKey("vcano") || metadata_.get<std::string>("vcano").empty()) {
@@ -79,7 +79,7 @@ void Segmentation::setAnnotationSet(const AnnotationSet& ps)
 
     // Write the annotation set to the segmentation file
     auto filepath = path_ / metadata_.get<std::string>("vcano");
-    PointSetIO<cv::Vec2i>::WriteOrderedPointSet(filepath, ps);
+    PointSetIO<Segmentation::Annotation>::WriteOrderedPointSet(filepath, as);
 }
 
 // Load the AnnotationSet from disk
@@ -92,5 +92,5 @@ Segmentation::AnnotationSet Segmentation::getAnnotationSet() const
 
     // Load the annotation set
     auto filepath = path_ / metadata_.get<std::string>("vcano");
-    return PointSetIO<cv::Vec2i>::ReadOrderedPointSet(filepath);
+    return PointSetIO<Segmentation::Annotation>::ReadOrderedPointSet(filepath);
 }

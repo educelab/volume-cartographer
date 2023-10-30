@@ -31,8 +31,11 @@ public:
     /** Point set type */
     using PointSet = OrderedPointSet<cv::Vec3d>;
 
+    /** Annotation type */
+    using Annotation = cv::Vec2i;
+
     /** Annotation set type */
-    using AnnotationSet = OrderedPointSet<cv::Vec2i>;
+    using AnnotationSet = OrderedPointSet<Annotation>;
 
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Segmentation>;

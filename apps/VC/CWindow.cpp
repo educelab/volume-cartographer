@@ -296,7 +296,6 @@ void CWindow::CreateWidgets(void)
 
     // list of annotations
     fAnnotationListWidget = this->findChild<QTreeWidget*>("treeWidgetAnnotations");
-    //connect(fAnnotationListWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(OnAnnotationItemClicked(QTreeWidgetItem*, int)));
 
     // segmentation methods
     auto* aSegMethodsComboBox = this->findChild<QComboBox*>("cmbSegMethods");
@@ -1515,10 +1514,10 @@ void CWindow::SetPathPointCloud(void)
     fSegStructMap[fSegmentationId].fMasterCloud.setWidth(aSamplePts.size());
     fSegStructMap[fSegmentationId].fAnnotationCloud.setWidth(aSamplePts.size());
     std::vector<cv::Vec3d> points;
-    std::vector<cv::Vec2i> annotations;
+    std::vector<volcart::Segmentation::Annotation> annotations;
     for (const auto& pt : aSamplePts) {
         points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
-        annotations.emplace_back(1, 1);
+        annotations.emplace_back(AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL, AnnotationBits::ANO_UNUSED);
     }
     fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
 

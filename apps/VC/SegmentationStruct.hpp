@@ -36,6 +36,12 @@ struct AnnotationStruct {
     bool manual{false}; // at least one point was manually changed on that slice this annotation belongs to
 };
 
+enum AnnotationBits {
+    ANO_UNUSED = 0, // we need to use at least two int for the point set logic to work, so the second byte/int is a placeholder for now
+    ANO_ANCHOR = (int)(1 << 0),
+    ANO_MANUAL = (int)(1 << 1)
+};
+
 struct SegmentationStruct {
     volcart::VolumePkg::Pointer fVpkg;
     std::string fSegmentationId;
@@ -46,9 +52,9 @@ struct SegmentationStruct {
     CXCurve fIntersectionCurve; // current active/shown curve
     int fMaxSegIndex = 0; // index on which the segment ends
     int fMinSegIndex = 0; // index on which the segment starts
-    volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
-    volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
-    volcart::OrderedPointSet<cv::Vec2i> fAnnotationCloud;
+    volcart::Segmentation::PointSet fMasterCloud;
+    volcart::Segmentation::PointSet fUpperPart;
+    volcart::Segmentation::AnnotationSet fAnnotationCloud;
     std::vector<cv::Vec3d> fStartingPath;
     std::map<int, AnnotationStruct> fAnnotations; // decoded annotations
     std::set<int> fBufferedChangedPoints; // values are in range [1..(number of points on curve)] (not global cloud index, but locally to the edited curve)
@@ -65,9 +71,9 @@ struct SegmentationStruct {
                        std::vector<CXCurve> intersections,
                        CXCurve intersectionCurve, int maxSegIndex,
                        int minSegIndex,
-                       volcart::OrderedPointSet<cv::Vec3d> masterCloud,
-                       volcart::OrderedPointSet<cv::Vec3d> upperPart,
-                       volcart::OrderedPointSet<cv::Vec2i> annotations,
+                       volcart::Segmentation::PointSet masterCloud,
+                       volcart::Segmentation::PointSet upperPart,
+                       volcart::Segmentation::AnnotationSet annotations,
                        std::vector<cv::Vec3d> startingPath,
                        int pathOnSliceIndex, bool display, bool compute)
         : fVpkg(vpkg),
@@ -246,10 +252,10 @@ struct SegmentationStruct {
             for (size_t j = 0; j < fAnnotationCloud.width(); ++j) {
                 pointIndex = j + (i * fAnnotationCloud.width());
                 
-                if(fAnnotationCloud[pointIndex][0] == 1)
+                if(fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_ANCHOR)
                     an.anchor = true;
                 
-                if(fAnnotationCloud[pointIndex][1] == 1)
+                if(fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_MANUAL)
                     an.manual = true;
             }
 
@@ -340,19 +346,26 @@ struct SegmentationStruct {
         fMasterCloud = fUpperPart;
 
         // Handle annotation cloud logic
-        volcart::OrderedPointSet<cv::Vec2i> fUpperAnnotations(fAnnotationCloud.width());
+        volcart::Segmentation::AnnotationSet fUpperAnnotations(fAnnotationCloud.width());
         const AnnotationStruct defaultAnnotation;
+        int defaultAnnotationFirstByte = 0;
+        if(defaultAnnotation.anchor) {
+            defaultAnnotationFirstByte |= AnnotationBits::ANO_ANCHOR;
+        }
+        if(defaultAnnotation.manual) {
+            defaultAnnotationFirstByte |= AnnotationBits::ANO_MANUAL;
+        }
 
         if (minZPS < minZ) {
-            // New anntotaaion points required at the start to match the new size of the master point cloud
+            // New annotation points required at the start to match the new size of the master point cloud
             volcart::Segmentation::AnnotationSet as(fAnnotationCloud.width());
-            std::vector<cv::Vec2i> annotations;
+            std::vector<volcart::Segmentation::Annotation> annotations;
 
             for (int ia = 0; ia < (minZ - minZPS); ia++) {
                 annotations.clear();
                 for (int ja = 0; ja < ps.width(); ja++) {
                     // We have no annotation info for the new points, so just create initial rows and entries
-                    annotations.emplace_back(defaultAnnotation.anchor, defaultAnnotation.manual);
+                    annotations.emplace_back(defaultAnnotationFirstByte, AnnotationBits::ANO_UNUSED);
                 }
                 as.pushRow(annotations);
             }
@@ -363,13 +376,13 @@ struct SegmentationStruct {
 
         if(maxZPS > maxZ) {
             volcart::Segmentation::AnnotationSet as(fAnnotationCloud.width());
-            std::vector<cv::Vec2i> annotations;
+            std::vector<volcart::Segmentation::Annotation> annotations;
             
             for (int ia = 0; ia < (maxZPS - maxZ); ia++) {
                 annotations.clear();
                 for (int ja = 0; ja < ps.width(); ja++) {
                     // We have no annotation info for the new points, so just create initial rows and entries
-                    annotations.emplace_back(defaultAnnotation.anchor, defaultAnnotation.manual);
+                    annotations.emplace_back(defaultAnnotationFirstByte, AnnotationBits::ANO_UNUSED);
                 }
                 as.pushRow(annotations);
             }
@@ -400,19 +413,26 @@ struct SegmentationStruct {
         MergePointSetIntoPointCloud(ps);
     }
 
-    inline volcart::OrderedPointSet<cv::Vec2i> CreateInitialAnnotationSet(int height, int width)
+    inline volcart::Segmentation::AnnotationSet CreateInitialAnnotationSet(int height, int width)
     {
         fAnnotationCloud.reset();
-        fAnnotationCloud = volcart::OrderedPointSet<cv::Vec2i>(width);
+        fAnnotationCloud = volcart::Segmentation::AnnotationSet(width);
         const AnnotationStruct defaultAnnotation;
+        int defaultAnnotationFirstByte;
+        if(defaultAnnotation.anchor) {
+            defaultAnnotationFirstByte |= AnnotationBits::ANO_ANCHOR;
+        }
+        if(defaultAnnotation.manual) {
+            defaultAnnotationFirstByte |= AnnotationBits::ANO_MANUAL;
+        }
 
-        std::vector<cv::Vec2i> annotations;
+        std::vector<volcart::Segmentation::Annotation> annotations;
 
         for (int i = 0; i < height; i++) {
             annotations.clear();
             for (int j = 0; j < width; j++) {
-                // We have no annotation info, so just create initial rows and entries
-                annotations.emplace_back(defaultAnnotation.anchor, defaultAnnotation.manual);
+                // We have no annotation info for the new points, so just create initial rows and entries
+                annotations.emplace_back(defaultAnnotationFirstByte, AnnotationBits::ANO_UNUSED);
             }
             fAnnotationCloud.pushRow(annotations);
         }
@@ -433,7 +453,11 @@ struct SegmentationStruct {
         }
 
         for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
-            fAnnotationCloud[i][0] = anchor;
+            if(anchor) {
+                fAnnotationCloud[i][0] |= AnnotationBits::ANO_ANCHOR;
+            } else {
+                fAnnotationCloud[i][0] &= AnnotationBits::ANO_ANCHOR;
+            }
         }
 
         auto it = fAnnotations.find(sliceIndex);
@@ -465,7 +489,7 @@ struct SegmentationStruct {
     {
         if(fBufferedChangedPoints.size() > 0) {
             for (auto index : fBufferedChangedPoints) {
-                fAnnotationCloud[sliceIndex * fAnnotationCloud.width() - 1 + index][1] = true;
+                fAnnotationCloud[sliceIndex * fAnnotationCloud.width() - 1 + index][0] |= AnnotationBits::ANO_MANUAL;
             }
 
             auto it = fAnnotations.find(sliceIndex);
