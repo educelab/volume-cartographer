@@ -1078,7 +1078,11 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="labImpactRange"/>
+           <widget class="QLabel" name="labImpactRange">
+             <property name="text">
+              <string>8</string>
+             </property>
+            </widget>
           </item>
          </layout>
         </widget>
