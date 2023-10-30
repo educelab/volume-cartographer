@@ -6,16 +6,16 @@ CT scans of ancient, badly damaged manuscripts, but can be applied in many
 volumetric analysis applications.
 
 ## Getting started
-New to Volume Cartographer? A great place to get started with virtual unwrapping 
-is the [tutorial](https://scrollprize.org/tutorial3) put together by 
-[the Vesuvius Challenge](https://scrollprize.org/).
+New to Volume Cartographer? A great place to get started with virtual unwrapping
+is the [tutorial](https://scrollprize.org/tutorial3) put together by
+the [Vesuvius Challenge](https://scrollprize.org/).
 
-You can also browse our [application list](docs/pages/apps-list.md) for an 
+You can also browse our [application list](docs/pages/apps-list.md) for an
 overview of our available applications and utilities.
 
 ## Installation
 ### Using Homebrew
-We provide pre-built binaries for our tools through our 
+We provide pre-built binaries for our tools through our
 [Homebrew Casks tap](https://github.com/educelab/homebrew-casks):
 
 ```shell
@@ -27,7 +27,7 @@ Gatekeeper on Apple Silicon devices without explicit approval. Since many of
 our tools are run from the command line, we suggest installing with Homebrew's
 `--no-quarantine` flag.
 
-The main `VC.app` GUI will be installed to `/Applications/` and the command line 
+The main `VC.app` GUI will be installed to `/Applications/` and the command line
 tools should be immediately available in Terminal:
 
 ```shell
@@ -35,8 +35,8 @@ vc_render --help
 ```
 
 ### Using Docker
-We provide multi-architecture Docker images in the GitHub Container Registry. 
-Simply pull our container and Docker will select the appropriate image for your 
+We provide multi-architecture Docker images in the GitHub Container Registry.
+Simply pull our container and Docker will select the appropriate image for your
 host platform:
 
 ```shell
@@ -58,16 +58,16 @@ Usage:
 
 General Options:
   -h [ --help ]                         Show this message
-  --cache-memory-limit arg              Maximum size of the slice cache in 
-                                        bytes. Accepts the suffixes: 
+  --cache-memory-limit arg              Maximum size of the slice cache in
+                                        bytes. Accepts the suffixes:
                                         (K|M|G|T)(B). Default: 50% of the total
                                         system memory.
-  --log-level arg (=info)               Options: off, critical, error, warn, 
+  --log-level arg (=info)               Options: off, critical, error, warn,
                                         info, debug
 ...
 ```
 
-To run the GUI tools, you must additionally set up 
+To run the GUI tools, you must additionally set up
 [X11 forwarding from the container](docs/pages/running-gui-tools.md).
 
 ### From source
@@ -96,22 +96,22 @@ explicitly support other platforms.
     - This project will automatically check if the compiler provides
     `std::filesystem`. If it is not found, then Boost Filesystem is required.
     This behavior can be controlled with the `VC_USE_BOOSTFS` CMake flag.
-* [Doxygen](http://www.doxygen.org/): Required to build
+* [Doxygen](https://github.com/doxygen/doxygen): Required to build
 documentation.
 * [pybind11](https://github.com/pybind/pybind11): Required to build Python
 bindings.
 
 ##### (macOS) Homebrew-provided dependencies
-In principle, Homebrew can be used to install all of Volume Cartographer's 
-dependencies. However at the time of this writing, the `vtk` brew package links 
-against Qt5 while the Volume Cartographer GUIs link against Qt6. This will lead 
-to linking errors when compiling this project. To use the Homebrew version of 
-VTK, you must disable compilation of the VC GUI apps with the 
-`-DVC_BUILD_GUI=OFF` CMake flag. Otherwise, you must build VTK from source or 
-follow the instructions for 
-[building vc-deps dependencies](#(Optional)-Use-vc-deps-dependencies).
+In principle, Homebrew can be used to install all of Volume Cartographer's
+dependencies. However at the time of this writing, the `vtk` brew package links
+against Qt5 while the Volume Cartographer GUIs link against Qt6. This will lead
+to linking errors when compiling this project. To use the Homebrew version of
+VTK, you must disable compilation of the VC GUI apps with the
+`-DVC_BUILD_GUI=OFF` CMake flag. Otherwise, you must build VTK from source or
+follow the instructions for
+[building vc-deps dependencies](#optional-use-vc-deps-dependencies).
 
-#### Compilation  
+#### Compilation
 This project is built and installed using the CMake build system. If you have
 already installed the dependencies listed above, compilation should be as simple
 as:
@@ -124,9 +124,9 @@ cmake --build build/
 ```
 
 Many `volume-cartographer` libraries can be built in parallel, and compilation
-times will be improved by running `cmake --build build/ -j4`. Alternatively, 
-you can use CMake to generate [Ninja](https://ninja-build.org/) build system 
-files:  
+times will be improved by running `cmake --build build/ -j4`. Alternatively,
+you can use CMake to generate [Ninja](https://ninja-build.org/) build system
+files:
 ```shell
 cmake -S . -B build/ -GNinja -DCMAKE_BUILD_TYPE=Release
 cmake --build build/  # automatically builds in parallel with Ninja
@@ -142,10 +142,10 @@ cmake --install build/ # --prefix ~/custom/install/prefix/
 To assist with installing dependencies, we have created the
 [vc-deps project](https://github.com/educelab/vc-deps). While this project can
 be used on its own to install volume-cartographer dependencies to the system, it
-is also available as a git submodule within `volume-cartographer`. Note that 
+is also available as a git submodule within `volume-cartographer`. Note that
 `vc-deps` **does not** install CMake or Qt.
 
-To build and link against the in-source `vc-deps` libraries, run the following:  
+To build and link against the in-source `vc-deps` libraries, run the following:
 ```shell
 # Get the source code plus all submodules
 git clone --recursive https://github.com/educelab/volume-cartographer.git
@@ -211,7 +211,7 @@ cmake -S . -B build/ -DVC_BUILD_DOCS=ON -DVC_INSTALL_DOCS=ON
 
 ## Python bindings
 We currently maintain limited Python binding support through pybind11. They are
-a work-in-progress and should not be used in production code.  
+a work-in-progress and should not be used in production code.
 
 Bindings can be built and installed by setting the
 `VC_BUILD_PYTHON_BINDINGS` and `VC_INSTALL_PYTHON_BINDINGS` flags:
@@ -260,31 +260,31 @@ This project incorporates software from many excellent external libraries and
 projects. Please see [NOTICE](NOTICE) for more information about the licensing
 terms of these projects.
 
-**Volume Cartographer** and the project logo and banner graphics are trademarks 
+**Volume Cartographer** and the project logo and banner graphics are trademarks
 of EduceLab.
 
 ## Citation and references
-If you use Volume Cartographer in your research, please cite this repository 
-in your publication using 
-[our Zenodo record](https://doi.org/10.5281/zenodo.4604881). For more 
-information about the concepts of virtual unwrapping, please see the following 
+If you use Volume Cartographer in your research, please cite this repository
+in your publication using
+[our Zenodo record](https://doi.org/10.5281/zenodo.4604881). For more
+information about the concepts of virtual unwrapping, please see the following
 publications:
 * William Brent Seales et al. “From damage to discovery via virtual unwrapping:
   Reading the scroll from En-Gedi”. In: _Science Advances_ 2.9 (2016).
-  doi: 10.1126/sciadv.1601247. [[link]](http://advances.sciencemag.org/content/2/9/e1601247)
+  doi: 10.1126/sciadv.1601247. [[link]](https://www.science.org/doi/10.1126/sciadv.1601247)
 * Clifford Seth Parker, William Brent Seales, and Pnina Shor. “Quantitative
   Distortion Analysis of Flattening Applied to the Scroll from En-Gedi”. In:
-  Art & Archaeology, 2nd International Conference. 2016. 
+  Art & Archaeology, 2nd International Conference. 2016.
   [[link]](https://arxiv.org/abs/2007.15551)
-* W Brent Seales and Daniel Delattre. “Virtual unrolling of carbonized 
-  Herculaneum scrolls: Research Status (2007–2012)”. In: Cronache Ercolanesi 43 
+* W Brent Seales and Daniel Delattre. “Virtual unrolling of carbonized
+  Herculaneum scrolls: Research Status (2007–2012)”. In: Cronache Ercolanesi 43
   (2013), pp. 191–208.
-* Ryan Baumann, Dorothy Carr Porter, and W Brent Seales. “The use of micro-ct 
-  in the study of archaeological artifacts”. In: 9th International Conference 
+* Ryan Baumann, Dorothy Carr Porter, and W Brent Seales. “The use of micro-ct
+  in the study of archaeological artifacts”. In: 9th International Conference
   on NDT of Art. 2008, pp. 1–9. [[link]](https://www.ndt.net/article/art2008/papers/244Seales.pdf)
-* Yun Lin and W Brent Seales. “Opaque document imaging: Building images of 
-  inaccessible texts”. In: Computer Vision, 2005. ICCV 2005. Tenth IEEE 
+* Yun Lin and W Brent Seales. “Opaque document imaging: Building images of
+  inaccessible texts”. In: Computer Vision, 2005. ICCV 2005. Tenth IEEE
   International Conference on. Vol. 1. IEEE. 2005, pp. 662–669.
-* W Brent Seales and Yun Lin. “Digital restoration using volumetric scanning”. 
-  In: Digital Libraries, 2004. Proceedings of the 2004 Joint ACM/IEEE 
+* W Brent Seales and Yun Lin. “Digital restoration using volumetric scanning”.
+  In: Digital Libraries, 2004. Proceedings of the 2004 Joint ACM/IEEE
   Conference on. IEEE. 2004, pp. 117–124.
