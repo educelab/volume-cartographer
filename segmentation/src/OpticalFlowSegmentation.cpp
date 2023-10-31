@@ -157,7 +157,7 @@ std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolatePoints(
                 // points[pointsIndex][j] = interpolate_point * points[pointsIndex][j] + interpolate_mastercloud * masterCloud_.getRow(masterRowIndex)[j];
         }
         // evenly space interpolated curve
-        FittedCurve evenlyInterpolationCurve(points[pointsIndex], pointsIndex);
+        FittedCurve evenlyInterpolationCurve(points[pointsIndex], std::round(points[pointsIndex][0][2]));
         points[pointsIndex] = evenlyInterpolationCurve.evenlySpacePoints();
     }
     return points;
