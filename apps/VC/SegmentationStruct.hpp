@@ -303,28 +303,29 @@ struct SegmentationStruct {
             return;
         }
 
-        // Determine starting min and max Z value (= slice) from the master point cloud
-        auto minZ = fMasterCloud[0][2];
-        auto maxZ = fMasterCloud[fMasterCloud.size() - 1][2];
-
-        // Determine new min and max Z values based on input point set
-        auto minZPS = ps[0][2];
-        auto maxZPS = ps[ps.size() - 1][2];
-
         // Handle point cloud logic
         int i;
-        for (i= 0; i < fMasterCloud.height(); i++) {
+        // Indicates whether the size increase is at the front (true value) = incoming point set contains lower index
+        // values then what we have or at the back (false value)
+        bool frontGrowth = false; 
+
+        for (i = 0; i < fMasterCloud.height(); i++) {
             auto masterRowI = fMasterCloud.getRow(i);
-            if (ps[0][2] <= masterRowI[fUpperPart.width()-1][2]){
+            if (ps[0][2] <= masterRowI[0][2]){
                 // We found the entry where the 3rd vector component (= index 2 = which means the slice index)
                 // of the new point set matches the value in the existing row of our master point cloud 
                 // => starting point for merge
+
+                if(ps[0][2] < masterRowI[0][2]) {
+                    frontGrowth = true;
+                }
+
                 break;
             }
         }
 
         // Copy everything below the index for merge start that we just determined (copyRows will not return back the
-        // the row of "i", so no duplicates with our to-be merged point set). If i reached the end of our point cloud
+        // the row of "i", so no duplicates with our to-be merged point set). If "i" reached the end of our point cloud
         // above, then there are no duplicates and will simply continue with the append below.
         fUpperPart = fMasterCloud.copyRows(0, i);
         fUpperPart.append(ps);
@@ -343,25 +344,30 @@ struct SegmentationStruct {
             fUpperPart.append(fMasterCloud.copyRows(i, fMasterCloud.height()));
         }
 
+        int sizeDelta = fUpperPart.height() - fMasterCloud.height();
         fMasterCloud = fUpperPart;
 
         // Handle annotation cloud logic
-        volcart::Segmentation::AnnotationSet fUpperAnnotations(fAnnotationCloud.width());
-        const AnnotationStruct defaultAnnotation;
-        int defaultAnnotationFirstByte = 0;
-        if(defaultAnnotation.anchor) {
-            defaultAnnotationFirstByte |= AnnotationBits::ANO_ANCHOR;
-        }
-        if(defaultAnnotation.manual) {
-            defaultAnnotationFirstByte |= AnnotationBits::ANO_MANUAL;
-        }
 
-        if (minZPS < minZ) {
-            // New annotation points required at the start to match the new size of the master point cloud
+        // Check if size changed (some merges simply overwrite an existing point cloud row)
+        if(fMasterCloud.size() != fAnnotationCloud.size()) {
+            volcart::Segmentation::AnnotationSet fUpperAnnotations(fAnnotationCloud.width());
+            const AnnotationStruct defaultAnnotation;
+            int defaultAnnotationFirstByte = 0;
+            if(defaultAnnotation.anchor) {
+                defaultAnnotationFirstByte |= AnnotationBits::ANO_ANCHOR;
+            }
+            if(defaultAnnotation.manual) {
+                defaultAnnotationFirstByte |= AnnotationBits::ANO_MANUAL;
+            }
+   
+            // Create an initial annotation point set that matches the dimensions of the input "ps"
+            // of this method minus one row (since compared to the master point set, we want to retain
+            // the existing row that e.g. the segmentation was started with to not loose its flags).
             volcart::Segmentation::AnnotationSet as(fAnnotationCloud.width());
             std::vector<volcart::Segmentation::Annotation> annotations;
 
-            for (int ia = 0; ia < (minZ - minZPS); ia++) {
+            for (int ia = 0; ia < sizeDelta; ia++) {
                 annotations.clear();
                 for (int ja = 0; ja < ps.width(); ja++) {
                     // We have no annotation info for the new points, so just create initial rows and entries
@@ -369,27 +375,18 @@ struct SegmentationStruct {
                 }
                 as.pushRow(annotations);
             }
+
+            fUpperAnnotations = fAnnotationCloud.copyRows(0, (frontGrowth ? 0 : fAnnotationCloud.height()));
             fUpperAnnotations.append(as);
-        }
-
-        fUpperAnnotations.append(fAnnotationCloud.copyRows(minZ, maxZ + 1));
-
-        if(maxZPS > maxZ) {
-            volcart::Segmentation::AnnotationSet as(fAnnotationCloud.width());
-            std::vector<volcart::Segmentation::Annotation> annotations;
+            fUpperAnnotations.append(fAnnotationCloud.copyRows((frontGrowth ? 0 : fAnnotationCloud.height()), fAnnotationCloud.height()));
             
-            for (int ia = 0; ia < (maxZPS - maxZ); ia++) {
-                annotations.clear();
-                for (int ja = 0; ja < ps.width(); ja++) {
-                    // We have no annotation info for the new points, so just create initial rows and entries
-                    annotations.emplace_back(defaultAnnotationFirstByte, AnnotationBits::ANO_UNUSED);
-                }
-                as.pushRow(annotations);
-            }
-            fUpperAnnotations.append(as);
+            fAnnotationCloud = fUpperAnnotations;
         }
 
-        fAnnotationCloud = fUpperAnnotations;
+        if(fMasterCloud.height() != fAnnotationCloud.height()) {
+            std::cout << "Error: Height mismatch after cloud merging" << std::endl;
+            return;
+        }
     }
 
     inline void MergeChangedCurveIntoPointCloud(int sliceIndex)
@@ -443,13 +440,9 @@ struct SegmentationStruct {
     inline void SetSliceAsAnchor(int sliceIndex, bool anchor)
     {
         // Calculate index via master point cloud
-        int pointIndex;
-        for (int i= 0; i < fMasterCloud.height(); i++) {
-            auto masterRowI = fMasterCloud.getRow(i);
-            if (sliceIndex <= masterRowI[0][2]){
-                pointIndex = i * fMasterCloud.width();
-                break;
-            }
+        int pointIndex = GetPointIndexForSliceIndex(sliceIndex);
+        if(pointIndex == -1) {
+            return;
         }
 
         for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
@@ -485,11 +478,27 @@ struct SegmentationStruct {
         fBufferedChangedPoints.insert(pointIndexes.begin(), pointIndexes.end());
     }
 
+    inline int GetPointIndexForSliceIndex(int sliceIndex)
+    {
+        // Determine the first point index from the master cloud that belongs to the provided
+        // slice index.
+        for (int i = 0; i < fMasterCloud.height(); i++) {
+            auto masterRowI = fMasterCloud.getRow(i);
+            if (sliceIndex == masterRowI[0][2]){
+                return i * fMasterCloud.width();
+            }
+        }
+
+        return -1;
+    }
+
     inline void ConfirmPointsAsManual(int sliceIndex)
     {
+        auto pointIndex = GetPointIndexForSliceIndex(sliceIndex);
+
         if(fBufferedChangedPoints.size() > 0) {
             for (auto index : fBufferedChangedPoints) {
-                fAnnotationCloud[sliceIndex * fAnnotationCloud.width() - 1 + index][0] |= AnnotationBits::ANO_MANUAL;
+                fAnnotationCloud[pointIndex - 1 + index][0] |= AnnotationBits::ANO_MANUAL;
             }
 
             auto it = fAnnotations.find(sliceIndex);
