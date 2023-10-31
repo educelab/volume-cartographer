@@ -96,7 +96,7 @@ explicitly support other platforms.
     - This project will automatically check if the compiler provides
     `std::filesystem`. If it is not found, then Boost Filesystem is required.
     This behavior can be controlled with the `VC_USE_BOOSTFS` CMake flag.
-* [Doxygen](https://github.com/doxygen/doxygen): Required to build
+* [Doxygen](https://www.doxygen.nl/): Required to build
 documentation.
 * [pybind11](https://github.com/pybind/pybind11): Required to build Python
 bindings.
