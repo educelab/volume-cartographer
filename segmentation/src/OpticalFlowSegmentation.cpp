@@ -698,7 +698,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
            << zIndex;
         const fs::path zIdxDir = outputDir / ss.str();
 
-        std::cout << "Length curve points " << currentVs.size() << std::endl;
+        // std::cout << "Length curve points " << currentVs.size() << std::endl;
 
         //////////////////////////////////////////////////////////
         // 0. Resample current positions so they are evenly spaced

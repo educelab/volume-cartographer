@@ -126,14 +126,17 @@
           </widget>
          </item>
         </layout>
-      </item>
+       </item>
       </layout>
-      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidgetLeft">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="floating">
     <bool>false</bool>
    </property>
@@ -150,6 +153,9 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetLeftContent">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <property name="leftMargin">
       <number>9</number>
@@ -438,7 +444,7 @@
                <x>0</x>
                <y>0</y>
                <width>396</width>
-               <height>161</height>
+               <height>170</height>
               </rect>
              </property>
              <property name="layoutDirection">
@@ -662,10 +668,10 @@
           </item>
           <item>
            <widget class="QLabel" name="labImpactRange">
-             <property name="text">
-              <string>8</string>
-             </property>
-            </widget>
+            <property name="text">
+             <string>8</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

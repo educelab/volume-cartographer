@@ -93,6 +93,7 @@ public:
         int edge_jump_distance;
         int edge_bounce_distance;
         int backwards_smoothness_interpolation_window;
+        int backwards_smoothness_interpolation_percent;
         int backwards_length;
     };
 
@@ -205,8 +206,6 @@ private slots:
     void OnEdtDistanceWeightChange();
     void OnEdtWindowWidthChange(int);
     void OnOptIncludeMiddleClicked(bool clicked);
-
-    // void OnEdtSampleDistValChange( QString nText );
     void OnEdtEndingSliceValChange();
 
     void OnBtnStartSegClicked(void);
@@ -225,6 +224,7 @@ private slots:
     void toggleComputeAll(bool checked);
 
     void addNewAnnotationsItem(int sliceIndex, bool anchor, bool manual);
+    void annotationDoubleClicked(QTreeWidgetItem* item);
 
 private:
     // data model
@@ -293,6 +293,8 @@ private:
     QSpinBox* edtBackwardsLength;
     QLabel* lblBackwardsInterpolationWindow;
     QSpinBox* edtBackwardsInterpolationWindow;
+    QLabel* lblBackwardsInterpolationPercent;
+    QSpinBox* edtBackwardsInterpolationPercent;
 
     QSpinBox* fEdtStartIndex;
     QSpinBox* fEdtEndIndex;

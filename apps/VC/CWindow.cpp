@@ -118,6 +118,7 @@ CWindow::CWindow()
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
     fSegParams.backwards_smoothness_interpolation_window = 5;
+    fSegParams.backwards_smoothness_interpolation_percent = 25;
     fSegParams.backwards_length = 25;
 
     // Process the raw impact range step string and convert to step vector
@@ -170,7 +171,9 @@ CWindow::CWindow()
         if(files.size() > 0 && !files.at(0).isEmpty()) {
             Open(files[0]);
         }
-    }    
+    } 
+
+    findChild<QDockWidget*>("dockWidgetLeft")->hide(); // only shown in seg tool mode   
 }
 
 // Destructor
@@ -296,6 +299,7 @@ void CWindow::CreateWidgets(void)
 
     // list of annotations
     fAnnotationListWidget = this->findChild<QTreeWidget*>("treeWidgetAnnotations");
+    connect(fAnnotationListWidget, &QTreeWidget::itemDoubleClicked, this, &CWindow::annotationDoubleClicked);
 
     // segmentation methods
     auto* aSegMethodsComboBox = this->findChild<QComboBox*>("cmbSegMethods");
@@ -341,6 +345,9 @@ void CWindow::CreateWidgets(void)
     edtBackwardsInterpolationWindow = new QSpinBox();
     edtBackwardsInterpolationWindow->setMinimum(0);
     edtBackwardsInterpolationWindow->setValue(5);
+    edtBackwardsInterpolationPercent = new QSpinBox();
+    edtBackwardsInterpolationPercent->setMinimum(0);
+    edtBackwardsInterpolationPercent->setValue(25);
     auto* chkPurgeCache = new QCheckBox(tr("Purge Cache"));
     chkPurgeCache->setChecked(false);
     auto* edtCacheSize = new QSpinBox();
@@ -358,6 +365,7 @@ void CWindow::CreateWidgets(void)
     connect(edtEdgeBounceDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_bounce_distance = v;});
     connect(edtBackwardsLength, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_length = v;});
     connect(edtBackwardsInterpolationWindow, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_smoothness_interpolation_window = v;});
+    connect(edtBackwardsInterpolationPercent, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_smoothness_interpolation_percent = v;});
     connect(chkPurgeCache, &QCheckBox::toggled, [=](bool checked){fSegParams.purge_cache = checked;});
     connect(edtCacheSize, &QSpinBox::valueChanged, [=](int v){fSegParams.cache_slices = v;});
 
@@ -381,9 +389,12 @@ void CWindow::CreateWidgets(void)
     lblBackwardsLength = new QLabel(tr("Backwards Length"));
     opticalFlowParamsLayout->addWidget(lblBackwardsLength);
     opticalFlowParamsLayout->addWidget(edtBackwardsLength);
-    lblBackwardsInterpolationWindow = new QLabel(); // text is set dynamically upon entering the segmentation tool
+    lblBackwardsInterpolationWindow = new QLabel(tr("Backwards Interpolation Window"));
     opticalFlowParamsLayout->addWidget(lblBackwardsInterpolationWindow);
     opticalFlowParamsLayout->addWidget(edtBackwardsInterpolationWindow);
+    lblBackwardsInterpolationPercent = new QLabel(tr("Backwards Interpolation Percent"));
+    opticalFlowParamsLayout->addWidget(lblBackwardsInterpolationPercent);
+    opticalFlowParamsLayout->addWidget(edtBackwardsInterpolationPercent);
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Maximum Cache Size")));
     opticalFlowParamsLayout->addWidget(edtCacheSize);
@@ -487,7 +498,6 @@ void CWindow::CreateWidgets(void)
     scanRangeDown = new QShortcut(QKeySequence(Qt::Key_Q), this);
     returnToEditSlice = new QShortcut(QKeySequence(Qt::Key_F), this);
     toggleAnchor = new QShortcut(QKeySequence(Qt::Key_L), this);
-
 
     connect(
         slicePrev, &QShortcut::activated, fVolumeViewerWidget,
@@ -866,16 +876,16 @@ void CWindow::UpdateView(void)
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
     bool availableSegments = false;
     bool availableNewSegments = false;
-    if(fPathListWidget->selectedItems().size() > 0) {
-        
-        auto seg = fSegStructMap[fPathListWidget->selectedItems().at(0)->text(0).toStdString()];
-     
-        if (seg.display || seg.compute) {              
-            // segments with already existing line
-            availableSegments = seg.fIntersectionCurve.GetPointsNum() > 0;
-            // completely empty segments, for drawing curve
-            availableNewSegments = (!seg.fSegmentationId.empty() && seg.fMasterCloud.empty());
+    for (auto& seg : fSegStructMap) {
+        auto& segStruct = seg.second;
+        if (!segStruct.display && !segStruct.compute) {
+            continue;
         }
+
+        // segments with already existing line
+        availableSegments = availableSegments || segStruct.fIntersectionCurve.GetPointsNum() > 0;
+        // completely empty segments, for drawing curve
+        availableNewSegments = availableNewSegments || (!segStruct.fSegmentationId.empty() && segStruct.fMasterCloud.empty());
     }
     fSegTool->setEnabled(fSegTool->isChecked() || !availableNewSegments && availableSegments);
     fPenTool->setEnabled(fPenTool->isChecked() || availableNewSegments);
@@ -925,11 +935,8 @@ void CWindow::ChangePathItem(std::string segID)
     statusBar->clearMessage();
     fSegmentationId = segID;
 
-    // Write new Segment to fSegStructMap if we are accessing it now for the first time
-    // or if it has been cleared out of the memory already
-    if(fSegStructMap.find(fSegmentationId) == fSegStructMap.end()) {
-        fSegStructMap[fSegmentationId] = SegmentationStruct(fVpkg, fSegmentationId, fPathOnSliceIndex);
-    }
+    // write new Segment to fSegStructMap
+    fSegStructMap[fSegmentationId] = SegmentationStruct(fVpkg, segID, fPathOnSliceIndex);
 
     if (fSegStructMap[fSegmentationId].currentVolume != nullptr && fSegStructMap[fSegmentationId].fSegmentation->hasVolumeID()) {
         currentVolume = fSegStructMap[fSegmentationId].currentVolume;
@@ -981,8 +988,7 @@ void CWindow::DoSegmentation(void)
             this, tr("Info"), tr("Invalid parameter for segmentation"));
         return;
     }
-
-    // Setup LRPS
+    
     auto algoIdx = this->ui.cmbSegMethods->currentIndex();
     // Reminder to activate the segments for computation
     bool segmentedSomething = false;
@@ -1019,6 +1025,7 @@ void CWindow::DoSegmentation(void)
 
         Segmenter::Pointer segmenter;
         if (algoIdx == 0) {
+            // Setup LRPS
             auto lrps = vcs::LocalResliceSegmentation::New();
             lrps->setMaterialThickness(fVpkg->materialThickness());
             lrps->setTargetZIndex(fSegParams.targetIndex);
@@ -1033,6 +1040,60 @@ void CWindow::DoSegmentation(void)
             lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
             segmenter = lrps;
         } else if (algoIdx == 1) {
+            // Setup OFS
+
+            std::cout << "OFS: === Main Run ===: " << std::endl;
+            std::cout << "OFS: Start Slice: " << fEdtStartIndex->value() << std::endl;
+            std::cout << "OFS: Original Target Slice: " << fEdtEndIndex->value() << std::endl;
+
+            auto directionUp = (fEdtEndIndex->value() > fEdtStartIndex->value());
+            int anchorForward = -1;
+            int anchorBackward = -1;
+            
+            // Auto-adjust parameters if we have annotations
+            if(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
+                
+                if(directionUp) {
+                    anchorForward = fSegStructMap[fSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
+                    anchorBackward = fSegStructMap[fSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
+                } else {
+                    anchorForward = fSegStructMap[fSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
+                    anchorBackward = fSegStructMap[fSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
+                }
+                
+                std::cout << "OFS: Forward Anchor: " << anchorForward << std::endl;
+                std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
+
+                if(anchorForward != -1) {
+                    // Forward portion needs to stop one slice before the next forward anchor if there is one
+                    if(directionUp && anchorForward <= fEdtEndIndex->value()) {
+                        fSegParams.targetIndex = anchorForward - 1;
+                    } else if(!directionUp && anchorForward >= fEdtEndIndex->value()) {
+                        fSegParams.targetIndex = anchorForward + 1;
+                    }
+                }
+
+                fSegParams.backwards_length = 0;
+                fSegParams.backwards_smoothness_interpolation_window  = 0;
+                                
+                // Check if the backwards portion is enabled (percent value > 0)
+                if(fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
+                    // With annotations we have to use the percentage of the delta between
+                    // current slice (= segmentation start slice) and the backwards anchor slice.
+                    // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length. 
+                    auto anchorDistance = (directionUp ? fEdtStartIndex->value() - anchorBackward : anchorBackward - fEdtStartIndex->value()); // -2 to exclude the start and backward anchor slices
+                    std::cout << "OFS: Backward Anchor Distance: " << anchorDistance << std::endl;
+
+                    fSegParams.backwards_length = std::round(anchorDistance / 2);          
+
+                    // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards eithert side),
+                    // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.          
+                    fSegParams.backwards_smoothness_interpolation_window = std::round(((float)fSegParams.backwards_smoothness_interpolation_percent / 100.f * anchorDistance) / 2); 
+                }     
+            } else {
+                fSegParams.backwards_smoothness_interpolation_percent = 0;
+            }
+
             auto ofsc = vcs::OpticalFlowSegmentationClass::New();
             ofsc->setMaterialThickness(fVpkg->materialThickness());
             ofsc->setTargetZIndex(fSegParams.targetIndex);
@@ -1048,28 +1109,14 @@ void CWindow::DoSegmentation(void)
             ofsc->setPurgeCache(fSegParams.purge_cache);
             ofsc->setCacheSlices(fSegParams.cache_slices);
             ofsc->setOrderedPointSet(fSegStructMap[segID].fMasterCloud);
-
-            if(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
-
-                // Find nearest anchor for backwards end slice
-                auto anchorLow = fSegStructMap[fSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
-                ofsc->setBackwardsLength((anchorLow != -1) ? fEdtStartIndex->value() - anchorLow : 0);
-
-                // With annotations, this parameters is considered to be a percentage of the delta between
-                // current slice (= segmentation start slice) and the backwards anchor slice.
-                //ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_length / 100 * (fEdtStartIndex->value() - anchorLow));
-
-                // Ensure we stop before the next higher anchor if there is one
-                auto anchorHigh = fSegStructMap[fSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
-                if(anchorHigh != -1) {
-                    ofsc->setTargetZIndex(anchorHigh - 1);
-                }
-
-            } else {
-                ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothness_interpolation_window);
-                ofsc->setBackwardsLength(fSegParams.backwards_length);
-            }
+            ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothness_interpolation_window);
+            ofsc->setBackwardsLength(fSegParams.backwards_length);            
             segmenter = ofsc;
+
+            std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
+            std::cout << "OFS: Backward Interpolation Percent: " << fSegParams.backwards_smoothness_interpolation_percent << "%" << std::endl;
+            std::cout << "OFS: Resulting Backward Length: " << fSegParams.backwards_length << std::endl;
+            std::cout << "OFS: Resulting Interpolation Window: 2x " << fSegParams.backwards_smoothness_interpolation_window << std::endl;
         }
         // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
         // DROPDOWN LIST
@@ -1077,8 +1124,8 @@ void CWindow::DoSegmentation(void)
         // set common parameters
         segmenter->setChain(fSegStructMap[segID].fStartingPath);
         segmenter->setVolume(currentVolume);
-        // Que Segmentation for execution
-        queueSegmentation(segID, segmenter);
+        // Queue segmentation for execution
+        queueSegmentation(segID, segmenter);        
     }
 
     if (!segmentedSomething) {
@@ -1116,7 +1163,8 @@ void CWindow::executeNextSegmentation()
         SetUpAnnotations();
         UpdateView();
 
-        // Needs to be called here since there never might be an callback to onSegmentationFinished()
+        // Needs to be called here since there never might be an callback to onSegmentationFinished() if
+        // all segmentation runs fail
         worker_progress_updater_.stop();
         worker_progress_.close();
 
@@ -1181,6 +1229,58 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
+
+    // // If we are running OFS and have annotations, there is an additional segmentation run that should automatically get scheduled:
+    // // Example: Segmentation run from slice 200 to 300 with 100 being marked as anchor. The normal OFS already handles the 200 to 300
+    // // portion and from 200 back to 100. However, an additional one up from 100 to 200 with interpolation should also happen. This
+    // // needs to be queued now separately.
+    // auto algoIdx = this->ui.cmbSegMethods->currentIndex();
+    // if(algoIdx == 1 && fSegStructMap[submittedSegmentationId].fSegmentation->hasAnnotations()) {
+
+    //     std::cout << "OFS: === Secondary Run ===: " << std::endl;
+
+    //     auto directionUp = (fEdtEndIndex->value() > fEdtStartIndex->value());
+    //     int anchorBackward = -1;            
+            
+    //     if(directionUp) {
+    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
+    //     } else {
+    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
+    //     }
+        
+    //     std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
+
+    //     if(fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
+
+    //         auto anchorDistance = (directionUp ? fEdtStartIndex->value() - anchorBackward : anchorBackward - fEdtStartIndex->value()); // -2 to exclude the start and backward anchor slices
+    //         std::cout << "OFS: Backward Anchor Distance: " << anchorDistance << std::endl;
+
+    //         auto ofsc = vcs::OpticalFlowSegmentationClass::New();
+    //         ofsc->setMaterialThickness(fVpkg->materialThickness());
+    //         ofsc->setTargetZIndex(std::round(anchorDistance / 2));
+    //         ofsc->setOptimizationIterations(fSegParams.fNumIters);
+    //         ofsc->setOutsideThreshold(fSegParams.outside_threshold);
+    //         ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
+    //         ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
+    //         ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
+    //         ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
+    //         ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
+    //         ofsc->setEnableSmoothenOutlier(fSegParams.enable_smoothen_outlier);
+    //         ofsc->setEnableEdge(fSegParams.enable_edge);
+    //         ofsc->setPurgeCache(fSegParams.purge_cache);
+    //         ofsc->setCacheSlices(fSegParams.cache_slices);
+    //         ofsc->setOrderedPointSet(fSegStructMap[submittedSegmentationId].fMasterCloud);
+    //         ofsc->setBackwardsInterpolationWindow(0);
+    //         ofsc->setBackwardsLength(0);            
+    //         Segmenter::Pointer segmenter = ofsc;
+
+    //         // set common parameters
+    //         segmenter->setChain(fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(anchorBackward));
+    //         segmenter->setVolume(currentVolume);
+    //         // Queue segmentation for execution
+    //         queueSegmentation(submittedSegmentationId, segmenter);
+    //     }
+    // }
     
     // Execute the next segmentation
     executeNextSegmentation();
@@ -1220,6 +1320,7 @@ void CWindow::CleanupSegmentation(void)
     SetUpAnnotations();
     OpenSlice();
     SetCurrentCurve(fPathOnSliceIndex);
+    findChild<QDockWidget*>("dockWidgetLeft")->hide();
 }
 
 // Set up the parameters for doing segmentation
@@ -1428,61 +1529,55 @@ void CWindow::InitPathList(void)
 // Update annotation list
 void CWindow::UpdateAnnotationList(void)
 {
-    if (fVpkg != nullptr) {
+    if(fSegTool->isChecked()) {
 
-        // Find currently highlighted segment
-        std::string highlightId;
-        for(auto& seg : fSegStructMap) {
-            if (seg.second.highlighted) {
-                highlightId = seg.first;
-                break;
-            }
-        }
+        if (fVpkg != nullptr) {
 
-        if(fSegStructMap[highlightId].fSegmentation && fSegStructMap[highlightId].fSegmentation->hasAnnotations()) {
-            
-            // First check if there are entries that we need to remove, because annotations were changed
-            QTreeWidgetItemIterator it(fAnnotationListWidget);
-            while (*it) {
-                auto an = fSegStructMap[highlightId].fAnnotations.find((*it)->text(0).toInt())->second;
-                if (!an.anchor && !an.manual) {
-                    // Displayed row is no longer an annotation => remove
-                    delete (*it);
+            if(fSegStructMap[fSegmentationId].fSegmentation && fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
+                
+                // First check if there are entries that we need to remove, because annotations were changed
+                QTreeWidgetItemIterator it(fAnnotationListWidget);
+                while (*it) {
+                    auto an = fSegStructMap[fSegmentationId].fAnnotations.find((*it)->text(0).toInt())->second;
+                    if (!an.anchor && !an.manual) {
+                        // Displayed row is no longer an annotation => remove
+                        delete (*it);
+                    }
+                    ++it;
                 }
-                ++it;
-            }
 
-            // Add or update the annotation rows
-            for (auto a : fSegStructMap[highlightId].fAnnotations) {
+                // Add or update the annotation rows
+                for (auto a : fSegStructMap[fSegmentationId].fAnnotations) {
 
-                // Check if at least one of the flags is true
-                if(a.second.anchor || a.second.manual) {
+                    // Check if at least one of the flags is true
+                    if(a.second.anchor || a.second.manual) {
 
-                    // Anchor or manually changed => add to list if not already in there
-                    auto items = fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0);
+                        // Anchor or manually changed => add to list if not already in there
+                        auto items = fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0);
 
-                    if(items.size() == 0) {                    
-                        AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
-                        item->setText(0, QString::number(a.first));
-                        item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
-                        item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
-                        item->setDisabled(true);
-                    } if(items.size() == 1) {
-                        // Row does already exists => update it
-                        items.at(0)->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
-                        items.at(0)->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                        if(items.size() == 0) {                    
+                            AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
+                            item->setText(0, QString::number(a.first));
+                            item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
+                            item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                            item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+                        } if(items.size() == 1) {
+                            // Row does already exists => update it
+                            items.at(0)->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
+                            items.at(0)->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                        }
                     }
                 }
+
+                // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
+                fAnnotationListWidget->resizeColumnToContents(0);
+                fAnnotationListWidget->resizeColumnToContents(1);
+                fAnnotationListWidget->resizeColumnToContents(2); 
+
+                fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
+            } else {
+                fAnnotationListWidget->clear();
             }
-
-            // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
-            fAnnotationListWidget->resizeColumnToContents(0);
-            fAnnotationListWidget->resizeColumnToContents(1);
-            fAnnotationListWidget->resizeColumnToContents(2); 
-
-            fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
-        } else {
-            fAnnotationListWidget->clear();
         }
     }
 }
@@ -1954,18 +2049,12 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             fPathOnSliceIndex = fSegStructMap[aSegID].fMinSegIndex;
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
-
-            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
-            item->setSelected(true);
         }
         // Go to ending position if Alt or Ctrl is pressed
         else if (qga::keyboardModifiers() == Qt::AltModifier || qga::keyboardModifiers() == Qt::ControlModifier) {
             fPathOnSliceIndex = fSegStructMap[aSegID].fMaxSegIndex;
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
-
-            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
-            item->setSelected(true);
         }
     }
     else if (column == 1) // Display
@@ -2138,6 +2227,12 @@ void CWindow::addNewAnnotationsItem(int sliceIndex, bool anchor, bool manual)
     fAnnotationListWidget->setCurrentItem(newItem);
 }
 
+void CWindow::annotationDoubleClicked(QTreeWidgetItem* item)
+{
+    auto slice = item->text(0).toInt();
+    OnLoadAnySlice(slice);
+}
+
 // Show go to slice dialog and execute the jump
 void CWindow::ShowGoToSliceDlg() {
     if (currentVolume == nullptr || !fVolumeViewerWidget->fNextBtn->isEnabled()) {
@@ -2180,6 +2275,7 @@ void CWindow::ReturnToEditSlice() {
 void CWindow::ToggleAnchor() {
     if(fSegTool->isChecked()) {
         fSegStructMap[fSegmentationId].SetSliceAsAnchor(fPathOnSliceIndex, !fSegStructMap[fSegmentationId].IsSliceAnAnchor(fPathOnSliceIndex));
+        fVpkgChanged = true;
         UpdateAnnotationList();
     }
 }
@@ -2248,6 +2344,7 @@ void CWindow::ToggleSegmentationTool(void)
         startPrefetching(fPathOnSliceIndex);
         fSliceIndexToolStart = fPathOnSliceIndex;
         fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
+        findChild<QDockWidget*>("dockWidgetLeft")->show();
 
         fWindowState = EWindowState::WindowStateSegmentation;
         SplitCloud();
@@ -2255,8 +2352,10 @@ void CWindow::ToggleSegmentationTool(void)
         // Adjust the algorithm widgets based on whether we have annotations
         lblBackwardsLength->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
         edtBackwardsLength->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
-        lblBackwardsInterpolationWindow->setText(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations() 
-            ? tr("Backwards Interpolation Percent") : tr("Backwards Interpolation Window"));
+        lblBackwardsInterpolationWindow->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
+        edtBackwardsInterpolationWindow->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
+        lblBackwardsInterpolationPercent->setVisible(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
+        edtBackwardsInterpolationPercent->setVisible(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
 
         // turn off pen tool
         fPenTool->setChecked(false);
@@ -2266,6 +2365,7 @@ void CWindow::ToggleSegmentationTool(void)
         CleanupSegmentation();
         fSliceIndexToolStart = -1;
         fVolumeViewerWidget->SetSliceIndexToolStart(-1);
+        findChild<QDockWidget*>("dockWidgetLeft")->hide();
     }
     UpdateView();
 }
@@ -2381,19 +2481,6 @@ void CWindow::OnOptIncludeMiddleClicked(bool clicked)
     fOptIncludeMiddle->setChecked(clicked);
     fSegParams.fIncludeMiddle = clicked;
 }
-
-/*
-// Handle sample distance value change
-void CWindow::OnEdtSampleDistValChange( QString nText )
-{
-    // REVISIT - the widget should be disabled and the change ignored for now
-    bool aIsOk;
-    int aNewVal = nText.toInt( &aIsOk );
-    if ( aIsOk ) {
-        fSegParams.fThreshold = aNewVal;
-    }
-}
-*/
 
 // Handle ending slice value change
 void CWindow::OnEdtEndingSliceValChange()
