@@ -18,6 +18,7 @@ This fork contains the following changes compared to upstream currently:
   * Mouse Wheel + Ctrl = Zoom in/out (as in most image apps); was previously Mouse Wheel + Shift in VC
   * Mouse Wheel + Shift = Next/previous slice (scan range can be set via Q/E keys with visual feedback)
   * Mouse Wheel + W Key Hold = Adjust impact range
+  * Mouse Wheel + R Key Hold = Follow Highlighted Curve (same as Mouse Forward/Backward buttons)
 - Added Ctrl + G to easily jump to a given slice (opens an input popup to type in the slice index) => no more need to manually click into the spinner below the viewer
 - Added shortcut F to jump back to the slice the segmentation tool was started on
 - Added settings dialog (using an INI file `VC.ini`) to make some features configurable

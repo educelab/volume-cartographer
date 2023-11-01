@@ -1552,10 +1552,11 @@ void CWindow::Keybindings(void)
         "Mouse Wheel + Ctrl: Zoom in/out \n"
         "Mouse Wheel + Shift: Next/previous slice \n"
         "Mouse Wheel + W Key Hold: Change impact range \n"
+        "Mouse Wheel + R Key Hold: Follow Highlighted Curve \n"
         "Mouse Left Click: Add Points to Curve in Pen Tool. Snap Closest Point to Cursor in Segmentation Tool. \n"
         "Mouse Left Drag: Drag Point / Curve after Mouse Left Click \n"
         "Mouse Right Drag: Pan slice image\n"
-        "Mouse Back/Forward Button: Follow Highlighted Curve View \n"
+        "Mouse Back/Forward Button: Follow Highlighted Curve \n"
         "Highlighting Segment ID: Shift/(Alt as well as Ctrl) Modifier to jump to Segment start/end."));
 }
 

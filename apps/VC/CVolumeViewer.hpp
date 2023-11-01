@@ -28,6 +28,7 @@ class CVolumeViewerView : public QGraphicsView
         void keyReleaseEvent(QKeyEvent* event) override;
 
         bool isRangeKeyPressed() { return rangeKeyPressed; }
+        bool isCurvePanKeyPressed() { return curvePanKeyPressed; }
 
         void showTextAboveCursor(const QString& value, const QString& label, const QColor& color);
         void hideTextAboveCursor();
@@ -39,6 +40,7 @@ class CVolumeViewerView : public QGraphicsView
 
     protected:
         bool rangeKeyPressed{false};
+        bool curvePanKeyPressed{false};
 
         QGraphicsTextItem* textAboveCursor;
         QGraphicsRectItem* backgroundBehindText;

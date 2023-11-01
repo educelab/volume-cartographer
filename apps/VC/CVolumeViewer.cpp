@@ -41,14 +41,20 @@ void CVolumeViewerView::setup()
 
 void CVolumeViewerView::keyPressEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_W)
+    if (event->key() == Qt::Key_W) {
         rangeKeyPressed = true;
+    } else if (event->key() == Qt::Key_R) {
+        curvePanKeyPressed = true;
+    }
 }
 
 void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_W)
+    if (event->key() == Qt::Key_W)  {
         rangeKeyPressed = false;
+    } else if (event->key() == Qt::Key_R) {
+        curvePanKeyPressed = false;
+    }
 }
 
 void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label, const QColor& color)
@@ -220,13 +226,13 @@ void CVolumeViewer::setNumSlices(int num)
 
 bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
 {
+    // Wheel events
     if (watched == fGraphicsView || (fGraphicsView && watched == fGraphicsView->viewport()) && event->type() == QEvent::Wheel) {
-        
-        // Wheel events
+
         QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
         
-        // "R" key pressed => Change impact range
-        if(fGraphicsView->isRangeKeyPressed()) {
+        // Range key pressed
+        if (fGraphicsView->isRangeKeyPressed()) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
@@ -236,8 +242,9 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             }
 
             return true;
+        }
         // Ctrl = Zoom in/out
-        } else if(QApplication::keyboardModifiers() == Qt::ControlModifier) {
+        else if (QApplication::keyboardModifiers() == Qt::ControlModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
@@ -251,8 +258,9 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             }
             
             return true;
+        }
         // Shift = Scan through slices
-        } else if(QApplication::keyboardModifiers() == Qt::ShiftModifier) {
+        else if (QApplication::keyboardModifiers() == Qt::ShiftModifier) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
 
             if (numDegrees > 0) {
