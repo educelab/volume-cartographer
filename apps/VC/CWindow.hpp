@@ -236,6 +236,7 @@ private:
     bool fVpkgChanged;
 
     std::string fSegmentationId;
+    std::string fHighlightedSegmentationId;
     volcart::Volume::Pointer currentVolume;
 
     static const int AMPLITUDE = 28000;

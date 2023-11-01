@@ -81,6 +81,7 @@ CWindow::CWindow()
     : fWindowState(EWindowState::WindowStateIdle)
     , fVpkg(nullptr)
     , fSegmentationId("")
+    , fHighlightedSegmentationId("")
     , fPathOnSliceIndex(0)
     , fVolumeViewerWidget(nullptr)
     , fPathListWidget(nullptr)
@@ -1051,14 +1052,14 @@ void CWindow::DoSegmentation(void)
             int anchorBackward = -1;
             
             // Auto-adjust parameters if we have annotations
-            if(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
+            if(fSegStructMap[segID].fSegmentation->hasAnnotations()) {
                 
                 if(directionUp) {
-                    anchorForward = fSegStructMap[fSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
-                    anchorBackward = fSegStructMap[fSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
+                    anchorForward = fSegStructMap[segID].FindNearestHigherAnchor(fEdtStartIndex->value());
+                    anchorBackward = fSegStructMap[segID].FindNearestLowerAnchor(fEdtStartIndex->value());
                 } else {
-                    anchorForward = fSegStructMap[fSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
-                    anchorBackward = fSegStructMap[fSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
+                    anchorForward = fSegStructMap[segID].FindNearestLowerAnchor(fEdtStartIndex->value());
+                    anchorBackward = fSegStructMap[segID].FindNearestHigherAnchor(fEdtStartIndex->value());
                 }
                 
                 std::cout << "OFS: Forward Anchor: " << anchorForward << std::endl;
@@ -1529,16 +1530,16 @@ void CWindow::InitPathList(void)
 // Update annotation list
 void CWindow::UpdateAnnotationList(void)
 {
-    if(fSegTool->isChecked()) {
+    if(fSegTool->isChecked() && !fHighlightedSegmentationId.empty()) {
 
         if (fVpkg != nullptr) {
 
-            if(fSegStructMap[fSegmentationId].fSegmentation && fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations()) {
+            if(fSegStructMap[fHighlightedSegmentationId].fSegmentation && fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations()) {
                 
                 // First check if there are entries that we need to remove, because annotations were changed
                 QTreeWidgetItemIterator it(fAnnotationListWidget);
                 while (*it) {
-                    auto an = fSegStructMap[fSegmentationId].fAnnotations.find((*it)->text(0).toInt())->second;
+                    auto an = fSegStructMap[fHighlightedSegmentationId].fAnnotations.find((*it)->text(0).toInt())->second;
                     if (!an.anchor && !an.manual) {
                         // Displayed row is no longer an annotation => remove
                         delete (*it);
@@ -1547,7 +1548,7 @@ void CWindow::UpdateAnnotationList(void)
                 }
 
                 // Add or update the annotation rows
-                for (auto a : fSegStructMap[fSegmentationId].fAnnotations) {
+                for (auto a : fSegStructMap[fHighlightedSegmentationId].fAnnotations) {
 
                     // Check if at least one of the flags is true
                     if(a.second.anchor || a.second.manual) {
@@ -1615,12 +1616,10 @@ void CWindow::SetPathPointCloud(void)
         annotations.emplace_back(AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL, AnnotationBits::ANO_UNUSED);
     }
     fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
+    fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);
 
     fSegStructMap[fSegmentationId].fMinSegIndex = static_cast<int>(floor(fSegStructMap[fSegmentationId].fMasterCloud[0][2]));
-    fSegStructMap[fSegmentationId].fMaxSegIndex = fSegStructMap[fSegmentationId].fMinSegIndex;
-
-    // Also create matching annotations.
-    fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);
+    fSegStructMap[fSegmentationId].fMaxSegIndex = fSegStructMap[fSegmentationId].fMinSegIndex;    
 }
 
 // Open volume package
@@ -2038,10 +2037,12 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         for(auto& seg : fSegStructMap) {
             seg.second.highlighted = false;
         }
+        fHighlightedSegmentationId = "";
 
         // Check if aSegID is in fSegStructMap
         if (fSegStructMap.find(aSegID) != fSegStructMap.end()) {
             fSegStructMap[aSegID].highlighted = true;
+            fHighlightedSegmentationId = aSegID;
         }
 
         // Go to starting position if Shift is pressed
@@ -2049,12 +2050,18 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
             fPathOnSliceIndex = fSegStructMap[aSegID].fMinSegIndex;
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
+
+            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
+            item->setSelected(true);
         }
         // Go to ending position if Alt or Ctrl is pressed
         else if (qga::keyboardModifiers() == Qt::AltModifier || qga::keyboardModifiers() == Qt::ControlModifier) {
             fPathOnSliceIndex = fSegStructMap[aSegID].fMaxSegIndex;
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
+
+            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
+            item->setSelected(true);
         }
     }
     else if (column == 1) // Display
@@ -2123,6 +2130,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
     // If no Segmentation has highlighted set to true, and current segment was checked, set highlight to true
     if (!anyHighlighted && item->checkState(1) == Qt::Checked) {
         fSegStructMap[aSegID].highlighted = true;
+        fHighlightedSegmentationId = aSegID;
         // Set column 0 to selected (highlighted, since it is not a checkmark)
         item->setSelected(true);
     }
@@ -2144,6 +2152,8 @@ void CWindow::PreviousSelectedId() {
         }
         seg.second.highlighted = false;
     }
+    fHighlightedSegmentationId = "";
+
     // Find the previous seg that is active (compute or display)
     std::string previousId;
     for(auto& seg : fSegStructMap) {
@@ -2169,6 +2179,10 @@ void CWindow::PreviousSelectedId() {
 
     // Set the previous seg to highlighted
     fSegStructMap[previousId].highlighted = true;
+    fHighlightedSegmentationId = previousId;
+    fPathListWidget->clearSelection();
+    fPathListWidget->findItems(QString::fromStdString(previousId), Qt::MatchExactly, 0).at(0)->setSelected(true);
+    fAnnotationListWidget->clear();
 
     UpdateView();
 }
@@ -2183,6 +2197,8 @@ void CWindow::NextSelectedId() {
         }
         seg.second.highlighted = false;
     }
+    fHighlightedSegmentationId = "";
+
     // Find the next seg that is active (compute or display)
     std::string nextId;
     bool found = false;
@@ -2211,6 +2227,10 @@ void CWindow::NextSelectedId() {
 
     // Set the next seg to highlighted
     fSegStructMap[nextId].highlighted = true;
+    fHighlightedSegmentationId = nextId;
+    fPathListWidget->clearSelection();
+    fPathListWidget->findItems(QString::fromStdString(nextId), Qt::MatchExactly, 0).at(0)->setSelected(true);
+    fAnnotationListWidget->clear();
 
     UpdateView();
 }
@@ -2349,13 +2369,15 @@ void CWindow::ToggleSegmentationTool(void)
         fWindowState = EWindowState::WindowStateSegmentation;
         SplitCloud();
 
-        // Adjust the algorithm widgets based on whether we have annotations
-        lblBackwardsLength->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
-        edtBackwardsLength->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
-        lblBackwardsInterpolationWindow->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
-        edtBackwardsInterpolationWindow->setVisible(!fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
-        lblBackwardsInterpolationPercent->setVisible(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
-        edtBackwardsInterpolationPercent->setVisible(fSegStructMap[fSegmentationId].fSegmentation->hasAnnotations());
+        // Adjust the algorithm widgets based on whether we have annotations for the highlighted segment
+        if(!fHighlightedSegmentationId.empty()) {
+            lblBackwardsLength->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+            edtBackwardsLength->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+            lblBackwardsInterpolationWindow->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+            edtBackwardsInterpolationWindow->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+            lblBackwardsInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+            edtBackwardsInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+        }
 
         // turn off pen tool
         fPenTool->setChecked(false);
