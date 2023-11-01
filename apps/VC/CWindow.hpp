@@ -128,7 +128,7 @@ private:
     void UpdateRecentVolpkgList(const QString& path);
     void RemoveEntryFromRecentVolpkg(const QString& path);
 
-    void closeEvent(QCloseEvent* closing);
+    void closeEvent(QCloseEvent* event);
 
     void setWidgetsEnabled(bool state);
 
@@ -182,6 +182,7 @@ private slots:
     void OnNewPathClicked(void);
     void OnRemovePathClicked(void);
     void OnPathItemClicked(QTreeWidgetItem* item, int column);
+    void OnPathItemSelectionChanged();
 
     void PreviousSelectedId();
     void NextSelectedId();

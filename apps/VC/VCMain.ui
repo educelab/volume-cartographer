@@ -133,7 +133,7 @@
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QDockWidget" name="dockWidgetLeft">
+  <widget class="QDockWidget" name="dockWidgetRight">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -144,13 +144,13 @@
     <set>QDockWidget::NoDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
+    <set>Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string/>
    </property>
    <attribute name="dockWidgetArea">
-    <number>1</number>
+    <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetLeftContent">
     <property name="enabled">
@@ -243,12 +243,15 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockWidgetRight">
+  <widget class="QDockWidget" name="dockWidgetLeft">
    <property name="features">
     <set>QDockWidget::NoDockWidgetFeatures</set>
    </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea</set>
+   </property>
    <attribute name="dockWidgetArea">
-    <number>2</number>
+    <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetRightContent">
     <layout class="QVBoxLayout" name="verticalLayout_2">

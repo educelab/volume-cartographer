@@ -93,6 +93,7 @@ CWindow::CWindow()
 {
 
     ui.setupUi(this);
+    setAttribute(Qt::WA_QuitOnClose);
     SDL_Init(SDL_INIT_AUDIO);
     fVpkgChanged = false;
 
@@ -173,8 +174,6 @@ CWindow::CWindow()
             Open(files[0]);
         }
     } 
-
-    findChild<QDockWidget*>("dockWidgetLeft")->hide(); // only shown in seg tool mode   
 }
 
 // Destructor
@@ -297,6 +296,7 @@ void CWindow::CreateWidgets(void)
     // list of paths
     fPathListWidget = this->findChild<QTreeWidget*>("treeWidgetPaths");
     connect(fPathListWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(OnPathItemClicked(QTreeWidgetItem*, int)));
+    connect(fPathListWidget, &QTreeWidget::itemSelectionChanged, this, &CWindow::OnPathItemSelectionChanged);
 
     // list of annotations
     fAnnotationListWidget = this->findChild<QTreeWidget*>("treeWidgetAnnotations");
@@ -762,16 +762,20 @@ void CWindow::RemoveEntryFromRecentVolpkg(const QString& path)
 }
 
 // Asks User to Save Data Prior to VC.app Exit
-void CWindow::closeEvent(QCloseEvent* closing)
+void CWindow::closeEvent(QCloseEvent* event)
 {
     if (SaveDialog() == SaveResponse::Continue) {
-        closing->accept();
+        event->accept();
     } else {
-        closing->ignore();
+        event->ignore();
     }
     QSettings settings;
     settings.setValue("mainWin/geometry", saveGeometry());
     settings.setValue("mainWin/state", saveState());
+
+    Close();
+
+    QMainWindow::closeEvent(event);
 }
 
 void CWindow::setWidgetsEnabled(bool state)
@@ -960,7 +964,6 @@ void CWindow::ChangePathItem(std::string segID)
 
     OpenSlice();
     SetCurrentCurve(fPathOnSliceIndex);
-    UpdateAnnotationList();
     UpdateView();
 }
 
@@ -1323,7 +1326,6 @@ void CWindow::CleanupSegmentation(void)
     SetUpAnnotations();
     OpenSlice();
     SetCurrentCurve(fPathOnSliceIndex);
-    findChild<QDockWidget*>("dockWidgetLeft")->hide();
 }
 
 // Set up the parameters for doing segmentation
@@ -1532,23 +1534,14 @@ void CWindow::InitPathList(void)
 // Update annotation list
 void CWindow::UpdateAnnotationList(void)
 {
-    if(fSegTool->isChecked() && !fHighlightedSegmentationId.empty()) {
+    fAnnotationListWidget->clear();
+
+    if(!fHighlightedSegmentationId.empty()) {
 
         if (fVpkg != nullptr) {
 
             if(fSegStructMap[fHighlightedSegmentationId].fSegmentation && fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations()) {
                 
-                // First check if there are entries that we need to remove, because annotations were changed
-                QTreeWidgetItemIterator it(fAnnotationListWidget);
-                while (*it) {
-                    auto an = fSegStructMap[fHighlightedSegmentationId].fAnnotations.find((*it)->text(0).toInt())->second;
-                    if (!an.anchor && !an.manual) {
-                        // Displayed row is no longer an annotation => remove
-                        delete (*it);
-                    }
-                    ++it;
-                }
-
                 // Add or update the annotation rows
                 for (auto a : fSegStructMap[fHighlightedSegmentationId].fAnnotations) {
 
@@ -1578,8 +1571,6 @@ void CWindow::UpdateAnnotationList(void)
                 fAnnotationListWidget->resizeColumnToContents(2); 
 
                 fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
-            } else {
-                fAnnotationListWidget->clear();
             }
         }
     }
@@ -1868,7 +1859,6 @@ void CWindow::OnNewPathClicked(void)
     fSegStructMap[newSegmentationId].compute = true;
     newItem->setSelected(true);
 
-    fAnnotationListWidget->clear();
     UpdateView();
 
     // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
@@ -2036,115 +2026,118 @@ void CWindow::toggleComputeAll(bool checked)
 // Handle path item click event
 void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 {
-    std::string aSegID = item->text(0).toStdString();
-    // qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
-    // If the first checkbox (in column 1) is clicked
-    if (column == 0) // Highlight the curve
-    {
-        for(auto& seg : fSegStructMap) {
-            seg.second.highlighted = false;
-        }
-        fHighlightedSegmentationId = "";
+    // Note: item might be empty, since we are also calling this method from the general
+    // selection change slot (where the selection change might be to "none").
+    if (item) {
+        std::string aSegID = item->text(0).toStdString();
+        // qDebug() << "Item clicked: " << item->text(0) << " Column: " << column;
 
-        // Check if aSegID is in fSegStructMap
-        if (fSegStructMap.find(aSegID) != fSegStructMap.end()) {
+        // If the first checkbox (in column 1) is clicked
+        if (column == 0) // Highlight the curve
+        {
+            for(auto& seg : fSegStructMap) {
+                seg.second.highlighted = false;
+            }
+            fHighlightedSegmentationId = "";
+
+            // Check if aSegID is in fSegStructMap
+            if (fSegStructMap.find(aSegID) != fSegStructMap.end()) {
+                fSegStructMap[aSegID].highlighted = true;
+                fHighlightedSegmentationId = aSegID;
+            }
+
+            // Go to starting position if Shift is pressed
+            if (qga::keyboardModifiers() == Qt::ShiftModifier) {
+                fPathOnSliceIndex = fSegStructMap[aSegID].fMinSegIndex;
+                OpenSlice();
+                SetCurrentCurve(fPathOnSliceIndex);
+
+                // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
+                item->setSelected(true);
+            }
+            // Go to ending position if Alt or Ctrl is pressed
+            else if (qga::keyboardModifiers() == Qt::AltModifier || qga::keyboardModifiers() == Qt::ControlModifier) {
+                fPathOnSliceIndex = fSegStructMap[aSegID].fMaxSegIndex;
+                OpenSlice();
+                SetCurrentCurve(fPathOnSliceIndex);
+
+                // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
+                item->setSelected(true);
+            }
+        }
+        else if (column == 1) // Display
+        {
+            if (item->checkState(column) == Qt::Checked)
+            {
+                if (SaveDialog() == SaveResponse::Cancelled)
+                {
+                    // Update the list to show the previous selection
+                    QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
+                        QString(fSegmentationId.c_str()), Qt::MatchExactly, 0);
+                    
+                    if (!previousItems.isEmpty())
+                    {
+                        fPathListWidget->setCurrentItem(previousItems[0]);
+                    }
+                    
+                    // Uncheck the checkbox
+                    item->setCheckState(column, Qt::Unchecked);
+                }
+                // qDebug() << "Display " << aSegID.c_str();
+                ChangePathItem(aSegID);
+                // qDebug() << "Display " << aSegID.c_str() << " set display true.";
+                fSegStructMap[aSegID].display = true;
+            }
+            else
+            {
+                // Also Uncheck the second checkbox (Compute). Never Compute without displaying the Curve.
+                item->setCheckState(2, Qt::Unchecked);
+                fSegStructMap[aSegID].display = false;
+                // qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
+                fSegStructMap[aSegID].compute = false;
+            }
+        }
+        // If the second checkbox (in column 2) is clicked
+        else if (column == 2) // Compute
+        {
+            if (item->checkState(column) == Qt::Checked)
+            {
+                // Only compute if the first checkbox (Display) is checked, so check it too
+                // Check the first checkbox
+                if (item->checkState(1) != Qt::Checked)
+                {
+                    item->setCheckState(1, Qt::Checked);
+                    ChangePathItem(aSegID);
+                }
+                fSegStructMap[aSegID].display = true;
+                fSegStructMap[aSegID].compute = true;
+                // qDebug() << "Compute " << aSegID.c_str() << " set compute true.";
+            }
+            else {
+                // qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
+                fSegStructMap[aSegID].compute = false;
+            }
+        }
+
+        // Check if any other Segmentation has highlighted set to true
+        bool anyHighlighted = false;
+        for(auto& seg : fSegStructMap) {
+            if (seg.second.highlighted) {
+                anyHighlighted = true;
+                break;
+            }
+        }
+
+        // If no Segmentation has highlighted set to true, and current segment was checked, set highlight to true
+        if (!anyHighlighted && item->checkState(1) == Qt::Checked) {
             fSegStructMap[aSegID].highlighted = true;
             fHighlightedSegmentationId = aSegID;
-        }
-
-        // Go to starting position if Shift is pressed
-        if (qga::keyboardModifiers() == Qt::ShiftModifier) {
-            fPathOnSliceIndex = fSegStructMap[aSegID].fMinSegIndex;
-            OpenSlice();
-            SetCurrentCurve(fPathOnSliceIndex);
-
-            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
+            // Set column 0 to selected (highlighted, since it is not a checkmark)
             item->setSelected(true);
         }
-        // Go to ending position if Alt or Ctrl is pressed
-        else if (qga::keyboardModifiers() == Qt::AltModifier || qga::keyboardModifiers() == Qt::ControlModifier) {
-            fPathOnSliceIndex = fSegStructMap[aSegID].fMaxSegIndex;
-            OpenSlice();
-            SetCurrentCurve(fPathOnSliceIndex);
 
-            // As the keyboard modifier has special meaning in item lists, we need to reset the selection manually
-            item->setSelected(true);
-        }
+        UpdateSegmentCheckboxes(aSegID);
     }
-    else if (column == 1) // Display
-    {
-        if (item->checkState(column) == Qt::Checked)
-        {
-            if (SaveDialog() == SaveResponse::Cancelled)
-            {
-                // Update the list to show the previous selection
-                QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
-                    QString(fSegmentationId.c_str()), Qt::MatchExactly, 0);
-                
-                if (!previousItems.isEmpty())
-                {
-                    fPathListWidget->setCurrentItem(previousItems[0]);
-                }
-                
-                // Uncheck the checkbox
-                item->setCheckState(column, Qt::Unchecked);
-            }
-            // qDebug() << "Display " << aSegID.c_str();
-            ChangePathItem(aSegID);
-            // qDebug() << "Display " << aSegID.c_str() << " set display true.";
-            fSegStructMap[aSegID].display = true;
-        }
-        else
-        {
-            // Also Uncheck the second checkbox (Compute). Never Compute without displaying the Curve.
-            item->setCheckState(2, Qt::Unchecked);
-            fSegStructMap[aSegID].display = false;
-            // qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
-            fSegStructMap[aSegID].compute = false;
-        }
-    }
-    // If the second checkbox (in column 2) is clicked
-    else if (column == 2) // Compute
-    {
-        if (item->checkState(column) == Qt::Checked)
-        {
-            // Only compute if the first checkbox (Display) is checked, so check it too
-            // Check the first checkbox
-            if (item->checkState(1) != Qt::Checked)
-            {
-                item->setCheckState(1, Qt::Checked);
-                ChangePathItem(aSegID);
-            }
-            fSegStructMap[aSegID].display = true;
-            fSegStructMap[aSegID].compute = true;
-            // qDebug() << "Compute " << aSegID.c_str() << " set compute true.";
-        }
-        else {
-            // qDebug() << "Compute " << aSegID.c_str() << " set compute false.";
-            fSegStructMap[aSegID].compute = false;
-        }
-    }
-
-    // Check if any other Segmentation has highlighted set to true
-    bool anyHighlighted = false;
-    for(auto& seg : fSegStructMap) {
-        if (seg.second.highlighted) {
-            anyHighlighted = true;
-            break;
-        }
-    }
-
-    // If no Segmentation has highlighted set to true, and current segment was checked, set highlight to true
-    if (!anyHighlighted && item->checkState(1) == Qt::Checked) {
-        fSegStructMap[aSegID].highlighted = true;
-        fHighlightedSegmentationId = aSegID;
-        // Set column 0 to selected (highlighted, since it is not a checkmark)
-        item->setSelected(true);
-    }
-
-    UpdateSegmentCheckboxes(aSegID);
-    fAnnotationListWidget->clear();
-    UpdateAnnotationList();
 
     UpdateView();
 }
@@ -2189,8 +2182,23 @@ void CWindow::PreviousSelectedId() {
     fHighlightedSegmentationId = previousId;
     fPathListWidget->clearSelection();
     fPathListWidget->findItems(QString::fromStdString(previousId), Qt::MatchExactly, 0).at(0)->setSelected(true);
-    fAnnotationListWidget->clear();
 
+    UpdateView();
+}
+
+// Handle path item selection changed
+void CWindow::OnPathItemSelectionChanged()
+{
+    // First mark all as "not highlighted"
+    for(auto& seg : fSegStructMap) {
+        seg.second.highlighted = false;
+    }
+    fHighlightedSegmentationId = "";
+
+    auto items = fPathListWidget->selectedItems();
+    if(!items.empty()) {
+        OnPathItemClicked(items.at(0), 0);
+    }
     UpdateView();
 }
 
@@ -2237,7 +2245,6 @@ void CWindow::NextSelectedId() {
     fHighlightedSegmentationId = nextId;
     fPathListWidget->clearSelection();
     fPathListWidget->findItems(QString::fromStdString(nextId), Qt::MatchExactly, 0).at(0)->setSelected(true);
-    fAnnotationListWidget->clear();
 
     UpdateView();
 }
@@ -2371,7 +2378,6 @@ void CWindow::ToggleSegmentationTool(void)
         startPrefetching(fPathOnSliceIndex);
         fSliceIndexToolStart = fPathOnSliceIndex;
         fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
-        findChild<QDockWidget*>("dockWidgetLeft")->show();
 
         fWindowState = EWindowState::WindowStateSegmentation;
         SplitCloud();
@@ -2394,7 +2400,6 @@ void CWindow::ToggleSegmentationTool(void)
         CleanupSegmentation();
         fSliceIndexToolStart = -1;
         fVolumeViewerWidget->SetSliceIndexToolStart(-1);
-        findChild<QDockWidget*>("dockWidgetLeft")->hide();
     }
     UpdateView();
 }
