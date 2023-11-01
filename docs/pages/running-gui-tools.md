@@ -28,3 +28,8 @@
 ```shell
 docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ghcr.io/educelab/volume-cartographer VC
 ```
+
+If you get error `could not connect to display :<your display number>`, run this command first to allow Docker access to X before trying again:
+```shell
+xhost +local:docker
+```
