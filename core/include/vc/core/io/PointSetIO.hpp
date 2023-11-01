@@ -480,6 +480,13 @@ private:
             }
             outfile << std::endl;
         }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
+        }
     }
 
     /** @brief Write a binary PointSet */
@@ -498,6 +505,13 @@ private:
         for (const auto& p : ps) {
             auto nbytes = T::channels * sizeof(typename T::value_type);
             outfile.write(reinterpret_cast<const char*>(p.val), nbytes);
+        }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
         }
     }
 
@@ -519,6 +533,13 @@ private:
             }
             outfile << std::endl;
         }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
+        }
     }
 
     /** @brief Write a binary OrderedPointSet */
@@ -537,6 +558,13 @@ private:
         for (const auto& p : ps) {
             auto nbytes = T::channels * sizeof(typename T::value_type);
             outfile.write(reinterpret_cast<const char*>(p.val), nbytes);
+        }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
         }
     }
     /**@}*/

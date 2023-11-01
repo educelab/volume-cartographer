@@ -212,7 +212,7 @@ private slots:
 
     void OnEdtImpactRange(int nImpactRange);
 
-    void OnLoadAnySlice(int nSliceIndex);
+    void OnLoadAnySlice(int slice);
     void OnLoadNextSliceShift(int shift);
     void OnLoadPrevSliceShift(int shift);
 
@@ -248,6 +248,7 @@ private:
     int fEndTargetOffset{5};
     int currentScanRangeIndex{0}; // Index 0 = range size 1 as starting value
     std::vector<int> impactRangeSteps;
+    int strideWidth;
 
     // for drawing mode
     CBSpline fSplineCurve;  // the curve at current slice

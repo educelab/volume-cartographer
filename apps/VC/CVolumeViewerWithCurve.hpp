@@ -61,7 +61,7 @@ protected:
 private slots:
     void OnShowCurveStateChanged(int state);
     void OnHistEqStateChanged(int state);
-    void handleMouseHold();
+    void panAlongCurve(double speed, bool forward);
 
 private:
     void WidgetLoc2ImgLoc(const cv::Vec2f& nWidgetLoc, cv::Vec2f& nImgLoc);

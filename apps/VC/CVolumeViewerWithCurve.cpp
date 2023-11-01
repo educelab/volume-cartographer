@@ -26,7 +26,6 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     , fSegStructMapRef(nSegStructMapRef)
 {
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(handleMouseHold()));
     QSettings settings;
     colorSelector = new ColorFrame(this);
     colorSelector->setFixedSize(16, 16);
@@ -106,6 +105,7 @@ CVolumeViewerWithCurve::~CVolumeViewerWithCurve()
         delete fImgQImage;
     }
     timer->stop();
+    timer->disconnect();
     delete timer;
 }
 
@@ -217,50 +217,47 @@ void CVolumeViewerWithCurve::UpdateView()
     update();  // Repaint the widget
 }
 
-void CVolumeViewerWithCurve::handleMouseHold()
-{
-    if (lastPressedSideButton & Qt::BackButton || lastPressedSideButton & Qt::ForwardButton) {
-        auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
+void CVolumeViewerWithCurve::panAlongCurve(double speed, bool forward)
+{    
+    auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
 
-        auto res = SelectPointOnCurves(p2, false, true);
-        fSelectedPointIndex = res.first;
-        fSelectedSegID = res.second;
-        
-        if (fSelectedPointIndex == -1) {
-            return;
-        }
-        // fIntersectionCurveRef from the fSelectedSegID
-        int numCurvePoints = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum();
-        double speed = 50.0;
-        int pointDifference = static_cast<int>(speed / fScaleFactor);
-        // qDebug() << "pointDifference: " << pointDifference << " fSelectedPointIndex: " << fSelectedPointIndex;
-        if (lastPressedSideButton & Qt::BackButton) {
-            fSelectedPointIndex -= pointDifference;
-        }
-        else if (lastPressedSideButton & Qt::ForwardButton) {
-            fSelectedPointIndex += pointDifference;
-        }
-        fSelectedPointIndex = std::max(0, std::min(numCurvePoints - 1, fSelectedPointIndex));
-        // qDebug() << "fSelectedPointIndex: " << fSelectedPointIndex;
-        auto p1 = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex);
-        auto v = cv::Vec2f(p1[0] - p2[0], p1[1] - p2[1]);
-        auto v2 = v * 0.1;
-        if (0 < std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) && std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) < (10.0 / fScaleFactor)) {
-            v2 *= (10.0 / fScaleFactor) / std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
-            // check that the v2 is not overshooting p1
-            if (std::abs(v2[0]) > std::abs(v[0])) {
-                v2[0] = v[0];
-            }
-            if (std::abs(v2[1]) > std::abs(v[1])) {
-                v2[1] = v[1];
-            }
-        }
-        scrollPositionModifier = p2 + v2 - CleanScrollPosition((p2 + v2) * fScaleFactor) / fScaleFactor;
-        // qDebug() << "v2: " << v2 << " v: " << v << " p2: " << p2 << " p1: " << p1[0] << " " << p1[1];
-        v2 += p2;
-        // qDebug() << "v2: " << v2 << " scrollPositionModifier: " << scrollPositionModifier;
-        ScrollToCenter(v2 * fScaleFactor);
+    auto res = SelectPointOnCurves(p2, false, true);
+    fSelectedPointIndex = res.first;
+    fSelectedSegID = res.second;
+    
+    if (fSelectedPointIndex == -1) {
+        return;
     }
+    // fIntersectionCurveRef from the fSelectedSegID
+    int numCurvePoints = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum();
+    int pointDifference = static_cast<int>(speed / fScaleFactor);
+    // qDebug() << "pointDifference: " << pointDifference << " fSelectedPointIndex: " << fSelectedPointIndex;
+    if (!forward) {
+        fSelectedPointIndex -= pointDifference;
+    }
+    else {
+        fSelectedPointIndex += pointDifference;
+    }
+    fSelectedPointIndex = std::max(0, std::min(numCurvePoints - 1, fSelectedPointIndex));
+    // qDebug() << "fSelectedPointIndex: " << fSelectedPointIndex;
+    auto p1 = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex);
+    auto v = cv::Vec2f(p1[0] - p2[0], p1[1] - p2[1]);
+    auto v2 = v * 0.1;
+    if (0 < std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) && std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]) < (10.0 / fScaleFactor)) {
+        v2 *= (10.0 / fScaleFactor) / std::sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
+        // check that the v2 is not overshooting p1
+        if (std::abs(v2[0]) > std::abs(v[0])) {
+            v2[0] = v[0];
+        }
+        if (std::abs(v2[1]) > std::abs(v[1])) {
+            v2[1] = v[1];
+        }
+    }
+    scrollPositionModifier = p2 + v2 - CleanScrollPosition((p2 + v2) * fScaleFactor) / fScaleFactor;
+    // qDebug() << "v2: " << v2 << " v: " << v << " p2: " << p2 << " p1: " << p1[0] << " " << p1[1];
+    v2 += p2;
+    // qDebug() << "v2: " << v2 << " scrollPositionModifier: " << scrollPositionModifier;
+    ScrollToCenter(v2 * fScaleFactor);
 }
 
 // Handle mouse press event
@@ -270,6 +267,8 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
     if (event->buttons() & Qt::BackButton || event->buttons() & Qt::ForwardButton) {
         lastPressedSideButton = event->button();
         scrollPositionModifier = cv::Vec2f(0.0, 0.0);
+        bool forward = event->buttons() & Qt::ForwardButton;
+        connect(timer, &QTimer::timeout, this, [this, forward]{ panAlongCurve(50.0, forward); });
         timer->start(fwdBackMsJump); // start timer with millisec delay value from settings
         return;
     }
@@ -407,6 +406,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
 {
     if (((lastPressedSideButton & Qt::BackButton) && !(event->buttons() & Qt::BackButton)) || ((lastPressedSideButton & Qt::ForwardButton) && !(event->buttons() & Qt::ForwardButton))) {
         timer->stop();
+        timer->disconnect();
         lastPressedSideButton = Qt::NoButton;  // unset the last pressed button
     }
 
@@ -463,6 +463,24 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
         
         event->accept();
         return true;
+    }
+
+    // Wheel events
+    if (watched == fGraphicsView || (fGraphicsView && watched == fGraphicsView->viewport()) && event->type() == QEvent::Wheel) {
+
+        QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+
+        if (fGraphicsView->isCurvePanKeyPressed()) {
+            int numDegrees = wheelEvent->angleDelta().y() / 8;
+
+            if (numDegrees > 0) {
+                panAlongCurve(100.0, true);
+            } else if (numDegrees < 0) {
+                panAlongCurve(100.0, false);
+            }
+
+            return true;
+        }
     }
 
     // also call parent class implementation

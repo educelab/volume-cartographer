@@ -456,15 +456,17 @@ void CWindow::CreateWidgets(void)
 
     // Impact Range slider
     QSlider* fEdtImpactRng = this->findChild<QSlider*>("sldImpactRange");
-    connect(
-        fEdtImpactRng, SIGNAL(valueChanged(int)), this,
-        SLOT(OnEdtImpactRange(int)));    
     // We use the slider to provide us an index into the vector of real impact values
     // => range 0..size()-1
     fEdtImpactRng->setMinimum(0);
     fEdtImpactRng->setMaximum(impactRangeSteps.size() - 1);
+    // "Randomly" set the starting value to the middle of the steps.
+    fEdtImpactRng->setValue(impactRangeSteps.size() / 2);
     fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
     fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
+    connect(
+        fEdtImpactRng, SIGNAL(valueChanged(int)), this,
+        SLOT(OnEdtImpactRange(int)));  
 
     // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
@@ -1429,7 +1431,8 @@ void CWindow::prefetchSlices(void) {
       break;
     }
 
-    int prefetchWindow = 100;
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    int prefetchWindow = settings.value("perf/preloaded_slices", 200).toInt() / 2;
     int currentSliceIndex = prefetchSliceIndex.load();
     int start = std::max(0, currentSliceIndex - prefetchWindow);
     int end = std::min(currentVolume->numSlices()-1, currentSliceIndex + prefetchWindow);
@@ -1440,7 +1443,6 @@ void CWindow::prefetchSlices(void) {
         std::vector<std::thread> threads;
 
         for (int i = 0; i <= n; i++) {
-            // Fetch the slice data on the right side
             // Fetch the slice data on the right side
             if (currentSliceIndex + offset + i <= end) {
                 threads.emplace_back(&volcart::Volume::getSliceData, currentVolume, currentSliceIndex + offset + i);
@@ -1626,9 +1628,9 @@ void CWindow::SetPathPointCloud(void)
 void CWindow::OpenVolume(const QString& path)
 {   
     QString aVpkgPath = path;
-    if(aVpkgPath.isEmpty()) {
-        QSettings settings("VC.ini", QSettings::IniFormat);
+    QSettings settings("VC.ini", QSettings::IniFormat);
 
+    if(aVpkgPath.isEmpty()) {
         aVpkgPath = QFileDialog::getExistingDirectory(
             this, tr("Open Directory"), settings.value("volpkg/default_path").toString(),
             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::ReadOnly | QFileDialog::DontUseNativeDialog);
@@ -1672,6 +1674,10 @@ void CWindow::OpenVolume(const QString& path)
     fVpkgPath = aVpkgPath;
     fPathOnSliceIndex = 0;
     currentVolume = fVpkg->volume();
+    // The cache should be at least as big as the number of preloaded slices, since otherwise,
+    // many would immediately get purged again.
+    // Note: This value might get overwritten by algorithm parameters.
+    currentVolume->setCacheCapacity(settings.value("perf/preloaded_slices", 200).toInt());
     {
         const QSignalBlocker blocker{volSelect};
         volSelect->clear();
@@ -1762,10 +1768,11 @@ void CWindow::Keybindings(void)
         "Mouse Wheel + Ctrl: Zoom in/out \n"
         "Mouse Wheel + Shift: Next/previous slice \n"
         "Mouse Wheel + W Key Hold: Change impact range \n"
+        "Mouse Wheel + R Key Hold: Follow Highlighted Curve \n"
         "Mouse Left Click: Add Points to Curve in Pen Tool. Snap Closest Point to Cursor in Segmentation Tool. \n"
         "Mouse Left Drag: Drag Point / Curve after Mouse Left Click \n"
         "Mouse Right Drag: Pan slice image\n"
-        "Mouse Back/Forward Button: Follow Highlighted Curve View \n"
+        "Mouse Back/Forward Button: Follow Highlighted Curve \n"
         "Highlighting Segment ID: Shift/(Alt as well as Ctrl) Modifier to jump to Segment start/end."));
 }
 
@@ -2549,10 +2556,10 @@ void CWindow::onImpactRangeDown(void)
 }
 
 // Handle loading any slice
-void CWindow::OnLoadAnySlice(int nSliceIndex)
+void CWindow::OnLoadAnySlice(int slice)
 {
-    if (nSliceIndex >= 0 && nSliceIndex < currentVolume->numSlices()) {
-        fPathOnSliceIndex = nSliceIndex;
+    if (slice >= 0 && slice < currentVolume->numSlices()) {
+        fPathOnSliceIndex = slice;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
         UpdateView();
@@ -2563,9 +2570,6 @@ void CWindow::OnLoadAnySlice(int nSliceIndex)
 
 void CWindow::OnLoadNextSliceShift(int shift)
 {
-    if (currentVolume == nullptr) {
-        return;
-    }
     if (fPathOnSliceIndex + shift >= currentVolume->numSlices()) {
         shift = currentVolume->numSlices() - fPathOnSliceIndex - 1;
     }
