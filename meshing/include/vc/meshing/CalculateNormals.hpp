@@ -59,15 +59,6 @@ public:
      */
     ITKMesh::Pointer compute();
 
-    /**
-     * @brief Flag specifying if we should reorient normals.
-     * 
-     * If this flag is set and most of the mesh's normals are facing outwards
-     * relative to the mesh's centroid, then they're considered flipped, and
-     * will be reversed to face inwards, the conventionally positive direction.
-     */
-    bool shouldOrientNormals = true;
-
 private:
     /**
      * @brief Compute normals for each vertex.
@@ -85,11 +76,6 @@ private:
      */
     void assign_to_mesh_();
 
-    /**
-     * @brief Compute the mesh's centroid, the arithmetic mean of its vertices.
-     */
-    cv::Vec3d compute_mesh_centroid_();
-
     /** Mesh for which normals will be calculated. */
     ITKMesh::Pointer input_;
 
@@ -98,7 +84,5 @@ private:
 
     /** Storage for summed normals, organized by vertex ID */
     std::vector<cv::Vec3d> vertexNormals_;
-
-    bool flippedNormals_;
 };
 }  // namespace volcart::meshing

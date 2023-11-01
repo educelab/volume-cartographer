@@ -9,6 +9,7 @@ set(srcs
     src/SmoothNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
+    src/OrientNormals.cpp
     src/UVMapToITKMesh.cpp
     src/LaplacianSmooth.cpp
 )
