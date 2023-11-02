@@ -61,6 +61,7 @@ set(util_srcs
 
 set(logging_srcs
     src/Logging.cpp
+        include/vc/core/util/Json.hpp
 )
 
 configure_file(src/Version.cpp.in Version.cpp)

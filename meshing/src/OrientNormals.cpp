@@ -31,11 +31,18 @@ void OrientNormals::setReferenceMode(OrientNormals::ReferenceMode mode)
     mode_ = mode;
 }
 
+auto OrientNormals::referenceMode() const -> OrientNormals::ReferenceMode
+{
+    return mode_;
+}
+
 void OrientNormals::setReferencePoint(const cv::Vec3d& point)
 {
     mode_ = ReferenceMode::Manual;
     refPt_ = point;
 }
+
+auto OrientNormals::referencePoint() const -> cv::Vec3d { return refPt_; }
 
 auto OrientNormals::compute() -> ITKMesh::Pointer
 {

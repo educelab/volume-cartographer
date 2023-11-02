@@ -40,6 +40,9 @@ public:
      */
     void setReferenceMode(ReferenceMode mode);
 
+    /** @brief Get the current reference mode */
+    [[nodiscard]] auto referenceMode() const -> ReferenceMode;
+
     /**
      * @brief Set manual reference point
      *
@@ -47,6 +50,9 @@ public:
      * ReferenceMode::Manual.
      */
     void setReferencePoint(const cv::Vec3d& point);
+
+    /** @brief Get the manually defined reference point */
+    [[nodiscard]] auto referencePoint() const -> cv::Vec3d;
 
     /** @brief Compute vertex normal reorientation */
     auto compute() -> ITKMesh::Pointer;

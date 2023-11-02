@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <opencv2/core.hpp>
+
 #include "vc/graph/core.hpp"
 #include "vc/graph/meshing.hpp"
 #include "vc/graph/texturing.hpp"
