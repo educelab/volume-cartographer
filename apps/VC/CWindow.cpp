@@ -165,13 +165,13 @@ CWindow::CWindow()
 
     // If enabled, auto open the last used volpkg
     if (settings.value("volpkg/auto_open", false).toInt() != 0) {
-        
+
         QStringList files = settings.value("volpkg/recent").toStringList();
 
         if(files.size() > 0 && !files.at(0).isEmpty()) {
             Open(files[0]);
         }
-    }    
+    }
 }
 
 // Destructor
@@ -427,7 +427,7 @@ void CWindow::CreateWidgets(void)
     connect(
         fEdtEndIndex, SIGNAL(editingFinished()), this,
         SLOT(OnEdtEndingSliceValChange()));
-    
+
 
     // INSERT OTHER SEGMENTATION PARAMETER WIDGETS HERE
     // this->ui.segParamsStack->addWidget(new QLabel("Parameter widgets here"));
@@ -449,7 +449,7 @@ void CWindow::CreateWidgets(void)
     fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
     connect(
         fEdtImpactRng, SIGNAL(valueChanged(int)), this,
-        SLOT(OnEdtImpactRange(int)));  
+        SLOT(OnEdtImpactRange(int)));
 
     // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
@@ -507,7 +507,7 @@ void CWindow::CreateWidgets(void)
     connect(impactUp_old, &QShortcut::activated, this, &CWindow::onImpactRangeUp);
     connect(impactDwn_old, &QShortcut::activated, this, &CWindow::onImpactRangeDown);
     connect(segmentationToolShortcut, &QShortcut::activated, this, &CWindow::ActivateSegmentationTool);
-    connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);    
+    connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);
     connect(next1, &QShortcut::activated, [this]() {
         int shift = 1;
         OnLoadNextSliceShift(shift);
@@ -622,7 +622,7 @@ void CWindow::CreateActions(void)
     connect(fKeybinds, SIGNAL(triggered()), this, SLOT(Keybindings()));
 
     fAboutAct = new QAction(tr("&About..."), this);
-    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));  
+    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));
 
     fPrintDebugInfo = new QAction  (tr("Debug info"), this);
     connect(fPrintDebugInfo, SIGNAL(triggered()), this, SLOT(PrintDebugInfo()));
@@ -681,7 +681,7 @@ void CWindow::UpdateRecentVolpkgActions()
         return;
     }
 
-    // The automatic conversion to string list from the settings, (always?) adds an 
+    // The automatic conversion to string list from the settings, (always?) adds an
     // empty entry at the end. Remove it if present.
     if(files.last().isEmpty()) {
         files.removeLast();
@@ -849,7 +849,7 @@ void CWindow::UpdateView(void)
     fEdtStartIndex->setValue(fSliceIndexToolStart);
     if (fSliceIndexToolStart + fEndTargetOffset >= currentVolume->numSlices()) {
         fEdtEndIndex->setValue(currentVolume->numSlices() - 1);
-    } 
+    }
     else if (fSliceIndexToolStart + fEndTargetOffset < 0) {
         fEdtEndIndex->setValue(0);
     }
@@ -995,7 +995,7 @@ void CWindow::DoSegmentation(void)
 
         segmentedSomething = true;
 
-        // If the segmentation starting curve was manually changed, we now need to merge it into the point cloud 
+        // If the segmentation starting curve was manually changed, we now need to merge it into the point cloud
         // that is going to get used for the segmentation since otherwise the manual changes would
         // be lost and the original curve would be used as starting point for the segmentation.
         seg.second.MergeChangedCurveIntoPointCloud(fEdtStartIndex->value());
@@ -1146,7 +1146,7 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
-    
+
     // Execute the next segmentation
     executeNextSegmentation();
 }
@@ -1376,7 +1376,7 @@ void CWindow::InitPathList(void)
         // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
         fPathListWidget->resizeColumnToContents(0);
         fPathListWidget->resizeColumnToContents(1);
-        fPathListWidget->resizeColumnToContents(2); 
+        fPathListWidget->resizeColumnToContents(2);
     }
 }
 
@@ -1408,7 +1408,7 @@ void CWindow::SetPathPointCloud(void)
 
 // Open volume package
 void CWindow::OpenVolume(const QString& path)
-{   
+{
     QString aVpkgPath = path;
     QSettings settings("VC.ini", QSettings::IniFormat);
 
@@ -1503,7 +1503,7 @@ void CWindow::Open(const QString& path)
     OpenVolume(path);
     OpenSlice();
     InitPathList();
-    UpdateView();  // update the panel when volume package is loaded     
+    UpdateView();  // update the panel when volume package is loaded
 }
 
 void CWindow::OpenRecent()
@@ -1526,7 +1526,7 @@ void CWindow::Keybindings(void)
         "------------------- \n"
         "Ctrl+O: Open Volume Package \n"
         "Ctrl+S: Save Volume Package \n"
-        "A,D: Impact Range down/up \n"        
+        "A,D: Impact Range down/up \n"
         "[, ]: Alternative Impact Range down/up \n"
         "Q,E: Slice scan range down/up (mouse wheel scanning) \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
@@ -1540,12 +1540,12 @@ void CWindow::Keybindings(void)
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
         "C: Alternate Toggle Curve Visibility \n"
-        "J: Highlight Next Curve that is selected for Computation \n" 
-        "K: Highlight Previous Curve that is selected for Computation \n"       
-        "F: Return to slice that the currently active tool was started on \n" 
-        "\n"   
+        "J: Highlight Next Curve that is selected for Computation \n"
+        "K: Highlight Previous Curve that is selected for Computation \n"
+        "F: Return to slice that the currently active tool was started on \n"
+        "\n"
         "Mouse: \n"
-        "------------------- \n"    
+        "------------------- \n"
         "Mouse Wheel: Scroll up/down \n"
         "Mouse Wheel + Alt: Scroll left/right \n"
         "Mouse Wheel + Ctrl: Zoom in/out \n"
@@ -1629,7 +1629,7 @@ void CWindow::OnNewPathClicked(void)
         auto seg = fVpkg->newSegmentation();
         newSegmentationId = seg->id();
     } catch(std::exception) {
-        // Could e.g. happen if the user clicks too quickly in succession on the "New" button as the timestamp 
+        // Could e.g. happen if the user clicks too quickly in succession on the "New" button as the timestamp
         // is the segment UUID, which would not be unique if there are two clicks within one second.
         QMessageBox::warning(this, tr("Error"), tr("An error occurred during segment creation. Please try again"));
         return;
@@ -1644,8 +1644,8 @@ void CWindow::OnNewPathClicked(void)
     // Activate the new item
     fPathListWidget->setCurrentItem(newItem);
     ChangePathItem(newSegmentationId); // Creating new curve
-    newItem->setCheckState(1, Qt::Checked); 
-    newItem->setCheckState(2, Qt::Checked); 
+    newItem->setCheckState(1, Qt::Checked);
+    newItem->setCheckState(2, Qt::Checked);
     fSegStructMap[newSegmentationId].display = true;
     fSegStructMap[newSegmentationId].compute = true;
     UpdateView();
@@ -1653,7 +1653,7 @@ void CWindow::OnNewPathClicked(void)
     // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
     fPathListWidget->resizeColumnToContents(0);
     fPathListWidget->resizeColumnToContents(1);
-    fPathListWidget->resizeColumnToContents(2); 
+    fPathListWidget->resizeColumnToContents(2);
 }
 
 // Remove existing path
@@ -1669,7 +1669,7 @@ void CWindow::OnRemovePathClicked(void)
 
         // Ask for user confirmation
         auto button = QMessageBox::critical(this, tr("Are you sure?"), tr("Warning: This will irrevocably delete the segment %1.\n\nThis action cannot be undone!\n\nContinue?").arg(id), QMessageBox::Yes | QMessageBox::No);
-        
+
         if(button == QMessageBox::Yes) {
 
             try {
@@ -1764,7 +1764,7 @@ void CWindow::toggleDisplayAll(bool checked)
             item->setCheckState(1, Qt::Checked);
             fSegStructMap[aSegID].display = true;
         } else {
-            fchkComputeAll->setChecked(false); 
+            fchkComputeAll->setChecked(false);
             // If the button/checkbox for "Display All" is unchecked, set all items to "Unchecked" state.
             item->setCheckState(1, Qt::Unchecked);
             item->setCheckState(2, Qt::Unchecked);
@@ -1851,12 +1851,12 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 // Update the list to show the previous selection
                 QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
                     QString(fSegmentationId.c_str()), Qt::MatchExactly, 0);
-                
+
                 if (!previousItems.isEmpty())
                 {
                     fPathListWidget->setCurrentItem(previousItems[0]);
                 }
-                
+
                 // Uncheck the checkbox
                 item->setCheckState(column, Qt::Unchecked);
             }
@@ -2003,10 +2003,10 @@ void CWindow::ShowGoToSliceDlg() {
     if (currentVolume == nullptr || !fVolumeViewerWidget->fNextBtn->isEnabled()) {
         return;
     }
-    
+
     bool status;
     const int sliceIndex = QInputDialog::getInt(this, tr("Go to slice"), tr("Slice Index"), 0, 0, currentVolume->numSlices(), 1, &status);
-    
+
     if(status) {
         OnLoadAnySlice(sliceIndex);
     }
@@ -2015,7 +2015,7 @@ void CWindow::ShowGoToSliceDlg() {
 void CWindow::ScanRangeUp() {
     if(currentScanRangeIndex < std::size(scanRanges) - 1) {
         currentScanRangeIndex++;
-    }    
+    }
 
     // Always inform the UI/user, even if the value stayed the same
     fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
@@ -2025,7 +2025,7 @@ void CWindow::ScanRangeDown() {
     if(currentScanRangeIndex > 0) {
         currentScanRangeIndex--;
         fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
-    }    
+    }
 
     // Always inform the UI/user, even if the value stayed the same
     fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
@@ -2118,7 +2118,7 @@ void CWindow::ToggleSegmentationTool(void)
             const auto response = QMessageBox::question(this, "Changed Curves",
                 tr("You have made changes to curves that will get lost if you exit without starting a segmentation run.\n\nDiscard the changes?"),
                 QMessageBox::Discard | QMessageBox::Cancel);
-    
+
             if(response == QMessageBox::Cancel) {
                 fSegTool->setChecked(true);
                 return;

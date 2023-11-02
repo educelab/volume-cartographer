@@ -189,8 +189,8 @@ struct SegmentationStruct {
             minIndex = maxIndex = fPathOnSliceIndex;
         } else {
             minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
-            maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);            
-        }   
+            maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);
+        }
 
         fMinSegIndex = minIndex;
         fMaxSegIndex = maxIndex;
@@ -249,7 +249,7 @@ struct SegmentationStruct {
             auto masterRowI = fMasterCloud.getRow(i);
             if (ps[0][2] <= masterRowI[fUpperPart.width()-1][2]){
                 // We found the entry where the 3rd vector component (= index 2 = which means the slice index)
-                // of the new point set matches the value in the existing row of our point cloud 
+                // of the new point set matches the value in the existing row of our point cloud
                 // => starting point for merge
                 break;
             }
@@ -294,7 +294,7 @@ struct SegmentationStruct {
             row.push_back(tempPt);
         }
         ps.pushRow(row);
-        
+
         MergePointSetIntoPointCloud(ps);
     }
 
@@ -311,7 +311,7 @@ struct SegmentationStruct {
             fStartingPath.push_back(tempPt);
         }
 
-        // Buffer the changed path, so that if we change the displayed slice we do not loose 
+        // Buffer the changed path, so that if we change the displayed slice we do not loose
         // the manual changes that were made to the points of the path
         fIntersectionsChanged[fPathOnSliceIndex] = fIntersectionCurve;
     }

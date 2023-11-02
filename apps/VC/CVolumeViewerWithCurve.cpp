@@ -160,7 +160,7 @@ void CVolumeViewerWithCurve::SetScanRange(int nScanRange)
     fGraphicsView->showCurrentScanRange(nScanRange);
 }
 
-// Return to the slice that the tool was started on 
+// Return to the slice that the tool was started on
 void CVolumeViewerWithCurve::ReturnToSliceIndexToolStart()
 {
     SendSignalOnLoadAnyImage(sliceIndexToolStart);
@@ -196,14 +196,14 @@ void CVolumeViewerWithCurve::UpdateView()
             h = h - 360;
         }
         auto secondary = QColor::fromHsv(h, 255, 255);
-        
+
         if (fSplineCurveRef != nullptr) {
             // Assuming DrawOnImage now works on QImage or QGraphicsScene
            fSplineCurveRef->DrawOnImage(fScene, secondary);
         }
         DrawControlPoints(fScene);
     }
-    
+
     if (showCurve) {
         // qDebug() << "showCurve";
         DrawIntersectionCurve(fScene);
@@ -218,13 +218,13 @@ void CVolumeViewerWithCurve::UpdateView()
 }
 
 void CVolumeViewerWithCurve::panAlongCurve(double speed, bool forward)
-{    
+{
     auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
 
     auto res = SelectPointOnCurves(p2, false, true);
     fSelectedPointIndex = res.first;
     fSelectedSegID = res.second;
-    
+
     if (fSelectedPointIndex == -1) {
         return;
     }
@@ -299,15 +299,15 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
             fControlPoints.push_back(aImgLoc);
             UpdateSplineCurve();
             UpdateView();
-                
+
         } else if (fViewState == EViewState::ViewStateEdit && event->button() == Qt::LeftButton) {
-            lineGrabbed = true;        
+            lineGrabbed = true;
 
             if(fImageIndex != sliceIndexToolStart) {
                 SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now.").arg(QString::number(sliceIndexToolStart)), 3000);
                 return;
             }
-            
+
             // If we have points, select the one that was clicked.
             auto res = SelectPointOnCurves(aImgLoc, true);
             fSelectedPointIndex = res.first;
@@ -322,7 +322,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 
                 fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
                 fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
-                
+
                 // Mouse move event to update the line
                 mouseMoveEvent(event);
 
@@ -332,13 +332,13 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
     } else if (event->button() == Qt::RightButton) {
         // Attempt to start the panning. We only consider us in panning mode, if in the mouse move event
         // we actually detect movement.
-        
+
         rightPressed = true;
         wantsPanning = true;
         isPanning = false;
         panStartX = event->position().x();
         panStartY = event->position().y();
-    }    
+    }
 }
 
 // Handle mouse move event, currently only when we're editing
@@ -349,7 +349,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
     if(lastPressedSideButton) {
         return;
     }
-        
+
     if (!wantsPanning && !rightPressed && !lineGrabbed) {
         return;
     }
@@ -374,7 +374,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         UpdateView();
 
     } else if (wantsPanning && rightPressed){
-        // We potentially want to start panning, and now check if the mouse actually moved    
+        // We potentially want to start panning, and now check if the mouse actually moved
         if(event->position().x() != panStartX || event->position().y() - panStartY)
         {
             isPanning = true;
@@ -386,7 +386,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         } else {
             wantsPanning = false;
         }
-    }    
+    }
 }
 
 // Handle mouse release event
@@ -422,7 +422,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
 }
 
 // capture mouse release
-bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event) 
+bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
 {
     // check for mouse release generic
     if (event->type() == QEvent::MouseButtonRelease) {
@@ -434,10 +434,10 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
 
     if (event->type() == QEvent::MouseMove) {
         QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-        
+
         // Transform the global coordinates to local coordinates
         QPointF localPoint = this->mapFromGlobal(mouseEvent->globalPosition());
-        
+
         // Create a new QMouseEvent with local coordinates
         QMouseEvent localMouseEvent(QEvent::MouseMove,
                                     localPoint,
@@ -445,10 +445,10 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
                                     mouseEvent->button(),
                                     mouseEvent->buttons(),
                                     mouseEvent->modifiers());
-        
+
         // Manually call your mouseMoveEvent function
         mouseMoveEvent(&localMouseEvent);
-        
+
         event->accept();
         return true;
     }
@@ -513,12 +513,12 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
     // Step 1: Convert widget coordinates to scene coordinates
     QPointF widgetPoint(nWidgetLoc[0] - (fGraphicsView->pos()).x() - 2, nWidgetLoc[1] - (fGraphicsView->pos()).y() - 2);
     //widgetPoint = widgetPoint - fGraphicsView->pos();
-        
+
     QPointF scenePoint = fGraphicsView->mapToScene(widgetPoint.toPoint());
-  
+
     // Step 2: Convert scene coordinates to item coordinates
     QPointF itemPoint = fBaseImageItem->mapFromScene(scenePoint);
-  
+
     nImgLoc[0] = static_cast<float>(itemPoint.x());
     nImgLoc[1] = static_cast<float>(itemPoint.y());
 }
