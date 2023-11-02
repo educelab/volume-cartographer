@@ -2083,8 +2083,8 @@ void CWindow::TogglePenTool(void)
         }
         fSplineCurve.Clear();
         fVolumeViewerWidget->ResetSplineCurve();
-        fSliceIndexToolStart = 0;
-        fVolumeViewerWidget->SetSliceIndexToolStart(0);
+        fSliceIndexToolStart = -1;
+        fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
     }
 
     UpdateView();
@@ -2110,9 +2110,29 @@ void CWindow::ToggleSegmentationTool(void)
         fPenTool->setChecked(false);
         fVolumeViewerWidget->setFocus();
     } else {
+        // Warn user that curve changes will get lost
+        bool changesFound = false;
+        for (auto& seg : fSegStructMap) {
+            if(seg.second.HasChangedCurves()) {
+                changesFound = true;
+                break;
+            }
+        }
+
+        if(changesFound) {
+            const auto response = QMessageBox::question(this, "Changed Curves",
+                tr("You have made changes to curves that will get lost if you exit without starting a segmentation run.\n\nDiscard the changes?"),
+                QMessageBox::Discard | QMessageBox::Cancel);
+    
+            if(response == QMessageBox::Cancel) {
+                fSegTool->setChecked(true);
+                return;
+            }
+        }
+
         CleanupSegmentation();
-        fSliceIndexToolStart = 0;
-        fVolumeViewerWidget->SetSliceIndexToolStart(0);
+        fSliceIndexToolStart = -1;
+        fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
     }
     UpdateView();
 }

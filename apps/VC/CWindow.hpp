@@ -229,7 +229,7 @@ private:
     SegmentationStruct fSegStruct;
     std::unordered_map<std::string, SegmentationStruct> fSegStructMap;
     int fPathOnSliceIndex; // currently visible slice
-    int fSliceIndexToolStart{0}; // slice for which the currently active tool was started / toggled
+    int fSliceIndexToolStart{-1}; // slice for which the currently active tool was started / toggled
     int fEndTargetOffset{5};
     int currentScanRangeIndex{0}; // Index 0 = range size 1 as starting value
     std::vector<int> impactRangeSteps;

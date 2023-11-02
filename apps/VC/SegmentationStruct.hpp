@@ -232,6 +232,11 @@ struct SegmentationStruct {
         }
     }
 
+    inline bool HasChangedCurves()
+    {
+        return (fIntersectionsChanged.empty() == false);
+    }
+
     inline void ForgetChangedCurves()
     {
         fIntersectionsChanged.clear();
