@@ -124,7 +124,7 @@
   <widget class="QDockWidget" name="dockWidgetAnnotations">
    <property name="minimumSize">
     <size>
-     <width>80</width>
+     <width>92</width>
      <height>130</height>
     </size>
    </property>
@@ -198,7 +198,7 @@
              <bool>true</bool>
             </property>
             <property name="columnCount">
-             <number>3</number>
+             <number>4</number>
             </property>
             <attribute name="headerDefaultSectionSize">
              <number>60</number>
@@ -216,6 +216,11 @@
             <column>
              <property name="text">
               <string>Manual</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>No Seg Run</string>
              </property>
             </column>
            </widget>
@@ -398,7 +403,7 @@
   <widget class="QDockWidget" name="dockWidgetSegmentation">
    <property name="minimumSize">
     <size>
-     <width>100</width>
+     <width>302</width>
      <height>306</height>
     </size>
    </property>
@@ -476,14 +481,14 @@
              <x>0</x>
              <y>0</y>
              <width>396</width>
-             <height>261</height>
+             <height>275</height>
             </rect>
            </property>
            <property name="layoutDirection">
             <enum>Qt::LeftToRight</enum>
            </property>
            <property name="autoFillBackground">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_12">
             <property name="spacing">

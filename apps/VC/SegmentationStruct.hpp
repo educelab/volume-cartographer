@@ -34,12 +34,14 @@ namespace ChaoVis
 struct AnnotationStruct {
     bool anchor{false};
     bool manual{false}; // at least one point was manually changed on that slice this annotation belongs to
+    bool usedInRun{false}; // indicates if this slice was used in a seg run as starting point / anchor
 };
 
 enum AnnotationBits {
     ANO_UNUSED = 0, // we need to use at least two int for the point set logic to work, so the second byte/int is a placeholder for now
     ANO_ANCHOR = (int)(1 << 0),
-    ANO_MANUAL = (int)(1 << 1)
+    ANO_MANUAL = (int)(1 << 1),
+    ANO_USED_IN_RUN = (int)(1 << 2)
 };
 
 struct SegmentationStruct {
@@ -257,6 +259,9 @@ struct SegmentationStruct {
                 
                 if(fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_MANUAL)
                     an.manual = true;
+
+                if(fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_USED_IN_RUN)
+                    an.usedInRun = true;
             }
 
             fAnnotations[fMasterCloud[pointIndex][2]] = an;
@@ -427,6 +432,9 @@ struct SegmentationStruct {
         if(defaultAnnotation.manual) {
             defaultAnnotationFirstByte |= AnnotationBits::ANO_MANUAL;
         }
+        if(defaultAnnotation.usedInRun) {
+            defaultAnnotationFirstByte |= AnnotationBits::ANO_USED_IN_RUN;
+        }
 
         std::vector<volcart::Segmentation::Annotation> annotations;
 
@@ -442,7 +450,7 @@ struct SegmentationStruct {
         return fAnnotationCloud;
     }
 
-    inline void SetSliceAsAnchor(int sliceIndex, bool anchor)
+    inline void SetAnnotationAnchor(int sliceIndex, bool anchor)
     {
         // Calculate index via master point cloud
         int pointIndex = GetPointIndexForSliceIndex(sliceIndex);
@@ -454,7 +462,7 @@ struct SegmentationStruct {
             if(anchor) {
                 fAnnotationCloud[i][0] |= AnnotationBits::ANO_ANCHOR;
             } else {
-                fAnnotationCloud[i][0] &= AnnotationBits::ANO_ANCHOR;
+                fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_ANCHOR;
             }
         }
 
@@ -497,7 +505,8 @@ struct SegmentationStruct {
         return -1;
     }
 
-    inline void ConfirmPointsAsManual(int sliceIndex)
+    // Set annotation as "manually changed" if we have buffer curve point changes
+    inline void SetAnnotationManualPoints(int sliceIndex)
     {
         auto pointIndex = GetPointIndexForSliceIndex(sliceIndex);
 
@@ -509,9 +518,38 @@ struct SegmentationStruct {
             auto it = fAnnotations.find(sliceIndex);
             if(it != fAnnotations.end()) {
                 it->second.manual = true;
-            }     
+            }
 
             fBufferedChangedPoints.clear();
+        }
+    }
+
+    // Set annotation for "used in run"
+    inline void SetAnnotationUsedInRun(int sliceIndex, bool used)
+    {
+        // Calculate index via master point cloud
+        int pointIndex = GetPointIndexForSliceIndex(sliceIndex);
+        if(pointIndex == -1) {
+            return;
+        }
+
+        for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
+            if(used) {
+                fAnnotationCloud[i][0] |= AnnotationBits::ANO_USED_IN_RUN;
+            } else {
+                fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_USED_IN_RUN;
+            }
+        }
+
+        auto it = fAnnotations.find(sliceIndex);
+        if(it != fAnnotations.end()) {
+            // Update existing entry
+            it->second.usedInRun = used;
+        } else {
+            // Create new entry
+            AnnotationStruct an;
+            an.usedInRun = used;
+            fAnnotations[sliceIndex] = an;
         }
     }
 

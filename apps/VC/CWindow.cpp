@@ -711,7 +711,7 @@ void CWindow::UpdateRecentVolpkgActions()
         return;
     }
 
-    // The automatic conversion to string list from the settings, (always?) adds an 
+    // The automatic conversion to string list from the settings, (always?) adds an
     // empty entry at the end. Remove it if present.
     if(files.last().isEmpty()) {
         files.removeLast();
@@ -779,6 +779,7 @@ void CWindow::closeEvent(QCloseEvent* event)
         event->accept();
     } else {
         event->ignore();
+        return;
     }
     QSettings settings;
     settings.setValue("mainWin/geometry", saveGeometry());
@@ -837,7 +838,7 @@ CWindow::SaveResponse CWindow::SaveDialog(void)
 
     const auto response = QMessageBox::question(
         this, "Save changes?",
-        tr("Changes will be lost! Save volume package before continuing?\n"),
+        tr("Changes will be lost!\n\nSave volume package before continuing?"),
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     switch (response) {
         case QMessageBox::Save:
@@ -883,7 +884,7 @@ void CWindow::UpdateView(void)
     fEdtStartIndex->setValue(fSliceIndexToolStart);
     if (fSliceIndexToolStart + fEndTargetOffset >= currentVolume->numSlices()) {
         fEdtEndIndex->setValue(currentVolume->numSlices() - 1);
-    } 
+    }
     else if (fSliceIndexToolStart + fEndTargetOffset < 0) {
         fEdtEndIndex->setValue(0);
     }
@@ -930,7 +931,7 @@ void CWindow::UpdateView(void)
         this->findChild<QGroupBox*>("grpSeg")->setEnabled(true);
     } else {
         // something else
-    }    
+    }
 
     fVolumeViewerWidget->UpdateView();
     UpdateAnnotationList();
@@ -1005,7 +1006,7 @@ void CWindow::DoSegmentation(void)
             this, tr("Info"), tr("Invalid parameter for segmentation"));
         return;
     }
-    
+
     auto algoIdx = this->ui.cmbSegMethods->currentIndex();
     // Reminder to activate the segments for computation
     bool segmentedSomething = false;
@@ -1028,7 +1029,7 @@ void CWindow::DoSegmentation(void)
 
         segmentedSomething = true;
 
-        // If the segmentation starting curve was manually changed, we now need to merge it into the point cloud 
+        // If the segmentation starting curve was manually changed, we now need to merge it into the point cloud
         // that is going to get used for the segmentation since otherwise the manual changes would
         // be lost and the original curve would be used as starting point for the segmentation.
         seg.second.MergeChangedCurveIntoPointCloud(fEdtStartIndex->value());
@@ -1037,8 +1038,9 @@ void CWindow::DoSegmentation(void)
 
         // This curve is now considered an anchor as it was used as the starting point for a segmentation run.
         // Update the annotations accordingly.
-        seg.second.SetSliceAsAnchor(fEdtStartIndex->value(), true);
-        seg.second.ConfirmPointsAsManual(fEdtStartIndex->value());
+        seg.second.SetAnnotationAnchor(fEdtStartIndex->value(), true);
+        seg.second.SetAnnotationManualPoints(fEdtStartIndex->value());
+        seg.second.SetAnnotationUsedInRun(fEdtStartIndex->value(), true);
 
         Segmenter::Pointer segmenter;
         if (algoIdx == 0) {
@@ -1066,10 +1068,10 @@ void CWindow::DoSegmentation(void)
             auto directionUp = (fEdtEndIndex->value() > fEdtStartIndex->value());
             int anchorForward = -1;
             int anchorBackward = -1;
-            
+
             // Auto-adjust parameters if we have annotations
             if(fSegStructMap[segID].fSegmentation->hasAnnotations()) {
-                
+
                 if(directionUp) {
                     anchorForward = fSegStructMap[segID].FindNearestHigherAnchor(fEdtStartIndex->value());
                     anchorBackward = fSegStructMap[segID].FindNearestLowerAnchor(fEdtStartIndex->value());
@@ -1077,7 +1079,7 @@ void CWindow::DoSegmentation(void)
                     anchorForward = fSegStructMap[segID].FindNearestLowerAnchor(fEdtStartIndex->value());
                     anchorBackward = fSegStructMap[segID].FindNearestHigherAnchor(fEdtStartIndex->value());
                 }
-                
+
                 std::cout << "OFS: Forward Anchor: " << anchorForward << std::endl;
                 std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
 
@@ -1092,21 +1094,21 @@ void CWindow::DoSegmentation(void)
 
                 fSegParams.backwards_length = 0;
                 fSegParams.backwards_smoothness_interpolation_window  = 0;
-                                
+
                 // Check if the backwards portion is enabled (percent value > 0)
                 if(fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
                     // With annotations we have to use the percentage of the delta between
                     // current slice (= segmentation start slice) and the backwards anchor slice.
-                    // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length. 
+                    // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
                     auto anchorDistance = (directionUp ? fEdtStartIndex->value() - anchorBackward : anchorBackward - fEdtStartIndex->value()); // -2 to exclude the start and backward anchor slices
                     std::cout << "OFS: Backward Anchor Distance: " << anchorDistance << std::endl;
 
-                    fSegParams.backwards_length = std::round(anchorDistance / 2);          
+                    fSegParams.backwards_length = std::round(anchorDistance / 2);
 
                     // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards eithert side),
-                    // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.          
-                    fSegParams.backwards_smoothness_interpolation_window = std::round(((float)fSegParams.backwards_smoothness_interpolation_percent / 100.f * anchorDistance) / 2); 
-                }     
+                    // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
+                    fSegParams.backwards_smoothness_interpolation_window = std::round(((float)fSegParams.backwards_smoothness_interpolation_percent / 100.f * anchorDistance) / 2);
+                }
             } else {
                 fSegParams.backwards_smoothness_interpolation_percent = 0;
             }
@@ -1552,7 +1554,7 @@ void CWindow::UpdateAnnotationList(void)
         if (fVpkg != nullptr) {
 
             if(fSegStructMap[fHighlightedSegmentationId].fSegmentation && fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations()) {
-                
+
                 // Add or update the annotation rows
                 for (auto a : fSegStructMap[fHighlightedSegmentationId].fAnnotations) {
 
@@ -1562,16 +1564,18 @@ void CWindow::UpdateAnnotationList(void)
                         // Anchor or manually changed => add to list if not already in there
                         auto items = fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0);
 
-                        if(items.size() == 0) {                    
+                        if(items.size() == 0) {
                             AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
                             item->setText(0, QString::number(a.first));
                             item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
                             item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                            item->setIcon(3, (a.second.anchor && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
                             item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
                         } if(items.size() == 1) {
                             // Row does already exists => update it
                             items.at(0)->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
                             items.at(0)->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                            items.at(0)->setIcon(3,(a.second.anchor && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
                         }
                     }
                 }
@@ -1580,6 +1584,7 @@ void CWindow::UpdateAnnotationList(void)
                 fAnnotationListWidget->resizeColumnToContents(0);
                 fAnnotationListWidget->resizeColumnToContents(1);
                 fAnnotationListWidget->resizeColumnToContents(2); 
+                fAnnotationListWidget->resizeColumnToContents(3); 
 
                 fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
             }
@@ -1722,7 +1727,7 @@ void CWindow::Open(const QString& path)
     OpenVolume(path);
     OpenSlice();
     InitPathList();
-    UpdateView();  // update the panel when volume package is loaded     
+    UpdateView();  // update the panel when volume package is loaded
 }
 
 void CWindow::OpenRecent()
@@ -1745,7 +1750,7 @@ void CWindow::Keybindings(void)
         "------------------- \n"
         "Ctrl+O: Open Volume Package \n"
         "Ctrl+S: Save Volume Package \n"
-        "A,D: Impact Range down/up \n"        
+        "A,D: Impact Range down/up \n"
         "[, ]: Alternative Impact Range down/up \n"
         "Q,E: Slice scan range down/up (mouse wheel scanning) \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
@@ -1759,12 +1764,12 @@ void CWindow::Keybindings(void)
         "P: Pen Tool \n"
         "Space: Toggle Curve Visibility \n"
         "C: Alternate Toggle Curve Visibility \n"
-        "J: Highlight Next Curve that is selected for Computation \n" 
-        "K: Highlight Previous Curve that is selected for Computation \n"       
-        "F: Return to slice that the currently active tool was started on \n" 
-        "\n"   
+        "J: Highlight Next Curve that is selected for Computation \n"
+        "K: Highlight Previous Curve that is selected for Computation \n"
+        "F: Return to slice that the currently active tool was started on \n"
+        "\n"
         "Mouse: \n"
-        "------------------- \n"    
+        "------------------- \n"
         "Mouse Wheel: Scroll up/down \n"
         "Mouse Wheel + Alt: Scroll left/right \n"
         "Mouse Wheel + Ctrl: Zoom in/out \n"
@@ -2085,12 +2090,12 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                     // Update the list to show the previous selection
                     QList<QTreeWidgetItem*> previousItems = fPathListWidget->findItems(
                         QString(fSegmentationId.c_str()), Qt::MatchExactly, 0);
-                    
+
                     if (!previousItems.isEmpty())
                     {
                         fPathListWidget->setCurrentItem(previousItems[0]);
                     }
-                    
+
                     // Uncheck the checkbox
                     item->setCheckState(column, Qt::Unchecked);
                 }
@@ -2283,10 +2288,10 @@ void CWindow::ShowGoToSliceDlg() {
     if (currentVolume == nullptr || !fVolumeViewerWidget->fNextBtn->isEnabled()) {
         return;
     }
-    
+
     bool status;
     const int sliceIndex = QInputDialog::getInt(this, tr("Go to slice"), tr("Slice Index"), 0, 0, currentVolume->numSlices(), 1, &status);
-    
+
     if(status) {
         OnLoadAnySlice(sliceIndex);
     }
@@ -2295,7 +2300,7 @@ void CWindow::ShowGoToSliceDlg() {
 void CWindow::ScanRangeUp() {
     if(currentScanRangeIndex < std::size(scanRanges) - 1) {
         currentScanRangeIndex++;
-    }    
+    }
 
     // Always inform the UI/user, even if the value stayed the same
     fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
@@ -2305,7 +2310,7 @@ void CWindow::ScanRangeDown() {
     if(currentScanRangeIndex > 0) {
         currentScanRangeIndex--;
         fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
-    }    
+    }
 
     // Always inform the UI/user, even if the value stayed the same
     fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
@@ -2319,7 +2324,7 @@ void CWindow::ReturnToEditSlice() {
 
 void CWindow::ToggleAnchor() {
     if(fSegTool->isChecked()) {
-        fSegStructMap[fSegmentationId].SetSliceAsAnchor(fPathOnSliceIndex, !fSegStructMap[fSegmentationId].IsSliceAnAnchor(fPathOnSliceIndex));
+        fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fPathOnSliceIndex, !fSegStructMap[fHighlightedSegmentationId].IsSliceAnAnchor(fPathOnSliceIndex));
         fVpkgChanged = true;
         UpdateAnnotationList();
     }
@@ -2420,11 +2425,18 @@ void CWindow::ToggleSegmentationTool(void)
         if(changesFound) {
             const auto response = QMessageBox::question(this, "Changed Curves",
                 tr("You have made changes to curves that will get lost if you exit without starting a segmentation run.\n\nDiscard the changes?"),
-                QMessageBox::Discard | QMessageBox::Cancel);
-    
+                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
             if(response == QMessageBox::Cancel) {
+                // Stay in seg tool mode => check the button again and then leave
                 fSegTool->setChecked(true);
                 return;
+            } else if(response == QMessageBox::Save) {
+                // Save the changed curve and mark as manually changed
+                fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fSliceIndexToolStart, true);
+                fSegStructMap[fHighlightedSegmentationId].SetAnnotationManualPoints(fSliceIndexToolStart);
+                fSegStructMap[fHighlightedSegmentationId].SetAnnotationUsedInRun(fSliceIndexToolStart, false);
+                fSegStructMap[fHighlightedSegmentationId].MergeChangedCurveIntoPointCloud(fSliceIndexToolStart);
             }
         }
 
