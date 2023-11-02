@@ -184,17 +184,12 @@ CWindow::~CWindow(void)
     SDL_Quit();
 }
 
-// Handle mouse press event
-void CWindow::mousePressEvent(QMouseEvent* /*nEvent*/) {}
-
-void CWindow::mouseReleaseEvent(QMouseEvent* /*nEvent*/) {}
-
 // Handle key press event
 void CWindow::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Escape) {
         // REVISIT - should prompt warning before exit
-        close();
+        Close();
     } else {
         // REVISIT - dispatch key press event
     }
