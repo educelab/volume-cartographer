@@ -1,7 +1,5 @@
 #include "vc/meshing/OrientNormals.hpp"
 
-#include <opencv2/core.hpp>
-
 #include "vc/meshing/DeepCopy.hpp"
 
 using namespace volcart;
@@ -28,10 +26,28 @@ void OrientNormals::setMesh(const ITKMesh::Pointer& mesh) { input_ = mesh; }
 
 auto OrientNormals::getMesh() const -> ITKMesh::Pointer { return output_; }
 
+void OrientNormals::setReferenceMode(OrientNormals::ReferenceMode mode)
+{
+    mode_ = mode;
+}
+
+void OrientNormals::setReferencePoint(const cv::Vec3d& point)
+{
+    mode_ = ReferenceMode::Manual;
+    refPt_ = point;
+}
+
 auto OrientNormals::compute() -> ITKMesh::Pointer
 {
-    // Compute the mesh refPt
-    auto refPt = ::ComputeMeshCentroid(input_);
+    // Get the reference point based on the reference mode
+    cv::Vec3d refPt;
+    if (mode_ == ReferenceMode::Centroid) {
+        refPt = ::ComputeMeshCentroid(input_);
+    } else if (mode_ == ReferenceMode::Manual) {
+        refPt = refPt_;
+    } else {
+        refPt = ::ComputeMeshCentroid(input_);
+    }
 
     // Get a count of the vectors which points towards and away from the
     // reference point
