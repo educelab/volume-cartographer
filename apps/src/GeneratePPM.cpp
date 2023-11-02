@@ -7,12 +7,15 @@
 #include "vc/core/util/Logging.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
+#include "vc/meshing/OrientNormals.hpp"
 
 namespace vc = volcart;
+namespace vcm = volcart::meshing;
+namespace vct = volcart::texturing;
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     // clang-format off
     po::options_description all("Usage");
@@ -23,7 +26,8 @@ int main(int argc, char* argv[])
         ("output-ppm,o", po::value<std::string>()->required(),
             "Path for the output ppm")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
-            "UV map instead of generating a new one.");
+            "UV map instead of generating a new one.")
+        ("orient-normals", "Auto-orient surface normals towards the mesh centroid");
     // clang-format on
 
     // parsed will hold the values of all parsed options as a Map
@@ -54,11 +58,19 @@ int main(int argc, char* argv[])
     auto mesh = meshFile.mesh;
     auto uvMap = meshFile.uv;
 
+    // Reorient the surface normals
+    if (parsed.count("orient-normals") > 0) {
+        vcm::OrientNormals orient;
+        orient.setReferenceMode(vcm::OrientNormals::ReferenceMode::Centroid);
+        orient.setMesh(mesh);
+        mesh = orient.compute();
+    }
+
     // Generate UV map
     auto genUV = parsed.count("uv-reuse") == 0;
     if (genUV or not uvMap) {
         // ABF
-        vc::texturing::AngleBasedFlattening abf;
+        vct::AngleBasedFlattening abf;
         abf.setMesh(mesh);
         abf.compute();
 
@@ -71,7 +83,7 @@ int main(int argc, char* argv[])
 
     // PPM
     vc::Logger()->info("Generating per-pixel map");
-    vc::texturing::PPMGenerator p;
+    vct::PPMGenerator p;
     p.setDimensions(height, width);
     p.setMesh(mesh);
     p.setUVMap(uvMap);

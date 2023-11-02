@@ -103,7 +103,8 @@ static auto GetMeshingOpts() -> po::options_description
             "  3 = Both before and after mesh resampling")
         ("intermediate-mesh", po::value<std::string>(),"Output file path for the "
             "intermediate (i.e. scale + resampled) mesh. File is saved prior "
-            "to flattening. Useful for testing meshing parameters.");
+            "to flattening. Useful for testing meshing parameters.")
+        ("orient-normals", "Auto-orient surface normals towards the mesh centroid");
     // clang-format on
 
     return opts;
@@ -331,7 +332,7 @@ auto main(int argc, char* argv[]) -> int
     };
     // clang-format on
     graph->setProjectMetadata(projectInfo);
-    // Setup a map to keep a reference to important output ports
+    // Set up a map to keep a reference to important output ports
     std::unordered_map<std::string, smgl::Output*> results;
 
     //// Load the segmentation/mesh ////
@@ -487,6 +488,14 @@ auto main(int argc, char* argv[]) -> int
             writer->path = meshPath;
             writer->mesh = *results["mesh"];
         }
+    }
+
+    ///// Reorient the mesh normals /////
+    if (parsed.count("orient-normals") > 0) {
+        auto orient = graph->insertNode<OrientNormalsNode>();
+        orient->input = *results["mesh"];
+        orient->referenceMode = OrientNormalsNode::ReferenceMode::Centroid;
+        results["mesh"] = &orient->output;
     }
 
     ///// Flattening /////
