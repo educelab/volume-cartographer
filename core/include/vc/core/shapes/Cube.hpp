@@ -43,7 +43,7 @@ public:
         addCell_(0, 1, 2);
         addCell_(0, 2, 3);
         addCell_(3, 2, 6);
-        addCell_(3,6,7);
+        addCell_(3, 6, 7);
         addCell_(7, 6, 5);
         addCell_(7, 5, 4);
         addCell_(4, 5, 1);

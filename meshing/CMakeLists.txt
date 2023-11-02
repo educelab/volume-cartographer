@@ -71,6 +71,7 @@ set(test_srcs
     test/ScaleMeshTest.cpp
     test/SmoothNormalsTest.cpp
     test/OrderedPointSetMesherTest.cpp
+    test/OrientNormalsTest.cpp
 )
 
 # Add a test executable for each src

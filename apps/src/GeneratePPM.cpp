@@ -5,9 +5,9 @@
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/meshing/OrientNormals.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
-#include "vc/meshing/OrientNormals.hpp"
 
 namespace vc = volcart;
 namespace vcm = volcart::meshing;
