@@ -196,17 +196,12 @@ CWindow::~CWindow(void)
     SDL_Quit();
 }
 
-// Handle mouse press event
-void CWindow::mousePressEvent(QMouseEvent* /*nEvent*/) {}
-
-void CWindow::mouseReleaseEvent(QMouseEvent* /*nEvent*/) {}
-
 // Handle key press event
 void CWindow::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Escape) {
         // REVISIT - should prompt warning before exit
-        close();
+        Close();
     } else {
         // REVISIT - dispatch key press event
     }
@@ -2375,8 +2370,8 @@ void CWindow::TogglePenTool(void)
         }
         fSplineCurve.Clear();
         fVolumeViewerWidget->ResetSplineCurve();
-        fSliceIndexToolStart = 0;
-        fVolumeViewerWidget->SetSliceIndexToolStart(0);
+        fSliceIndexToolStart = -1;
+        fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
     }
 
     UpdateView();
@@ -2413,9 +2408,29 @@ void CWindow::ToggleSegmentationTool(void)
         // pass focus so that viewer can directly listen to keyboard events
         fVolumeViewerWidget->setFocus();
     } else {
+        // Warn user that curve changes will get lost
+        bool changesFound = false;
+        for (auto& seg : fSegStructMap) {
+            if(seg.second.HasChangedCurves()) {
+                changesFound = true;
+                break;
+            }
+        }
+
+        if(changesFound) {
+            const auto response = QMessageBox::question(this, "Changed Curves",
+                tr("You have made changes to curves that will get lost if you exit without starting a segmentation run.\n\nDiscard the changes?"),
+                QMessageBox::Discard | QMessageBox::Cancel);
+    
+            if(response == QMessageBox::Cancel) {
+                fSegTool->setChecked(true);
+                return;
+            }
+        }
+
         CleanupSegmentation();
         fSliceIndexToolStart = -1;
-        fVolumeViewerWidget->SetSliceIndexToolStart(-1);
+        fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
     }
     UpdateView();
 }
