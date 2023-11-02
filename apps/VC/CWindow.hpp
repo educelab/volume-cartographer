@@ -260,6 +260,7 @@ private:
 
     // window components
     QMenu* fFileMenu;
+    QMenu* fViewMenu;
     QMenu* fHelpMenu;
     QMenu* fRecentVolpkgMenu{};
 

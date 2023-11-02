@@ -153,6 +153,16 @@ CWindow::CWindow()
     UpdateRecentVolpkgActions();
     CreateBackend();
 
+    // stylesheets
+    auto style = "QMenuBar { background: qlineargradient( x0:0 y0:0, x1:1 y1:0, stop:0 rgb(85, 110, 200), stop:0.8 rgb(255, 120, 110), stop:1 rgb(255, 180, 30)); }"
+        "QMenuBar::item { background: transparent; }"
+        "QMenuBar::item:selected { background: rgb(255, 200, 50); }"
+        "QWidget#dockWidgetVolumesContent { background: rgb(245, 245, 255); }"
+        "QWidget#dockWidgetSegmentationContent { background: rgb(245, 245, 255); }"
+        "QWidget#dockWidgetAnnotationsContent { background: rgb(245, 245, 255); }"
+        "QDockWidget::title { padding-top: 6px; background: rgb(205, 210, 240); }";
+    setStyleSheet(style);
+
     OpenSlice();
     UpdateView();
 
@@ -596,6 +606,11 @@ void CWindow::CreateMenus(void)
     fFileMenu->addSeparator();
     fFileMenu->addAction(fExitAct);
 
+    fViewMenu = new QMenu(tr("&View"), this);
+    fViewMenu->addAction(findChild<QDockWidget*>("dockWidgetVolumes")->toggleViewAction());
+    fViewMenu->addAction(findChild<QDockWidget*>("dockWidgetSegmentation")->toggleViewAction());
+    fViewMenu->addAction(findChild<QDockWidget*>("dockWidgetAnnotations")->toggleViewAction());
+
     fHelpMenu = new QMenu(tr("&Help"), this);
     fHelpMenu->addAction(fKeybinds);
     fFileMenu->addSeparator();
@@ -609,6 +624,7 @@ void CWindow::CreateMenus(void)
     fHelpMenu->addAction(fAboutAct);
 
     menuBar()->addMenu(fFileMenu);
+    menuBar()->addMenu(fViewMenu);
     menuBar()->addMenu(fHelpMenu);
 }
 
