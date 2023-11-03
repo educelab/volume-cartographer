@@ -122,7 +122,7 @@ void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
     QPixmap pixmap = QPixmap::fromImage(*fImgQImage);
 
     // Add the QPixmap to the scene as a QGraphicsPixmapItem
-    if(fBaseImageItem) {
+    if (fBaseImageItem) {
         // If the item already exists, remove it from the scene
         fScene->removeItem(fBaseImageItem);
         delete fBaseImageItem; // Delete the old item
@@ -180,7 +180,7 @@ void CVolumeViewerWithCurve::UpdateView()
     QList<QGraphicsItem*> allItems = fScene->items();
     for(QGraphicsItem *item : allItems)
     {
-        if(dynamic_cast<QGraphicsEllipseItem*>(item) || dynamic_cast<QGraphicsLineItem*>(item))
+        if (dynamic_cast<QGraphicsEllipseItem*>(item) || dynamic_cast<QGraphicsLineItem*>(item))
         {
             fScene->removeItem(item);
             delete item;
@@ -196,7 +196,7 @@ void CVolumeViewerWithCurve::UpdateView()
             h = h - 360;
         }
         auto secondary = QColor::fromHsv(h, 255, 255);
-        
+
         if (fSplineCurveRef != nullptr) {
             // Assuming DrawOnImage now works on QImage or QGraphicsScene
            fSplineCurveRef->DrawOnImage(fScene, secondary);
@@ -282,7 +282,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
         return;
     }
 
-    if((event->button() == Qt::LeftButton)) {
+    if ((event->button() == Qt::LeftButton)) {
         // Get the mouse position in widget coordinates
         cv::Vec2f aWidgetLoc, aImgLoc, res;
         // For some reason the mouse position in the relase event are different and slightly off.
@@ -299,15 +299,15 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
             fControlPoints.push_back(aImgLoc);
             UpdateSplineCurve();
             UpdateView();
-                
-        } else if (fViewState == EViewState::ViewStateEdit && event->button() == Qt::LeftButton) {
-            lineGrabbed = true;        
 
-            if(fImageIndex != sliceIndexToolStart) {
+        } else if (fViewState == EViewState::ViewStateEdit && event->button() == Qt::LeftButton) {
+            lineGrabbed = true;
+
+            if (fImageIndex != sliceIndexToolStart) {
                 SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now.").arg(QString::number(sliceIndexToolStart)), 3000);
                 return;
             }
-            
+
             // If we have points, select the one that was clicked.
             auto res = SelectPointOnCurves(aImgLoc, true);
             fSelectedPointIndex = res.first;
@@ -322,7 +322,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 
                 fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
                 fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
-                
+
                 // Mouse move event to update the line
                 mouseMoveEvent(event);
 
@@ -332,13 +332,13 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
     } else if (event->button() == Qt::RightButton) {
         // Attempt to start the panning. We only consider us in panning mode, if in the mouse move event
         // we actually detect movement.
-        
+
         rightPressed = true;
         wantsPanning = true;
         isPanning = false;
         panStartX = event->position().x();
         panStartY = event->position().y();
-    }    
+    }
 }
 
 // Handle mouse move event, currently only when we're editing
@@ -346,10 +346,10 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 {
     // If we have an active last pressed side button from the backwards/forwards move feature,
     // we cannot do any panning at the same time, nor do we want to move any curves.
-    if(lastPressedSideButton) {
+    if (lastPressedSideButton) {
         return;
     }
-        
+
     if (!wantsPanning && !rightPressed && !lineGrabbed) {
         return;
     }
@@ -375,7 +375,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
             // If value is in valid range, so >= 0 and <= number of points on curve,
             // it is valid for buffering.
-            if((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
+            if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
                 pointIndexes.insert(fSelectedPointIndex + i);
             }
         }
@@ -387,7 +387,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 
     } else if (wantsPanning && rightPressed){
         // We potentially want to start panning, and now check if the mouse actually moved
-        if(event->position().x() != panStartX || event->position().y() - panStartY)
+        if (event->position().x() != panStartX || event->position().y() - panStartY)
         {
             isPanning = true;
             setCursor(Qt::ClosedHandCursor);
@@ -415,7 +415,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
     }
 
     // end panning
-    if(event->button() == Qt::RightButton) {
+    if (event->button() == Qt::RightButton) {
         isPanning = wantsPanning = rightPressed = false;
         setCursor(Qt::ArrowCursor);
         event->accept();

@@ -212,7 +212,7 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
     QPixmap pixmap = QPixmap::fromImage(*fImgQImage);
 
     // Add the QPixmap to the scene as a QGraphicsPixmapItem
-    if(fBaseImageItem) {
+    if (fBaseImageItem) {
         // If the item already exists, remove it from the scene
         fScene->removeItem(fBaseImageItem);
         delete fBaseImageItem; // Delete the old item
@@ -256,11 +256,11 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             } else if (numDegrees < 0) {
                 OnZoomOutClicked();
             }
-            
-            if(fCenterOnZoomEnabled) {
+
+            if (fCenterOnZoomEnabled) {
                 CenterOn(fGraphicsView->mapToScene(wheelEvent->position().toPoint()));
             }
-            
+
             return true;
         }
         // Shift = Scan through slices
@@ -329,7 +329,7 @@ void CVolumeViewer::OnNextClicked(void)
     // send signal to controller (MVC) in order to update the content
     if (fNextBtn->isEnabled()) {
         // If the signal sender is the button, we check for Shift modifier for bigger jumps
-        if(sender() == fNextBtn)
+        if (sender() == fNextBtn)
             SendSignalOnNextSliceShift(qga::keyboardModifiers() == Qt::ShiftModifier ? 10 : 1);
         else
             SendSignalOnNextSliceShift(1);
@@ -342,7 +342,7 @@ void CVolumeViewer::OnPrevClicked(void)
     // send signal to controller (MVC) in order to update the content
     if (fPrevBtn->isEnabled()) {
         // If the signal sender is the button, we check for Shift modifier for bigger jumps
-        if(sender() == fPrevBtn)
+        if (sender() == fPrevBtn)
             SendSignalOnPrevSliceShift(qga::keyboardModifiers() == Qt::ShiftModifier ? 10 : 1);
         else
             SendSignalOnPrevSliceShift(1);
@@ -389,22 +389,22 @@ cv::Vec2f CVolumeViewer::CleanScrollPosition(cv::Vec2f pos) const
     int verticalPos = y - viewportHeight / 2;
 
     // Check and respect horizontal boundaries
-    if(horizontalPos < fGraphicsView->horizontalScrollBar()->minimum())
+    if (horizontalPos < fGraphicsView->horizontalScrollBar()->minimum())
         horizontalPos = fGraphicsView->horizontalScrollBar()->minimum();
-    else if(horizontalPos > fGraphicsView->horizontalScrollBar()->maximum())
+    else if (horizontalPos > fGraphicsView->horizontalScrollBar()->maximum())
         horizontalPos = fGraphicsView->horizontalScrollBar()->maximum();
 
     // Check and respect vertical boundaries
-    if(verticalPos < fGraphicsView->verticalScrollBar()->minimum())
+    if (verticalPos < fGraphicsView->verticalScrollBar()->minimum())
         verticalPos = fGraphicsView->verticalScrollBar()->minimum();
-    else if(verticalPos > fGraphicsView->verticalScrollBar()->maximum())
+    else if (verticalPos > fGraphicsView->verticalScrollBar()->maximum())
         verticalPos = fGraphicsView->verticalScrollBar()->maximum();
 
     return cv::Vec2f(horizontalPos + viewportWidth / 2, verticalPos + viewportHeight / 2);
 }
 
 void CVolumeViewer::ScrollToCenter(cv::Vec2f pos)
-{    
+{
     pos = CleanScrollPosition(pos);
 
     // Get the size of the QGraphicsView viewport

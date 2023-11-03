@@ -130,11 +130,11 @@ CWindow::CWindow()
     impactRangeStr.replace(" ", "");
     auto commaSplit = impactRangeStr.split(",");
     for(auto str : commaSplit) {
-        if(str.contains("-")) {
+        if (str.contains("-")) {
             // Expand the range to distinct values
             auto dashSplit = str.split("-");
             // We need to have two split results (before and after the dash), otherwise skip
-            if(dashSplit.size() == 2) {
+            if (dashSplit.size() == 2) {
                 for(int i = dashSplit.at(0).toInt(); i <= dashSplit.at(1).toInt(); i++) {
                     impactRangeSteps.push_back(i);
                 }
@@ -179,13 +179,13 @@ CWindow::CWindow()
 
     // If enabled, auto open the last used volpkg
     if (settings.value("volpkg/auto_open", false).toInt() != 0) {
-        
+
         QStringList files = settings.value("volpkg/recent").toStringList();
 
-        if(files.size() > 0 && !files.at(0).isEmpty()) {
+        if (files.size() > 0 && !files.at(0).isEmpty()) {
             Open(files[0]);
         }
-    } 
+    }
 }
 
 // Destructor
@@ -607,7 +607,7 @@ void CWindow::CreateMenus(void)
     fFileMenu->addSeparator();
 
     QSettings settings("VC.ini", QSettings::IniFormat);
-    if(settings.value("internal/debug", 0).toInt() == 1) {
+    if (settings.value("internal/debug", 0).toInt() == 1) {
         fHelpMenu->addAction(fPrintDebugInfo);
         fFileMenu->addSeparator();
     }
@@ -703,13 +703,13 @@ void CWindow::UpdateRecentVolpkgActions()
 {
     QSettings settings("VC.ini", QSettings::IniFormat);
     QStringList files = settings.value("volpkg/recent").toStringList();
-    if(files.isEmpty()) {
+    if (files.isEmpty()) {
         return;
     }
 
     // The automatic conversion to string list from the settings, (always?) adds an
     // empty entry at the end. Remove it if present.
-    if(files.last().isEmpty()) {
+    if (files.last().isEmpty()) {
         files.removeLast();
     }
 
@@ -722,7 +722,7 @@ void CWindow::UpdateRecentVolpkgActions()
         fileName.replace("&", "&&");
         QString path = QFileInfo(files[i]).canonicalPath();
 
-        if(path == "."){
+        if (path == "."){
             path = tr("Directory not available!");
         } else {
             path.replace("&", "&&");
@@ -1068,9 +1068,9 @@ void CWindow::DoSegmentation(void)
             int anchorBackward = -1;
 
             // Auto-adjust parameters if we have annotations
-            if(fSegStructMap[segID].fSegmentation->hasAnnotations()) {
+            if (fSegStructMap[segID].fSegmentation->hasAnnotations()) {
 
-                if(directionUp) {
+                if (directionUp) {
                     anchorForward = fSegStructMap[segID].FindNearestHigherAnchor(startIndex);
                     anchorBackward = fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
                 } else {
@@ -1081,11 +1081,11 @@ void CWindow::DoSegmentation(void)
                 std::cout << "OFS: Forward Anchor: " << anchorForward << std::endl;
                 std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
 
-                if(anchorForward != -1) {
+                if (anchorForward != -1) {
                     // Forward portion needs to stop one slice before the next forward anchor if there is one
-                    if(directionUp && anchorForward <= this->ui.spinForwardSlice->value()) {
+                    if (directionUp && anchorForward <= this->ui.spinForwardSlice->value()) {
                         fSegParams.targetIndex = anchorForward - 1;
-                    } else if(!directionUp && anchorForward >= this->ui.spinForwardSlice->value()) {
+                    } else if (!directionUp && anchorForward >= this->ui.spinForwardSlice->value()) {
                         fSegParams.targetIndex = anchorForward + 1;
                     }
                 }
@@ -1094,7 +1094,7 @@ void CWindow::DoSegmentation(void)
                 fSegParams.backwards_smoothness_interpolation_window  = 0;
 
                 // Check if the backwards portion is enabled (percent value > 0)
-                if(fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
+                if (fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
                     // With annotations we have to use the percentage of the delta between
                     // current slice (= segmentation start slice) and the backwards anchor slice.
                     // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
@@ -1593,29 +1593,29 @@ void CWindow::UpdateAnnotationList(void)
 {
     fAnnotationListWidget->clear();
 
-    if(!fHighlightedSegmentationId.empty()) {
+    if (!fHighlightedSegmentationId.empty()) {
 
         if (fVpkg != nullptr) {
 
-            if(fSegStructMap[fHighlightedSegmentationId].fSegmentation && fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations()) {
+            if (fSegStructMap[fHighlightedSegmentationId].fSegmentation && fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations()) {
 
                 // Add or update the annotation rows
                 for (auto a : fSegStructMap[fHighlightedSegmentationId].fAnnotations) {
 
                     // Check if at least one of the flags is true
-                    if(a.second.anchor || a.second.manual) {
+                    if (a.second.anchor || a.second.manual) {
 
                         // Anchor or manually changed => add to list if not already in there
                         auto items = fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0);
 
-                        if(items.size() == 0) {
+                        if (items.size() == 0) {
                             AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
                             item->setText(0, QString::number(a.first));
                             item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
                             item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
                             item->setIcon(3, ((a.second.anchor || a.second.manual) && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
                             item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-                        } if(items.size() == 1) {
+                        } else if (items.size() == 1) {
                             // Row does already exists => update it
                             items.at(0)->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
                             items.at(0)->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
@@ -1649,12 +1649,12 @@ void CWindow::SetPathPointCloud(void)
     aSamplePts.erase(unique, aSamplePts.end());
     auto uniquePts = aSamplePts.size();
 
-    if(numPts - uniquePts > 0) {
+    if (numPts - uniquePts > 0) {
         vc::Logger()->warn("Removed {} duplicate points", numPts - uniquePts);
     }
 
     // No points (perhaps curve too small = below sampling min size)
-    if(uniquePts == 0) {
+    if (uniquePts == 0) {
         vc::Logger()->warn("No points could be extracted from curve.");
         return;
     }
@@ -1681,7 +1681,7 @@ void CWindow::OpenVolume(const QString& path)
     QString aVpkgPath = path;
     QSettings settings("VC.ini", QSettings::IniFormat);
 
-    if(aVpkgPath.isEmpty()) {
+    if (aVpkgPath.isEmpty()) {
         aVpkgPath = QFileDialog::getExistingDirectory(
             this, tr("Open Directory"), settings.value("volpkg/default_path").toString(),
             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | QFileDialog::ReadOnly | QFileDialog::DontUseNativeDialog);
@@ -1777,7 +1777,7 @@ void CWindow::Open(const QString& path)
 void CWindow::OpenRecent()
 {
     auto action = qobject_cast<QAction*>(sender());
-    if(action)
+    if (action)
         Open(action->data().toString());
 }
 
@@ -1811,6 +1811,7 @@ void CWindow::Keybindings(void)
         "J: Highlight Next Curve that is selected for Computation \n"
         "K: Highlight Previous Curve that is selected for Computation \n"
         "F: Return to slice that the currently active tool was started on \n"
+        "L: Mark/unmark current slice as anchor (only in Segmentation Tool) \n"
         "\n"
         "Mouse: \n"
         "------------------- \n"
@@ -1950,20 +1951,20 @@ void CWindow::OnNewPathClicked(void)
 void CWindow::OnRemovePathClicked(void)
 {
     // If there is no current item, we cannot remove it
-    if(!fPathListWidget->currentItem())
+    if (!fPathListWidget->currentItem())
         return;
 
     auto id = fPathListWidget->currentItem()->text(0);
 
-    if(!id.isEmpty()) {
+    if (!id.isEmpty()) {
 
         // Ask for user confirmation
         auto button = QMessageBox::critical(this, tr("Are you sure?"), tr("Warning: This will irrevocably delete the segment %1.\n\nThis action cannot be undone!\n\nContinue?").arg(id), QMessageBox::Yes | QMessageBox::No);
 
-        if(button == QMessageBox::Yes) {
+        if (button == QMessageBox::Yes) {
 
             try {
-                if(fVpkg->removeSegmentation(id.toStdString())) {
+                if (fVpkg->removeSegmentation(id.toStdString())) {
                     fSegStructMap[id.toStdString()].ResetPointCloud();
                     delete fPathListWidget->currentItem();
                 }
@@ -2275,7 +2276,7 @@ void CWindow::OnPathItemSelectionChanged()
     fHighlightedSegmentationId = "";
 
     auto items = fPathListWidget->selectedItems();
-    if(!items.empty()) {
+    if (!items.empty()) {
         OnPathItemClicked(items.at(0), 0);
     }
     UpdateView();
@@ -2343,13 +2344,13 @@ void CWindow::ShowGoToSliceDlg() {
     bool status;
     const int sliceIndex = QInputDialog::getInt(this, tr("Go to slice"), tr("Slice Index"), 0, 0, currentVolume->numSlices(), 1, &status);
 
-    if(status) {
+    if (status) {
         OnLoadAnySlice(sliceIndex);
     }
 }
 
 void CWindow::ScanRangeUp() {
-    if(currentScanRangeIndex < std::size(scanRanges) - 1) {
+    if (currentScanRangeIndex < std::size(scanRanges) - 1) {
         currentScanRangeIndex++;
     }
 
@@ -2358,7 +2359,7 @@ void CWindow::ScanRangeUp() {
 }
 
 void CWindow::ScanRangeDown() {
-    if(currentScanRangeIndex > 0) {
+    if (currentScanRangeIndex > 0) {
         currentScanRangeIndex--;
         fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
     }
@@ -2368,13 +2369,13 @@ void CWindow::ScanRangeDown() {
 }
 
 void CWindow::ReturnToEditSlice() {
-    if(fSegTool->isChecked()) {
+    if (fSegTool->isChecked()) {
         fVolumeViewerWidget->ReturnToSliceIndexToolStart();
     }
 }
 
 void CWindow::ToggleAnchor() {
-    if(fSegTool->isChecked()) {
+    if (fSegTool->isChecked()) {
         fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fPathOnSliceIndex, !fSegStructMap[fHighlightedSegmentationId].IsSliceAnAnchor(fPathOnSliceIndex));
         fVpkgChanged = true;
         UpdateAnnotationList();
@@ -2451,7 +2452,7 @@ void CWindow::ToggleSegmentationTool(void)
         SplitCloud();
 
         // Adjust the algorithm widgets based on whether we have annotations for the highlighted segment
-        if(!fHighlightedSegmentationId.empty()) {
+        if (!fHighlightedSegmentationId.empty()) {
             lblBackwardsLength->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
             edtBackwardsLength->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
             lblBackwardsInterpolationWindow->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
@@ -2468,22 +2469,22 @@ void CWindow::ToggleSegmentationTool(void)
         // Warn user that curve changes will get lost
         bool changesFound = false;
         for (auto& seg : fSegStructMap) {
-            if(seg.second.HasChangedCurves()) {
+            if (seg.second.HasChangedCurves()) {
                 changesFound = true;
                 break;
             }
         }
 
-        if(changesFound) {
+        if (changesFound) {
             const auto response = QMessageBox::question(this, "Changed Curves",
                 tr("You have made changes to curves that will get lost if you exit without starting a segmentation run.\n\nDiscard the changes?"),
                 QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
 
-            if(response == QMessageBox::Cancel) {
+            if (response == QMessageBox::Cancel) {
                 // Stay in seg tool mode => check the button again and then leave
                 fSegTool->setChecked(true);
                 return;
-            } else if(response == QMessageBox::Save) {
+            } else if (response == QMessageBox::Save) {
                 // Save the changed curve and mark as manually changed
                 fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fSliceIndexToolStart, true);
                 fSegStructMap[fHighlightedSegmentationId].SetAnnotationManualPoints(fSliceIndexToolStart);
@@ -2740,7 +2741,7 @@ bool CWindow::can_change_volume_()
 
 void CWindow::onBackwardButtonGroupToggled(QAbstractButton* button, bool checked)
 {
-    if(button == this->ui.radioBackwardNoRun && checked && this->ui.radioForwardNoRun->isChecked()) {
+    if (button == this->ui.radioBackwardNoRun && checked && this->ui.radioForwardNoRun->isChecked()) {
         this->ui.btnStartSeg->setDisabled(true);
     } else {
         this->ui.btnStartSeg->setDisabled(false);
@@ -2751,7 +2752,7 @@ void CWindow::onBackwardButtonGroupToggled(QAbstractButton* button, bool checked
 
 void CWindow::onForwardButtonGroupToggled(QAbstractButton* button, bool checked)
 {
-    if(button == this->ui.radioForwardNoRun && checked && this->ui.radioBackwardNoRun->isChecked()) {
+    if (button == this->ui.radioForwardNoRun && checked && this->ui.radioBackwardNoRun->isChecked()) {
         this->ui.btnStartSeg->setDisabled(true);
     } else {
         this->ui.btnStartSeg->setDisabled(false);

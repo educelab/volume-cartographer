@@ -278,7 +278,7 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
 
 auto VolumePkg::removeSegmentation(const Segmentation::Identifier& id) -> bool
 {
-    if(id.size() == 0)
+    if (id.size() == 0)
         return false;
 
     // Construct the volume directory path

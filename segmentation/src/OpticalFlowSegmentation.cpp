@@ -303,14 +303,14 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
 
         cv::Vec2f mean_normal(0, 0);
         int window_size_normal = 0;
-        
+
         for (int j = lower_bound; j <= upper_bound; ++j) {
             // Estimate the normal at index j
             cv::Vec2f normal = estimate_2d_normal_at_index_(currentCurve, j);
             mean_normal += normal;
             window_size_normal++;
         }
-        
+
         // Calculate the mean normal for index i
         cv::Vec2f normal = mean_normal / window_size_normal;
         // {
@@ -376,8 +376,8 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
                         if ((edges2_filtered.at<uchar>(candidatePtFront) == 255)) {
                             disregardeFront = true;
                         }
-                    } 
-                    else if(gray2_val_front > gray2_val_back && gray2_val_front > black_treshold_detect_outside && gray2_val_back < black_treshold_detect_outside) {
+                    }
+                    else if (gray2_val_front > gray2_val_back && gray2_val_front > black_treshold_detect_outside && gray2_val_back < black_treshold_detect_outside) {
                         edgePtFront = candidatePtFront + cv::Point2f(x_min, y_min) + cv::Point2f(whiteDistance * normal[0], whiteDistance * normal[1]);
                         foundFront = true;
                         if (!(edges2_filtered.at<uchar>(candidatePtFront) == 255)) {
@@ -540,7 +540,7 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
         smoothedVs = nextVs;
     }
 
-    // Display the edges_filtered image 
+    // Display the edges_filtered image
     if (visualize) {
         // Apply a moving average filter to smoothen the remaining updated points
         std::vector<Voxel> displayVs0;
@@ -589,10 +589,9 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
         }
         FittedCurve newChain3(displayVs3, zIndex + (backwards ? -1 : 1));
         auto chain3 = draw_particle_on_image_(newChain3, edges2_filtered.clone());
-        
+
         std::unique_lock<std::shared_mutex> lock(display_mutex_);
-        
-        
+
         // stitch the three images together
         cv::Mat stitched;
         cv::hconcat(gray2, edges2, stitched);
@@ -687,8 +686,9 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     // Iterate over z-slices
     size_t iteration{0};
 
-    // for loop with adjustments for backwards direction, to smoothen adjustments out and have a nice flat smooth sheet surface
-    if(computeSub(points, currentVs, startIndex, backwards_endIndex, !backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+    // Backward (not in the sense of upward/downward in z-index direction, but backwards interpolation) for loop with adjustments for backwards direction,
+    // to smoothen adjustments out and have a nice flat smooth sheet surface
+    if (computeSub(points, currentVs, startIndex, backwards_endIndex, !backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
         return create_final_pointset_(points);
     }
 
@@ -702,7 +702,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     points = interpolatePoints(points, backwards_smoothness_interpolation_w, backwards);
 
     // Regular forward portion
-    if(computeSub(points, currentVs, startIndex, endIndex_, backwards, iteration, false, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+    if (computeSub(points, currentVs, startIndex, endIndex_, backwards, iteration, false, outputDir, wholeChainDir) == Status::ReturnedEarly) {
         return create_final_pointset_(points);
     }
 

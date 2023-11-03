@@ -178,7 +178,7 @@ struct SegmentationStruct {
         // Convert volume z-index to PointSet index
         auto pathIndex = fPathOnSliceIndex - fMinSegIndex;
 
-        if(fMasterCloud.empty() || fPathOnSliceIndex < fMinSegIndex || fPathOnSliceIndex > fMaxSegIndex) {
+        if (fMasterCloud.empty() || fPathOnSliceIndex < fMinSegIndex || fPathOnSliceIndex > fMaxSegIndex) {
             fStartingPath = std::vector<cv::Vec3d>();
             return;
         }
@@ -257,13 +257,13 @@ struct SegmentationStruct {
             for (size_t j = 0; j < fAnnotationCloud.width(); ++j) {
                 pointIndex = j + (i * fAnnotationCloud.width());
 
-                if(fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_ANCHOR)
+                if (fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_ANCHOR)
                     an.anchor = true;
 
-                if(fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_MANUAL)
+                if (fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_MANUAL)
                     an.manual = true;
 
-                if(fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_USED_IN_RUN)
+                if (fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_USED_IN_RUN)
                     an.usedInRun = true;
             }
 
@@ -284,7 +284,7 @@ struct SegmentationStruct {
             // Note: The map of changed intersections uses the slice nubmer as key,
             // where as the intersections vector needs to be accessed by the curveIndex (offset)
             auto it = fIntersectionsChanged.find(fPathOnSliceIndex);
-            if(it != fIntersectionsChanged.end())
+            if (it != fIntersectionsChanged.end())
                 fIntersectionCurve = it->second;
             else
                 fIntersectionCurve = fIntersections[curveIndex];
@@ -307,11 +307,11 @@ struct SegmentationStruct {
     inline void MergePointSetIntoPointCloud(const volcart::Segmentation::PointSet ps)
     {
         // Ensure that everything matches
-        if(fMasterCloud.width() != ps.width() || fMasterCloud.width() != fAnnotationCloud.width()) {
+        if (fMasterCloud.width() != ps.width() || fMasterCloud.width() != fAnnotationCloud.width()) {
             std::cout << "Error: Width mismatch during cloud merging" << std::endl;
             return;
         }
-        if(fMasterCloud.height() != fAnnotationCloud.height()) {
+        if (fMasterCloud.height() != fAnnotationCloud.height()) {
             std::cout << "Error: Height mismatch during cloud merging" << std::endl;
             return;
         }
@@ -329,7 +329,7 @@ struct SegmentationStruct {
                 // of the new point set matches the value in the existing row of our master point cloud
                 // => starting point for merge
 
-                if(ps[0][2] < masterRowI[0][2]) {
+                if (ps[0][2] < masterRowI[0][2]) {
                     frontGrowth = true;
                 }
 
@@ -363,14 +363,14 @@ struct SegmentationStruct {
         // Handle annotation cloud logic
 
         // Check if size changed (some merges simply overwrite an existing point cloud row)
-        if(fMasterCloud.size() != fAnnotationCloud.size()) {
+        if (fMasterCloud.size() != fAnnotationCloud.size()) {
             volcart::Segmentation::AnnotationSet fUpperAnnotations(fAnnotationCloud.width());
             const AnnotationStruct defaultAnnotation;
             int defaultAnnotationFirstByte = 0;
-            if(defaultAnnotation.anchor) {
+            if (defaultAnnotation.anchor) {
                 defaultAnnotationFirstByte |= AnnotationBits::ANO_ANCHOR;
             }
-            if(defaultAnnotation.manual) {
+            if (defaultAnnotation.manual) {
                 defaultAnnotationFirstByte |= AnnotationBits::ANO_MANUAL;
             }
 
@@ -396,7 +396,7 @@ struct SegmentationStruct {
             fAnnotationCloud = fUpperAnnotations;
         }
 
-        if(fMasterCloud.height() != fAnnotationCloud.height()) {
+        if (fMasterCloud.height() != fAnnotationCloud.height()) {
             std::cout << "Error: Height mismatch after cloud merging" << std::endl;
             return;
         }
@@ -406,7 +406,7 @@ struct SegmentationStruct {
     {
         // Check if we have a buffered changed curve for this index. If not exit.
         auto it = fIntersectionsChanged.find(sliceIndex);
-        if(it == fIntersectionsChanged.end())
+        if (it == fIntersectionsChanged.end())
             return;
 
         volcart::Segmentation::PointSet ps(fMasterCloud.width());
@@ -429,13 +429,13 @@ struct SegmentationStruct {
         fAnnotationCloud = volcart::Segmentation::AnnotationSet(width);
         const AnnotationStruct defaultAnnotation;
         int defaultAnnotationFirstByte;
-        if(defaultAnnotation.anchor) {
+        if (defaultAnnotation.anchor) {
             defaultAnnotationFirstByte |= AnnotationBits::ANO_ANCHOR;
         }
-        if(defaultAnnotation.manual) {
+        if (defaultAnnotation.manual) {
             defaultAnnotationFirstByte |= AnnotationBits::ANO_MANUAL;
         }
-        if(defaultAnnotation.usedInRun) {
+        if (defaultAnnotation.usedInRun) {
             defaultAnnotationFirstByte |= AnnotationBits::ANO_USED_IN_RUN;
         }
 
@@ -457,12 +457,12 @@ struct SegmentationStruct {
     {
         // Calculate index via master point cloud
         int pointIndex = GetPointIndexForSliceIndex(sliceIndex);
-        if(pointIndex == -1) {
+        if (pointIndex == -1) {
             return;
         }
 
         for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
-            if(anchor) {
+            if (anchor) {
                 fAnnotationCloud[i][0] |= AnnotationBits::ANO_ANCHOR;
             } else {
                 fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_ANCHOR;
@@ -470,7 +470,7 @@ struct SegmentationStruct {
         }
 
         auto it = fAnnotations.find(sliceIndex);
-        if(it != fAnnotations.end()) {
+        if (it != fAnnotations.end()) {
             // Update existing entry
             it->second.anchor = anchor;
         } else {
@@ -513,13 +513,13 @@ struct SegmentationStruct {
     {
         auto pointIndex = GetPointIndexForSliceIndex(sliceIndex);
 
-        if(fBufferedChangedPoints.size() > 0) {
+        if (fBufferedChangedPoints.size() > 0) {
             for (auto index : fBufferedChangedPoints) {
                 fAnnotationCloud[pointIndex + index][0] |= AnnotationBits::ANO_MANUAL;
             }
 
             auto it = fAnnotations.find(sliceIndex);
-            if(it != fAnnotations.end()) {
+            if (it != fAnnotations.end()) {
                 it->second.manual = true;
             }
 
@@ -532,12 +532,12 @@ struct SegmentationStruct {
     {
         // Calculate index via master point cloud
         int pointIndex = GetPointIndexForSliceIndex(sliceIndex);
-        if(pointIndex == -1) {
+        if (pointIndex == -1) {
             return;
         }
 
         for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
-            if(used) {
+            if (used) {
                 fAnnotationCloud[i][0] |= AnnotationBits::ANO_USED_IN_RUN;
             } else {
                 fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_USED_IN_RUN;
@@ -545,7 +545,7 @@ struct SegmentationStruct {
         }
 
         auto it = fAnnotations.find(sliceIndex);
-        if(it != fAnnotations.end()) {
+        if (it != fAnnotations.end()) {
             // Update existing entry
             it->second.usedInRun = used;
         } else {
@@ -561,14 +561,14 @@ struct SegmentationStruct {
     {
         // Calculate index via master point cloud
         int startPointIndex = GetPointIndexForSliceIndex(startIndex);
-        if(startPointIndex == -1) {
+        if (startPointIndex == -1) {
             return;
         }
 
         auto directionUp = endIndex > startIndex;
         int endPointIndex;
 
-        if(directionUp) {
+        if (directionUp) {
             endPointIndex = startPointIndex + ((endIndex - startIndex + 1) * fAnnotationCloud.width() - 1);
         } else {
             // We are going downwards => start at the end of the start slice = add the width to the index
@@ -590,7 +590,7 @@ struct SegmentationStruct {
     {
         // From provided start slice go backwards until we have an anchor
         for(int i = sliceIndex - 1; i >= fMinSegIndex; i--) {
-            if(fAnnotations[i].anchor) {
+            if (fAnnotations[i].anchor) {
                 return i;
             }
         }
@@ -603,7 +603,7 @@ struct SegmentationStruct {
     {
         // From provided start slice go forward until we have an anchor or reached the end
         for(int i = sliceIndex + 1; i < currentVolume->numSlices(); i++) {
-            if(fAnnotations[i].anchor) {
+            if (fAnnotations[i].anchor) {
                 return i;
             }
         }
