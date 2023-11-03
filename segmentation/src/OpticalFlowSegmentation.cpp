@@ -123,7 +123,7 @@ std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolatePoints(
     }
     for (; i < masterCloud_.height(); i++) {
         auto masterRowI = masterCloud_.getRow(i);
-        // Found corresponding indexx in master cloud
+        // Found corresponding index in master cloud
         if (points[0][0][2] == masterRowI[masterCloud_.width()-1][2]){
             break;
         }
@@ -144,7 +144,7 @@ std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolatePoints(
         int pointsIndex = u;
         float interpolate_point = ((float)u) / (2.0 * (float)window_size);
         float interpolate_mastercloud = 1 - interpolate_point;
-        // Check indxs in range
+        // Check indexes in range
         if (!(masterRowIndex >= 0 && masterRowIndex < masterCloud_.height() && pointsIndex >= 0 && pointsIndex < points.size())) {
             std::cout << "Error: masterRowIndex: " << masterRowIndex << ", pointsIndex: " << pointsIndex << std::endl;
             std::cout << "masterCloud_.height(): " << masterCloud_.height() << ", points.size(): " << points.size() << std::endl;

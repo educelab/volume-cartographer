@@ -375,7 +375,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
             // If value is in valid range, so >= 0 and <= number of points on curve,
             // it is valid for buffering.
-            if((fSelectedPointIndex + i) >= 1 && (fSelectedPointIndex + i) <= fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
+            if((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
                 pointIndexes.insert(fSelectedPointIndex + i);
             }
         }
@@ -386,7 +386,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         UpdateView();
 
     } else if (wantsPanning && rightPressed){
-        // We potentially want to start panning, and now check if the mouse actually moved    
+        // We potentially want to start panning, and now check if the mouse actually moved
         if(event->position().x() != panStartX || event->position().y() - panStartY)
         {
             isPanning = true;
@@ -398,7 +398,7 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         } else {
             wantsPanning = false;
         }
-    }    
+    }
 }
 
 // Handle mouse release event
@@ -434,7 +434,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
 }
 
 // capture mouse release
-bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event) 
+bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
 {
     // check for mouse release generic
     if (event->type() == QEvent::MouseButtonRelease) {
@@ -446,10 +446,10 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
 
     if (event->type() == QEvent::MouseMove) {
         QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-        
+
         // Transform the global coordinates to local coordinates
         QPointF localPoint = this->mapFromGlobal(mouseEvent->globalPosition());
-        
+
         // Create a new QMouseEvent with local coordinates
         QMouseEvent localMouseEvent(QEvent::MouseMove,
                                     localPoint,
@@ -457,10 +457,10 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
                                     mouseEvent->button(),
                                     mouseEvent->buttons(),
                                     mouseEvent->modifiers());
-        
+
         // Manually call your mouseMoveEvent function
         mouseMoveEvent(&localMouseEvent);
-        
+
         event->accept();
         return true;
     }

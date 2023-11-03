@@ -103,8 +103,8 @@ signals:
     void submitSegmentation(Segmenter::Pointer s);
 
 public slots:
-    void onSegmentationFinished(Segmenter::PointSet ps);
-    void onSegmentationFailed(std::string s);
+    void onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::PointSet ps);
+    void onSegmentationFailed(Segmenter::Pointer segmenter, std::string s);
     void onShowStatusMessage(QString text, int timeout);
     void onImpactRangeUp(void);
     void onImpactRangeDown(void);
@@ -366,8 +366,8 @@ public:
 
 signals:
     void segmentationStarted(size_t);
-    void segmentationFinished(Segmenter::PointSet ps);
-    void segmentationFailed(std::string);
+    void segmentationFinished(Segmenter::Pointer, Segmenter::PointSet ps);
+    void segmentationFailed(Segmenter::Pointer, std::string);
     void progressUpdated(size_t);
 
 public slots:
@@ -378,9 +378,9 @@ public slots:
         segmentationStarted(segmenter->progressIterations());
         try {
             auto result = segmenter->compute();
-            segmentationFinished(result);
+            segmentationFinished(segmenter, result);
         } catch (const std::exception& e) {
-            segmentationFailed(e.what());
+            segmentationFailed(segmenter, e.what());
         }
     }
 };

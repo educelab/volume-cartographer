@@ -610,8 +610,8 @@ void CWindow::CreateMenus(void)
     fHelpMenu->addAction(fKeybinds);
     fFileMenu->addSeparator();
 
-    QSettings settingsJump("VC.ini", QSettings::IniFormat);
-    if(settingsJump.value("general/debug", 0).toInt() == 1) {
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    if(settings.value("internal/debug", 0).toInt() == 1) {
         fHelpMenu->addAction(fPrintDebugInfo);
         fFileMenu->addSeparator();
     }
@@ -652,7 +652,7 @@ void CWindow::CreateActions(void)
     connect(fKeybinds, SIGNAL(triggered()), this, SLOT(Keybindings()));
 
     fAboutAct = new QAction(tr("&About..."), this);
-    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));  
+    connect(fAboutAct, SIGNAL(triggered()), this, SLOT(About()));
 
     fPrintDebugInfo = new QAction  (tr("Debug info"), this);
     connect(fPrintDebugInfo, SIGNAL(triggered()), this, SLOT(PrintDebugInfo()));
@@ -1007,6 +1007,7 @@ void CWindow::DoSegmentation(void)
         return;
     }
 
+    auto startIndex = fEdtStartIndex->value();
     auto algoIdx = this->ui.cmbSegMethods->currentIndex();
     // Reminder to activate the segments for computation
     bool segmentedSomething = false;
@@ -1032,21 +1033,22 @@ void CWindow::DoSegmentation(void)
         // If the segmentation starting curve was manually changed, we now need to merge it into the point cloud
         // that is going to get used for the segmentation since otherwise the manual changes would
         // be lost and the original curve would be used as starting point for the segmentation.
-        seg.second.MergeChangedCurveIntoPointCloud(fEdtStartIndex->value());
+        seg.second.MergeChangedCurveIntoPointCloud(startIndex);
         // Now we can forget all other changed curves
         seg.second.ForgetChangedCurves();
 
         // This curve is now considered an anchor as it was used as the starting point for a segmentation run.
         // Update the annotations accordingly.
-        seg.second.SetAnnotationAnchor(fEdtStartIndex->value(), true);
-        seg.second.SetAnnotationManualPoints(fEdtStartIndex->value());
-        seg.second.SetAnnotationUsedInRun(fEdtStartIndex->value(), true);
+        // Note: This applies even if the run should fail. Some other annotations will only get set though if successful.
+        seg.second.SetAnnotationAnchor(startIndex, true);
+        seg.second.SetAnnotationManualPoints(startIndex);
 
         Segmenter::Pointer segmenter;
         if (algoIdx == 0) {
             // Setup LRPS
             auto lrps = vcs::LocalResliceSegmentation::New();
             lrps->setMaterialThickness(fVpkg->materialThickness());
+            lrps->setStartZIndex(startIndex);
             lrps->setTargetZIndex(fSegParams.targetIndex);
             lrps->setOptimizationIterations(fSegParams.fNumIters);
             lrps->setResliceSize(fSegParams.fWindowWidth);
@@ -1062,10 +1064,10 @@ void CWindow::DoSegmentation(void)
             // Setup OFS
 
             std::cout << "OFS: === Main Run ===: " << std::endl;
-            std::cout << "OFS: Start Slice: " << fEdtStartIndex->value() << std::endl;
+            std::cout << "OFS: Start Slice: " << startIndex << std::endl;
             std::cout << "OFS: Original Target Slice: " << fEdtEndIndex->value() << std::endl;
 
-            auto directionUp = (fEdtEndIndex->value() > fEdtStartIndex->value());
+            auto directionUp = (fEdtEndIndex->value() > startIndex);
             int anchorForward = -1;
             int anchorBackward = -1;
 
@@ -1073,11 +1075,11 @@ void CWindow::DoSegmentation(void)
             if(fSegStructMap[segID].fSegmentation->hasAnnotations()) {
 
                 if(directionUp) {
-                    anchorForward = fSegStructMap[segID].FindNearestHigherAnchor(fEdtStartIndex->value());
-                    anchorBackward = fSegStructMap[segID].FindNearestLowerAnchor(fEdtStartIndex->value());
+                    anchorForward = fSegStructMap[segID].FindNearestHigherAnchor(startIndex);
+                    anchorBackward = fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
                 } else {
-                    anchorForward = fSegStructMap[segID].FindNearestLowerAnchor(fEdtStartIndex->value());
-                    anchorBackward = fSegStructMap[segID].FindNearestHigherAnchor(fEdtStartIndex->value());
+                    anchorForward = fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
+                    anchorBackward = fSegStructMap[segID].FindNearestHigherAnchor(startIndex);
                 }
 
                 std::cout << "OFS: Forward Anchor: " << anchorForward << std::endl;
@@ -1100,7 +1102,7 @@ void CWindow::DoSegmentation(void)
                     // With annotations we have to use the percentage of the delta between
                     // current slice (= segmentation start slice) and the backwards anchor slice.
                     // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
-                    auto anchorDistance = (directionUp ? fEdtStartIndex->value() - anchorBackward : anchorBackward - fEdtStartIndex->value()); // -2 to exclude the start and backward anchor slices
+                    auto anchorDistance = (directionUp ? startIndex - anchorBackward : anchorBackward - startIndex); // -2 to exclude the start and backward anchor slices
                     std::cout << "OFS: Backward Anchor Distance: " << anchorDistance << std::endl;
 
                     fSegParams.backwards_length = std::round(anchorDistance / 2);
@@ -1115,6 +1117,7 @@ void CWindow::DoSegmentation(void)
 
             auto ofsc = vcs::OpticalFlowSegmentationClass::New();
             ofsc->setMaterialThickness(fVpkg->materialThickness());
+            ofsc->setStartZIndex(startIndex);
             ofsc->setTargetZIndex(fSegParams.targetIndex);
             ofsc->setOptimizationIterations(fSegParams.fNumIters);
             ofsc->setOutsideThreshold(fSegParams.outside_threshold);
@@ -1129,7 +1132,7 @@ void CWindow::DoSegmentation(void)
             ofsc->setCacheSlices(fSegParams.cache_slices);
             ofsc->setOrderedPointSet(fSegStructMap[segID].fMasterCloud);
             ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothness_interpolation_window);
-            ofsc->setBackwardsLength(fSegParams.backwards_length);            
+            ofsc->setBackwardsLength(fSegParams.backwards_length);
             segmenter = ofsc;
 
             std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
@@ -1144,12 +1147,12 @@ void CWindow::DoSegmentation(void)
         segmenter->setChain(fSegStructMap[segID].fStartingPath);
         segmenter->setVolume(currentVolume);
         // Queue segmentation for execution
-        queueSegmentation(segID, segmenter);        
+        queueSegmentation(segID, segmenter);
     }
 
     if (!segmentedSomething) {
         QMessageBox::warning(
-            this, "Warning", "No Segments for computation found! Please activate segments for computation in the segment manager and make sure to be on a slice containing at least one curve.");
+            this, "Warning", "No segments for computation found! Please activate segments for computation in the segment manager and make sure to be on a slice containing at least one curve.");
         segmentationQueue = std::queue<std::pair<std::string, Segmenter::Pointer>>();
     }
 
@@ -1234,10 +1237,9 @@ void CWindow::playPing() {
     SDL_CloseAudio();
 }
 
-void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
+void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::PointSet ps)
 {
-    // 3) concatenate the two parts to form the complete point cloud
-
+    // Merge the result point cloud to form the complete point cloud
     fSegStructMap[submittedSegmentationId].MergePointSetIntoPointCloud(ps);
 
     // qDebug() << "Segmentation finished: " << submittedSegmentationId.c_str();
@@ -1245,6 +1247,31 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     //     auto masterRowI = fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(u);
     //     qDebug() << "Row " << u << " has " << masterRowI.size() << " points. With z: " << masterRowI[fSegStructMap[submittedSegmentationId].fUpperPart.width()-1][2];
     // }
+
+    // Now that the run completed, we need to clean-up / reset annotatioons for the affected slices / points
+    auto algoIdx = this->ui.cmbSegMethods->currentIndex();
+    if (algoIdx == 0) {
+
+    } else if (algoIdx == 1) {
+
+        auto ofsc = std::dynamic_pointer_cast<vcs::OpticalFlowSegmentationClass>(segmenter);
+        auto directionUp = (ofsc->getTargetZIndex() > ofsc->getStartZIndex());
+
+        // Run finished => we can now mark it as "used in a run"
+        fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(ofsc->getStartZIndex(), true);
+
+        // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
+        // that the run cannot have "run over" an anchor, so everything in between cannot be one and now was changed by the alogrithm,
+        // rather than manually by the user.
+        // Note: Do not reset the start index of course!
+        fSegStructMap[submittedSegmentationId].ResetAnnotations(ofsc->getStartZIndex() + (directionUp ? 1 : -1),
+                                                                ofsc->getTargetZIndex());
+        // Do the same for the backwards interpolated portion
+        if (ofsc->getBackwardsLength() + ofsc->getBackwardsInterpolationWindow() > 0) {
+            fSegStructMap[submittedSegmentationId].ResetAnnotations(ofsc->getStartZIndex() + (directionUp ? -1 : 1),
+                                                                    ofsc->getStartZIndex() + (directionUp ? -1 : 1) * (ofsc->getBackwardsLength() + ofsc->getBackwardsInterpolationWindow()));
+        }
+    }
 
     statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
@@ -1259,14 +1286,14 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     //     std::cout << "OFS: === Secondary Run ===: " << std::endl;
 
     //     auto directionUp = (fEdtEndIndex->value() > fEdtStartIndex->value());
-    //     int anchorBackward = -1;            
-            
+    //     int anchorBackward = -1;
+
     //     if(directionUp) {
     //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
     //     } else {
     //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
     //     }
-        
+
     //     std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
 
     //     if(fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
@@ -1290,7 +1317,7 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     //         ofsc->setCacheSlices(fSegParams.cache_slices);
     //         ofsc->setOrderedPointSet(fSegStructMap[submittedSegmentationId].fMasterCloud);
     //         ofsc->setBackwardsInterpolationWindow(0);
-    //         ofsc->setBackwardsLength(0);            
+    //         ofsc->setBackwardsLength(0);
     //         Segmenter::Pointer segmenter = ofsc;
 
     //         // set common parameters
@@ -1300,12 +1327,12 @@ void CWindow::onSegmentationFinished(Segmenter::PointSet ps)
     //         queueSegmentation(submittedSegmentationId, segmenter);
     //     }
     // }
-    
+
     // Execute the next segmentation
     executeNextSegmentation();
 }
 
-void CWindow::onSegmentationFailed(std::string s)
+void CWindow::onSegmentationFailed(Segmenter::Pointer segmenter, std::string s)
 {
     vc::Logger()->error("Segmentation failed: {}", s);
     statusBar->showMessage(tr("Segmentation failed"));
@@ -1540,7 +1567,7 @@ void CWindow::InitPathList(void)
         // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
         fPathListWidget->resizeColumnToContents(0);
         fPathListWidget->resizeColumnToContents(1);
-        fPathListWidget->resizeColumnToContents(2); 
+        fPathListWidget->resizeColumnToContents(2);
     }
 }
 
@@ -1569,13 +1596,13 @@ void CWindow::UpdateAnnotationList(void)
                             item->setText(0, QString::number(a.first));
                             item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
                             item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
-                            item->setIcon(3, (a.second.anchor && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
+                            item->setIcon(3, ((a.second.anchor || a.second.manual) && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
                             item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
                         } if(items.size() == 1) {
                             // Row does already exists => update it
                             items.at(0)->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
                             items.at(0)->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
-                            items.at(0)->setIcon(3,(a.second.anchor && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
+                            items.at(0)->setIcon(3,((a.second.anchor || a.second.manual) && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
                         }
                     }
                 }
@@ -1583,8 +1610,8 @@ void CWindow::UpdateAnnotationList(void)
                 // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
                 fAnnotationListWidget->resizeColumnToContents(0);
                 fAnnotationListWidget->resizeColumnToContents(1);
-                fAnnotationListWidget->resizeColumnToContents(2); 
-                fAnnotationListWidget->resizeColumnToContents(3); 
+                fAnnotationListWidget->resizeColumnToContents(2);
+                fAnnotationListWidget->resizeColumnToContents(3);
 
                 fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
             }
@@ -1628,12 +1655,12 @@ void CWindow::SetPathPointCloud(void)
     fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);
 
     fSegStructMap[fSegmentationId].fMinSegIndex = static_cast<int>(floor(fSegStructMap[fSegmentationId].fMasterCloud[0][2]));
-    fSegStructMap[fSegmentationId].fMaxSegIndex = fSegStructMap[fSegmentationId].fMinSegIndex;    
+    fSegStructMap[fSegmentationId].fMaxSegIndex = fSegStructMap[fSegmentationId].fMinSegIndex;
 }
 
 // Open volume package
 void CWindow::OpenVolume(const QString& path)
-{   
+{
     QString aVpkgPath = path;
     QSettings settings("VC.ini", QSettings::IniFormat);
 
@@ -1804,6 +1831,17 @@ void CWindow::PrintDebugInfo()
 {
     // Add whatever should be printed via std::count via the action in the help menu.
     // Note: The menu entry is only visible with the matching INI entry.
+
+    // Print Annotation Point Cloud
+    std::cout << "=== Annotation Point Cloud ===" << std::endl;
+    for(int i = 0; i < fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.height(); i++) {
+        std::cout << i << ": ";
+        auto row = fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.getRow(i);
+        for(auto ano : row) {
+            std::cout << ano[0] << ", ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 // Save point cloud to path directory

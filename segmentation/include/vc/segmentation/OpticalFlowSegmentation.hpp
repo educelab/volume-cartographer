@@ -21,7 +21,7 @@ namespace volcart::segmentation
  *
  * This algorithm propagates a chain of points forward through a volume from
  * a starting z-index to an ending z-index. Each point is assumed to start
- * within a page layer. 
+ * within a page layer.
  * The ending index is inclusive.
  *
  * Warning: This Algorithm is not deterministic and yields slightly different results each run.
@@ -48,6 +48,15 @@ public:
             std::forward<Args>(args)...);
     }
 
+    /** @brief Set the start z-index */
+    void setStartZIndex(int z) { startIndex_ = z; }
+
+    /** @brief Get the start z-index */
+    int getStartZIndex() { return startIndex_; }
+
+    /** @brief Get the target z-index */
+    int getTargetZIndex() { return endIndex_; }
+
     /** @brief Set the target z-index */
     void setTargetZIndex(int z) { endIndex_ = z; }
 
@@ -64,7 +73,6 @@ public:
      */
     void setOFThreshold(int of_thr) { optical_flow_pixel_threshold_ = of_thr; }
 
-    
     /** @brief Set whether to enable outlier points smoothening
      */
     void setEnableSmoothenOutlier(bool enable_smoothen_outlier) { enable_smoothen_outlier_ = enable_smoothen_outlier; }
@@ -104,17 +112,25 @@ public:
      */
     void setCacheSlices(int cache_slices) { nr_cache_slices_ = cache_slices; }
 
-    /** @brief 
+    /** @brief
      */
     void setLineSmoothenByBrightness(int brightness) { smoothen_by_brightness_ = brightness; }
 
-    /** @brief 
+    /** @brief Set how wide the interpolation window should be
      */
     void setBackwardsInterpolationWindow(int window) { backwards_smoothness_interpolation_window_ = window; }
+
+    /** @brief Get how wide the interpolation window should be
+     */
+    int getBackwardsInterpolationWindow() { return backwards_smoothness_interpolation_window_; }
 
     /** @brief Set how many slices the flow should go backwards
      */
     void setBackwardsLength(int len) { backwards_length_ = len; }
+
+    /** @brief Get how many slices the flow should go backwards
+     */
+    int getBackwardsLength() { return backwards_length_; }
 
     /** @brief Set the already computed masterCloud OrderedPointSet
      */
@@ -212,6 +228,8 @@ private:
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
+    /** Start z-index */
+    int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
     /** Darker pixels are considered outside the sheet */
@@ -243,6 +261,5 @@ private:
     int backwards_length_{25};
     volcart::OrderedPointSet<cv::Vec3d> masterCloud_;
     mutable std::shared_mutex display_mutex_;
-    
 };
 }  // namespace volcart::segmentation

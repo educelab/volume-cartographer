@@ -33,12 +33,15 @@ namespace ChaoVis
 
 struct AnnotationStruct {
     bool anchor{false};
-    bool manual{false}; // at least one point was manually changed on that slice this annotation belongs to
-    bool usedInRun{false}; // indicates if this slice was used in a seg run as starting point / anchor
+    // at least one point was manually changed on the slice this annotation belongs to
+    bool manual{false};
+    // indicates if this slice was used in a seg run as starting point / anchor; only set if
+    // the slice is either an anchor or has manually changed curve points
+    bool usedInRun{false};
 };
 
 enum AnnotationBits {
-    ANO_UNUSED = 0, // we need to use at least two int for the point set logic to work, so the second byte/int is a placeholder for now
+    ANO_UNUSED = 0, // we need to use at least two integers (16 bytes) for the point set logic to work, so the second integer is a placeholder for now and filled with zeros
     ANO_ANCHOR = (int)(1 << 0),
     ANO_MANUAL = (int)(1 << 1),
     ANO_USED_IN_RUN = (int)(1 << 2)
@@ -59,7 +62,7 @@ struct SegmentationStruct {
     volcart::Segmentation::AnnotationSet fAnnotationCloud;
     std::vector<cv::Vec3d> fStartingPath;
     std::map<int, AnnotationStruct> fAnnotations; // decoded annotations
-    std::set<int> fBufferedChangedPoints; // values are in range [1..(number of points on curve)] (not global cloud index, but locally to the edited curve)
+    std::set<int> fBufferedChangedPoints; // values are in range [0..(number of points on curve - 1)] (not global cloud index, but locally to the edited curve)
     int fPathOnSliceIndex = 0;
     bool display = false;
     bool compute = false;
@@ -505,14 +508,14 @@ struct SegmentationStruct {
         return -1;
     }
 
-    // Set annotation as "manually changed" if we have buffer curve point changes
+    // Set annotation as "manually changed" if we have buffered curve point changes
     inline void SetAnnotationManualPoints(int sliceIndex)
     {
         auto pointIndex = GetPointIndexForSliceIndex(sliceIndex);
 
         if(fBufferedChangedPoints.size() > 0) {
             for (auto index : fBufferedChangedPoints) {
-                fAnnotationCloud[pointIndex - 1 + index][0] |= AnnotationBits::ANO_MANUAL;
+                fAnnotationCloud[pointIndex + index][0] |= AnnotationBits::ANO_MANUAL;
             }
 
             auto it = fAnnotations.find(sliceIndex);
@@ -550,6 +553,48 @@ struct SegmentationStruct {
             AnnotationStruct an;
             an.usedInRun = used;
             fAnnotations[sliceIndex] = an;
+        }
+    }
+
+    // Reset annotations for slices
+    inline void ResetAnnotations(int startIndex, int endIndex)
+    {
+        // Calculate index via master point cloud
+        int startPointIndex = GetPointIndexForSliceIndex(startIndex);
+        if(startPointIndex == -1) {
+            return;
+        }
+
+        auto directionUp = endIndex > startIndex;
+        int endPointIndex;
+
+        if(directionUp) {
+            endPointIndex = startPointIndex + (endIndex - startIndex + 1) * fAnnotationCloud.width() - 1;
+        } else {
+            // We are going downwards => start at the end of the start slice = add the width to the index
+            startPointIndex += fAnnotationCloud.width() - 1;
+            endPointIndex = startPointIndex - (startIndex - endIndex + 1) * fAnnotationCloud.width() - 1;
+        }
+
+        // Note we are not blindly resetting everything, but are reversing the flags we know are no longer relevant.
+        // In the future with new annotations being added, some of them might need to remain after a segmentation run.
+        // In that case we might have to create more specialized logic to determine which flags to reset.
+        for(int i = startPointIndex; i != endPointIndex; directionUp ? i++ : i--) {
+            fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_ANCHOR;
+            fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_MANUAL;
+            fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_USED_IN_RUN;
+        }
+
+        for(int i = startIndex; i != endIndex; directionUp ? i++ : i--) {
+            auto it = fAnnotations.find(i);
+            if(it != fAnnotations.end()) {
+                // Update existing entry
+                it->second.anchor = false;
+                it->second.manual = false;
+                it->second.usedInRun = false;
+            } else {
+                std::cout << "Attempted to change an non-existing annotation!" << std::endl;
+            }
         }
     }
 
