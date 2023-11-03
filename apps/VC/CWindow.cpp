@@ -438,18 +438,17 @@ void CWindow::CreateWidgets(void)
         aBtnStartSeg, SIGNAL(clicked()), this, SLOT(OnBtnStartSegClicked()));
 
     // Impact Range slider
+    fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
     QSlider* fEdtImpactRng = this->findChild<QSlider*>("sldImpactRange");
     // We use the slider to provide us an index into the vector of real impact values
     // => range 0..size()-1
     fEdtImpactRng->setMinimum(0);
     fEdtImpactRng->setMaximum(impactRangeSteps.size() - 1);
-    // "Randomly" set the starting value to the middle of the steps.
-    fEdtImpactRng->setValue(impactRangeSteps.size() / 2);
-    fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
-    fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
+    // "Randomly" set the starting value to the middle of the steps
     connect(
         fEdtImpactRng, SIGNAL(valueChanged(int)), this,
         SLOT(OnEdtImpactRange(int)));
+    fEdtImpactRng->setValue(impactRangeSteps.size() / 2);
 
     // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
