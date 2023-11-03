@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "vc/core/io/MeshIO.hpp"
+#include "vc/core/util/Json.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
 using namespace volcart;
@@ -16,7 +17,13 @@ namespace volcart::meshing
 using ResampleMode = ResampleMeshNode::Mode;
 NLOHMANN_JSON_SERIALIZE_ENUM(ResampleMode, {
     {ResampleMode::Isotropic, "isotropic"},
-    {ResampleMode::Anisotropic, "Anisotropic"}
+    {ResampleMode::Anisotropic, "anisotropic"}
+})
+
+using ReferenceMode = OrientNormalsNode::ReferenceMode;
+NLOHMANN_JSON_SERIALIZE_ENUM(ReferenceMode , {
+    {ReferenceMode::Centroid, "centroid"},
+    {ReferenceMode::Manual, "manual"}
 })
 // clang-format on
 }  // namespace volcart::meshing
@@ -251,5 +258,49 @@ void UVMapToMeshNode::deserialize_(
     if (meta.contains("mesh")) {
         auto file = meta["mesh"].get<std::string>();
         output_ = ReadMesh(cacheDir / file).mesh;
+    }
+}
+
+OrientNormalsNode::OrientNormalsNode()
+    : Node{true}
+    , input{&orientNormals_, &OrientNormals::setMesh}
+    , referenceMode{&orientNormals_, &OrientNormals::setReferenceMode}
+    , referencePoint{&orientNormals_, &OrientNormals::setReferencePoint}
+    , output{&output_}
+{
+    registerInputPort("input", input);
+    registerInputPort("referenceMode", referenceMode);
+    registerInputPort("referencePoint", referencePoint);
+    registerOutputPort("output", output);
+    compute = [&]() { output_ = orientNormals_.compute(); };
+}
+
+auto OrientNormalsNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta{{"referenceMode", orientNormals_.referenceMode()}};
+    if (orientNormals_.referenceMode() == ReferenceMode::Manual) {
+        meta["referencePoint"] = orientNormals_.referencePoint();
+    }
+    if (useCache and output_) {
+        WriteMesh(cacheDir / "orient_normals.obj", output_);
+        meta["mesh"] = "orient_normals.obj";
+    }
+    return meta;
+}
+
+void OrientNormalsNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& cacheDir)
+{
+    auto refMode = meta["referenceMode"].get<ReferenceMode>();
+    orientNormals_.setReferenceMode(refMode);
+    if (refMode == ReferenceMode::Manual) {
+        orientNormals_.setReferencePoint(
+            meta["referencePoint"].get<cv::Vec3d>());
+    }
+
+    if (meta.contains("mesh")) {
+        auto meshFile = meta["mesh"].get<std::string>();
+        output_ = ReadMesh(cacheDir / meshFile).mesh;
     }
 }

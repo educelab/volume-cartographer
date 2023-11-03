@@ -11,6 +11,7 @@
 #include "vc/meshing/ACVD.hpp"
 #include "vc/meshing/LaplacianSmooth.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
+#include "vc/meshing/OrientNormals.hpp"
 #include "vc/meshing/UVMapToITKMesh.hpp"
 
 namespace volcart
@@ -250,6 +251,48 @@ public:
 
     /** Constructor */
     UVMapToMeshNode();
+
+private:
+    /** Smeagol custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** Smeagol custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
+ * @copybrief meshing::OrientNormals
+ *
+ * @see meshing::OrientNormals
+ * @ingroup Graph
+ */
+class OrientNormalsNode : public smgl::Node
+{
+private:
+    /** Orient Normals class type */
+    using OrientNormals = meshing::OrientNormals;
+    /** Orient normals compute */
+    OrientNormals orientNormals_{};
+    /** Output mesh */
+    ITKMesh::Pointer output_{nullptr};
+
+public:
+    /** @copydoc OrientNormals::ReferenceMode */
+    using ReferenceMode = OrientNormals::ReferenceMode;
+
+    /** @brief Input mesh */
+    smgl::InputPort<ITKMesh::Pointer> input;
+    /** @copydoc OrientNormals::setReferenceMode(ReferenceMode) */
+    smgl::InputPort<ReferenceMode> referenceMode;
+    /** @copydoc OrientNormals::setReferencePoint() */
+    smgl::InputPort<cv::Vec3d> referencePoint;
+    /** @brief Output mesh */
+    smgl::OutputPort<ITKMesh::Pointer> output;
+
+    /** Constructor */
+    OrientNormalsNode();
 
 private:
     /** Smeagol custom serialization */

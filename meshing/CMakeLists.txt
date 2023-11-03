@@ -9,6 +9,7 @@ set(srcs
     src/SmoothNormals.cpp
     src/OrderedResampling.cpp
     src/OrderedPointSetMesher.cpp
+    src/OrientNormals.cpp
     src/UVMapToITKMesh.cpp
     src/LaplacianSmooth.cpp
 )
@@ -70,6 +71,7 @@ set(test_srcs
     test/ScaleMeshTest.cpp
     test/SmoothNormalsTest.cpp
     test/OrderedPointSetMesherTest.cpp
+    test/OrientNormalsTest.cpp
 )
 
 # Add a test executable for each src

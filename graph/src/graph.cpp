@@ -38,7 +38,8 @@ static auto RegisterNodesImpl() -> bool
         CalculateNumVertsNode,
         LaplacianSmoothMeshNode,
         ResampleMeshNode,
-        UVMapToMeshNode
+        UVMapToMeshNode,
+        OrientNormalsNode
     >();
 
     // Texturing
