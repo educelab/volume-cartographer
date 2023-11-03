@@ -480,14 +480,6 @@ auto main(int argc, char* argv[]) -> int
             smooth->input = *results["mesh"];
             results["mesh"] = &smooth->output;
         }
-
-        // Save the intermediate mesh
-        if (parsed.count("intermediate-mesh") > 0) {
-            fs::path meshPath = parsed["intermediate-mesh"].as<std::string>();
-            auto writer = graph->insertNode<WriteMeshNode>();
-            writer->path = meshPath;
-            writer->mesh = *results["mesh"];
-        }
     }
 
     ///// Reorient the mesh normals /////
@@ -496,6 +488,14 @@ auto main(int argc, char* argv[]) -> int
         orient->input = *results["mesh"];
         orient->referenceMode = OrientNormalsNode::ReferenceMode::Centroid;
         results["mesh"] = &orient->output;
+    }
+
+    ///// Save the intermediate mesh /////
+    if (parsed.count("intermediate-mesh") > 0) {
+        fs::path meshPath = parsed["intermediate-mesh"].as<std::string>();
+        auto writer = graph->insertNode<WriteMeshNode>();
+        writer->path = meshPath;
+        writer->mesh = *results["mesh"];
     }
 
     ///// Flattening /////

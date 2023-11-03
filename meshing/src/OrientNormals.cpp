@@ -91,13 +91,13 @@ auto OrientNormals::compute() -> ITKMesh::Pointer
 
     // Flip the normals as required
     if (flip) {
-        for (auto it = input_->GetPoints()->Begin();
-             it != input_->GetPoints()->End(); ++it) {
+        for (auto it = output_->GetPoints()->Begin();
+             it != output_->GetPoints()->End(); ++it) {
             // Convert point data to cv::Vec3d
             ITKPixel normal;
-            input_->GetPointData(it.Index(), &normal);
+            output_->GetPointData(it.Index(), &normal);
             normal *= -1;
-            input_->SetPointData(it.Index(), normal);
+            output_->SetPointData(it.Index(), normal);
         }
     }
 

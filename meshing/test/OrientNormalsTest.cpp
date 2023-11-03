@@ -49,7 +49,10 @@ TEST(OrientNormals, Centroid)
     orient.setMesh(input);
     auto output = orient.compute();
 
+    // Check the output has changed
     ExpectNormalInverse(output, input);
+    // Check that the input hasn't changed
+    ExpectNormalEq(input, Cube().itkMesh());
 }
 
 TEST(OrientNormals, ManualPositive)
@@ -61,7 +64,10 @@ TEST(OrientNormals, ManualPositive)
     orient.setMesh(input);
     auto output = orient.compute();
 
+    // Check the output hasn't changed
     ExpectNormalEq(output, input);
+    // Check that the input hasn't changed
+    ExpectNormalEq(input, Plane().itkMesh());
 }
 
 TEST(OrientNormals, ManualNegative)
@@ -73,5 +79,8 @@ TEST(OrientNormals, ManualNegative)
     orient.setMesh(input);
     auto output = orient.compute();
 
+    // Check the output has changed
     ExpectNormalInverse(output, input);
+    // Check that the input hasn't changed
+    ExpectNormalEq(input, Plane().itkMesh());
 }
