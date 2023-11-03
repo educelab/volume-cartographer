@@ -38,7 +38,7 @@ LoadVolumePkgNode::LoadVolumePkgNode() : path{&path_}, volpkg{&vpkg_}
 {
     registerInputPort("path", path);
     registerOutputPort("volpkg", volpkg);
-    compute = [=]() { vpkg_ = VolumePkg::New(path_); };
+    compute = [&]() { vpkg_ = VolumePkg::New(path_); };
 }
 
 auto LoadVolumePkgNode::serialize_(
@@ -56,9 +56,9 @@ void LoadVolumePkgNode::deserialize_(
 
 VolumePkgPropertiesNode::VolumePkgPropertiesNode()
     : volpkg{&vpkg_}
-    , name{[=]() { return vpkg_->name(); }}
-    , version{[=]() { return vpkg_->version(); }}
-    , materialThickness{[=]() { return vpkg_->materialThickness(); }}
+    , name{[&]() { return vpkg_->name(); }}
+    , version{[&]() { return vpkg_->version(); }}
+    , materialThickness{[&]() { return vpkg_->materialThickness(); }}
 {
     registerInputPort("volpkg", volpkg);
     registerOutputPort("name", name);
@@ -72,7 +72,7 @@ VolumeSelectorNode::VolumeSelectorNode()
     registerInputPort("volpkg", volpkg);
     registerInputPort("id", id);
     registerOutputPort("volume", volume);
-    compute = [=]() {
+    compute = [&]() {
         if (id_.empty()) {
             vol_ = vpkg_->volume();
             id_ = vol_->id();
@@ -96,8 +96,8 @@ void VolumeSelectorNode::deserialize_(
 VolumePropertiesNode::VolumePropertiesNode()
     : volumeIn{&volume_}
     , cacheMemory{&cacheMem_}
-    , bounds{[=]() { return volume_->bounds(); }}
-    , voxelSize{[=]() { return volume_->voxelSize(); }}
+    , bounds{[&]() { return volume_->bounds(); }}
+    , voxelSize{[&]() { return volume_->voxelSize(); }}
     , volumeOut{&volume_}
 {
     registerInputPort("volumeIn", volumeIn);
@@ -106,7 +106,7 @@ VolumePropertiesNode::VolumePropertiesNode()
     registerOutputPort("voxelSize", voxelSize);
     registerOutputPort("volumeOut", volumeOut);
 
-    compute = [=]() {
+    compute = [&]() {
         if (volume_) {
             volume_->setCacheMemoryInBytes(cacheMem_);
         }
@@ -132,7 +132,7 @@ SegmentationSelectorNode::SegmentationSelectorNode()
     registerInputPort("id", id);
     registerOutputPort("segmentation", segmentation);
 
-    compute = [=]() { seg_ = vpkg_->segmentation(id_); };
+    compute = [&]() { seg_ = vpkg_->segmentation(id_); };
 }
 
 auto SegmentationSelectorNode::serialize_(
@@ -148,7 +148,7 @@ void SegmentationSelectorNode::deserialize_(
 }
 
 SegmentationPropertiesNode::SegmentationPropertiesNode()
-    : segmentation{&seg_}, pointSet{[=]() { return seg_->getPointSet(); }}
+    : segmentation{&seg_}, pointSet{[&]() { return seg_->getPointSet(); }}
 {
     registerInputPort("segmentation", segmentation);
     registerOutputPort("pointSet", pointSet);
@@ -156,8 +156,8 @@ SegmentationPropertiesNode::SegmentationPropertiesNode()
 
 MeshPropertiesNode::MeshPropertiesNode()
     : mesh{&mesh_}
-    , numVertices{[=]() { return mesh_->GetNumberOfPoints(); }}
-    , numFaces{[=]() { return mesh_->GetNumberOfCells(); }}
+    , numVertices{[&]() { return mesh_->GetNumberOfPoints(); }}
+    , numFaces{[&]() { return mesh_->GetNumberOfCells(); }}
 {
     registerInputPort("mesh", mesh);
     registerOutputPort("numVertices", numVertices);
@@ -178,8 +178,8 @@ LoadMeshNode::LoadMeshNode()
     registerOutputPort("mesh", mesh);
     registerOutputPort("uvMap", uvMap);
     registerOutputPort("texture", texture);
-    compute = [=]() { loaded_ = ReadMesh(path_); };
-    usesCacheDir = [this]() { return cacheArgs_; };
+    compute = [&]() { loaded_ = ReadMesh(path_); };
+    usesCacheDir = [&]() { return cacheArgs_; };
 }
 
 auto LoadMeshNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -214,8 +214,8 @@ WriteMeshNode::WriteMeshNode()
     registerInputPort("uvMap", uvMap);
     registerInputPort("texture", texture);
     registerInputPort("cacheArgs", cacheArgs);
-    compute = [=]() { WriteMesh(path_, mesh_, uv_, texture_); };
-    usesCacheDir = [this]() { return cacheArgs_; };
+    compute = [&]() { WriteMesh(path_, mesh_, uv_, texture_); };
+    usesCacheDir = [&]() { return cacheArgs_; };
 }
 
 auto WriteMeshNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -246,7 +246,7 @@ RotateUVMapNode::RotateUVMapNode()
     registerInputPort("theta", theta);
     registerOutputPort("uvMapOut", uvMapOut);
 
-    compute = [=]() {
+    compute = [&]() {
         static constexpr double PI_CONST{3.1415926535897932385L};
         static constexpr double DEG_TO_RAD{PI_CONST / 180.0};
         uvMapOut_ = UVMap::New(*uvMapIn_);
@@ -286,7 +286,7 @@ FlipUVMapNode::FlipUVMapNode()
     registerInputPort("flipAxis", flipAxis);
     registerOutputPort("uvMapOut", uvMapOut);
 
-    compute = [=]() {
+    compute = [&]() {
         uvMapOut_ = UVMap::New(*uvMapIn_);
         UVMap::Flip(*uvMapOut_, axis_);
     };
@@ -360,7 +360,7 @@ PlotUVMapNode::PlotUVMapNode()
     registerInputPort("uvMesh", uvMesh);
     registerOutputPort("plot", plot);
 
-    compute = [=]() {
+    compute = [&]() {
         if (uvMap_ and uvMesh_ and not uvMap_->empty()) {
             plot_ = UVMap::Plot(*uvMap_, uvMesh_);
         }
@@ -393,8 +393,8 @@ LoadImageNode::LoadImageNode()
     registerInputPort("path", path);
     registerInputPort("cacheArgs", cacheArgs);
     registerOutputPort("image", image);
-    compute = [=]() { image_ = ReadImage(path_); };
-    usesCacheDir = [this]() { return cacheArgs_; };
+    compute = [&]() { image_ = ReadImage(path_); };
+    usesCacheDir = [&]() { return cacheArgs_; };
 }
 
 auto LoadImageNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -422,8 +422,8 @@ WriteImageNode::WriteImageNode()
     registerInputPort("path", path);
     registerInputPort("image", image);
     registerInputPort("cacheArgs", cacheArgs);
-    compute = [=]() { WriteImage(path_, image_); };
-    usesCacheDir = [this]() { return cacheArgs_; };
+    compute = [&]() { WriteImage(path_, image_); };
+    usesCacheDir = [&]() { return cacheArgs_; };
 }
 
 auto WriteImageNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -452,8 +452,8 @@ LoadPPMNode::LoadPPMNode()
     registerInputPort("path", path);
     registerInputPort("cacheArgs", cacheArgs);
     registerOutputPort("ppm", ppm);
-    compute = [=]() { ppm_ = PerPixelMap::New(PerPixelMap::ReadPPM(path_)); };
-    usesCacheDir = [this]() { return cacheArgs_; };
+    compute = [&]() { ppm_ = PerPixelMap::New(PerPixelMap::ReadPPM(path_)); };
+    usesCacheDir = [&]() { return cacheArgs_; };
 }
 
 auto LoadPPMNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -481,8 +481,8 @@ WritePPMNode::WritePPMNode()
     registerInputPort("path", path);
     registerInputPort("ppm", ppm);
     registerInputPort("cacheArgs", cacheArgs);
-    compute = [=]() { PerPixelMap::WritePPM(path_, *ppm_); };
-    usesCacheDir = [this]() { return cacheArgs_; };
+    compute = [&]() { PerPixelMap::WritePPM(path_, *ppm_); };
+    usesCacheDir = [&]() { return cacheArgs_; };
 }
 
 auto WritePPMNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -507,8 +507,8 @@ void WritePPMNode::deserialize_(
 
 PPMPropertiesNode::PPMPropertiesNode()
     : ppm{&ppm_}
-    , mask{[=]() { return ppm_->mask(); }}
-    , cellMap{[=]() { return ppm_->cellMap(); }}
+    , mask{[&]() { return ppm_->mask(); }}
+    , cellMap{[&]() { return ppm_->cellMap(); }}
 {
     registerInputPort("ppm", ppm);
     registerOutputPort("mask", mask);
@@ -524,11 +524,11 @@ LoadVolumetricMaskNode::LoadVolumetricMaskNode()
     registerInputPort("path", path);
     registerInputPort("cacheArgs", cacheArgs);
     registerOutputPort("volumetricMask", volumetricMask);
-    compute = [=]() {
+    compute = [&]() {
         using psio = PointSetIO<cv::Vec3i>;
         mask_ = VolumetricMask::New(psio::ReadPointSet(path_));
     };
-    usesCacheDir = [this]() { return cacheArgs_; };
+    usesCacheDir = [&]() { return cacheArgs_; };
 }
 
 auto LoadVolumetricMaskNode::serialize_(bool useCache, const fs::path& cacheDir)

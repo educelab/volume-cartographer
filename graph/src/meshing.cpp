@@ -33,7 +33,7 @@ MeshingNode::MeshingNode()
 {
     registerInputPort("points", points);
     registerOutputPort("mesh", mesh);
-    compute = [=]() { mesh_ = mesher_.compute(); };
+    compute = [&]() { mesh_ = mesher_.compute(); };
 }
 
 auto MeshingNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -63,7 +63,7 @@ ScaleMeshNode::ScaleMeshNode()
     registerInputPort("scaleFactor", scaleFactor);
     registerOutputPort("output", output);
 
-    compute = [=]() {
+    compute = [&]() {
         if (input_) {
             output_ = ScaleMesh(input_, scaleFactor_);
         }
@@ -102,7 +102,7 @@ CalculateNumVertsNode::CalculateNumVertsNode()
     registerInputPort("density", density);
     registerOutputPort("numVerts", numVerts);
 
-    compute = [=]() {
+    compute = [&]() {
         using meshmath::SurfaceArea;
         static constexpr double UM_TO_MM{0.000001};
         static constexpr std::size_t MIN_NUM{100};
@@ -134,7 +134,7 @@ LaplacianSmoothMeshNode::LaplacianSmoothMeshNode()
 {
     registerInputPort("input", input);
     registerOutputPort("output", output);
-    compute = [=]() { mesh_ = smoother_.compute(); };
+    compute = [&]() { mesh_ = smoother_.compute(); };
 }
 
 auto LaplacianSmoothMeshNode::serialize_(
@@ -187,7 +187,7 @@ ResampleMeshNode::ResampleMeshNode()
     registerInputPort("subsampleThreshold", subsampleThreshold);
     registerInputPort("quadricsOptimizationLevel", quadricsOptimizationLevel);
     registerOutputPort("output", output);
-    compute = [=]() { mesh_ = acvd_.compute(); };
+    compute = [&]() { mesh_ = acvd_.compute(); };
 }
 
 auto ResampleMeshNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -234,7 +234,7 @@ UVMapToMeshNode::UVMapToMeshNode()
     registerInputPort("scaleToUVDimensions", scaleToUVDimensions);
     registerOutputPort("outputMesh", outputMesh);
 
-    compute = [=]() {
+    compute = [&]() {
         mesher_.setScaleToUVDimensions(scaleDims_);
         output_ = mesher_.compute();
     };
