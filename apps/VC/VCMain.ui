@@ -39,6 +39,9 @@
     <property name="rightMargin">
      <number>4</number>
     </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QWidget" name="central" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -403,8 +406,8 @@
   <widget class="QDockWidget" name="dockWidgetSegmentation">
    <property name="minimumSize">
     <size>
-     <width>302</width>
-     <height>306</height>
+     <width>352</width>
+     <height>429</height>
     </size>
    </property>
    <property name="allowedAreas">
@@ -481,7 +484,7 @@
              <x>0</x>
              <y>0</y>
              <width>396</width>
-             <height>275</height>
+             <height>207</height>
             </rect>
            </property>
            <property name="layoutDirection">
@@ -610,66 +613,109 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="startEndLayout">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Targets</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="startEndLayout" stretch="1,1">
           <property name="spacing">
            <number>6</number>
           </property>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_9">
             <item>
-             <widget class="QLabel" name="label_8">
+             <widget class="QRadioButton" name="radioBackwardSlice">
               <property name="text">
-               <string>Starting Slice</string>
+               <string>Backward Slice</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroupBackward</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinBackwardSlice">
+              <property name="enabled">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinStartingSliceVal"/>
+             <widget class="QRadioButton" name="radioBackwardAnchor">
+              <property name="text">
+               <string>Backward Anchor</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroupBackward</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioBackwardNoRun">
+              <property name="text">
+               <string>None</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroupBackward</string>
+              </attribute>
+             </widget>
             </item>
            </layout>
           </item>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_8">
             <item>
-             <widget class="QLabel" name="label_9">
+             <widget class="QRadioButton" name="radioForwardSlice">
               <property name="text">
-               <string>Ending Slice</string>
+               <string>Forward Slice</string>
               </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroupForward</string>
+              </attribute>
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinEndingSliceVal"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_7">
-            <item>
-             <spacer name="verticalSpacer">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Ignored</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
+             <widget class="QSpinBox" name="spinForwardSlice"/>
             </item>
             <item>
-             <widget class="QPushButton" name="btnStartSeg">
+             <widget class="QRadioButton" name="radioForwardAnchor">
               <property name="text">
-               <string>Start</string>
+               <string>Forward Anchor</string>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroupForward</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioForwardNoRun">
+              <property name="text">
+               <string>None</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroupForward</string>
+              </attribute>
              </widget>
             </item>
            </layout>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnStartSeg">
+          <property name="text">
+           <string>Start</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -724,4 +770,8 @@
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="buttonGroupForward"/>
+  <buttongroup name="buttonGroupBackward"/>
+ </buttongroups>
 </ui>

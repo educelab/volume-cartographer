@@ -223,6 +223,9 @@ private slots:
     void toggleComputeAll(bool checked);
     void annotationDoubleClicked(QTreeWidgetItem* item);
 
+    void onBackwardButtonGroupToggled(QAbstractButton* button, bool checked);
+    void onForwardButtonGroupToggled(QAbstractButton* button, bool checked);
+
 private:
     // data model
     EWindowState fWindowState;
@@ -289,15 +292,12 @@ private:
     QCheckBox* fOptIncludeMiddle;
 
     // Dynamic OFS algo widgets
-    QLabel* lblBackwardsLength;    
+    QLabel* lblBackwardsLength;
     QSpinBox* edtBackwardsLength;
     QLabel* lblBackwardsInterpolationWindow;
     QSpinBox* edtBackwardsInterpolationWindow;
     QLabel* lblBackwardsInterpolationPercent;
     QSpinBox* edtBackwardsInterpolationPercent;
-
-    QSpinBox* fEdtStartIndex;
-    QSpinBox* fEdtEndIndex;
 
     QSlider* fEdtImpactRange;
     QLabel* fLabImpactRange;

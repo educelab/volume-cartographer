@@ -160,7 +160,9 @@ CWindow::CWindow()
         "QWidget#dockWidgetVolumesContent { background: rgb(245, 245, 255); }"
         "QWidget#dockWidgetSegmentationContent { background: rgb(245, 245, 255); }"
         "QWidget#dockWidgetAnnotationsContent { background: rgb(245, 245, 255); }"
-        "QDockWidget::title { padding-top: 6px; background: rgb(205, 210, 240); }";
+        "QDockWidget::title { padding-top: 6px; background: rgb(205, 210, 240); }"
+        "QTabBar::tab { background: rgb(205, 210, 240); }"
+        "QWidget#tabSegment { background: rgb(245, 245, 255); }";
     setStyleSheet(style);
 
     OpenSlice();
@@ -211,8 +213,6 @@ void CWindow::keyPressEvent(QKeyEvent* event)
 void CWindow::CreateWidgets(void)
 {
     // add volume viewer
-    QWidget* aTabSegment = this->findChild<QWidget*>("tabSegment");
-    assert(aTabSegment != nullptr);
 
     fVolumeViewerWidget = new CVolumeViewerWithCurve(fSegStructMap);
     connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalStatusMessageAvailable, this, &CWindow::onShowStatusMessage);
@@ -222,7 +222,7 @@ void CWindow::CreateWidgets(void)
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fVolumeViewerWidget);
 
-    aTabSegment->setLayout(aWidgetLayout);
+    this->ui.tabSegment->setLayout(aWidgetLayout);
 
     // pass the reference of the curve to the widget
     fVolumeViewerWidget->SetSplineCurve(fSplineCurve);
@@ -266,8 +266,8 @@ void CWindow::CreateWidgets(void)
             OnLoadAnySlice(0);
             setDefaultWindowWidth(newVolume);
             fVolumeViewerWidget->setNumSlices(currentVolume->numSlices());
-            fEdtStartIndex->setMaximum(currentVolume->numSlices());
-            fEdtEndIndex->setMaximum(currentVolume->numSlices());
+            this->ui.spinBackwardSlice->setMaximum(currentVolume->numSlices());
+            this->ui.spinForwardSlice->setMaximum(currentVolume->numSlices());
         });
 
     assignVol = this->findChild<QPushButton*>("assignVol");
@@ -442,22 +442,18 @@ void CWindow::CreateWidgets(void)
         fOptIncludeMiddle, SIGNAL(clicked(bool)), this,
         SLOT(OnOptIncludeMiddleClicked(bool)));
 
-    fEdtStartIndex = this->findChild<QSpinBox*>("spinStartingSliceVal");
-    fEdtStartIndex->setMinimum(0);
-    fEdtStartIndex->setEnabled(false);
-    fEdtEndIndex = this->findChild<QSpinBox*>("spinEndingSliceVal");
-    connect(
-        fEdtEndIndex, SIGNAL(editingFinished()), this,
-        SLOT(OnEdtEndingSliceValChange()));
-    
+    this->ui.spinBackwardSlice->setMinimum(0);
+    this->ui.spinBackwardSlice->setEnabled(false);
+    connect(this->ui.spinForwardSlice, &QSpinBox::editingFinished, this, &CWindow::OnEdtEndingSliceValChange);
+
+    connect(this->ui.buttonGroupBackward, &QButtonGroup::buttonToggled, this, &CWindow::onBackwardButtonGroupToggled);
+    connect(this->ui.buttonGroupForward, &QButtonGroup::buttonToggled, this, &CWindow::onForwardButtonGroupToggled);
 
     // INSERT OTHER SEGMENTATION PARAMETER WIDGETS HERE
     // this->ui.segParamsStack->addWidget(new QLabel("Parameter widgets here"));
 
     // start segmentation button
-    QPushButton* aBtnStartSeg = this->findChild<QPushButton*>("btnStartSeg");
-    connect(
-        aBtnStartSeg, SIGNAL(clicked()), this, SLOT(OnBtnStartSegClicked()));
+    connect(this->ui.btnStartSeg, &QPushButton::clicked, this, &CWindow::OnBtnStartSegClicked);
 
     // Impact Range slider
     QSlider* fEdtImpactRng = this->findChild<QSlider*>("sldImpactRange");
@@ -471,7 +467,7 @@ void CWindow::CreateWidgets(void)
     fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
     connect(
         fEdtImpactRng, SIGNAL(valueChanged(int)), this,
-        SLOT(OnEdtImpactRange(int)));  
+        SLOT(OnEdtImpactRange(int)));
 
     // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
@@ -881,15 +877,15 @@ void CWindow::UpdateView(void)
     fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
 
     // Set / calculate start and end index
-    fEdtStartIndex->setValue(fSliceIndexToolStart);
+    this->ui.spinBackwardSlice->setValue(fSliceIndexToolStart);
     if (fSliceIndexToolStart + fEndTargetOffset >= currentVolume->numSlices()) {
-        fEdtEndIndex->setValue(currentVolume->numSlices() - 1);
+        this->ui.spinForwardSlice->setValue(currentVolume->numSlices() - 1);
     }
     else if (fSliceIndexToolStart + fEndTargetOffset < 0) {
-        fEdtEndIndex->setValue(0);
+        this->ui.spinForwardSlice->setValue(0);
     }
     else {
-        fEdtEndIndex->setValue(fSliceIndexToolStart + fEndTargetOffset);
+        this->ui.spinForwardSlice->setValue(fSliceIndexToolStart + fEndTargetOffset);
     }
 
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
@@ -1007,7 +1003,7 @@ void CWindow::DoSegmentation(void)
         return;
     }
 
-    auto startIndex = fEdtStartIndex->value();
+    auto startIndex = fSliceIndexToolStart;
     auto algoIdx = this->ui.cmbSegMethods->currentIndex();
     // Reminder to activate the segments for computation
     bool segmentedSomething = false;
@@ -1065,9 +1061,9 @@ void CWindow::DoSegmentation(void)
 
             std::cout << "OFS: === Main Run ===: " << std::endl;
             std::cout << "OFS: Start Slice: " << startIndex << std::endl;
-            std::cout << "OFS: Original Target Slice: " << fEdtEndIndex->value() << std::endl;
+            std::cout << "OFS: Original Target Slice: " << this->ui.spinForwardSlice->value() << std::endl;
 
-            auto directionUp = (fEdtEndIndex->value() > startIndex);
+            auto directionUp = (this->ui.spinForwardSlice->value() > startIndex);
             int anchorForward = -1;
             int anchorBackward = -1;
 
@@ -1087,9 +1083,9 @@ void CWindow::DoSegmentation(void)
 
                 if(anchorForward != -1) {
                     // Forward portion needs to stop one slice before the next forward anchor if there is one
-                    if(directionUp && anchorForward <= fEdtEndIndex->value()) {
+                    if(directionUp && anchorForward <= this->ui.spinForwardSlice->value()) {
                         fSegParams.targetIndex = anchorForward - 1;
-                    } else if(!directionUp && anchorForward >= fEdtEndIndex->value()) {
+                    } else if(!directionUp && anchorForward >= this->ui.spinForwardSlice->value()) {
                         fSegParams.targetIndex = anchorForward + 1;
                     }
                 }
@@ -1306,20 +1302,20 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
 
     //     std::cout << "OFS: === Secondary Run ===: " << std::endl;
 
-    //     auto directionUp = (fEdtEndIndex->value() > fEdtStartIndex->value());
+    //     auto directionUp = (this->ui.spinForwardSlice->value() > this->ui.spinBackwardSlice->value());
     //     int anchorBackward = -1;
 
     //     if(directionUp) {
-    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestLowerAnchor(fEdtStartIndex->value());
+    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestLowerAnchor(this->ui.spinBackwardSlice->value());
     //     } else {
-    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestHigherAnchor(fEdtStartIndex->value());
+    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestHigherAnchor(this->ui.spinBackwardSlice->value());
     //     }
 
     //     std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
 
     //     if(fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
 
-    //         auto anchorDistance = (directionUp ? fEdtStartIndex->value() - anchorBackward : anchorBackward - fEdtStartIndex->value()); // -2 to exclude the start and backward anchor slices
+    //         auto anchorDistance = (directionUp ? this->ui.spinBackwardSlice->value() - anchorBackward : anchorBackward - this->ui.spinBackwardSlice->value()); // -2 to exclude the start and backward anchor slices
     //         std::cout << "OFS: Backward Anchor Distance: " << anchorDistance << std::endl;
 
     //         auto ofsc = vcs::OpticalFlowSegmentationClass::New();
@@ -1441,7 +1437,7 @@ bool CWindow::SetUpSegParams(void)
     fSegParams.fIncludeMiddle = fOptIncludeMiddle->isChecked();
 
     // ending slice index
-    aNewVal = fEdtEndIndex->text().toInt(&aIsOk);
+    aNewVal = this->ui.spinForwardSlice->text().toInt(&aIsOk);
     if (aIsOk &&
         aNewVal < currentVolume->numSlices()) {
         fSegParams.targetIndex = aNewVal;
@@ -2619,13 +2615,13 @@ void CWindow::OnOptIncludeMiddleClicked(bool clicked)
 void CWindow::OnEdtEndingSliceValChange()
 {
     // ending slice index
-    int aNewVal = fEdtEndIndex->value();
+    int aNewVal = this->ui.spinForwardSlice->value();
     if (aNewVal < currentVolume->numSlices()) {
         fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {
         statusBar->showMessage(
             tr("ERROR: Selected slice is out of range of the volume!"), 10000);
-        fEdtEndIndex->setValue(fPathOnSliceIndex + fEndTargetOffset);
+        this->ui.spinForwardSlice->setValue(fPathOnSliceIndex + fEndTargetOffset);
     }
 }
 
@@ -2740,4 +2736,26 @@ bool CWindow::can_change_volume_()
             canChange = canChange && (segStruct.fSegmentation == nullptr || !segStruct.fSegmentation->hasPointSet() || !segStruct.fSegmentation->hasVolumeID());
     }
     return canChange;
+}
+
+void CWindow::onBackwardButtonGroupToggled(QAbstractButton* button, bool checked)
+{
+    if(button == this->ui.radioBackwardNoRun && checked && this->ui.radioForwardNoRun->isChecked()) {
+        this->ui.btnStartSeg->setDisabled(true);
+    } else {
+        this->ui.btnStartSeg->setDisabled(false);
+    }
+
+    this->ui.spinBackwardSlice->setDisabled((button == this->ui.radioBackwardAnchor || button == this->ui.radioBackwardNoRun) && checked);
+}
+
+void CWindow::onForwardButtonGroupToggled(QAbstractButton* button, bool checked)
+{
+    if(button == this->ui.radioForwardNoRun && checked && this->ui.radioBackwardNoRun->isChecked()) {
+        this->ui.btnStartSeg->setDisabled(true);
+    } else {
+        this->ui.btnStartSeg->setDisabled(false);
+    }
+
+    this->ui.spinForwardSlice->setDisabled((button == this->ui.radioForwardAnchor || button == this->ui.radioForwardNoRun) && checked);
 }
