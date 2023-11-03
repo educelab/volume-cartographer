@@ -1278,12 +1278,14 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
     // that the run cannot have "run over" an anchor, so everything in between cannot be one and now was changed by the alogrithm,
     // rather than manually by the user.
-    // Note: Do not reset the start index of course!
-    auto directionUp = (endIndex > startIndex);
-    fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? 1 : -1), endIndex);
-    // Do the same for the backwards interpolated portion
-    if (backIndex != -1) {
-        fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? -1 : 1), backIndex);
+    // Note: Do not reset the start index annotations of course!
+    if (startIndex != endIndex) {
+        auto directionUp = (endIndex > startIndex);
+        fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? 1 : -1), endIndex);
+        // Do the same for the backwards interpolated portion
+        if (backIndex != -1) {
+            fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? -1 : 1), backIndex);
+        }
     }
 
     if (backIndex != -1) {
