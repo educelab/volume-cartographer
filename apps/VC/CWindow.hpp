@@ -221,8 +221,6 @@ private slots:
     void UpdateSegmentCheckboxes(std::string aSegID);
     void toggleDisplayAll(bool checked);
     void toggleComputeAll(bool checked);
-
-    void addNewAnnotationsItem(int sliceIndex, bool anchor, bool manual);
     void annotationDoubleClicked(QTreeWidgetItem* item);
 
 private:

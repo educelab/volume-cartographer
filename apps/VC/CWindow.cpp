@@ -1249,31 +1249,50 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     // }
 
     // Now that the run completed, we need to clean-up / reset annotatioons for the affected slices / points
+    int startIndex = -1;
+    int endIndex = -1;
+    int backIndex = -1;
     auto algoIdx = this->ui.cmbSegMethods->currentIndex();
     if (algoIdx == 0) {
+
+        auto lrps = std::dynamic_pointer_cast<vcs::LocalResliceSegmentation>(segmenter);
+        startIndex = lrps->getStartZIndex();
+        endIndex = lrps->getTargetZIndex();
 
     } else if (algoIdx == 1) {
 
         auto ofsc = std::dynamic_pointer_cast<vcs::OpticalFlowSegmentationClass>(segmenter);
-        auto directionUp = (ofsc->getTargetZIndex() > ofsc->getStartZIndex());
+        startIndex = ofsc->getStartZIndex();
+        endIndex = ofsc->getTargetZIndex();
+        auto directionUp = (endIndex > startIndex);
 
-        // Run finished => we can now mark it as "used in a run"
-        fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(ofsc->getStartZIndex(), true);
-
-        // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
-        // that the run cannot have "run over" an anchor, so everything in between cannot be one and now was changed by the alogrithm,
-        // rather than manually by the user.
-        // Note: Do not reset the start index of course!
-        fSegStructMap[submittedSegmentationId].ResetAnnotations(ofsc->getStartZIndex() + (directionUp ? 1 : -1),
-                                                                ofsc->getTargetZIndex());
-        // Do the same for the backwards interpolated portion
         if (ofsc->getBackwardsLength() + ofsc->getBackwardsInterpolationWindow() > 0) {
-            fSegStructMap[submittedSegmentationId].ResetAnnotations(ofsc->getStartZIndex() + (directionUp ? -1 : 1),
-                                                                    ofsc->getStartZIndex() + (directionUp ? -1 : 1) * (ofsc->getBackwardsLength() + ofsc->getBackwardsInterpolationWindow()));
+            backIndex = startIndex + (directionUp ? -1 : 1) * (ofsc->getBackwardsLength() + ofsc->getBackwardsInterpolationWindow());
         }
+
     }
 
-    statusBar->showMessage(tr("Segmentation complete"));
+    // Run finished => we can now mark it as "used in a run"
+    fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex, true);
+
+    // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
+    // that the run cannot have "run over" an anchor, so everything in between cannot be one and now was changed by the alogrithm,
+    // rather than manually by the user.
+    // Note: Do not reset the start index of course!
+    auto directionUp = (endIndex > startIndex);
+    fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? 1 : -1), endIndex);
+    // Do the same for the backwards interpolated portion
+    if (backIndex != -1) {
+        fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? -1 : 1), backIndex);
+    }
+
+    if (backIndex != -1) {
+        statusBar->showMessage(tr("Segmentation complete (slice %1 to %2 and backwards to %3)").arg(startIndex).arg(endIndex).arg(backIndex));
+    } else if (startIndex != -1 && endIndex != -1) {
+        statusBar->showMessage(tr("Segmentation complete (slice %1 to %2)").arg(startIndex).arg(endIndex));
+    } else {
+        statusBar->showMessage(tr("Segmentation complete"));
+    }
     fVpkgChanged = true;
 
     // // If we are running OFS and have annotations, there is an additional segmentation run that should automatically get scheduled:
@@ -1835,10 +1854,17 @@ void CWindow::PrintDebugInfo()
     // Print Annotation Point Cloud
     std::cout << "=== Annotation Point Cloud ===" << std::endl;
     for(int i = 0; i < fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.height(); i++) {
-        std::cout << i << ": ";
         auto row = fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.getRow(i);
+        auto masterRow = fSegStructMap[fHighlightedSegmentationId].fMasterCloud.getRow(i);
+
+        std::cout << "I ";
+        std::cout << std::setfill('0') << std::setw(4) << i;
+        std::cout << " : S ";
+        std::cout << std::setfill('0') << std::setw(4) << masterRow[0][2];
+        std::cout << " | ";
+
         for(auto ano : row) {
-            std::cout << ano[0] << ", ";
+            std::cout << ano[0] << " | ";
         }
         std::cout << std::endl;
     }
@@ -1890,9 +1916,10 @@ void CWindow::OnNewPathClicked(void)
     volcart::DiskBasedObjectBaseClass::Identifier newSegmentationId;
     try {
         auto seg = fVpkg->newSegmentation();
+        seg->setVolumeID(currentVolume->id());
         newSegmentationId = seg->id();
     } catch(std::exception) {
-        // Could e.g. happen if the user clicks too quickly in succession on the "New" button as the timestamp 
+        // Could e.g. happen if the user clicks too quickly in succession on the "New" button as the timestamp
         // is the segment UUID, which would not be unique if there are two clicks within one second.
         QMessageBox::warning(this, tr("Error"), tr("An error occurred during segment creation. Please try again"));
         return;
@@ -1907,8 +1934,8 @@ void CWindow::OnNewPathClicked(void)
     // Activate the new item
     fPathListWidget->setCurrentItem(newItem);
     ChangePathItem(newSegmentationId); // Creating new curve
-    newItem->setCheckState(1, Qt::Checked); 
-    newItem->setCheckState(2, Qt::Checked); 
+    newItem->setCheckState(1, Qt::Checked);
+    newItem->setCheckState(2, Qt::Checked);
     fSegStructMap[newSegmentationId].display = true;
     fSegStructMap[newSegmentationId].compute = true;
     newItem->setSelected(true);
@@ -1918,7 +1945,7 @@ void CWindow::OnNewPathClicked(void)
     // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
     fPathListWidget->resizeColumnToContents(0);
     fPathListWidget->resizeColumnToContents(1);
-    fPathListWidget->resizeColumnToContents(2); 
+    fPathListWidget->resizeColumnToContents(2);
 }
 
 // Remove existing path
@@ -1934,7 +1961,7 @@ void CWindow::OnRemovePathClicked(void)
 
         // Ask for user confirmation
         auto button = QMessageBox::critical(this, tr("Are you sure?"), tr("Warning: This will irrevocably delete the segment %1.\n\nThis action cannot be undone!\n\nContinue?").arg(id), QMessageBox::Yes | QMessageBox::No);
-        
+
         if(button == QMessageBox::Yes) {
 
             try {
@@ -2029,7 +2056,7 @@ void CWindow::toggleDisplayAll(bool checked)
             item->setCheckState(1, Qt::Checked);
             fSegStructMap[aSegID].display = true;
         } else {
-            fchkComputeAll->setChecked(false); 
+            fchkComputeAll->setChecked(false);
             // If the button/checkbox for "Display All" is unchecked, set all items to "Unchecked" state.
             item->setCheckState(1, Qt::Unchecked);
             item->setCheckState(2, Qt::Unchecked);
@@ -2303,18 +2330,6 @@ void CWindow::NextSelectedId() {
     UpdateView();
 }
 
-void CWindow::addNewAnnotationsItem(int sliceIndex, bool anchor, bool manual)
-{
-    // Add a new annotation to the tree widget
-    AnnotationTreeWidgetItem* newItem = new AnnotationTreeWidgetItem(fAnnotationListWidget);
-    newItem->setText(0, QString::number(sliceIndex));
-    newItem->setCheckState(1, anchor ? Qt::Checked : Qt::Unchecked);
-    newItem->setCheckState(2, manual ? Qt::Checked : Qt::Unchecked);
-
-    // Activate the new item
-    fAnnotationListWidget->setCurrentItem(newItem);
-}
-
 void CWindow::annotationDoubleClicked(QTreeWidgetItem* item)
 {
     auto slice = item->text(0).toInt();
@@ -2409,7 +2424,8 @@ void CWindow::TogglePenTool(void)
             OpenSlice();
             SetCurrentCurve(fPathOnSliceIndex);
 
-            addNewAnnotationsItem(fPathOnSliceIndex, true, true);
+            // Explicitely set the highlight ID, since otherwise the annotation list will not show anything
+            fHighlightedSegmentationId = fSegmentationId;
         }
         fSplineCurve.Clear();
         fVolumeViewerWidget->ResetSplineCurve();

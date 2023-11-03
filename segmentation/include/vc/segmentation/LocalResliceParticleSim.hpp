@@ -59,6 +59,9 @@ public:
     /** @brief Set the target z-index */
     void setTargetZIndex(int z) { endIndex_ = z; }
 
+    /** @brief Get the target z-index */
+    int getTargetZIndex() { return endIndex_; }
+
     /** @brief Set the number of curve optimization iterations per step */
     void setOptimizationIterations(int n) { numIters_ = n; }
 
