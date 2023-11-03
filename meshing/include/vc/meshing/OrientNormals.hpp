@@ -19,8 +19,8 @@ class OrientNormals
 public:
     /** @brief Reference point mode */
     enum class ReferenceMode {
-        Centroid, /** Mesh centroid reference point for convex meshes. */
-        Manual    /** Point provided by setReferencePoint(). */
+        Centroid,  ///< Mesh centroid reference point for convex meshes.
+        Manual     ///< Point provided by setReferencePoint().
     };
 
     /** @brief Default constructor */
