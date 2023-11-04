@@ -223,7 +223,7 @@ struct SegmentationStruct {
         fIntersections.clear();
         int minIndex, maxIndex;
         minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
-        maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);      
+        maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);
 
         fMinSegIndex = minIndex;
         fMaxSegIndex = maxIndex;
@@ -490,7 +490,7 @@ struct SegmentationStruct {
         // We need to buffer the points that we potentially have to store as "manually changed" in
         // annotations, but we cannot directly update the cloud, since the manual changes might be
         // discarded, e.g. by leaving the segmentation tool. Only once they are "confirmed" by
-        // being used ina  segmentation run, can we update the annotation cloud.
+        // being used in a segmentation run, can we update the annotation cloud.
         fBufferedChangedPoints.insert(pointIndexes.begin(), pointIndexes.end());
     }
 
@@ -499,8 +499,7 @@ struct SegmentationStruct {
         // Determine the first point index from the master cloud that belongs to the provided
         // slice index.
         for (int i = 0; i < fMasterCloud.height(); i++) {
-            auto masterRowI = fMasterCloud.getRow(i);
-            if (sliceIndex == masterRowI[0][2]){
+            if (sliceIndex == fMasterCloud[i * fMasterCloud.width()][2]){
                 return i * fMasterCloud.width();
             }
         }

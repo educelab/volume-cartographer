@@ -38,6 +38,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
         QSettings settings;
         settings.setValue("volumeViewer/curveColor", c);
     });
+
     colorSelectorCompute = new ColorFrame(this);
     colorSelectorCompute->setFixedSize(16, 16);
     auto colorCompute = settings.value("volumeViewer/computeColor", QColor("blue"))
@@ -51,6 +52,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
         QSettings settings;
         settings.setValue("volumeViewer/computeColor", c);
     });
+
     colorSelectorHighlight = new ColorFrame(this);
     colorSelectorHighlight->setFixedSize(16, 16);
     auto colorHighlight = settings.value("volumeViewer/computeHighlight", QColor("red"))
@@ -63,6 +65,20 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     connect(colorSelectorHighlight, &ColorFrame::colorChanged, [](const QColor& c) {
         QSettings settings;
         settings.setValue("volumeViewer/computeHighlight", c);
+    });
+
+    colorSelectorManual = new ColorFrame(this);
+    colorSelectorManual->setFixedSize(16, 16);
+    auto colorManual = settings.value("volumeViewer/manualColor", QColor("orange"))
+                     .value<QColor>();
+    colorSelectorManual->setColor(colorManual);
+    fButtonsLayout->addWidget(colorSelectorManual);
+    connect(
+        colorSelectorManual, &ColorFrame::colorChanged, this,
+        &CVolumeViewerWithCurve::UpdateView);
+    connect(colorSelectorManual, &ColorFrame::colorChanged, [](const QColor& c) {
+        QSettings settings;
+        settings.setValue("volumeViewer/manualColor", c);
     });
 
     // show curve box
@@ -587,9 +603,9 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         }
         else if (segStruct.display && segStruct.highlighted) {
             // Mix the colors to show Highlight and Display without Compute
-            r = (colorSelectorHighlight->color().red() + colorSelector->color().red()) / 2;
-            g = (colorSelectorHighlight->color().green() + colorSelector->color().green()) / 2;
-            b = (colorSelectorHighlight->color().blue() + colorSelector->color().blue()) / 2;
+            r = (colorSelectorHighlight->color().red() + colorSelector->color().red()) / 1.5;
+            g = (colorSelectorHighlight->color().green() + colorSelector->color().green()) / 1.5;
+            b = (colorSelectorHighlight->color().blue() + colorSelector->color().blue()) / 1.5;
         }
         else {
             colorSelector->color().getRgb(&r, &g, &b);
@@ -602,11 +618,17 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         // qDebug() << "Drawing segStruct id " << segStruct.fSegmentationId.c_str() << " with num points " << segStruct.fIntersectionCurve.GetPointsNum();
         int pointsNum = segStruct.fIntersectionCurve.GetPointsNum();
 
+        // Get annotations for current curve
+        auto hasAnnotations = !segStruct.fAnnotationCloud.empty();
+        auto pointIndex = segStruct.GetPointIndexForSliceIndex(segStruct.fPathOnSliceIndex);
+
         for (int i = 0; i < pointsNum; ++i) {
             // Create new ellipse points
             auto p0 = segStruct.fIntersectionCurve.GetPoint(i)[0] - 0.5;
             auto p1 = segStruct.fIntersectionCurve.GetPoint(i)[1] - 0.5;
-            QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
+            auto manualPoint = (hasAnnotations && (segStruct.fAnnotationCloud[pointIndex + i][0] & AnnotationBits::ANO_MANUAL))
+                || (segStruct.fPathOnSliceIndex == sliceIndexToolStart && segStruct.fBufferedChangedPoints.find(i) != segStruct.fBufferedChangedPoints.end());
+            QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, manualPoint ? QPen(colorSelectorManual->color()) : QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
             newEllipse->setVisible(true);
         }
     }

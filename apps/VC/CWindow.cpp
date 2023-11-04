@@ -1525,46 +1525,27 @@ void CWindow::UpdateAnnotationList(void)
 {
     fAnnotationListWidget->clear();
 
-    if (!fHighlightedSegmentationId.empty()) {
+    if (!fHighlightedSegmentationId.empty() && fVpkg != nullptr && fSegStructMap[fHighlightedSegmentationId].fSegmentation && fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations()) {
 
-        if (fVpkg != nullptr) {
+        // Add or update the annotation rows
+        for (auto a : fSegStructMap[fHighlightedSegmentationId].fAnnotations) {
 
-            if (fSegStructMap[fHighlightedSegmentationId].fSegmentation && fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations()) {
-
-                // Add or update the annotation rows
-                for (auto a : fSegStructMap[fHighlightedSegmentationId].fAnnotations) {
-
-                    // Check if at least one of the flags is true
-                    if (a.second.anchor || a.second.manual) {
-
-                        // Anchor or manually changed => add to list if not already in there
-                        auto items = fAnnotationListWidget->findItems(QString::number(a.first), Qt::MatchExactly, 0);
-
-                        if (items.size() == 0) {
-                            AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
-                            item->setText(0, QString::number(a.first));
-                            item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
-                            item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
-                            item->setIcon(3, ((a.second.anchor || a.second.manual) && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
-                            item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-                        } else if (items.size() == 1) {
-                            // Row does already exists => update it
-                            items.at(0)->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
-                            items.at(0)->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
-                            items.at(0)->setIcon(3,((a.second.anchor || a.second.manual) && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
-                        }
-                    }
-                }
-
-                // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
-                fAnnotationListWidget->resizeColumnToContents(0);
-                fAnnotationListWidget->resizeColumnToContents(1);
-                fAnnotationListWidget->resizeColumnToContents(2);
-                fAnnotationListWidget->resizeColumnToContents(3);
-
-                fAnnotationListWidget->sortByColumn(0, Qt::AscendingOrder);
+            // Check if at least one of the flags is true
+            if (a.second.anchor || a.second.manual) {
+                AnnotationTreeWidgetItem* item = new AnnotationTreeWidgetItem(fAnnotationListWidget);
+                item->setText(0, QString::number(a.first));
+                item->setCheckState(1, a.second.anchor ? Qt::Checked : Qt::Unchecked);
+                item->setCheckState(2, a.second.manual ? Qt::Checked : Qt::Unchecked);
+                item->setIcon(3, ((a.second.anchor || a.second.manual) && !a.second.usedInRun) ? style()->standardIcon(QStyle::SP_MessageBoxWarning) : QIcon());
+                item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             }
         }
+
+        // A bit hacky, but using QHeaderView::ResizeToContents did result in weird scrollbars
+        fAnnotationListWidget->resizeColumnToContents(0);
+        fAnnotationListWidget->resizeColumnToContents(1);
+        fAnnotationListWidget->resizeColumnToContents(2);
+        fAnnotationListWidget->resizeColumnToContents(3);
     }
 }
 
@@ -2038,7 +2019,7 @@ void CWindow::toggleComputeAll(bool checked)
 // Handle path item click event
 void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 {
-    // Note: item might be empty, since we are also calling this method from the general
+    // Note: Parameter "item" might be empty, since we are also calling this method from the general
     // selection change slot (where the selection change might be to "none").
     if (item) {
         std::string aSegID = item->text(0).toStdString();
@@ -2047,6 +2028,11 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         // If the first checkbox (in column 1) is clicked
         if (column == 0) // Highlight the curve
         {
+            // If nothing really changed, leave directly (especially since we have two listeners active and
+            // don't want to redraw the curves multiple times)
+            if (fHighlightedSegmentationId == aSegID)
+                return;
+
             for(auto& seg : fSegStructMap) {
                 seg.second.highlighted = false;
             }
@@ -2211,7 +2197,6 @@ void CWindow::OnPathItemSelectionChanged()
     if (!items.empty()) {
         OnPathItemClicked(items.at(0), 0);
     }
-    UpdateView();
 }
 
 // Logic to switch the selected ID
