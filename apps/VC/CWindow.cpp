@@ -861,17 +861,9 @@ void CWindow::UpdateView(void)
         QString("%1").arg(fSegParams.fPeakDistanceWeight));
     fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
 
-    // Set / calculate start and end index
-    this->ui.spinBackwardSlice->setValue(fSliceIndexToolStart);
-    if (fSliceIndexToolStart + fEndTargetOffset >= currentVolume->numSlices()) {
-        this->ui.spinForwardSlice->setValue(currentVolume->numSlices() - 1);
-    }
-    else if (fSliceIndexToolStart + fEndTargetOffset < 0) {
-        this->ui.spinForwardSlice->setValue(0);
-    }
-    else {
-        this->ui.spinForwardSlice->setValue(fSliceIndexToolStart + fEndTargetOffset);
-    }
+    // Set / calculate backward and forward index
+    this->ui.spinBackwardSlice->setValue(std::clamp(fSliceIndexToolStart - fEndTargetOffset, 0, fSliceIndexToolStart));
+    this->ui.spinForwardSlice->setValue(std::clamp(fSliceIndexToolStart + fEndTargetOffset, fSliceIndexToolStart, currentVolume->numSlices() - 1));
 
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
     bool availableSegments = false;
@@ -1083,7 +1075,7 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
     bool skipRun = false;
     volcart::segmentation::ChainSegmentationAlgorithm::Chain reSegStartingChain;
 
-    std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run ===: " << std::endl;
+    std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run ===" << std::endl;
     std::cout << "OFS: Mode: " << (useAnchor ? "Anchor" : "Slice") << std::endl;
     std::cout << "OFS: Start Slice: " << startIndex << std::endl;
 
@@ -1093,7 +1085,7 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         fSegParams.targetIndex = endIndex;
         std::cout << "OFS: Original Target Slice: " << fSegParams.targetIndex << std::endl;
 
-        if (fSegParams.targetIndex <= anchor) {
+        if (anchor != -1 && (forward ? fSegParams.targetIndex >= anchor : fSegParams.targetIndex <= anchor)) {
             // Stop one slice before the anchor
             fSegParams.targetIndex = anchor + (forward ? -1 : 1);
         }
@@ -1101,8 +1093,13 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         fSegParams.smoothness_interpolation_percent = 0;
 
     } else {
-        fSegParams.targetIndex = (anchor != -1 ? anchor : fPathOnSliceIndex);
+        fSegParams.targetIndex = (anchor != -1 ? (forward ? anchor - 1 : anchor + 1) : fPathOnSliceIndex);
         skipRun = (anchor == -1);
+    }
+
+    // If start and end index are the same, we can skip the run since nothing would happen
+    if (!skipRun) {
+        skipRun = startIndex == fSegParams.targetIndex;
     }
 
     std::cout << "OFS: Anchor Slice: " << anchor << std::endl;
@@ -1121,8 +1118,11 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
         interpolation_window = std::round(((float)fSegParams.smoothness_interpolation_percent / 100.f * anchorDistance) / 2);
 
-        for (auto point : fSegStructMap[segID].fMasterCloud.getRow(fSegParams.targetIndex)) {
-            reSegStartingChain.push_back(point);
+        auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex);
+        if (pointIndex != -1) {
+            for (int i = 0; i < fSegStructMap[segID].fMasterCloud.width(); i++) {
+                reSegStartingChain.push_back(fSegStructMap[segID].fMasterCloud[pointIndex + i]);
+            }
         }
     }
 
@@ -1158,6 +1158,8 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         segmenter->setVolume(currentVolume);
         // Queue segmentation for execution
         queueSegmentation(segID, segmenter);
+    } else {
+        std::cout << "OFS: Run skipped" << std::endl;
     }
 }
 

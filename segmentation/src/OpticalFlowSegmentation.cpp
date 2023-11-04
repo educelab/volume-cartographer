@@ -624,8 +624,8 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         std::cout << "[Info]: Setting Cache Size to " << nr_cache_slices_ << " Slices" << std::endl;
         vol_->setCacheCapacity(nr_cache_slices_);
     }
-    // Cache gets corrupted somewhere(one case: if estimate_normal_at_index_ from local reslice particle sim is used in multithreading mode). purge it to have clean state. might take longer to process files.
-    // if purge_cache_ is true, purge cache
+    // Cache gets corrupted somewhere. One case: If estimate_normal_at_index_ from local reslice particle sim is used in multithreading mode.
+    // Purge it to have clean state. Might take longer to process files.
     if (purge_cache_) {
         std::cout << "[Info]: Purging Slice Cache" << std::endl;
         vol_->cachePurge();
@@ -633,13 +633,9 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     // Reset progress
     progressStarted();
 
-    // Duplicate the starting chain
-    auto currentVs = startingChain_;
-    auto reSegVs = reSegStartingChain_;
-
     // Calculate the starting index
     auto minZPoint = std::min_element(
-        begin(currentVs), end(currentVs),
+        begin(startingChain_), end(startingChain_),
         [](auto a, auto b) { return a[2] < b[2]; });
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
 
@@ -648,6 +644,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     }
     bool backwards = startIndex > endIndex_;
     // Interpolation start = side/edge of the interpolation window that is nearest to start index
+    // Example for backwards: | End Slice (50) | Interpolation End (70) | Interpolation Start (80) | Start Slice (100) |
     int interpolationStart = startIndex + (backwards ? -smoothness_interpolation_distance_ + smoothness_interpolation_window_  - 1: smoothness_interpolation_distance_ - smoothness_interpolation_window_ + 1);
     int interpolationEnd = startIndex + (backwards ? -smoothness_interpolation_distance_ - smoothness_interpolation_window_ : smoothness_interpolation_distance_ + smoothness_interpolation_window_);
     int interpolationLength = smoothness_interpolation_distance_ + smoothness_interpolation_window_;
@@ -658,26 +655,25 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         interpolationEnd = vol_->numSlices() - 1;
     }
     // std::cout << "Interpolation Window and Distance: " << smoothness_interpolation_window_ << " " << smoothness_interpolation_distance_ << std::endl;
-    // Generate an overlap to interpolate and smooth point locations in z direction
 
     // Update the user-defined boundary
     bb_.setUpperBoundByIndex(2, (backwards ? startIndex : endIndex_) + 1);
     bb_.setLowerBoundByIndex(2, (backwards ? endIndex_ : startIndex) - 1);
 
     // Check that incoming points are all within bounds
-    if (std::any_of(begin(currentVs), end(currentVs), [this](auto v) {
+    if (std::any_of(begin(startingChain_), end(startingChain_), [this](auto v) {
             return !bb_.isInBounds(v) || !vol_->isInBounds(v);
         })) {
         status_ = Status::ReturnedEarly;
         progressComplete();
-        return create_final_pointset_({currentVs});
+        return create_final_pointset_({startingChain_});
     }
-    if (std::any_of(begin(reSegVs), end(reSegVs), [this](auto v) {
+    if (std::any_of(begin(reSegStartingChain_), end(reSegStartingChain_), [this](auto v) {
             return !bb_.isInBounds(v) || !vol_->isInBounds(v);
         })) {
         status_ = Status::ReturnedEarly;
         progressComplete();
-        return create_final_pointset_({currentVs});
+        return create_final_pointset_({startingChain_});
     }
 
     const fs::path outputDir("debugvis");
@@ -691,17 +687,18 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     std::vector<std::vector<Voxel>> reSegPoints;
     std::vector<std::vector<Voxel>> points;
 
-    if (smoothness_interpolation_window_ > 0)
+    if (smoothness_interpolation_window_ > 0) {
         reSegPoints.reserve((std::abs(endIndex_ - interpolationStart) + 1 + 1) / static_cast<uint64_t>(stepSize_));
+    }
     points.reserve((std::abs(interpolationEnd - startIndex) + 1 + 1) / static_cast<uint64_t>(stepSize_));
 
     // Iterate over z-slices
     size_t iteration{0};
 
-    if (smoothness_interpolation_window_ > 0 && !reSegVs.empty()) {
+    if (smoothness_interpolation_window_ > 0 && !reSegStartingChain_.empty()) {
 
-        // 1. If interpolation is active: Resegment from the end index till start of interpolation window (overwrite existing points)
-        if (computeSub(reSegPoints, reSegVs, endIndex_, interpolationStart, !backwards, iteration, !backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        // 1. If interpolation is active: Re-segment from the end index till start of interpolation window (overwrite existing points)
+        if (computeSub(reSegPoints, reSegStartingChain_, endIndex_, interpolationStart, !backwards, iteration, !backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(reSegPoints);
         }
 
@@ -735,7 +732,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         }
 
         // 2. If interpolation is active: Segment from start index till end of interpolation window (interpolate)
-        if (computeSub(points, currentVs, startIndex, interpolationEnd, backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        if (computeSub(points, startingChain_, startIndex, interpolationEnd, backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(points);
         }
 
@@ -749,7 +746,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
     } else {
         // 3. If interpolation is not active: Segment from start index till end index
-        if (computeSub(points, currentVs, startIndex, endIndex_, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        if (computeSub(points, startingChain_, startIndex, endIndex_, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(points);
         }
     }

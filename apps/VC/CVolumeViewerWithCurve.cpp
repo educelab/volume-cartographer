@@ -2,11 +2,9 @@
 // Chao Du 2015 April
 #include "CVolumeViewerWithCurve.hpp"
 
-#include <QSettings>
 #include <opencv2/imgproc.hpp>
 
 #include "ColorFrame.hpp"
-#include "UDataManipulateUtils.hpp"
 
 #include <QCoreApplication> // To use QCoreApplication::sendEvent()
 
