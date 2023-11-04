@@ -119,7 +119,7 @@ CWindow::CWindow()
     fSegParams.enable_edge = false;
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
-    fSegParams.smoothness_interpolation_percent = 20;
+    fSegParams.smoothness_interpolation_percent = 30;
 
     // Process the raw impact range step string and convert to step vector
     QSettings settings("VC.ini", QSettings::IniFormat);
