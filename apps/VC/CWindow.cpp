@@ -119,9 +119,7 @@ CWindow::CWindow()
     fSegParams.enable_edge = false;
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
-    fSegParams.backwards_smoothness_interpolation_window = 5;
-    fSegParams.backwards_smoothness_interpolation_percent = 25;
-    fSegParams.backwards_length = 25;
+    fSegParams.smoothness_interpolation_percent = 20;
 
     // Process the raw impact range step string and convert to step vector
     QSettings settings("VC.ini", QSettings::IniFormat);
@@ -344,16 +342,11 @@ void CWindow::CreateWidgets(void)
     auto* edtEdgeBounceDistance = new QSpinBox();
     edtEdgeBounceDistance->setMinimum(0);
     edtEdgeBounceDistance->setValue(3);
-    edtBackwardsLength = new QSpinBox();
-    edtBackwardsLength->setMinimum(0);
     edtSmoothenPixelThreshold->setMaximum(1000);
-    edtBackwardsLength->setValue(25);
-    edtBackwardsInterpolationWindow = new QSpinBox();
-    edtBackwardsInterpolationWindow->setMinimum(0);
-    edtBackwardsInterpolationWindow->setValue(5);
-    edtBackwardsInterpolationPercent = new QSpinBox();
-    edtBackwardsInterpolationPercent->setMinimum(0);
-    edtBackwardsInterpolationPercent->setValue(25);
+    edtInterpolationPercent = new QSpinBox();
+    edtInterpolationPercent->setMinimum(0);
+    edtInterpolationPercent->setMaximum(100);
+    edtInterpolationPercent->setValue(25);
     auto* chkPurgeCache = new QCheckBox(tr("Purge Cache"));
     chkPurgeCache->setChecked(false);
     auto* edtCacheSize = new QSpinBox();
@@ -369,9 +362,7 @@ void CWindow::CreateWidgets(void)
     connect(chkEnableEdgeDetection, &QCheckBox::toggled, [=](bool checked){fSegParams.enable_edge = checked;});
     connect(edtEdgeJumpDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_jump_distance = v;});
     connect(edtEdgeBounceDistance, &QSpinBox::valueChanged, [=](int v){fSegParams.edge_bounce_distance = v;});
-    connect(edtBackwardsLength, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_length = v;});
-    connect(edtBackwardsInterpolationWindow, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_smoothness_interpolation_window = v;});
-    connect(edtBackwardsInterpolationPercent, &QSpinBox::valueChanged, [=](int v){fSegParams.backwards_smoothness_interpolation_percent = v;});
+    connect(edtInterpolationPercent, &QSpinBox::valueChanged, [=](int v){fSegParams.smoothness_interpolation_percent = v;});
     connect(chkPurgeCache, &QCheckBox::toggled, [=](bool checked){fSegParams.purge_cache = checked;});
     connect(edtCacheSize, &QSpinBox::valueChanged, [=](int v){fSegParams.cache_slices = v;});
 
@@ -392,15 +383,9 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(edtEdgeJumpDistance);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Bounce Distance")));
     opticalFlowParamsLayout->addWidget(edtEdgeBounceDistance);
-    lblBackwardsLength = new QLabel(tr("Backwards Length"));
-    opticalFlowParamsLayout->addWidget(lblBackwardsLength);
-    opticalFlowParamsLayout->addWidget(edtBackwardsLength);
-    lblBackwardsInterpolationWindow = new QLabel(tr("Backwards Interpolation Window"));
-    opticalFlowParamsLayout->addWidget(lblBackwardsInterpolationWindow);
-    opticalFlowParamsLayout->addWidget(edtBackwardsInterpolationWindow);
-    lblBackwardsInterpolationPercent = new QLabel(tr("Backwards Interpolation Percent"));
-    opticalFlowParamsLayout->addWidget(lblBackwardsInterpolationPercent);
-    opticalFlowParamsLayout->addWidget(edtBackwardsInterpolationPercent);
+    lblInterpolationPercent = new QLabel(tr("Interpolation Percent"));
+    opticalFlowParamsLayout->addWidget(lblInterpolationPercent);
+    opticalFlowParamsLayout->addWidget(edtInterpolationPercent);
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Maximum Cache Size")));
     opticalFlowParamsLayout->addWidget(edtCacheSize);
@@ -1056,104 +1041,124 @@ void CWindow::DoSegmentation(void)
             lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
             lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
             segmenter = lrps;
+
+            // Set common parameters
+            segmenter->setChain(fSegStructMap[segID].fStartingPath);
+            segmenter->setVolume(currentVolume);
+            // Queue segmentation for execution
+            queueSegmentation(segID, segmenter);
+
         } else if (algoIdx == 1) {
             // Setup OFS
 
-            std::cout << "OFS: === Main Run ===: " << std::endl;
-            std::cout << "OFS: Start Slice: " << startIndex << std::endl;
-            std::cout << "OFS: Original Target Slice: " << this->ui.spinForwardSlice->value() << std::endl;
-
-            auto directionUp = (this->ui.spinForwardSlice->value() > startIndex);
-            int anchorForward = -1;
-            int anchorBackward = -1;
-
-            // Auto-adjust parameters if we have annotations
-            if (fSegStructMap[segID].fSegmentation->hasAnnotations()) {
-
-                if (directionUp) {
-                    anchorForward = fSegStructMap[segID].FindNearestHigherAnchor(startIndex);
-                    anchorBackward = fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
-                } else {
-                    anchorForward = fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
-                    anchorBackward = fSegStructMap[segID].FindNearestHigherAnchor(startIndex);
-                }
-
-                std::cout << "OFS: Forward Anchor: " << anchorForward << std::endl;
-                std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
-
-                if (anchorForward != -1) {
-                    // Forward portion needs to stop one slice before the next forward anchor if there is one
-                    if (directionUp && anchorForward <= this->ui.spinForwardSlice->value()) {
-                        fSegParams.targetIndex = anchorForward - 1;
-                    } else if (!directionUp && anchorForward >= this->ui.spinForwardSlice->value()) {
-                        fSegParams.targetIndex = anchorForward + 1;
-                    }
-                }
-
-                fSegParams.backwards_length = 0;
-                fSegParams.backwards_smoothness_interpolation_window  = 0;
-
-                // Check if the backwards portion is enabled (percent value > 0)
-                if (fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
-                    // With annotations we have to use the percentage of the delta between
-                    // current slice (= segmentation start slice) and the backwards anchor slice.
-                    // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
-                    auto anchorDistance = (directionUp ? startIndex - anchorBackward : anchorBackward - startIndex); // -2 to exclude the start and backward anchor slices
-                    std::cout << "OFS: Backward Anchor Distance: " << anchorDistance << std::endl;
-
-                    fSegParams.backwards_length = std::round(anchorDistance / 2);
-
-                    // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards eithert side),
-                    // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
-                    fSegParams.backwards_smoothness_interpolation_window = std::round(((float)fSegParams.backwards_smoothness_interpolation_percent / 100.f * anchorDistance) / 2);
-                }
-            } else {
-                fSegParams.backwards_smoothness_interpolation_percent = 0;
+            if (!this->ui.radioBackwardNoRun->isChecked()) {
+                prepareSegmentationOFS(segID, false, this->ui.radioBackwardAnchor->isChecked(), fPathOnSliceIndex, this->ui.spinBackwardSlice->value());
             }
 
-            auto ofsc = vcs::OpticalFlowSegmentationClass::New();
-            ofsc->setMaterialThickness(fVpkg->materialThickness());
-            ofsc->setStartZIndex(startIndex);
-            ofsc->setTargetZIndex(fSegParams.targetIndex);
-            ofsc->setOptimizationIterations(fSegParams.fNumIters);
-            ofsc->setOutsideThreshold(fSegParams.outside_threshold);
-            ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
-            ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
-            ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
-            ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
-            ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
-            ofsc->setEnableSmoothenOutlier(fSegParams.enable_smoothen_outlier);
-            ofsc->setEnableEdge(fSegParams.enable_edge);
-            ofsc->setPurgeCache(fSegParams.purge_cache);
-            ofsc->setCacheSlices(fSegParams.cache_slices);
-            ofsc->setOrderedPointSet(fSegStructMap[segID].fMasterCloud);
-            ofsc->setBackwardsInterpolationWindow(fSegParams.backwards_smoothness_interpolation_window);
-            ofsc->setBackwardsLength(fSegParams.backwards_length);
-            segmenter = ofsc;
+            if (!this->ui.radioForwardNoRun->isChecked()) {
+                prepareSegmentationOFS(segID, true, this->ui.radioForwardAnchor->isChecked(), fPathOnSliceIndex, this->ui.spinForwardSlice->value());
+            }
 
-            std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
-            std::cout << "OFS: Backward Interpolation Percent: " << fSegParams.backwards_smoothness_interpolation_percent << "%" << std::endl;
-            std::cout << "OFS: Resulting Backward Length: " << fSegParams.backwards_length << std::endl;
-            std::cout << "OFS: Resulting Interpolation Window: 2x " << fSegParams.backwards_smoothness_interpolation_window << std::endl;
         }
         // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
         // DROPDOWN LIST
+    }
 
-        // set common parameters
+    if (!segmentedSomething) {
+        QMessageBox::warning(
+            this, "Warning", "No segments for computation found! Please activate segments for computation in the segment list and make sure to be on a slice containing at least one curve.");
+        segmentationQueue = std::queue<std::pair<std::string, Segmenter::Pointer>>();
+    }
+
+    // Start
+    executeNextSegmentation();
+}
+
+void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int startIndex, int endIndex)
+{
+    Segmenter::Pointer segmenter;
+    // Reset to have a clean slate
+    int interpolation_distance = 0;
+    int interpolation_window  = 0;
+    bool skipRun = false;
+    volcart::segmentation::ChainSegmentationAlgorithm::Chain reSegStartingChain;
+
+    std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run ===: " << std::endl;
+    std::cout << "OFS: Mode: " << (useAnchor ? "Anchor" : "Slice") << std::endl;
+    std::cout << "OFS: Start Slice: " << startIndex << std::endl;
+
+    auto anchor = forward ? fSegStructMap[segID].FindNearestHigherAnchor(startIndex) : fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
+
+    if (!useAnchor) {
+        fSegParams.targetIndex = endIndex;
+        std::cout << "OFS: Original Target Slice: " << fSegParams.targetIndex << std::endl;
+
+        if (fSegParams.targetIndex <= anchor) {
+            // Stop one slice before the anchor
+            fSegParams.targetIndex = anchor + (forward ? -1 : 1);
+        }
+
+        fSegParams.smoothness_interpolation_percent = 0;
+
+    } else {
+        fSegParams.targetIndex = (anchor != -1 ? anchor : fPathOnSliceIndex);
+        skipRun = (anchor == -1);
+    }
+
+    std::cout << "OFS: Anchor Slice: " << anchor << std::endl;
+
+    // Check if the backwards portion is enabled (percent value > 0)
+    if (useAnchor && fSegParams.smoothness_interpolation_percent > 0 && anchor != -1) {
+        // With annotations we have to use the percentage of the delta between
+        // current slice (= segmentation start slice) and the backwards anchor slice.
+        // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
+        auto anchorDistance = std::abs(startIndex - anchor) - 1;
+        std::cout << "OFS: Anchor Distance: " << anchorDistance << std::endl;
+
+        interpolation_distance = std::round(anchorDistance / 2);
+
+        // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards either side),
+        // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
+        interpolation_window = std::round(((float)fSegParams.smoothness_interpolation_percent / 100.f * anchorDistance) / 2);
+
+        for (auto point : fSegStructMap[segID].fMasterCloud.getRow(fSegParams.targetIndex)) {
+            reSegStartingChain.push_back(point);
+        }
+    }
+
+    if (!skipRun) {
+        auto ofsc = vcs::OpticalFlowSegmentationClass::New();
+        ofsc->setMaterialThickness(fVpkg->materialThickness());
+        ofsc->setStartZIndex(startIndex);
+        ofsc->setTargetZIndex(fSegParams.targetIndex);
+        ofsc->setOptimizationIterations(fSegParams.fNumIters);
+        ofsc->setOutsideThreshold(fSegParams.outside_threshold);
+        ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
+        ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
+        ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
+        ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
+        ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
+        ofsc->setEnableSmoothenOutlier(fSegParams.enable_smoothen_outlier);
+        ofsc->setEnableEdge(fSegParams.enable_edge);
+        ofsc->setPurgeCache(fSegParams.purge_cache);
+        ofsc->setCacheSlices(fSegParams.cache_slices);
+        ofsc->setOrderedPointSet(fSegStructMap[segID].fMasterCloud);
+        ofsc->setInterpolationDistance(interpolation_distance);
+        ofsc->setInterpolationWindow(interpolation_window);
+        ofsc->setReSegmentationChain(reSegStartingChain);
+        segmenter = ofsc;
+
+        std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
+        std::cout << "OFS: Interpolation Percent: " << fSegParams.smoothness_interpolation_percent << "%" << std::endl;
+        std::cout << "OFS: Resulting Interpolation Distance: " << interpolation_distance << std::endl;
+        std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolation_window << std::endl;
+
+        // Set common parameters
         segmenter->setChain(fSegStructMap[segID].fStartingPath);
         segmenter->setVolume(currentVolume);
         // Queue segmentation for execution
         queueSegmentation(segID, segmenter);
     }
-
-    if (!segmentedSomething) {
-        QMessageBox::warning(
-            this, "Warning", "No segments for computation found! Please activate segments for computation in the segment manager and make sure to be on a slice containing at least one curve.");
-        segmentationQueue = std::queue<std::pair<std::string, Segmenter::Pointer>>();
-    }
-
-    executeNextSegmentation();
-    // Start
 }
 
 void CWindow::queueSegmentation(std::string segmentationId, Segmenter::Pointer s)
@@ -1247,7 +1252,6 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     // Now that the run completed, we need to clean-up / reset annotatioons for the affected slices / points
     int startIndex = -1;
     int endIndex = -1;
-    int backIndex = -1;
     auto algoIdx = this->ui.cmbSegMethods->currentIndex();
     if (algoIdx == 0) {
 
@@ -1260,12 +1264,6 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
         auto ofsc = std::dynamic_pointer_cast<vcs::OpticalFlowSegmentationClass>(segmenter);
         startIndex = ofsc->getStartZIndex();
         endIndex = ofsc->getTargetZIndex();
-        auto directionUp = (endIndex > startIndex);
-
-        if (ofsc->getBackwardsLength() + ofsc->getBackwardsInterpolationWindow() > 0) {
-            backIndex = startIndex + (directionUp ? -1 : 1) * (ofsc->getBackwardsLength() + ofsc->getBackwardsInterpolationWindow());
-        }
-
     }
 
     // Run finished => we can now mark it as "used in a run"
@@ -1278,72 +1276,10 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     if (startIndex != endIndex) {
         auto directionUp = (endIndex > startIndex);
         fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? 1 : -1), endIndex);
-        // Do the same for the backwards interpolated portion
-        if (backIndex != -1) {
-            fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? -1 : 1), backIndex);
-        }
     }
 
-    if (backIndex != -1) {
-        statusBar->showMessage(tr("Segmentation complete (slice %1 to %2 and backwards to %3)").arg(startIndex).arg(endIndex).arg(backIndex));
-    } else if (startIndex != -1 && endIndex != -1) {
-        statusBar->showMessage(tr("Segmentation complete (slice %1 to %2)").arg(startIndex).arg(endIndex));
-    } else {
-        statusBar->showMessage(tr("Segmentation complete"));
-    }
+    statusBar->showMessage(tr("Segmentation complete"));
     fVpkgChanged = true;
-
-    // // If we are running OFS and have annotations, there is an additional segmentation run that should automatically get scheduled:
-    // // Example: Segmentation run from slice 200 to 300 with 100 being marked as anchor. The normal OFS already handles the 200 to 300
-    // // portion and from 200 back to 100. However, an additional one up from 100 to 200 with interpolation should also happen. This
-    // // needs to be queued now separately.
-    // auto algoIdx = this->ui.cmbSegMethods->currentIndex();
-    // if(algoIdx == 1 && fSegStructMap[submittedSegmentationId].fSegmentation->hasAnnotations()) {
-
-    //     std::cout << "OFS: === Secondary Run ===: " << std::endl;
-
-    //     auto directionUp = (this->ui.spinForwardSlice->value() > this->ui.spinBackwardSlice->value());
-    //     int anchorBackward = -1;
-
-    //     if(directionUp) {
-    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestLowerAnchor(this->ui.spinBackwardSlice->value());
-    //     } else {
-    //         anchorBackward = fSegStructMap[submittedSegmentationId].FindNearestHigherAnchor(this->ui.spinBackwardSlice->value());
-    //     }
-
-    //     std::cout << "OFS: Backward Anchor: " << anchorBackward << std::endl;
-
-    //     if(fSegParams.backwards_smoothness_interpolation_percent > 0 && anchorBackward != -1) {
-
-    //         auto anchorDistance = (directionUp ? this->ui.spinBackwardSlice->value() - anchorBackward : anchorBackward - this->ui.spinBackwardSlice->value()); // -2 to exclude the start and backward anchor slices
-    //         std::cout << "OFS: Backward Anchor Distance: " << anchorDistance << std::endl;
-
-    //         auto ofsc = vcs::OpticalFlowSegmentationClass::New();
-    //         ofsc->setMaterialThickness(fVpkg->materialThickness());
-    //         ofsc->setTargetZIndex(std::round(anchorDistance / 2));
-    //         ofsc->setOptimizationIterations(fSegParams.fNumIters);
-    //         ofsc->setOutsideThreshold(fSegParams.outside_threshold);
-    //         ofsc->setOFThreshold(fSegParams.optical_flow_pixel_threshold);
-    //         ofsc->setOFDispThreshold(fSegParams.optical_flow_displacement_threshold);
-    //         ofsc->setLineSmoothenByBrightness(fSegParams.smoothen_by_brightness);
-    //         ofsc->setEdgeJumpDistance(fSegParams.edge_jump_distance);
-    //         ofsc->setEdgeBounceDistance(fSegParams.edge_bounce_distance);
-    //         ofsc->setEnableSmoothenOutlier(fSegParams.enable_smoothen_outlier);
-    //         ofsc->setEnableEdge(fSegParams.enable_edge);
-    //         ofsc->setPurgeCache(fSegParams.purge_cache);
-    //         ofsc->setCacheSlices(fSegParams.cache_slices);
-    //         ofsc->setOrderedPointSet(fSegStructMap[submittedSegmentationId].fMasterCloud);
-    //         ofsc->setBackwardsInterpolationWindow(0);
-    //         ofsc->setBackwardsLength(0);
-    //         Segmenter::Pointer segmenter = ofsc;
-
-    //         // set common parameters
-    //         segmenter->setChain(fSegStructMap[submittedSegmentationId].fMasterCloud.getRow(anchorBackward));
-    //         segmenter->setVolume(currentVolume);
-    //         // Queue segmentation for execution
-    //         queueSegmentation(submittedSegmentationId, segmenter);
-    //     }
-    // }
 
     // Execute the next segmentation
     executeNextSegmentation();
@@ -1358,12 +1294,6 @@ void CWindow::onSegmentationFailed(Segmenter::Pointer segmenter, std::string s)
 
     // Execute the next segmentation
     executeNextSegmentation();
-
-    // setWidgetsEnabled(true);
-    // worker_progress_updater_.stop();
-    // worker_progress_.close();
-    // CleanupSegmentation();
-    // UpdateView();
 }
 
 void CWindow::onShowStatusMessage(QString text, int timeout)
@@ -2453,13 +2383,12 @@ void CWindow::ToggleSegmentationTool(void)
 
         // Adjust the algorithm widgets based on whether we have annotations for the highlighted segment
         if (!fHighlightedSegmentationId.empty()) {
-            lblBackwardsLength->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
-            edtBackwardsLength->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
-            lblBackwardsInterpolationWindow->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
-            edtBackwardsInterpolationWindow->setVisible(!fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
-            lblBackwardsInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
-            edtBackwardsInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+            lblInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
+            edtInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
         }
+
+        this->ui.spinBackwardSlice->setMaximum(fSliceIndexToolStart);
+        this->ui.spinForwardSlice->setMinimum(fSliceIndexToolStart);
 
         // turn off pen tool
         fPenTool->setChecked(false);

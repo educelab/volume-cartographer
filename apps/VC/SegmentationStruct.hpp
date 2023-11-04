@@ -588,6 +588,10 @@ struct SegmentationStruct {
 
     inline int FindNearestLowerAnchor(int sliceIndex)
     {
+        if (!fSegmentation->hasAnnotations()) {
+            return -1;
+        }
+
         // From provided start slice go backwards until we have an anchor
         for(int i = sliceIndex - 1; i >= fMinSegIndex; i--) {
             if (fAnnotations[i].anchor) {
@@ -601,6 +605,10 @@ struct SegmentationStruct {
 
     inline int FindNearestHigherAnchor(int sliceIndex)
     {
+        if (!fSegmentation->hasAnnotations()) {
+            return -1;
+        }
+
         // From provided start slice go forward until we have an anchor or reached the end
         for(int i = sliceIndex + 1; i < currentVolume->numSlices(); i++) {
             if (fAnnotations[i].anchor) {
@@ -625,7 +633,7 @@ struct SegmentationStruct {
             fStartingPath.push_back(tempPt);
         }
 
-        // Buffer the changed path, so that if we change the displayed slice we do not loose 
+        // Buffer the changed path, so that if we change the displayed slice we do not loose
         // the manual changes that were made to the points of the path
         fIntersectionsChanged[fPathOnSliceIndex] = fIntersectionCurve;
     }

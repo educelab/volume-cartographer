@@ -92,9 +92,7 @@ public:
         bool enable_edge;
         int edge_jump_distance;
         int edge_bounce_distance;
-        int backwards_smoothness_interpolation_window;
-        int backwards_smoothness_interpolation_percent;
-        int backwards_length;
+        int smoothness_interpolation_percent;
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
@@ -156,6 +154,7 @@ private:
 
     void SetPathPointCloud(void);
 
+    void prepareSegmentationOFS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
     void queueSegmentation(std::string segmentationId, Segmenter::Pointer s);
     void executeNextSegmentation();
 
@@ -292,12 +291,8 @@ private:
     QCheckBox* fOptIncludeMiddle;
 
     // Dynamic OFS algo widgets
-    QLabel* lblBackwardsLength;
-    QSpinBox* edtBackwardsLength;
-    QLabel* lblBackwardsInterpolationWindow;
-    QSpinBox* edtBackwardsInterpolationWindow;
-    QLabel* lblBackwardsInterpolationPercent;
-    QSpinBox* edtBackwardsInterpolationPercent;
+    QLabel* lblInterpolationPercent;
+    QSpinBox* edtInterpolationPercent;
 
     QSlider* fEdtImpactRange;
     QLabel* fLabImpactRange;

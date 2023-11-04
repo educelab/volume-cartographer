@@ -120,23 +120,27 @@ public:
 
     /** @brief Set how wide the interpolation window should be
      */
-    void setBackwardsInterpolationWindow(int window) { backwards_smoothness_interpolation_window_ = window; }
+    void setInterpolationWindow(int window) { smoothness_interpolation_window_ = window; }
 
     /** @brief Get how wide the interpolation window should be
      */
-    int getBackwardsInterpolationWindow() { return backwards_smoothness_interpolation_window_; }
+    int getInterpolationWindow() { return smoothness_interpolation_window_; }
 
-    /** @brief Set how many slices the flow should go backwards
+    /** @brief Set how many slices the interpolation center is away from the start slice
      */
-    void setBackwardsLength(int len) { backwards_length_ = len; }
+    void setInterpolationDistance(int distance) { smoothness_interpolation_distance_ = distance; }
 
-    /** @brief Get how many slices the flow should go backwards
+    /** @brief Get how many slices the interpolation center is away from the start slice
      */
-    int getBackwardsLength() { return backwards_length_; }
+    int getInterpolationDistance() { return smoothness_interpolation_distance_; }
 
     /** @brief Set the already computed masterCloud OrderedPointSet
      */
     void setOrderedPointSet(volcart::OrderedPointSet<cv::Vec3d> masterCloud) { masterCloud_ = masterCloud; }
+
+    /** @brief Set the input chain of re-segmentation points */
+    void setReSegmentationChain(Chain c) { reSegStartingChain_ = std::move(c); }
+    /**@}*/
 
     /** @brief Interpolate the points behind the possibly adjusted new starting line with the already computed masterCloud OrderedPointSet to get a smooth final surface 
      */
@@ -262,8 +266,9 @@ private:
     int edge_jump_distance_{6};
     int edge_bounce_distance_{3};
     bool interpolate_master_cloud{true};
-    int backwards_smoothness_interpolation_window_{5};
-    int backwards_length_{25};
+    int smoothness_interpolation_window_{5}; //  window for interpolation (number if slices from interpolation distance/center in either direction)
+    int smoothness_interpolation_distance_{25}; // distance from start slice where the interpolation center is
+    Chain reSegStartingChain_;
     volcart::OrderedPointSet<cv::Vec3d> masterCloud_;
     mutable std::shared_mutex display_mutex_;
 };

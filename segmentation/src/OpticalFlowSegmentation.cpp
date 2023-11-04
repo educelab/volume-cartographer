@@ -34,7 +34,7 @@ size_t OpticalFlowSegmentationClass::progressIterations() const
         startingChain_.begin(), startingChain_.end(),
         [](auto a, auto b) { return a[2] < b[2]; });
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
-    return static_cast<size_t>((std::abs(endIndex_ - startIndex) + backwards_length_ + backwards_smoothness_interpolation_window_) / stepSize_);
+    return static_cast<size_t>((std::abs(endIndex_ - startIndex) + smoothness_interpolation_distance_ + smoothness_interpolation_window_) / stepSize_);
 }
 
 // print curve points with the help of this function
@@ -137,12 +137,12 @@ std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolatePoints(
     //     std::cout << "Error: Could not find starting index of points[0][0][2] in masterCloud_." << std::endl;
     //     return points;
     // }
-    // std::cout << "starting actual interpolation..." << std::endl;
-    // Interpolate points from 0 to window_size * masterCloud_.width(), under backwards flag
+
+    // Interpolate points from 0 to window_size * masterCloud_.width()
     for (int u = 0; u < 2*window_size; u++) {
         int masterRowIndex = i + (backwards ? -u : u);
         int pointsIndex = u;
-        float interpolate_point = ((float)u) / (2.0 * (float)window_size);
+        float interpolate_point = ((float)u + 1) / (2.0 * (float)window_size);
         float interpolate_mastercloud = 1 - interpolate_point;
         // Check indexes in range
         if (!(masterRowIndex >= 0 && masterRowIndex < masterCloud_.height() && pointsIndex >= 0 && pointsIndex < points.size())) {
@@ -635,6 +635,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
     // Duplicate the starting chain
     auto currentVs = startingChain_;
+    auto reSegVs = reSegStartingChain_;
 
     // Calculate the starting index
     auto minZPoint = std::min_element(
@@ -646,24 +647,32 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         throw std::domain_error("end index out of the volume");
     }
     bool backwards = startIndex > endIndex_;
-    int backwards_smoothness_interpolation_w = backwards_smoothness_interpolation_window_;
-    int backwards_length = backwards_length_ + backwards_smoothness_interpolation_w;
-    int backwards_endIndex = startIndex + (backwards ? backwards_length : -backwards_length);
-    if (backwards_endIndex < 0) {
-        backwards_endIndex = 0;
+    // Interpolation start = side/edge of the interpolation window that is nearest to start index
+    int interpolationStart = startIndex + (backwards ? -smoothness_interpolation_distance_ + smoothness_interpolation_window_  - 1: smoothness_interpolation_distance_ - smoothness_interpolation_window_ + 1);
+    int interpolationEnd = startIndex + (backwards ? -smoothness_interpolation_distance_ - smoothness_interpolation_window_ : smoothness_interpolation_distance_ + smoothness_interpolation_window_);
+    int interpolationLength = smoothness_interpolation_distance_ + smoothness_interpolation_window_;
+    if (interpolationEnd < 0) {
+        interpolationEnd = 0;
     }
-    if (vol_->numSlices() <= backwards_endIndex) {
-        backwards_endIndex = vol_->numSlices() - 1;
+    if (vol_->numSlices() <= interpolationEnd) {
+        interpolationEnd = vol_->numSlices() - 1;
     }
-    // std::cout << "Backwards Window and Length: " << backwards_smoothness_interpolation_w << " " << backwards_length << std::endl;
+    // std::cout << "Interpolation Window and Distance: " << smoothness_interpolation_window_ << " " << smoothness_interpolation_distance_ << std::endl;
     // Generate an overlap to interpolate and smooth point locations in z direction
 
     // Update the user-defined boundary
-    bb_.setUpperBoundByIndex(2, (backwards ? backwards_endIndex: endIndex_) + 1);
-    bb_.setLowerBoundByIndex(2, (backwards ? endIndex_ : backwards_endIndex) - 1);
+    bb_.setUpperBoundByIndex(2, (backwards ? startIndex : endIndex_) + 1);
+    bb_.setLowerBoundByIndex(2, (backwards ? endIndex_ : startIndex) - 1);
 
     // Check that incoming points are all within bounds
     if (std::any_of(begin(currentVs), end(currentVs), [this](auto v) {
+            return !bb_.isInBounds(v) || !vol_->isInBounds(v);
+        })) {
+        status_ = Status::ReturnedEarly;
+        progressComplete();
+        return create_final_pointset_({currentVs});
+    }
+    if (std::any_of(begin(reSegVs), end(reSegVs), [this](auto v) {
             return !bb_.isInBounds(v) || !vol_->isInBounds(v);
         })) {
         status_ = Status::ReturnedEarly;
@@ -679,36 +688,71 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     }
 
     // Collection to hold all positions
+    std::vector<std::vector<Voxel>> reSegPoints;
     std::vector<std::vector<Voxel>> points;
-    points.reserve(
-        (std::abs(endIndex_ - startIndex) + 1 + backwards_length + 1) / static_cast<uint64_t>(stepSize_));
+
+    if (smoothness_interpolation_window_ > 0)
+        reSegPoints.reserve((std::abs(endIndex_ - interpolationStart) + 1 + 1) / static_cast<uint64_t>(stepSize_));
+    points.reserve((std::abs(interpolationEnd - startIndex) + 1 + 1) / static_cast<uint64_t>(stepSize_));
 
     // Iterate over z-slices
     size_t iteration{0};
 
-    // Backward (not in the sense of upward/downward in z-index direction, but backwards interpolation) for loop with adjustments for backwards direction,
-    // to smoothen adjustments out and have a nice flat smooth sheet surface
-    if (computeSub(points, currentVs, startIndex, backwards_endIndex, !backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
-        return create_final_pointset_(points);
+    if (smoothness_interpolation_window_ > 0 && !reSegVs.empty()) {
+
+        // 1. If interpolation is active: Resegment from the end index till start of interpolation window (overwrite existing points)
+        if (computeSub(reSegPoints, reSegVs, endIndex_, interpolationStart, !backwards, iteration, !backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+            return create_final_pointset_(reSegPoints);
+        }
+
+        // Overwrite points in local master cloud, so we can later use it for interpolation
+        if (reSegPoints.size() > 0) {
+
+            int i = 0;
+            int pointIndex = 0;
+            for (i = 0; i < masterCloud_.height(); i++) {
+                auto masterRow = masterCloud_.getRow(i);
+                if ((backwards ? endIndex_ + 1 : interpolationStart) == masterRow[0][2]){
+                    pointIndex = i * masterCloud_.width();
+                    break;
+                }
+            }
+
+            for (auto row : reSegPoints) {
+                for (int j = 0; j < row.size(); j++) {
+                    masterCloud_[pointIndex] = row.at(j);
+                    pointIndex++;
+                }
+            }
+
+            // Now that we have update the master cloud, we only want to retain the portion of points that is outside
+            // the interpolation window.
+            if (backwards) {
+                reSegPoints.erase(reSegPoints.begin() + interpolationEnd - endIndex_ - 1, reSegPoints.end());
+            } else {
+                reSegPoints.erase(reSegPoints.begin() + interpolationStart - startIndex + 1, reSegPoints.end());
+            }
+        }
+
+        // 2. If interpolation is active: Segment from start index till end of interpolation window (interpolate)
+        if (computeSub(points, currentVs, startIndex, interpolationEnd, backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+            return create_final_pointset_(points);
+        }
+
+        points = interpolatePoints(points, smoothness_interpolation_window_, !backwards);
+
+        // Merge the re-segmentation points with the "main" points
+        if (!reSegPoints.empty()) {
+            points.insert((backwards ? points.begin() : points.end()), reSegPoints.begin(), reSegPoints.end());
+        }
+
+
+    } else {
+        // 3. If interpolation is not active: Segment from start index till end index
+        if (computeSub(points, currentVs, startIndex, endIndex_, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+            return create_final_pointset_(points);
+        }
     }
-
-    // Duplicate the starting chain
-    currentVs = startingChain_;
-    FittedCurve evenlyStartingCurve(currentVs,  startIndex);
-    currentVs = evenlyStartingCurve.evenlySpacePoints();
-    // Add starting line
-    points.push_back(currentVs);
-
-    points = interpolatePoints(points, backwards_smoothness_interpolation_w, backwards);
-
-    // Regular forward portion
-    if (computeSub(points, currentVs, startIndex, endIndex_, backwards, iteration, false, outputDir, wholeChainDir) == Status::ReturnedEarly) {
-        return create_final_pointset_(points);
-    }
-
-    // for (int i = 0; i < points.size(); ++i) {
-    //     std::cout << points[i][0][2] << " " << points[i][points[i].size()-1][2] << std::endl;
-    // }
 
     /////////////////////////////////////////////////////////
     // Update progress
