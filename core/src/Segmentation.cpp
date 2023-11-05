@@ -68,6 +68,9 @@ Segmentation::PointSet Segmentation::getPointSet() const
     return PointSetIO<cv::Vec3d>::ReadOrderedPointSet(filepath);
 }
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 // Save the AnnotationSet to disk
 void Segmentation::setAnnotationSet(const AnnotationSet& as)
 {
@@ -77,9 +80,27 @@ void Segmentation::setAnnotationSet(const AnnotationSet& as)
         metadata_.save();
     }
 
+    auto long_to_double = overloaded{
+        [](long l) { return (double)l; },
+    };
+
+    AnnotationSetRaw asRaw(as.width());
+    for (size_t h = 0; h < as.height(); ++h) {
+        std::vector<Segmentation::AnnotationRaw> anRowRaw;
+        anRowRaw.reserve(as.width());
+        for (size_t w = 0; w < as.width(); ++w) {
+            AnnotationRaw anRaw;
+            for (size_t i = 0; i < as[h * w].channels; ++i) {
+                anRaw[i] = std::visit(long_to_double, as[h * w](i));
+            }
+            anRowRaw.push_back(anRaw);
+        }
+        asRaw.pushRow(anRowRaw);
+    }
+
     // Write the annotation set to the segmentation file
     auto filepath = path_ / metadata_.get<std::string>("vcano");
-    PointSetIO<Segmentation::Annotation>::WriteOrderedPointSet(filepath, as);
+    PointSetIO<Segmentation::AnnotationRaw>::WriteOrderedPointSet(filepath, asRaw);
 }
 
 // Load the AnnotationSet from disk
@@ -92,5 +113,17 @@ Segmentation::AnnotationSet Segmentation::getAnnotationSet() const
 
     // Load the annotation set
     auto filepath = path_ / metadata_.get<std::string>("vcano");
-    return PointSetIO<Segmentation::Annotation>::ReadOrderedPointSet(filepath);
+
+    auto raw = PointSetIO<Segmentation::AnnotationRaw>::ReadOrderedPointSet(filepath);
+    Segmentation::AnnotationSet as(raw.width());
+    for (size_t h = 0; h < raw.height(); ++h) {
+        std::vector<Segmentation::Annotation> an;
+        an.reserve(raw.width());
+        for (size_t w = 0; w < raw.width(); ++w) {
+            an.emplace_back((long)raw[h * w][0], raw[h * w][1], raw[h * w][2]);
+        }
+        as.pushRow(an);
+    }
+
+    return as;
 }

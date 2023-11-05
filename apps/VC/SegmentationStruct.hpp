@@ -42,9 +42,9 @@ struct AnnotationStruct {
 
 enum AnnotationBits {
     ANO_UNUSED = 0, // we need to use at least two integers (16 bytes) for the point set logic to work, so the second integer is a placeholder for now and filled with zeros
-    ANO_ANCHOR = (int)(1 << 0),
-    ANO_MANUAL = (int)(1 << 1),
-    ANO_USED_IN_RUN = (int)(1 << 2)
+    ANO_ANCHOR = (long)(1 << 0),
+    ANO_MANUAL = (long)(1 << 1),
+    ANO_USED_IN_RUN = (long)(1 << 2)
 };
 
 struct SegmentationStruct {
@@ -257,13 +257,13 @@ struct SegmentationStruct {
             for (size_t j = 0; j < fAnnotationCloud.width(); ++j) {
                 pointIndex = j + (i * fAnnotationCloud.width());
 
-                if (fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_ANCHOR)
+                if (std::get<long>(fAnnotationCloud[pointIndex][0]) & AnnotationBits::ANO_ANCHOR)
                     an.anchor = true;
 
-                if (fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_MANUAL)
+                if (std::get<long>(fAnnotationCloud[pointIndex][0]) & AnnotationBits::ANO_MANUAL)
                     an.manual = true;
 
-                if (fAnnotationCloud[pointIndex][0] & AnnotationBits::ANO_USED_IN_RUN)
+                if (std::get<long>(fAnnotationCloud[pointIndex][0]) & AnnotationBits::ANO_USED_IN_RUN)
                     an.usedInRun = true;
             }
 
@@ -384,7 +384,7 @@ struct SegmentationStruct {
                 annotations.clear();
                 for (int ja = 0; ja < ps.width(); ja++) {
                     // We have no annotation info for the new points, so just create initial rows and entries
-                    annotations.emplace_back(defaultAnnotationFirstByte, AnnotationBits::ANO_UNUSED);
+                    annotations.emplace_back(defaultAnnotationFirstByte);
                 }
                 as.pushRow(annotations);
             }
@@ -428,7 +428,7 @@ struct SegmentationStruct {
         fAnnotationCloud.reset();
         fAnnotationCloud = volcart::Segmentation::AnnotationSet(width);
         const AnnotationStruct defaultAnnotation;
-        int defaultAnnotationFirstByte;
+        long defaultAnnotationFirstByte;
         if (defaultAnnotation.anchor) {
             defaultAnnotationFirstByte |= AnnotationBits::ANO_ANCHOR;
         }
@@ -445,7 +445,7 @@ struct SegmentationStruct {
             annotations.clear();
             for (int j = 0; j < width; j++) {
                 // We have no annotation info for the new points, so just create initial rows and entries
-                annotations.emplace_back(defaultAnnotationFirstByte, AnnotationBits::ANO_UNUSED);
+                annotations.emplace_back(defaultAnnotationFirstByte);
             }
             fAnnotationCloud.pushRow(annotations);
         }
@@ -463,9 +463,9 @@ struct SegmentationStruct {
 
         for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
             if (anchor) {
-                fAnnotationCloud[i][0] |= AnnotationBits::ANO_ANCHOR;
+                std::get<long>(fAnnotationCloud[i][0]) |= AnnotationBits::ANO_ANCHOR;
             } else {
-                fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_ANCHOR;
+                std::get<long>(fAnnotationCloud[i][0]) &= ~AnnotationBits::ANO_ANCHOR;
             }
         }
 
@@ -514,7 +514,7 @@ struct SegmentationStruct {
 
         if (fBufferedChangedPoints.size() > 0) {
             for (auto index : fBufferedChangedPoints) {
-                fAnnotationCloud[pointIndex + index][0] |= AnnotationBits::ANO_MANUAL;
+                std::get<long>(fAnnotationCloud[pointIndex + index][0]) |= AnnotationBits::ANO_MANUAL;
             }
 
             auto it = fAnnotations.find(sliceIndex);
@@ -537,9 +537,9 @@ struct SegmentationStruct {
 
         for(int i = pointIndex; i < (pointIndex + fAnnotationCloud.width()); i++) {
             if (used) {
-                fAnnotationCloud[i][0] |= AnnotationBits::ANO_USED_IN_RUN;
+                std::get<long>(fAnnotationCloud[i][0]) |= AnnotationBits::ANO_USED_IN_RUN;
             } else {
-                fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_USED_IN_RUN;
+                std::get<long>(fAnnotationCloud[i][0]) &= ~AnnotationBits::ANO_USED_IN_RUN;
             }
         }
 
@@ -579,9 +579,9 @@ struct SegmentationStruct {
         // In the future with new annotations being added, some of them might need to remain after a segmentation run.
         // In that case we might have to create more specialized logic to determine which flags to reset.
         for(int i = startPointIndex; i != endPointIndex; directionUp ? i++ : i--) {
-            fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_ANCHOR;
-            fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_MANUAL;
-            fAnnotationCloud[i][0] &= ~AnnotationBits::ANO_USED_IN_RUN;
+            std::get<long>(fAnnotationCloud[i][0]) &= ~AnnotationBits::ANO_ANCHOR;
+            std::get<long>(fAnnotationCloud[i][0]) &= ~AnnotationBits::ANO_MANUAL;
+            std::get<long>(fAnnotationCloud[i][0]) &= ~AnnotationBits::ANO_USED_IN_RUN;
         }
     }
 

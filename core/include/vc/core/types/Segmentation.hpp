@@ -7,6 +7,8 @@
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
 
+#include <variant>
+
 namespace volcart
 {
 
@@ -32,10 +34,16 @@ public:
     using PointSet = OrderedPointSet<cv::Vec3d>;
 
     /** Annotation type */
-    using Annotation = cv::Vec2i;
+    using Annotation = cv::Vec<std::variant<long, double>, 3>;
+
+    /** Annotation type (raw = only doubles) */
+    using AnnotationRaw = cv::Vec3d;
 
     /** Annotation set type */
     using AnnotationSet = OrderedPointSet<Annotation>;
+
+    /** Annotation set type (raw = only doubles) */
+    using AnnotationSetRaw = OrderedPointSet<AnnotationRaw>;
 
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Segmentation>;

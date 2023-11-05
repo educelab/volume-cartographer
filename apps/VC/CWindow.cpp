@@ -1776,7 +1776,7 @@ void CWindow::PrintDebugInfo()
         std::cout << " | ";
 
         for(auto ano : row) {
-            std::cout << ano[0] << " | ";
+            std::cout << std::get<long>(ano[0]) << " | ";
         }
         std::cout << std::endl;
     }
