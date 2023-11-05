@@ -1270,6 +1270,7 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
 
     // Run finished => we can now mark it as "used in a run"
     fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex, true);
+    fSegStructMap[submittedSegmentationId].SetAnnotationOriginalPos(ps);
 
     // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
     // that the run cannot have "run over" an anchor, so everything in between cannot be one and now was changed by the alogrithm,
@@ -1579,7 +1580,7 @@ void CWindow::SetPathPointCloud(void)
     std::vector<volcart::Segmentation::Annotation> annotations;
     for (const auto& pt : aSamplePts) {
         points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
-        annotations.emplace_back(AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL, AnnotationBits::ANO_UNUSED);
+        annotations.emplace_back(AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL);
     }
     fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
     fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);
@@ -1770,13 +1771,14 @@ void CWindow::PrintDebugInfo()
         auto masterRow = fSegStructMap[fHighlightedSegmentationId].fMasterCloud.getRow(i);
 
         std::cout << "I ";
-        std::cout << std::setfill('0') << std::setw(4) << i;
+        std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << i;
         std::cout << " : S ";
-        std::cout << std::setfill('0') << std::setw(4) << masterRow[0][2];
+        std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << masterRow[0][2];
         std::cout << " | ";
 
         for(auto ano : row) {
-            std::cout << std::get<long>(ano[0]) << " | ";
+            std::cout << std::get<long>(ano[0]) << " (" << QString("%1").arg(std::get<double>(ano[1]), 6, 'f', 2, '0').toStdString()
+                                                << ", " << QString("%1").arg(std::get<double>(ano[2]), 6, 'f', 2, '0').toStdString() << ") | ";
         }
         std::cout << std::endl;
     }

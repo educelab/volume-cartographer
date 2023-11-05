@@ -41,7 +41,6 @@ struct AnnotationStruct {
 };
 
 enum AnnotationBits {
-    ANO_UNUSED = 0, // we need to use at least two integers (16 bytes) for the point set logic to work, so the second integer is a placeholder for now and filled with zeros
     ANO_ANCHOR = (long)(1 << 0),
     ANO_MANUAL = (long)(1 << 1),
     ANO_USED_IN_RUN = (long)(1 << 2)
@@ -552,6 +551,21 @@ struct SegmentationStruct {
             AnnotationStruct an;
             an.usedInRun = used;
             fAnnotations[sliceIndex] = an;
+        }
+    }
+
+    // Set the annotation for the original position of each point as output by the segmentation algorithm
+    inline void SetAnnotationOriginalPos(volcart::Segmentation::PointSet ps)
+    {
+        for (int i = 0; i < ps.height(); i++) {
+            auto psRow = ps.getRow(i);
+
+            auto pointIndex = GetPointIndexForSliceIndex(psRow[0][2]);
+
+            for(int j = 0; j < ps.width(); j++) {
+                fAnnotationCloud[pointIndex + j][1] = psRow[j][0]; // X coordinate
+                fAnnotationCloud[pointIndex + j][2] = psRow[j][1]; // Y coordinate
+            }
         }
     }
 

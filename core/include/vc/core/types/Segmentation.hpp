@@ -33,7 +33,10 @@ public:
     /** Point set type */
     using PointSet = OrderedPointSet<cv::Vec3d>;
 
-    /** Annotation type */
+    /** Annotation type [long, double, double]
+     *  The long is sued as a bit flag carrier and the two doubles contain
+     *  the original point position before any manual moves.
+     */
     using Annotation = cv::Vec<std::variant<long, double>, 3>;
 
     /** Annotation type (raw = only doubles) */

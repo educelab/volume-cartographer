@@ -82,20 +82,21 @@ void Segmentation::setAnnotationSet(const AnnotationSet& as)
 
     auto long_to_double = overloaded{
         [](long l) { return (double)l; },
+        [](double d) { return d; },
     };
 
+    // Convert from [long, double, double] to only double values for storing
     AnnotationSetRaw asRaw(as.width());
     for (size_t h = 0; h < as.height(); ++h) {
-        std::vector<Segmentation::AnnotationRaw> anRowRaw;
-        anRowRaw.reserve(as.width());
+        std::vector<Segmentation::AnnotationRaw> asRowRaw(as.width());
         for (size_t w = 0; w < as.width(); ++w) {
             AnnotationRaw anRaw;
-            for (size_t i = 0; i < as[h * w].channels; ++i) {
-                anRaw[i] = std::visit(long_to_double, as[h * w](i));
+            for (size_t i = 0; i < as[h * as.width() + w].channels; ++i) {
+                anRaw[i] = std::visit(long_to_double, as[h * as.width() + w](i));
             }
-            anRowRaw.push_back(anRaw);
+            asRowRaw[w] = anRaw;
         }
-        asRaw.pushRow(anRowRaw);
+        asRaw.pushRow(asRowRaw);
     }
 
     // Write the annotation set to the segmentation file
@@ -113,16 +114,16 @@ Segmentation::AnnotationSet Segmentation::getAnnotationSet() const
 
     // Load the annotation set
     auto filepath = path_ / metadata_.get<std::string>("vcano");
-
     auto raw = PointSetIO<Segmentation::AnnotationRaw>::ReadOrderedPointSet(filepath);
+
+    // Convert from raw (only double values) to [long, double, double]
     Segmentation::AnnotationSet as(raw.width());
     for (size_t h = 0; h < raw.height(); ++h) {
-        std::vector<Segmentation::Annotation> an;
-        an.reserve(raw.width());
+        std::vector<Segmentation::Annotation> asRow(raw.width());
         for (size_t w = 0; w < raw.width(); ++w) {
-            an.emplace_back((long)raw[h * w][0], raw[h * w][1], raw[h * w][2]);
+            asRow[w] = Annotation((long)raw[h * raw.width() + w][0], raw[h * raw.width() + w][1], raw[h * raw.width() + w][2]);
         }
-        as.pushRow(an);
+        as.pushRow(asRow);
     }
 
     return as;
