@@ -142,6 +142,25 @@ struct SegmentationStruct {
             // load annotations
             if (fSegmentation->hasAnnotations()) {
                 fAnnotationCloud = fSegmentation->getAnnotationSet();
+
+                if (fAnnotationCloud.empty()) {
+                    // Loading error
+                    QMessageBox::warning(nullptr, QObject::tr("Invalid annotation file"), QObject::tr("Could not read the *.vcano annotation file referenced in meta.json for segment %1!\n\n"
+                        "Either locate the missing file or remove the reference from meta.json in your segment folder.").arg(QString::fromStdString(fSegmentationId)));
+                } else {
+                    if (fMasterCloud.size() != fAnnotationCloud.size()) {
+                        // Size mismatch
+                        QMessageBox::information(nullptr, QObject::tr("Size mismatch"), QObject::tr("The size of the point cloud and the annotations for %1 do not match!\n\n"
+                            "Perhaps the *.vcps file was changed without adjusting the *.vcano annotation file?\n\nThe application will now extend the *.vcano file to match the *.vcps file.").arg(QString::fromStdString(fSegmentationId)));
+
+                        AlignAnnotationCloudWithPointCloud();
+
+                        if (fMasterCloud.size() != fAnnotationCloud.size()) {
+                            // If there still is a mismatch, raise an error to the user
+                            QMessageBox::critical(nullptr, QObject::tr("Size mismatch"), QObject::tr("Size mismatch between point cloud and annotation cloud could not be resolved! Continue at your own risk!"));
+                        }
+                    }
+                }
             } else {
                 // create and store annotation set if not present
                 fAnnotationCloud = CreateInitialAnnotationSet(fMasterCloud[0][2], fMasterCloud.height(), fMasterCloud.width());
@@ -150,17 +169,6 @@ struct SegmentationStruct {
         } else {
             fMasterCloud.reset();
             fAnnotationCloud.reset();
-        }
-
-        if (fMasterCloud.size() != fAnnotationCloud.size()) {
-            QMessageBox::information(nullptr, QObject::tr("Size mismatch"), QObject::tr("The size of the point cloud and the annotations for %1 do not match!\n\nPerhaps the VCPS file was changed without adjusting the VCANO annotation file?\n\nThe application will now extend the VCANO file to match the VCPS file.").arg(QString::fromStdString(fSegmentationId)));
-
-            AlignAnnotationCloudWithPointCloud();
-
-            if (fMasterCloud.size() != fAnnotationCloud.size()) {
-                // If there still is a mismatch, raise an error to the user
-                QMessageBox::critical(nullptr, QObject::tr("Size mismatch"), QObject::tr("Size mismatch between point cloud and annotation cloud could not be resolved! Continue at your own risk!"));
-            }
         }
 
         if (fSegmentation->hasVolumeID()) {
