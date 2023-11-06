@@ -927,8 +927,11 @@ void CWindow::ChangePathItem(std::string segID)
     statusBar->clearMessage();
     fSegmentationId = segID;
 
-    // write new Segment to fSegStructMap
-    fSegStructMap[fSegmentationId] = SegmentationStruct(fVpkg, segID, fPathOnSliceIndex);
+    // Load new Segment to fSegStructMap, but only if it is not present yet or empty (empty check required, since even
+    // after both "Display" and "Compute" checkboxes are off, an empty shell appears in the map, probably due to access attempts).
+    if (fSegStructMap.find(fSegmentationId) == fSegStructMap.end() || fSegStructMap[fSegmentationId].fMasterCloud.empty()) {
+        fSegStructMap[fSegmentationId] = SegmentationStruct(fVpkg, segID, fPathOnSliceIndex);
+    }
 
     if (fSegStructMap[fSegmentationId].currentVolume != nullptr && fSegStructMap[fSegmentationId].fSegmentation->hasVolumeID()) {
         currentVolume = fSegStructMap[fSegmentationId].currentVolume;
@@ -1076,7 +1079,7 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
     bool skipRun = false;
     volcart::segmentation::ChainSegmentationAlgorithm::Chain reSegStartingChain;
 
-    std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run ===" << std::endl;
+    std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run (" << segID << ") ===" << std::endl;
     std::cout << "OFS: Mode: " << (useAnchor ? "Anchor" : "Slice") << std::endl;
     std::cout << "OFS: Start Slice: " << startIndex << std::endl;
 
@@ -1579,9 +1582,11 @@ void CWindow::SetPathPointCloud(void)
     fSegStructMap[fSegmentationId].fAnnotationCloud.setWidth(aSamplePts.size());
     std::vector<cv::Vec3d> points;
     std::vector<volcart::Segmentation::Annotation> annotations;
+    double initialPos = 0;
+
     for (const auto& pt : aSamplePts) {
         points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
-        annotations.emplace_back(fPathOnSliceIndex, AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL);
+        annotations.emplace_back(volcart::Segmentation::Annotation((long)fPathOnSliceIndex, (long)(AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL), initialPos, initialPos));
     }
     fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
     fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);

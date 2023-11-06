@@ -144,7 +144,8 @@ struct SegmentationStruct {
                 fAnnotationCloud = fSegmentation->getAnnotationSet();
             } else {
                 // create and store annotation set if not present
-                fSegmentation->setAnnotationSet(CreateInitialAnnotationSet(fMasterCloud.height(), fMasterCloud.width()));
+                fAnnotationCloud = CreateInitialAnnotationSet(fMasterCloud[0][2], fMasterCloud.height(), fMasterCloud.width());
+                fSegmentation->setAnnotationSet(fAnnotationCloud);
             }
         } else {
             fMasterCloud.reset();
@@ -152,9 +153,14 @@ struct SegmentationStruct {
         }
 
         if (fMasterCloud.size() != fAnnotationCloud.size()) {
-            QMessageBox::warning(nullptr, QObject::tr("Size mismatch"), QObject::tr("The size of the point cloud and the annotations do not match!\nPerhaps the VCPS file was changed without adjusting the VCANO annotation file?\n\nThe application will now extend the VCANO file to match the VCPS file."));
+            QMessageBox::information(nullptr, QObject::tr("Size mismatch"), QObject::tr("The size of the point cloud and the annotations for %1 do not match!\n\nPerhaps the VCPS file was changed without adjusting the VCANO annotation file?\n\nThe application will now extend the VCANO file to match the VCPS file.").arg(QString::fromStdString(fSegmentationId)));
 
-            AlignAnnotationCloudWithPointCloud();        
+            AlignAnnotationCloudWithPointCloud();
+
+            if (fMasterCloud.size() != fAnnotationCloud.size()) {
+                // If there still is a mismatch, raise an error to the user
+                QMessageBox::critical(nullptr, QObject::tr("Size mismatch"), QObject::tr("Size mismatch between point cloud and annotation cloud could not be resolved! Continue at your own risk!"));
+            }
         }
 
         if (fSegmentation->hasVolumeID()) {
@@ -394,13 +400,14 @@ struct SegmentationStruct {
             // the existing row that e.g. the segmentation was started with to not loose its flags).
             volcart::Segmentation::AnnotationSet as(fAnnotationCloud.width());
             std::vector<volcart::Segmentation::Annotation> annotations;
+            double initialPos = 0;
 
             for (int ia = 0; ia < sizeDelta; ia++) {
                 annotations.clear();
                 for (int ja = 0; ja < ps.width(); ja++) {
                     // We have no annotation info for the new points, so just create initial entries
                     long sliceIndex = frontGrowth ? ps[0][2] + ia : std::get<long>(fAnnotationCloud[fAnnotationCloud.size() - 1][ANO_EL_SLICE]) + 1 + ia;
-                    annotations.emplace_back(sliceIndex, defaultAnnotationFlags);
+                    annotations.emplace_back(volcart::Segmentation::Annotation((long)sliceIndex, defaultAnnotationFlags, initialPos, initialPos));
                 }
                 as.pushRow(annotations);
             }
@@ -439,12 +446,11 @@ struct SegmentationStruct {
         MergePointSetIntoPointCloud(ps);
     }
 
-    inline volcart::Segmentation::AnnotationSet CreateInitialAnnotationSet(int height, int width)
+    inline volcart::Segmentation::AnnotationSet CreateInitialAnnotationSet(int startSlice, int height, int width)
     {
-        fAnnotationCloud.reset();
-        fAnnotationCloud = volcart::Segmentation::AnnotationSet(width);
+        volcart::Segmentation::AnnotationSet as(width);
         const AnnotationStruct defaultAnnotation;
-        long defaultAnnotationFlags;
+        long defaultAnnotationFlags = 0;
         if (defaultAnnotation.anchor) {
             defaultAnnotationFlags |= AnnotationBits::ANO_ANCHOR;
         }
@@ -456,40 +462,40 @@ struct SegmentationStruct {
         }
 
         std::vector<volcart::Segmentation::Annotation> annotations;
-
+        double initialPos = 0;
         for (int i = 0; i < height; i++) {
             annotations.clear();
             for (int j = 0; j < width; j++) {
-                // We have no annotation info for the new points, so just create initial rows and entries
-                annotations.emplace_back(defaultAnnotationFlags);
+                // We have no annotation info for the new points, so just create initial entries
+                annotations.emplace_back(volcart::Segmentation::Annotation((long)(startSlice + i), defaultAnnotationFlags, initialPos, initialPos));
             }
-            fAnnotationCloud.pushRow(annotations);
+            as.pushRow(annotations);
         }
 
-        return fAnnotationCloud;
+        return as;
     }
 
-    /// Align the size of the annotation cloud to the point cloud to ensure they have the same size again.
-    // Mismatches can happen if point cloud was changed outside of VC in a tool that does not handle annotations.
-    // By ensuring we have the same size, we can still work with anntoations in VC, although for the new point rows
-    // added outside VC, we of course do not have any filled annotations.
+    // Align the size of the annotation cloud to the point cloud to ensure they have the same dimensions again.
+    // Mismatches can happen if the point cloud was changed outside of VC in a tool that does not handle annotations.
+    // By ensuring we have the same size, we can still work with annotations in VC, although for the new point rows
+    // added outside VC, we of course do only have default annotation values.
     inline void AlignAnnotationCloudWithPointCloud()
     {
-        if(fMasterCloud.size() != fAnnotationCloud.size()) {
+        if (fMasterCloud.size() != fAnnotationCloud.size()) {
             volcart::Segmentation::AnnotationSet newCloud(fAnnotationCloud.width());
 
-            int delta = fMasterCloud[0][2] - std::get<double>(fAnnotationCloud[0][0]);
+            int delta = std::abs(fMasterCloud[0][2] - std::get<long>(fAnnotationCloud[0][ANO_EL_SLICE]));
             // Check if we need to add rows at the start
             if (delta > 0) {
-                newCloud.append(CreateInitialAnnotationSet(delta, fAnnotationCloud.width()));
+                newCloud.append(CreateInitialAnnotationSet(fMasterCloud[0][2], delta, fAnnotationCloud.width()));
             }
 
             newCloud.append(fAnnotationCloud);
 
             // Check if we need to add rows at the end
-            delta = fMasterCloud[fMasterCloud.size() - 1][2] - std::get<double>(fAnnotationCloud[fAnnotationCloud.size() - 1][0]);
+            delta = std::abs(fMasterCloud[fMasterCloud.size() - 1][2] - std::get<long>(fAnnotationCloud[fAnnotationCloud.size() - 1][ANO_EL_SLICE]));
             if (delta > 0) {
-                newCloud.append(CreateInitialAnnotationSet(delta, fAnnotationCloud.width()));
+                newCloud.append(CreateInitialAnnotationSet(std::get<long>(fAnnotationCloud[fAnnotationCloud.size() - 1][ANO_EL_SLICE]) + 1, delta, fAnnotationCloud.width()));
             }
 
             fAnnotationCloud = newCloud;
@@ -555,7 +561,7 @@ struct SegmentationStruct {
         // Determine the first point index from the annotation cloud that belongs to the provided
         // slice index.
         for (int i = 0; i < fAnnotationCloud.height(); i++) {
-            if (sliceIndex == std::get<long>(fAnnotationCloud[i * fAnnotationCloud.width()][0])) {
+            if (sliceIndex == std::get<long>(fAnnotationCloud[i * fAnnotationCloud.width()][ANO_EL_SLICE])) {
                 return i * fAnnotationCloud.width();
             }
         }
