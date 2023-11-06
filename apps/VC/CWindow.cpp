@@ -241,12 +241,9 @@ void CWindow::CreateWidgets(void)
         fVolumeViewerWidget, SIGNAL(SendSignalAnnotationChanged()), this,
         SLOT(OnAnnotationChanged()));
 
-    // new path button
-    QPushButton* aBtnNewPath = this->findChild<QPushButton*>("btnNewPath");
-    QPushButton* aBtnRemovePath =
-        this->findChild<QPushButton*>("btnRemovePath");
-    connect(aBtnNewPath, SIGNAL(clicked()), this, SLOT(OnNewPathClicked()));
-    connect(aBtnRemovePath, SIGNAL(clicked()), this, SLOT(OnRemovePathClicked()));
+    // new and remove path buttons
+    connect(ui.btnNewPath, SIGNAL(clicked()), this, SLOT(OnNewPathClicked()));
+    connect(ui.btnRemovePath, SIGNAL(clicked()), this, SLOT(OnRemovePathClicked()));
 
     // TODO CHANGE VOLUME LOADING; FIRST CHECK FOR OTHER VOLUMES IN THE STRUCTS
     volSelect = this->findChild<QComboBox*>("volSelect");
@@ -2204,6 +2201,8 @@ void CWindow::OnPathItemSelectionChanged()
     if (!items.empty()) {
         OnPathItemClicked(items.at(0), 0);
     }
+
+    ui.btnRemovePath->setEnabled(!items.empty());
 }
 
 // Logic to switch the selected ID
