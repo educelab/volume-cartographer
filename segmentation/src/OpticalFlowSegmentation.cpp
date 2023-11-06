@@ -724,25 +724,29 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
             // Now that we have update the master cloud, we only want to retain the portion of points that is outside
             // the interpolation window.
-            if (backwards) {
-                reSegPoints.erase(reSegPoints.begin() + interpolationEnd - endIndex_ - 1, reSegPoints.end());
+            // For extreme settings such as 100 % interpolation, we can skip the erase overhead and simply clear out.
+            if (interpolationEnd == endIndex_ || interpolationStart == startIndex) {
+                reSegPoints.clear();
             } else {
-                reSegPoints.erase(reSegPoints.begin() + interpolationStart - startIndex + 1, reSegPoints.end());
+                if (backwards) {
+                    reSegPoints.erase(reSegPoints.begin() + interpolationEnd - endIndex_ - 1, reSegPoints.end());
+                } else {
+                    reSegPoints.erase(reSegPoints.begin() + interpolationStart - startIndex + 1, reSegPoints.end());
+                }
             }
         }
 
-        // 2. If interpolation is active: Segment from start index till end of interpolation window (interpolate)
+        // 2. If interpolation is active: Segment from start index till end of interpolation window (interpolate with existing points)
         if (computeSub(points, startingChain_, startIndex, interpolationEnd, backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(points);
         }
 
         points = interpolatePoints(points, smoothness_interpolation_window_, !backwards);
 
-        // Merge the re-segmentation points with the "main" points
+        // Merge the re-segmentation points with the "main" points created from the actual starting slice curve
         if (!reSegPoints.empty()) {
             points.insert((backwards ? points.begin() : points.end()), reSegPoints.begin(), reSegPoints.end());
         }
-
 
     } else {
         // 3. If interpolation is not active: Segment from start index till end index

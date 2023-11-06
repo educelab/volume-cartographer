@@ -620,7 +620,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
 
         // Get annotations for current curve
         auto hasAnnotations = !segStruct.fAnnotationCloud.empty();
-        auto pointIndex = segStruct.GetPointIndexForSliceIndex(segStruct.fPathOnSliceIndex);
+        auto pointIndex = segStruct.GetAnnotationIndexForSliceIndex(segStruct.fPathOnSliceIndex);
 
         for (int i = 0; i < pointsNum; ++i) {
             // Create new ellipse points
