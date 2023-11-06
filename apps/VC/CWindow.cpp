@@ -1581,7 +1581,7 @@ void CWindow::SetPathPointCloud(void)
     std::vector<volcart::Segmentation::Annotation> annotations;
     for (const auto& pt : aSamplePts) {
         points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
-        annotations.emplace_back(AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL);
+        annotations.emplace_back(fPathOnSliceIndex, AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL);
     }
     fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
     fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);
@@ -1774,12 +1774,14 @@ void CWindow::PrintDebugInfo()
         std::cout << "I ";
         std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << i;
         std::cout << " : S ";
+        std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << std::get<long>(row[0][ANO_EL_SLICE]);
+        std::cout << " (M: ";
         std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << masterRow[0][2];
-        std::cout << " | ";
+        std::cout << ") | ";
 
         for(auto ano : row) {
-            std::cout << std::get<long>(ano[0]) << " (" << QString("%1").arg(std::get<double>(ano[1]), 6, 'f', 2, '0').toStdString()
-                                                << ", " << QString("%1").arg(std::get<double>(ano[2]), 6, 'f', 2, '0').toStdString() << ") | ";
+            std::cout << std::get<long>(ano[ANO_EL_FLAGS]) << " (" << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_X]), 6, 'f', 2, '0').toStdString()
+                                                           << ", " << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_Y]), 6, 'f', 2, '0').toStdString() << ") | ";
         }
         std::cout << std::endl;
     }

@@ -33,14 +33,15 @@ public:
     /** Point set type */
     using PointSet = OrderedPointSet<cv::Vec3d>;
 
-    /** Annotation type [long, double, double]
-     *  The long is sued as a bit flag carrier and the two doubles contain
-     *  the original point position before any manual moves.
+    /** Annotation type [long, long, double, double]
+     *  The first long is used to store the slice index and the second as
+     *  a bit flag carrier and the two doubles contain the original point
+     *  position before any manual moves.
      */
-    using Annotation = cv::Vec<std::variant<long, double>, 3>;
+    using Annotation = cv::Vec<std::variant<long, double>, 4>;
 
     /** Annotation type (raw = only doubles) */
-    using AnnotationRaw = cv::Vec3d;
+    using AnnotationRaw = cv::Vec4d;
 
     /** Annotation set type */
     using AnnotationSet = OrderedPointSet<Annotation>;

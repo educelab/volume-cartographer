@@ -85,7 +85,7 @@ void Segmentation::setAnnotationSet(const AnnotationSet& as)
         [](double d) { return d; },
     };
 
-    // Convert from [long, double, double] to only double values for storing
+    // Convert from the long and double variant to only double values for storing
     AnnotationSetRaw asRaw(as.width());
     for (size_t h = 0; h < as.height(); ++h) {
         std::vector<Segmentation::AnnotationRaw> asRowRaw(as.width());
@@ -116,12 +116,12 @@ Segmentation::AnnotationSet Segmentation::getAnnotationSet() const
     auto filepath = path_ / metadata_.get<std::string>("vcano");
     auto raw = PointSetIO<Segmentation::AnnotationRaw>::ReadOrderedPointSet(filepath);
 
-    // Convert from raw (only double values) to [long, double, double]
+    // Convert from raw (only double values) to long and double variant
     Segmentation::AnnotationSet as(raw.width());
     for (size_t h = 0; h < raw.height(); ++h) {
         std::vector<Segmentation::Annotation> asRow(raw.width());
         for (size_t w = 0; w < raw.width(); ++w) {
-            asRow[w] = Annotation((long)raw[h * raw.width() + w][0], raw[h * raw.width() + w][1], raw[h * raw.width() + w][2]);
+            asRow[w] = Annotation((long)raw[h * raw.width() + w][0], (long)raw[h * raw.width() + w][1], raw[h * raw.width() + w][2], raw[h * raw.width() + w][3]);
         }
         as.pushRow(asRow);
     }
