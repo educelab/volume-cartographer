@@ -8,7 +8,7 @@ volumetric analysis applications.
 ## Changes
 This fork contains the following changes compared to upstream currently:
 
-### Whist list / feature requestws from Segmentation Team
+### Changes from Whist List / Feature Requests of Segmentation Team
 - Implemented both points from #1 (*"Scan in Segment Mode"*) of the segmentation wish list ([Goole Doc](https://docs.google.com/document/d/1YFILhWVHyijU_Yky3lKPvGAjmYm2QnRTYzMM7VqcogA)):
   * Added new keyboard shortcuts so that now via number keys slice navigation in 1, 2, 5, 10 and 100 steps is available
   * Added option to scan through slices while in the Segmentation Tool without losing any made curve changes (when user leaves the Segmentation Tool, a warning is shown to offer to either discard the curve changes, store them or cancel)
