@@ -27,6 +27,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     QSettings settings;
     colorSelector = new ColorFrame(this);
     colorSelector->setFixedSize(16, 16);
+    colorSelector->setToolTip(tr("Curve color"));
     auto color = settings.value("volumeViewer/curveColor", QColor("green"))
                      .value<QColor>();
     colorSelector->setColor(color);
@@ -41,6 +42,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
 
     colorSelectorCompute = new ColorFrame(this);
     colorSelectorCompute->setFixedSize(16, 16);
+    colorSelectorCompute->setToolTip(tr("Curve color (for \"Compute\" mode)"));
     auto colorCompute = settings.value("volumeViewer/computeColor", QColor("blue"))
                      .value<QColor>();
     colorSelectorCompute->setColor(colorCompute);
@@ -55,6 +57,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
 
     colorSelectorHighlight = new ColorFrame(this);
     colorSelectorHighlight->setFixedSize(16, 16);
+    colorSelectorHighlight->setToolTip(tr("Highlighted curve color"));
     auto colorHighlight = settings.value("volumeViewer/computeHighlight", QColor("red"))
                      .value<QColor>();
     colorSelectorHighlight->setColor(colorHighlight);
@@ -69,6 +72,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
 
     colorSelectorManual = new ColorFrame(this);
     colorSelectorManual->setFixedSize(16, 16);
+    colorSelectorManual->setToolTip(tr("Manually changed points color"));
     auto colorManual = settings.value("volumeViewer/manualColor", QColor("orange"))
                      .value<QColor>();
     colorSelectorManual->setColor(colorManual);
@@ -87,7 +91,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     connect(
         fShowCurveBox, SIGNAL(stateChanged(int)), this,
         SLOT(OnShowCurveStateChanged(int)));
-
+    // Separate label (rather than using the one from the checkbox) for a visually tighter fit
     QLabel* ShowCurveLabel = new QLabel(this);
     ShowCurveLabel->setText("Show Curve");
     fButtonsLayout->addWidget(fShowCurveBox);
@@ -98,7 +102,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     connect(
         fHistEqBox, SIGNAL(stateChanged(int)), this,
         SLOT(OnHistEqStateChanged(int)));
-
+    // Separate label (rather than using the one from the checkbox) for a visually tighter fit
     QLabel* HistEqLabel = new QLabel(this);
     HistEqLabel->setText("HistEq");
     fButtonsLayout->addWidget(fHistEqBox);
