@@ -174,7 +174,7 @@ void CVolumeViewerWithCurve::SetScanRange(int nScanRange)
     fGraphicsView->showCurrentScanRange(nScanRange);
 }
 
-// Return to the slice that the tool was started on 
+// Return to the slice that the tool was started on
 void CVolumeViewerWithCurve::ReturnToSliceIndexToolStart()
 {
     SendSignalOnLoadAnyImage(sliceIndexToolStart);
@@ -217,7 +217,7 @@ void CVolumeViewerWithCurve::UpdateView()
         }
         DrawControlPoints(fScene);
     }
-    
+
     if (showCurve) {
         // qDebug() << "showCurve";
         DrawIntersectionCurve(fScene);
@@ -232,13 +232,13 @@ void CVolumeViewerWithCurve::UpdateView()
 }
 
 void CVolumeViewerWithCurve::panAlongCurve(double speed, bool forward)
-{    
+{
     auto p2 = GetScrollPosition() / fScaleFactor  + scrollPositionModifier;
 
     auto res = SelectPointOnCurves(p2, false, true);
     fSelectedPointIndex = res.first;
     fSelectedSegID = res.second;
-    
+
     if (fSelectedPointIndex == -1) {
         return;
     }
@@ -539,12 +539,12 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
     // Step 1: Convert widget coordinates to scene coordinates
     QPointF widgetPoint(nWidgetLoc[0] - (fGraphicsView->pos()).x() - 2, nWidgetLoc[1] - (fGraphicsView->pos()).y() - 2);
     //widgetPoint = widgetPoint - fGraphicsView->pos();
-        
+
     QPointF scenePoint = fGraphicsView->mapToScene(widgetPoint.toPoint());
-  
+
     // Step 2: Convert scene coordinates to item coordinates
     QPointF itemPoint = fBaseImageItem->mapFromScene(scenePoint);
-  
+
     nImgLoc[0] = static_cast<float>(itemPoint.x());
     nImgLoc[1] = static_cast<float>(itemPoint.y());
 }

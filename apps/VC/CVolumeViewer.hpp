@@ -55,7 +55,7 @@ public:
         ViewStateEdit,  // edit mode
         ViewStateDraw,  // draw mode
         ViewStateIdle   // idle mode
-    };  
+    };
 
     QPushButton* fNextBtn;
     QPushButton* fPrevBtn;

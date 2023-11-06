@@ -295,7 +295,6 @@ private:
     QSpinBox* edtInterpolationPercent;
 
     QSlider* fEdtImpactRange;
-    QLabel* fLabImpactRange;
 
     // keyboard shortcuts
     QShortcut* slicePrev;

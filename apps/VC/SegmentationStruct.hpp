@@ -240,8 +240,12 @@ struct SegmentationStruct {
         }
         fIntersections.clear();
         int minIndex, maxIndex;
-        minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
-        maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);
+        if (fMasterCloud.empty()) {
+            minIndex = maxIndex = fPathOnSliceIndex;
+        } else {
+            minIndex = static_cast<int>(floor(fMasterCloud[0][2]));
+            maxIndex = static_cast<int>(fMasterCloud.getRow(fMasterCloud.height()-1)[fMasterCloud.width()-1][2]);
+        }
 
         fMinSegIndex = minIndex;
         fMaxSegIndex = maxIndex;

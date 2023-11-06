@@ -211,7 +211,6 @@ void CWindow::keyPressEvent(QKeyEvent* event)
 void CWindow::CreateWidgets(void)
 {
     // add volume viewer
-
     fVolumeViewerWidget = new CVolumeViewerWithCurve(fSegStructMap);
     connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalStatusMessageAvailable, this, &CWindow::onShowStatusMessage);
     connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalImpactRangeUp, this, &CWindow::onImpactRangeUp);
@@ -220,7 +219,7 @@ void CWindow::CreateWidgets(void)
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fVolumeViewerWidget);
 
-    this->ui.tabSegment->setLayout(aWidgetLayout);
+    ui.tabSegment->setLayout(aWidgetLayout);
 
     // pass the reference of the curve to the widget
     fVolumeViewerWidget->SetSplineCurve(fSplineCurve);
@@ -264,8 +263,8 @@ void CWindow::CreateWidgets(void)
             OnLoadAnySlice(0);
             setDefaultWindowWidth(newVolume);
             fVolumeViewerWidget->setNumSlices(currentVolume->numSlices());
-            this->ui.spinBackwardSlice->setMaximum(currentVolume->numSlices());
-            this->ui.spinForwardSlice->setMaximum(currentVolume->numSlices());
+            ui.spinBackwardSlice->setMaximum(currentVolume->numSlices());
+            ui.spinForwardSlice->setMaximum(currentVolume->numSlices());
         });
 
     assignVol = this->findChild<QPushButton*>("assignVol");
@@ -390,13 +389,13 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Maximum Cache Size")));
     opticalFlowParamsLayout->addWidget(edtCacheSize);
 
-    this->ui.segParamsStack->addWidget(opticalFlowParamsContainer);
+    ui.segParamsStack->addWidget(opticalFlowParamsContainer);
     // set the default segmentation method as Optical Flow Segmentation
     aSegMethodsComboBox->setCurrentIndex(1);
     OnChangeSegAlgo(1);
 
     // LRPS segmentation parameters
-    // all of these are contained in this->ui.lrpsParams
+    // all of these are contained in ui.lrpsParams
     fEdtAlpha = this->findChild<QLineEdit*>("edtAlphaVal");
     fEdtBeta = this->findChild<QLineEdit*>("edtBetaVal");
     fEdtDelta = this->findChild<QLineEdit*>("edtDeltaVal");
@@ -427,18 +426,18 @@ void CWindow::CreateWidgets(void)
         fOptIncludeMiddle, SIGNAL(clicked(bool)), this,
         SLOT(OnOptIncludeMiddleClicked(bool)));
 
-    this->ui.spinBackwardSlice->setMinimum(0);
-    this->ui.spinBackwardSlice->setEnabled(false);
-    connect(this->ui.spinForwardSlice, &QSpinBox::editingFinished, this, &CWindow::OnEdtEndingSliceValChange);
+    ui.spinBackwardSlice->setMinimum(0);
+    ui.spinBackwardSlice->setEnabled(false);
+    connect(ui.spinForwardSlice, &QSpinBox::editingFinished, this, &CWindow::OnEdtEndingSliceValChange);
 
-    connect(this->ui.buttonGroupBackward, &QButtonGroup::buttonToggled, this, &CWindow::onBackwardButtonGroupToggled);
-    connect(this->ui.buttonGroupForward, &QButtonGroup::buttonToggled, this, &CWindow::onForwardButtonGroupToggled);
+    connect(ui.buttonGroupBackward, &QButtonGroup::buttonToggled, this, &CWindow::onBackwardButtonGroupToggled);
+    connect(ui.buttonGroupForward, &QButtonGroup::buttonToggled, this, &CWindow::onForwardButtonGroupToggled);
 
     // INSERT OTHER SEGMENTATION PARAMETER WIDGETS HERE
-    // this->ui.segParamsStack->addWidget(new QLabel("Parameter widgets here"));
+    // ui.segParamsStack->addWidget(new QLabel("Parameter widgets here"));
 
     // start segmentation button
-    connect(this->ui.btnStartSeg, &QPushButton::clicked, this, &CWindow::OnBtnStartSegClicked);
+    connect(ui.btnStartSeg, &QPushButton::clicked, this, &CWindow::OnBtnStartSegClicked);
 
     // Impact Range slider
     QSlider* fEdtImpactRng = this->findChild<QSlider*>("sldImpactRange");
@@ -446,13 +445,11 @@ void CWindow::CreateWidgets(void)
     // => range 0..size()-1
     fEdtImpactRng->setMinimum(0);
     fEdtImpactRng->setMaximum(impactRangeSteps.size() - 1);
-    // "Randomly" set the starting value to the middle of the steps.
-    fEdtImpactRng->setValue(impactRangeSteps.size() / 2);
-    fLabImpactRange = this->findChild<QLabel*>("labImpactRange");
-    fLabImpactRange->setText(QString::number(fEdtImpactRng->value()));
+    // "Randomly" set the starting value to the middle of the steps
     connect(
         fEdtImpactRng, SIGNAL(valueChanged(int)), this,
         SLOT(OnEdtImpactRange(int)));
+    fEdtImpactRng->setValue(impactRangeSteps.size() / 2);
 
     // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
@@ -511,7 +508,7 @@ void CWindow::CreateWidgets(void)
     connect(impactUp_old, &QShortcut::activated, this, &CWindow::onImpactRangeUp);
     connect(impactDwn_old, &QShortcut::activated, this, &CWindow::onImpactRangeDown);
     connect(segmentationToolShortcut, &QShortcut::activated, this, &CWindow::ActivateSegmentationTool);
-    connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);    
+    connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);
     connect(next1, &QShortcut::activated, [this]() {
         int shift = 1;
         OnLoadNextSliceShift(shift);
@@ -862,8 +859,8 @@ void CWindow::UpdateView(void)
     fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
 
     // Set / calculate backward and forward index
-    this->ui.spinBackwardSlice->setValue(std::clamp(fSliceIndexToolStart - fEndTargetOffset, 0, fSliceIndexToolStart));
-    this->ui.spinForwardSlice->setValue(std::clamp(fSliceIndexToolStart + fEndTargetOffset, fSliceIndexToolStart, currentVolume->numSlices() - 1));
+    ui.spinBackwardSlice->setValue(std::clamp(fSliceIndexToolStart - fEndTargetOffset, 0, fSliceIndexToolStart));
+    ui.spinForwardSlice->setValue(std::clamp(fSliceIndexToolStart + fEndTargetOffset, fSliceIndexToolStart, currentVolume->numSlices() - 1));
 
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
     bool availableSegments = false;
@@ -984,7 +981,7 @@ void CWindow::DoSegmentation(void)
     }
 
     auto startIndex = fSliceIndexToolStart;
-    auto algoIdx = this->ui.cmbSegMethods->currentIndex();
+    auto algoIdx = ui.cmbSegMethods->currentIndex();
     // Reminder to activate the segments for computation
     bool segmentedSomething = false;
     for (auto& seg : fSegStructMap) {
@@ -1046,12 +1043,12 @@ void CWindow::DoSegmentation(void)
         } else if (algoIdx == 1) {
             // Setup OFS
 
-            if (!this->ui.radioBackwardNoRun->isChecked()) {
-                prepareSegmentationOFS(segID, false, this->ui.radioBackwardAnchor->isChecked(), fPathOnSliceIndex, this->ui.spinBackwardSlice->value());
+            if (!ui.radioBackwardNoRun->isChecked()) {
+                prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinBackwardSlice->value());
             }
 
-            if (!this->ui.radioForwardNoRun->isChecked()) {
-                prepareSegmentationOFS(segID, true, this->ui.radioForwardAnchor->isChecked(), fPathOnSliceIndex, this->ui.spinForwardSlice->value());
+            if (!ui.radioForwardNoRun->isChecked()) {
+                prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinForwardSlice->value());
             }
 
         }
@@ -1258,7 +1255,7 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     // Now that the run completed, we need to clean-up / reset annotatioons for the affected slices / points
     int startIndex = -1;
     int endIndex = -1;
-    auto algoIdx = this->ui.cmbSegMethods->currentIndex();
+    auto algoIdx = ui.cmbSegMethods->currentIndex();
     if (algoIdx == 0) {
 
         auto lrps = std::dynamic_pointer_cast<vcs::LocalResliceSegmentation>(segmenter);
@@ -1374,7 +1371,7 @@ bool CWindow::SetUpSegParams(void)
     fSegParams.fIncludeMiddle = fOptIncludeMiddle->isChecked();
 
     // ending slice index
-    aNewVal = this->ui.spinForwardSlice->text().toInt(&aIsOk);
+    aNewVal = ui.spinForwardSlice->text().toInt(&aIsOk);
     if (aIsOk &&
         aNewVal < currentVolume->numSlices()) {
         fSegParams.targetIndex = aNewVal;
@@ -2268,6 +2265,7 @@ void CWindow::ShowGoToSliceDlg() {
         return;
     }
 
+
     bool status;
     const int sliceIndex = QInputDialog::getInt(this, tr("Go to slice"), tr("Slice Index"), 0, 0, currentVolume->numSlices(), 1, &status);
 
@@ -2384,8 +2382,8 @@ void CWindow::ToggleSegmentationTool(void)
             edtInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
         }
 
-        this->ui.spinBackwardSlice->setMaximum(fSliceIndexToolStart);
-        this->ui.spinForwardSlice->setMinimum(fSliceIndexToolStart);
+        ui.spinBackwardSlice->setMaximum(fSliceIndexToolStart);
+        ui.spinForwardSlice->setMinimum(fSliceIndexToolStart);
 
         // turn off pen tool
         fPenTool->setChecked(false);
@@ -2428,7 +2426,7 @@ void CWindow::ToggleSegmentationTool(void)
 
 void CWindow::OnChangeSegAlgo(int index)
 {
-    this->ui.segParamsStack->setCurrentIndex(index);
+    ui.segParamsStack->setCurrentIndex(index);
 }
 
 // Handle gravity value change
@@ -2542,13 +2540,13 @@ void CWindow::OnOptIncludeMiddleClicked(bool clicked)
 void CWindow::OnEdtEndingSliceValChange()
 {
     // ending slice index
-    int aNewVal = this->ui.spinForwardSlice->value();
+    int aNewVal = ui.spinForwardSlice->value();
     if (aNewVal < currentVolume->numSlices()) {
         fEndTargetOffset = aNewVal - fPathOnSliceIndex;
     } else {
         statusBar->showMessage(
             tr("ERROR: Selected slice is out of range of the volume!"), 10000);
-        this->ui.spinForwardSlice->setValue(fPathOnSliceIndex + fEndTargetOffset);
+        ui.spinForwardSlice->setValue(fPathOnSliceIndex + fEndTargetOffset);
     }
 }
 
@@ -2561,7 +2559,7 @@ void CWindow::OnEdtImpactRange(int nImpactRangeIndex)
     // Translate value from slider (treated as index into steps) to actual impact range value
     auto impactRange = impactRangeSteps.at(nImpactRangeIndex);
     fVolumeViewerWidget->SetImpactRange(impactRange);
-    fLabImpactRange->setText(QString::number(impactRange));
+    ui.labImpactRange->setText(QString::number(impactRange));
 }
 
 // Handle request to step impact range up
@@ -2667,22 +2665,22 @@ bool CWindow::can_change_volume_()
 
 void CWindow::onBackwardButtonGroupToggled(QAbstractButton* button, bool checked)
 {
-    if (button == this->ui.radioBackwardNoRun && checked && this->ui.radioForwardNoRun->isChecked()) {
-        this->ui.btnStartSeg->setDisabled(true);
+    if (button == ui.radioBackwardNoRun && checked && ui.radioForwardNoRun->isChecked()) {
+        ui.btnStartSeg->setDisabled(true);
     } else {
-        this->ui.btnStartSeg->setDisabled(false);
+        ui.btnStartSeg->setDisabled(false);
     }
 
-    this->ui.spinBackwardSlice->setDisabled((button == this->ui.radioBackwardAnchor || button == this->ui.radioBackwardNoRun) && checked);
+    ui.spinBackwardSlice->setDisabled((button == ui.radioBackwardAnchor || button == ui.radioBackwardNoRun) && checked);
 }
 
 void CWindow::onForwardButtonGroupToggled(QAbstractButton* button, bool checked)
 {
-    if (button == this->ui.radioForwardNoRun && checked && this->ui.radioBackwardNoRun->isChecked()) {
-        this->ui.btnStartSeg->setDisabled(true);
+    if (button == ui.radioForwardNoRun && checked && ui.radioBackwardNoRun->isChecked()) {
+        ui.btnStartSeg->setDisabled(true);
     } else {
-        this->ui.btnStartSeg->setDisabled(false);
+        ui.btnStartSeg->setDisabled(false);
     }
 
-    this->ui.spinForwardSlice->setDisabled((button == this->ui.radioForwardAnchor || button == this->ui.radioForwardNoRun) && checked);
+    ui.spinForwardSlice->setDisabled((button == ui.radioForwardAnchor || button == ui.radioForwardNoRun) && checked);
 }

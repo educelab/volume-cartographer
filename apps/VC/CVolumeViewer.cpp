@@ -63,16 +63,20 @@ void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
 
 void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label, const QColor& color)
 {
+    if (!hasFocus()) {
+        return;
+    }
+
     timerTextAboveCursor->start(150);
 
     QFontMetrics fm(textAboveCursor->font());
     QPointF p = mapToScene(mapFromGlobal(QPoint(QCursor::pos().x() + 10, QCursor::pos().y())));
 
     textAboveCursor->setVisible(true);
-    textAboveCursor->setHtml("<b>" + value + "</b><br>" + label);    
+    textAboveCursor->setHtml("<b>" + value + "</b><br>" + label);
     textAboveCursor->setPos(p);
     textAboveCursor->setDefaultTextColor(color);
-    
+
     backgroundBehindText->setVisible(true);
     backgroundBehindText->setPos(p);
     backgroundBehindText->setRect(0, 0, fm.horizontalAdvance((label.isEmpty() ? value : label)) + BGND_RECT_MARGIN, fm.height() * (label.isEmpty() ? 1 : 2) + BGND_RECT_MARGIN);
