@@ -698,7 +698,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     if (smoothness_interpolation_window_ > 0 && !reSegStartingChain_.empty()) {
 
         // 1. If interpolation is active: Re-segment from the end index till start of interpolation window (overwrite existing points)
-        if (computeSub(reSegPoints, reSegStartingChain_, endIndex_, interpolationStart, !backwards, iteration, !backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        if (computeSub(reSegPoints, reSegStartingChain_, endIndex_ + (backwards ? -1 : 1), interpolationStart, !backwards, iteration, !backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(reSegPoints);
         }
 
@@ -729,15 +729,15 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
                 reSegPoints.clear();
             } else {
                 if (backwards) {
-                    reSegPoints.erase(reSegPoints.begin() + interpolationEnd - endIndex_ - 1, reSegPoints.end());
+                    reSegPoints.erase(reSegPoints.begin() + interpolationEnd - endIndex_, reSegPoints.end());
                 } else {
-                    reSegPoints.erase(reSegPoints.begin() + interpolationStart - startIndex + 1, reSegPoints.end());
+                    reSegPoints.erase(reSegPoints.begin(), reSegPoints.begin() + interpolationEnd - interpolationStart + 1);
                 }
             }
         }
 
         // 2. If interpolation is active: Segment from start index till end of interpolation window (interpolate with existing points)
-        if (computeSub(points, startingChain_, startIndex, interpolationEnd, backwards, iteration, true, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        if (computeSub(points, startingChain_, startIndex, interpolationEnd, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(points);
         }
 
