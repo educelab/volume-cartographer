@@ -60,7 +60,6 @@ protected:
 
 private slots:
     void OnShowCurveStateChanged(int state);
-    void OnHistEqStateChanged(int state);
     void panAlongCurve(double speed, bool forward);
 
 private:
@@ -89,9 +88,7 @@ private:
     ColorFrame* colorSelectorHighlight{nullptr};
     ColorFrame* colorSelectorManual{nullptr};
     QCheckBox* fShowCurveBox;
-    QCheckBox* fHistEqBox;
     bool showCurve;
-    bool histEq;
     int fwdBackMsJump;
     std::unordered_map<std::string, SegmentationStruct>& fSegStructMapRef;
     CBSpline* fSplineCurveRef;

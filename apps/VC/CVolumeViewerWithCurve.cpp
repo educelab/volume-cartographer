@@ -13,9 +13,7 @@ using namespace ChaoVis;
 // Constructor
 CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, SegmentationStruct>& nSegStructMapRef)
     : fShowCurveBox(nullptr)
-    , fHistEqBox(nullptr)
     , showCurve(true)
-    , histEq(false)
     , fSplineCurveRef(nullptr)
     , fIntersectionCurveRef(nullptr)
     , fSelectedPointIndex(-1)
@@ -96,17 +94,6 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     ShowCurveLabel->setText("Show Curve");
     fButtonsLayout->addWidget(fShowCurveBox);
     fButtonsLayout->addWidget(ShowCurveLabel);
-
-    fHistEqBox = new QCheckBox(this);
-    fHistEqBox->setChecked(false);
-    connect(
-        fHistEqBox, SIGNAL(stateChanged(int)), this,
-        SLOT(OnHistEqStateChanged(int)));
-    // Separate label (rather than using the one from the checkbox) for a visually tighter fit
-    QLabel* HistEqLabel = new QLabel(this);
-    HistEqLabel->setText("HistEq");
-    fButtonsLayout->addWidget(fHistEqBox);
-    fButtonsLayout->addWidget(HistEqLabel);
 
     QSettings settingsJump("VC.ini", QSettings::IniFormat);
     fwdBackMsJump = settingsJump.value("viewer/fwd_back_step_ms", 25).toInt();
@@ -522,17 +509,6 @@ void CVolumeViewerWithCurve::OnShowCurveStateChanged(int state)
         showCurve = true;
     else
         showCurve = false;
-
-    UpdateView();
-}
-
-void CVolumeViewerWithCurve::OnHistEqStateChanged(int state)
-{
-    if (state > 0) {
-        histEq = true;
-    } else {
-        histEq = false;
-    }
 
     UpdateView();
 }
