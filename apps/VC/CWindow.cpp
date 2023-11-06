@@ -346,7 +346,7 @@ void CWindow::CreateWidgets(void)
     edtInterpolationPercent = new QSpinBox();
     edtInterpolationPercent->setMinimum(0);
     edtInterpolationPercent->setMaximum(100);
-    edtInterpolationPercent->setValue(25);
+    edtInterpolationPercent->setValue(30);
     auto* chkPurgeCache = new QCheckBox(tr("Purge Cache"));
     chkPurgeCache->setChecked(false);
     auto* edtCacheSize = new QSpinBox();
@@ -1070,8 +1070,9 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
 {
     Segmenter::Pointer segmenter;
     // Reset to have a clean slate
-    int interpolation_distance = 0;
-    int interpolation_window  = 0;
+    int interpolationPercent = fSegParams.smoothness_interpolation_percent;
+    int interpolationDistance = 0;
+    int interpolationWindow  = 0;
     bool skipRun = false;
     volcart::segmentation::ChainSegmentationAlgorithm::Chain reSegStartingChain;
 
@@ -1090,7 +1091,7 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
             fSegParams.targetIndex = anchor + (forward ? -1 : 1);
         }
 
-        fSegParams.smoothness_interpolation_percent = 0;
+        interpolationPercent = 0;
 
     } else {
         fSegParams.targetIndex = (anchor != -1 ? (forward ? anchor - 1 : anchor + 1) : fPathOnSliceIndex);
@@ -1105,18 +1106,18 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
     std::cout << "OFS: Anchor Slice: " << anchor << std::endl;
 
     // Check if the backwards portion is enabled (percent value > 0)
-    if (useAnchor && fSegParams.smoothness_interpolation_percent > 0 && anchor != -1) {
+    if (useAnchor && interpolationPercent > 0 && anchor != -1) {
         // With annotations we have to use the percentage of the delta between
         // current slice (= segmentation start slice) and the backwards anchor slice.
         // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
         auto anchorDistance = std::abs(startIndex - anchor) - 1;
         std::cout << "OFS: Anchor Distance: " << anchorDistance << std::endl;
 
-        interpolation_distance = std::round(anchorDistance / 2);
+        interpolationDistance = std::round(anchorDistance / 2);
 
         // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards either side),
         // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
-        interpolation_window = std::round(((float)fSegParams.smoothness_interpolation_percent / 100.f * anchorDistance) / 2);
+        interpolationWindow = std::round(((float)interpolationPercent / 100.f * anchorDistance) / 2);
 
         auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex);
         if (pointIndex != -1) {
@@ -1143,15 +1144,15 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         ofsc->setPurgeCache(fSegParams.purge_cache);
         ofsc->setCacheSlices(fSegParams.cache_slices);
         ofsc->setOrderedPointSet(fSegStructMap[segID].fMasterCloud);
-        ofsc->setInterpolationDistance(interpolation_distance);
-        ofsc->setInterpolationWindow(interpolation_window);
+        ofsc->setInterpolationDistance(interpolationDistance);
+        ofsc->setInterpolationWindow(interpolationWindow);
         ofsc->setReSegmentationChain(reSegStartingChain);
         segmenter = ofsc;
 
         std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
-        std::cout << "OFS: Interpolation Percent: " << fSegParams.smoothness_interpolation_percent << "%" << std::endl;
-        std::cout << "OFS: Resulting Interpolation Distance: " << interpolation_distance << std::endl;
-        std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolation_window << std::endl;
+        std::cout << "OFS: Interpolation Percent: " << interpolationPercent << "%" << std::endl;
+        std::cout << "OFS: Resulting Interpolation Distance: " << interpolationDistance << std::endl;
+        std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolationWindow << std::endl;
 
         // Set common parameters
         segmenter->setChain(fSegStructMap[segID].fStartingPath);
