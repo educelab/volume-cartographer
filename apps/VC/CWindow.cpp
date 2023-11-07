@@ -425,7 +425,6 @@ void CWindow::CreateWidgets(void)
 
     ui.spinBackwardSlice->setMinimum(0);
     ui.spinBackwardSlice->setEnabled(false);
-    connect(ui.spinForwardSlice, &QSpinBox::editingFinished, this, &CWindow::OnEdtEndingSliceValChange);
 
     connect(ui.buttonGroupBackward, &QButtonGroup::buttonToggled, this, &CWindow::onBackwardButtonGroupToggled);
     connect(ui.buttonGroupForward, &QButtonGroup::buttonToggled, this, &CWindow::onForwardButtonGroupToggled);
@@ -1041,13 +1040,11 @@ void CWindow::DoSegmentation(void)
             // Setup OFS
 
             if (!ui.radioBackwardNoRun->isChecked()) {
-                prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinBackwardSlice->value());
-                ui.spinBackwardSlice->setValue(fSegParams.targetIndex);
+                prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value());
             }
 
             if (!ui.radioForwardNoRun->isChecked()) {
-                prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinForwardSlice->value());
-                ui.spinForwardSlice->setValue(fSegParams.targetIndex);
+                prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value());
             }
 
         }
@@ -1193,8 +1190,10 @@ void CWindow::executeNextSegmentation()
         // used the explicit slice number mode, use that one as chances are that this is the main
         // direction the user is segmenting. If both forward and backward slice inputs are active, chose the forward one.
         if (ui.spinForwardSlice->isEnabled()) {
+            fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinForwardSlice->value());
             fPathOnSliceIndex = ui.spinForwardSlice->value();
         } else if (ui.spinBackwardSlice->isEnabled()) {
+            fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinBackwardSlice->value());
             fPathOnSliceIndex = ui.spinBackwardSlice->value();
         } else {
             // Just take the last target index from an anchor (gives preference to the forward one since that is run last)
@@ -1287,7 +1286,7 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     }
 
     // Run finished => we can now mark it as "used in a run"
-    auto directionUp = (endIndex > startIndex);
+    auto directionUp = (endIndex > fSliceIndexToolStart);
     fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex + (directionUp ? -1 : +1), true);
     fSegStructMap[submittedSegmentationId].SetAnnotationOriginalPos(ps);
 
@@ -2554,20 +2553,6 @@ void CWindow::OnOptIncludeMiddleClicked(bool clicked)
 {
     fOptIncludeMiddle->setChecked(clicked);
     fSegParams.fIncludeMiddle = clicked;
-}
-
-// Handle ending slice value change
-void CWindow::OnEdtEndingSliceValChange()
-{
-    // ending slice index
-    int aNewVal = ui.spinForwardSlice->value();
-    if (aNewVal < currentVolume->numSlices()) {
-        fEndTargetOffset = aNewVal - fPathOnSliceIndex;
-    } else {
-        statusBar->showMessage(
-            tr("ERROR: Selected slice is out of range of the volume!"), 10000);
-        ui.spinForwardSlice->setValue(fPathOnSliceIndex + fEndTargetOffset);
-    }
 }
 
 // Handle start segmentation

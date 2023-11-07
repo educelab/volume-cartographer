@@ -204,7 +204,6 @@ private slots:
     void OnEdtDistanceWeightChange();
     void OnEdtWindowWidthChange(int);
     void OnOptIncludeMiddleClicked(bool clicked);
-    void OnEdtEndingSliceValChange();
 
     void OnBtnStartSegClicked(void);
 
