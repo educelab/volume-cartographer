@@ -1179,8 +1179,19 @@ void CWindow::executeNextSegmentation()
     }
     else {
         setWidgetsEnabled(true);
-        // set display to target layer
-        fPathOnSliceIndex = fSegParams.targetIndex;
+
+        // Determine which slice to display now after the run. If there is one direction that
+        // used the explicit slice number mode, use that one as chances are that this is the main
+        // direction the user is segmenting. If both forward and backward slice inputs are active, chose the forward one.
+        if (ui.spinForwardSlice->isEnabled()) {
+            fPathOnSliceIndex = ui.spinForwardSlice->value();
+        } else if (ui.spinBackwardSlice->isEnabled()) {
+            fPathOnSliceIndex = ui.spinBackwardSlice->value();
+        } else {
+            // Just take the last target index from an anchor (gives preference to the forward one since that is run last)
+            fPathOnSliceIndex = fSegParams.targetIndex;
+        }
+
         CleanupSegmentation();
         SetUpCurves();
         SetUpAnnotations();
