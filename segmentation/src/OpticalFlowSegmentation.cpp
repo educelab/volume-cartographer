@@ -33,8 +33,8 @@ size_t OpticalFlowSegmentationClass::progressIterations() const
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
         [](auto a, auto b) { return a[2] < b[2]; });
-    auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
-    return static_cast<size_t>((std::abs(endIndex_ - startIndex) + smoothness_interpolation_distance_ + smoothness_interpolation_window_) / stepSize_);
+    auto startIndexChain = static_cast<int>(std::floor((*minZPoint)[2]));
+    return static_cast<size_t>((std::abs(endIndex_ - startIndexChain) + smoothness_interpolation_distance_ + smoothness_interpolation_window_) / stepSize_);
 }
 
 // print curve points with the help of this function
@@ -637,17 +637,16 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     auto minZPoint = std::min_element(
         begin(startingChain_), end(startingChain_),
         [](auto a, auto b) { return a[2] < b[2]; });
-    auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
+    auto startIndexChain = static_cast<int>(std::floor((*minZPoint)[2]));
 
     if (endIndex_ < 0) {
         throw std::domain_error("end index out of the volume");
     }
-    bool backwards = startIndex > endIndex_;
+    bool backwards = startIndexChain > endIndex_;
     // Interpolation start = side/edge of the interpolation window that is nearest to start index
     // Example for backwards: | End Slice (50) | Interpolation End (70) | Interpolation Start (80) | Start Slice (100) |
-    int interpolationStart = startIndex + (backwards ? -smoothness_interpolation_distance_ + smoothness_interpolation_window_  - 1: smoothness_interpolation_distance_ - smoothness_interpolation_window_ + 1);
-    int interpolationEnd = startIndex + (backwards ? -smoothness_interpolation_distance_ - smoothness_interpolation_window_ : smoothness_interpolation_distance_ + smoothness_interpolation_window_);
-    int interpolationLength = smoothness_interpolation_distance_ + smoothness_interpolation_window_;
+    int interpolationStart = startIndex_ + (backwards ? -smoothness_interpolation_distance_ + smoothness_interpolation_window_: smoothness_interpolation_distance_ - smoothness_interpolation_window_);
+    int interpolationEnd = startIndex_ + (backwards ? -smoothness_interpolation_distance_ - smoothness_interpolation_window_ : smoothness_interpolation_distance_ + smoothness_interpolation_window_);
     if (interpolationEnd < 0) {
         interpolationEnd = 0;
     }
@@ -657,8 +656,8 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     // std::cout << "Interpolation Window and Distance: " << smoothness_interpolation_window_ << " " << smoothness_interpolation_distance_ << std::endl;
 
     // Update the user-defined boundary
-    bb_.setUpperBoundByIndex(2, (backwards ? startIndex : endIndex_) + 1);
-    bb_.setLowerBoundByIndex(2, (backwards ? endIndex_ : startIndex) - 1);
+    bb_.setUpperBoundByIndex(2, (backwards ? startIndexChain : endIndex_) + 1);
+    bb_.setLowerBoundByIndex(2, (backwards ? endIndex_ : startIndexChain) - 1);
 
     // Check that incoming points are all within bounds
     if (std::any_of(begin(startingChain_), end(startingChain_), [this](auto v) {
@@ -690,12 +689,12 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     if (smoothness_interpolation_window_ > 0) {
         reSegPoints.reserve((std::abs(endIndex_ - interpolationStart) + 1 + 1) / static_cast<uint64_t>(stepSize_));
     }
-    points.reserve((std::abs(interpolationEnd - startIndex) + 1 + 1) / static_cast<uint64_t>(stepSize_));
+    points.reserve((std::abs(interpolationEnd - startIndexChain) + 1 + 1) / static_cast<uint64_t>(stepSize_));
 
     // Iterate over z-slices
     size_t iteration{0};
 
-    if (smoothness_interpolation_window_ > 0 && !reSegStartingChain_.empty()) {
+    if (smoothness_interpolation_distance_ > 0 && !reSegStartingChain_.empty()) {
 
         // 1. If interpolation is active: Re-segment from the end index till start of interpolation window (overwrite existing points)
         if (computeSub(reSegPoints, reSegStartingChain_, endIndex_ + (backwards ? -1 : 1), interpolationStart, !backwards, iteration, !backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
@@ -725,7 +724,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             // Now that we have update the master cloud, we only want to retain the portion of points that is outside
             // the interpolation window.
             // For extreme settings such as 100 % interpolation, we can skip the erase overhead and simply clear out.
-            if (interpolationEnd == endIndex_ || interpolationStart == startIndex) {
+            if (interpolationEnd == endIndex_ || interpolationStart == startIndexChain) {
                 reSegPoints.clear();
             } else {
                 if (backwards) {
@@ -737,7 +736,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         }
 
         // 2. If interpolation is active: Segment from start index till end of interpolation window (interpolate with existing points)
-        if (computeSub(points, startingChain_, startIndex, interpolationEnd, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        if (computeSub(points, startingChain_, startIndexChain, interpolationEnd, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(points);
         }
 
@@ -750,7 +749,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
     } else {
         // 3. If interpolation is not active: Segment from start index till end index
-        if (computeSub(points, startingChain_, startIndex, endIndex_, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        if (computeSub(points, startingChain_, startIndexChain, endIndex_, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_(points);
         }
     }
@@ -763,10 +762,10 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     return create_final_pointset_(points);
 }
 
-ChainSegmentationAlgorithm::Status OpticalFlowSegmentationClass::computeSub(std::vector<std::vector<Voxel>>& points, Chain& currentVs, int startIndex, int endIndex, bool backwards,
+ChainSegmentationAlgorithm::Status OpticalFlowSegmentationClass::computeSub(std::vector<std::vector<Voxel>>& points, Chain& currentVs, int startIndexChain, int endIndex, bool backwards,
     size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
 {
-    for (int zIndex = startIndex; backwards ? zIndex > endIndex : zIndex < endIndex;
+    for (int zIndex = startIndexChain; backwards ? zIndex > endIndex : zIndex < endIndex;
          zIndex += backwards ? -stepSize_ : stepSize_) {
 
         // Update progress

@@ -1042,10 +1042,12 @@ void CWindow::DoSegmentation(void)
 
             if (!ui.radioBackwardNoRun->isChecked()) {
                 prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinBackwardSlice->value());
+                ui.spinBackwardSlice->setValue(fSegParams.targetIndex);
             }
 
             if (!ui.radioForwardNoRun->isChecked()) {
                 prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinForwardSlice->value());
+                ui.spinForwardSlice->setValue(fSegParams.targetIndex);
             }
 
         }
@@ -1063,10 +1065,11 @@ void CWindow::DoSegmentation(void)
     executeNextSegmentation();
 }
 
-void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int startIndex, int endIndex)
+void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
 {
     Segmenter::Pointer segmenter;
     // Reset to have a clean slate
+    int startIndex = currentIndex + (forward ? 1 : -1);
     int interpolationPercent = fSegParams.smoothness_interpolation_percent;
     int interpolationDistance = 0;
     int interpolationWindow  = 0;
@@ -1075,9 +1078,11 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
 
     std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run (" << segID << ") ===" << std::endl;
     std::cout << "OFS: Mode: " << (useAnchor ? "Anchor" : "Slice") << std::endl;
-    std::cout << "OFS: Start Slice: " << startIndex << std::endl;
+    std::cout << "OFS: Start Anchor Slice: " << currentIndex << std::endl;
+    std::cout << "OFS: Start Algorithm Slice: " << startIndex << std::endl;
 
-    auto anchor = forward ? fSegStructMap[segID].FindNearestHigherAnchor(startIndex) : fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
+    auto anchor = forward ? fSegStructMap[segID].FindNearestHigherAnchor(currentIndex) : fSegStructMap[segID].FindNearestLowerAnchor(currentIndex);
+    std::cout << "OFS: Nearest Target Anchor Slice: " << anchor << std::endl;
 
     if (!useAnchor) {
         fSegParams.targetIndex = endIndex;
@@ -1086,35 +1091,37 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         if (anchor != -1 && (forward ? fSegParams.targetIndex >= anchor : fSegParams.targetIndex <= anchor)) {
             // Stop one slice before the anchor
             fSegParams.targetIndex = anchor + (forward ? -1 : 1);
+            std::cout << "OFS: Target Slice changed (Cause: Anchor)" << std::endl;
         }
 
         interpolationPercent = 0;
 
     } else {
-        fSegParams.targetIndex = (anchor != -1 ? (forward ? anchor - 1 : anchor + 1) : fPathOnSliceIndex);
+        fSegParams.targetIndex = (anchor != -1 ? (forward ? anchor - 1 : anchor + 1) : currentIndex);
         skipRun = (anchor == -1);
     }
 
     // If start and end index are the same, we can skip the run since nothing would happen
     if (!skipRun) {
-        skipRun = startIndex == fSegParams.targetIndex;
+        skipRun = (currentIndex == fSegParams.targetIndex);
     }
 
-    std::cout << "OFS: Anchor Slice: " << anchor << std::endl;
+    std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
 
-    // Check if the backwards portion is enabled (percent value > 0)
-    if (useAnchor && interpolationPercent > 0 && anchor != -1) {
+    // Check if interpolation is enabled (percent value > 0)
+    if (!skipRun && useAnchor && interpolationPercent > 0 && anchor != -1) {
         // With annotations we have to use the percentage of the delta between
-        // current slice (= segmentation start slice) and the backwards anchor slice.
-        // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
-        auto anchorDistance = std::abs(startIndex - anchor) - 1;
-        std::cout << "OFS: Anchor Distance: " << anchorDistance << std::endl;
+        // segmentation start slice and the end slice.
+        // So we now have to calculate the anchor distance, the midpoint and the resulting interpolation window.
+        auto segmentationLength = std::abs(startIndex - fSegParams.targetIndex);
+        std::cout << "OFS: Segmentation Length: " << segmentationLength << std::endl;
 
-        interpolationDistance = std::round(anchorDistance / 2);
+        interpolationDistance = std::round(segmentationLength / 2);
 
         // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards either side),
         // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
-        interpolationWindow = std::round(((float)interpolationPercent / 100.f * anchorDistance) / 2);
+        // Note: segmentationLength - 1 because the center slice is already part of the window as well
+        interpolationWindow = std::round((((float)interpolationPercent / 100.f * segmentationLength) - 1) / 2);
 
         auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex);
         if (pointIndex != -1) {
@@ -1146,10 +1153,12 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         ofsc->setReSegmentationChain(reSegStartingChain);
         segmenter = ofsc;
 
-        std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
-        std::cout << "OFS: Interpolation Percent: " << interpolationPercent << "%" << std::endl;
-        std::cout << "OFS: Resulting Interpolation Distance: " << interpolationDistance << std::endl;
-        std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolationWindow << std::endl;
+        std::cout << "OFS: Interpolation Percentage: " << interpolationPercent << "%" << std::endl;
+        if (interpolationPercent > 0) {
+            std::cout << "OFS: Resulting Interpolation Center Distance: " << interpolationDistance << " (=> Slice " << startIndex + (forward ? 1 : -1) * interpolationDistance << ")" << std::endl;
+            std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolationWindow << " (=> Slice "        << startIndex + (forward ? 1 : -1) * (interpolationDistance - interpolationWindow) << " to "
+                                                                                                                    << startIndex + (forward ? 1 : -1) * (interpolationDistance + interpolationWindow) << ")"  << std::endl;
+        }
 
         // Set common parameters
         segmenter->setChain(fSegStructMap[segID].fStartingPath);
@@ -1278,16 +1287,15 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     }
 
     // Run finished => we can now mark it as "used in a run"
-    fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex, true);
+    auto directionUp = (endIndex > startIndex);
+    fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex + (directionUp ? -1 : +1), true);
     fSegStructMap[submittedSegmentationId].SetAnnotationOriginalPos(ps);
 
     // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
     // that the run cannot have "run over" an anchor, so everything in between cannot be one and now was changed by the alogrithm,
     // rather than manually by the user.
-    // Note: Do not reset the start index annotations of course!
     if (startIndex != endIndex) {
-        auto directionUp = (endIndex > startIndex);
-        fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? 1 : -1), endIndex);
+        fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex, endIndex);
     }
 
     statusBar->showMessage(tr("Segmentation complete"));
