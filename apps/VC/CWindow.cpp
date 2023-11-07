@@ -349,6 +349,11 @@ void CWindow::CreateWidgets(void)
     edtCacheSize->setMinimum(-1);
     edtCacheSize->setMaximum(20000);
     edtCacheSize->setValue(300);
+    edtStepSize = new QSpinBox();
+    edtStepSize->setMinimum(1);
+    edtStepSize->setMaximum(100);
+    edtStepSize->setValue(1);
+    auto* chkSampleStepMiddle = new QCheckBox(tr("Sample from Middle of Step Size"));
 
     connect(edtOutsideThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.outside_threshold = v;});
     connect(edtOpticalFlowPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_pixel_threshold = v;});
@@ -361,6 +366,8 @@ void CWindow::CreateWidgets(void)
     connect(edtInterpolationPercent, &QSpinBox::valueChanged, [=](int v){fSegParams.smoothness_interpolation_percent = v;});
     connect(chkPurgeCache, &QCheckBox::toggled, [=](bool checked){fSegParams.purge_cache = checked;});
     connect(edtCacheSize, &QSpinBox::valueChanged, [=](int v){fSegParams.cache_slices = v;});
+    connect(edtStepSize, &QSpinBox::valueChanged, [=](int v){fSegParams.step_size = v;});
+    connect(chkSampleStepMiddle, &QCheckBox::toggled, [=](bool checked){fSegParams.sample_from_step_middle = checked;});
 
     auto* opticalFlowParamsContainer = new QWidget();
     auto* opticalFlowParamsLayout = new QVBoxLayout(opticalFlowParamsContainer);
@@ -385,6 +392,9 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Maximum Cache Size")));
     opticalFlowParamsLayout->addWidget(edtCacheSize);
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Step Size")));
+    opticalFlowParamsLayout->addWidget(edtStepSize);
+    opticalFlowParamsLayout->addWidget(chkSampleStepMiddle);
 
     ui.segParamsStack->addWidget(opticalFlowParamsContainer);
     // set the default segmentation method as Optical Flow Segmentation
@@ -1042,10 +1052,12 @@ void CWindow::DoSegmentation(void)
 
             if (!ui.radioBackwardNoRun->isChecked()) {
                 prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinBackwardSlice->value());
+                ui.spinBackwardSlice->setValue(fSegParams.targetIndex);
             }
 
             if (!ui.radioForwardNoRun->isChecked()) {
                 prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinForwardSlice->value());
+                ui.spinForwardSlice->setValue(fSegParams.targetIndex);
             }
 
         }
@@ -1063,10 +1075,11 @@ void CWindow::DoSegmentation(void)
     executeNextSegmentation();
 }
 
-void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int startIndex, int endIndex)
+void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
 {
     Segmenter::Pointer segmenter;
     // Reset to have a clean slate
+    int startIndex = currentIndex + (forward ? 1 : -1);
     int interpolationPercent = fSegParams.smoothness_interpolation_percent;
     int interpolationDistance = 0;
     int interpolationWindow  = 0;
@@ -1075,23 +1088,37 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
 
     std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run (" << segID << ") ===" << std::endl;
     std::cout << "OFS: Mode: " << (useAnchor ? "Anchor" : "Slice") << std::endl;
-    std::cout << "OFS: Start Slice: " << startIndex << std::endl;
+    std::cout << "OFS: Start Anchor Slice: " << currentIndex << std::endl;
+    std::cout << "OFS: Start Algorithm Slice: " << startIndex << std::endl;
 
-    auto anchor = forward ? fSegStructMap[segID].FindNearestHigherAnchor(startIndex) : fSegStructMap[segID].FindNearestLowerAnchor(startIndex);
+    auto anchor = forward ? fSegStructMap[segID].FindNearestHigherAnchor(currentIndex) : fSegStructMap[segID].FindNearestLowerAnchor(currentIndex);
+    std::cout << "OFS: Nearest Target Anchor Slice: " << anchor << std::endl;
 
     if (!useAnchor) {
         fSegParams.targetIndex = endIndex;
         std::cout << "OFS: Original Target Slice: " << fSegParams.targetIndex << std::endl;
 
+        if (fSegParams.step_size > 1) {
+            std::cout << "OFS: Step Size: " << fSegParams.step_size << std::endl;
+
+            auto temp = fSegParams.targetIndex;
+            fSegParams.targetIndex = startIndex + (int)((fSegParams.targetIndex - startIndex) / fSegParams.step_size) * fSegParams.step_size;
+
+            if (temp != fSegParams.targetIndex) {
+                std::cout << "OFS: Target Slice changed (Cause: Step Size)" << std::endl;
+            }
+        }
+
         if (anchor != -1 && (forward ? fSegParams.targetIndex >= anchor : fSegParams.targetIndex <= anchor)) {
             // Stop one slice before the anchor
             fSegParams.targetIndex = anchor + (forward ? -1 : 1);
+            std::cout << "OFS: Target Slice changed (Cause: Anchor)" << std::endl;
         }
 
         interpolationPercent = 0;
 
     } else {
-        fSegParams.targetIndex = (anchor != -1 ? (forward ? anchor - 1 : anchor + 1) : fPathOnSliceIndex);
+        fSegParams.targetIndex = (anchor != -1 ? (forward ? anchor - 1 : anchor + 1) : startIndex);
         skipRun = (anchor == -1);
     }
 
@@ -1100,14 +1127,12 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         skipRun = startIndex == fSegParams.targetIndex;
     }
 
-    std::cout << "OFS: Anchor Slice: " << anchor << std::endl;
-
-    // Check if the backwards portion is enabled (percent value > 0)
-    if (useAnchor && interpolationPercent > 0 && anchor != -1) {
+    // Check if interpolation is enabled (percent value > 0)
+    if (!skipRun && useAnchor && interpolationPercent > 0 && anchor != -1) {
         // With annotations we have to use the percentage of the delta between
-        // current slice (= segmentation start slice) and the backwards anchor slice.
-        // So we now have to calculate the anchor distance, the midpoint and the resulting backwards length.
-        auto anchorDistance = std::abs(startIndex - anchor) - 1;
+        // segmentation start slice and the anchor slice.
+        // So we now have to calculate the anchor distance, the midpoint and the resulting interpolation window.
+        auto anchorDistance = std::abs(startIndex - fSegParams.targetIndex);
         std::cout << "OFS: Anchor Distance: " << anchorDistance << std::endl;
 
         interpolationDistance = std::round(anchorDistance / 2);
@@ -1144,12 +1169,15 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         ofsc->setInterpolationDistance(interpolationDistance);
         ofsc->setInterpolationWindow(interpolationWindow);
         ofsc->setReSegmentationChain(reSegStartingChain);
+        ofsc->setStepSize(fSegParams.step_size);
+        ofsc->setSampleStepMiddle(fSegParams.sample_from_step_middle);
         segmenter = ofsc;
 
         std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
         std::cout << "OFS: Interpolation Percent: " << interpolationPercent << "%" << std::endl;
-        std::cout << "OFS: Resulting Interpolation Distance: " << interpolationDistance << std::endl;
-        std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolationWindow << std::endl;
+        std::cout << "OFS: Resulting Interpolation Distance: " << interpolationDistance << " (=> " << startIndex + interpolationDistance << ")" << std::endl;
+        std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolationWindow << " (=> " << startIndex + interpolationDistance - interpolationWindow << " to "
+                                                                                                   << startIndex + interpolationDistance + interpolationWindow << ")"  << std::endl;
 
         // Set common parameters
         segmenter->setChain(fSegStructMap[segID].fStartingPath);
@@ -1278,16 +1306,15 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     }
 
     // Run finished => we can now mark it as "used in a run"
-    fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex, true);
+    auto directionUp = (endIndex > startIndex);
+    fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex + (directionUp ? -1 : -1), true);
     fSegStructMap[submittedSegmentationId].SetAnnotationOriginalPos(ps);
 
     // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
     // that the run cannot have "run over" an anchor, so everything in between cannot be one and now was changed by the alogrithm,
     // rather than manually by the user.
-    // Note: Do not reset the start index annotations of course!
     if (startIndex != endIndex) {
-        auto directionUp = (endIndex > startIndex);
-        fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex + (directionUp ? 1 : -1), endIndex);
+        fSegStructMap[submittedSegmentationId].ResetAnnotations(startIndex, endIndex);
     }
 
     statusBar->showMessage(tr("Segmentation complete"));

@@ -93,6 +93,8 @@ public:
         int edge_jump_distance;
         int edge_bounce_distance;
         int smoothness_interpolation_percent;
+        int step_size;
+        bool sample_from_step_middle;
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
@@ -293,6 +295,7 @@ private:
     // Dynamic OFS algo widgets
     QLabel* lblInterpolationPercent;
     QSpinBox* edtInterpolationPercent;
+    QSpinBox* edtStepSize;
 
     QSlider* fEdtImpactRange;
 

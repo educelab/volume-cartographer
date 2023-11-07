@@ -111,8 +111,11 @@
          </item>
          <item row="0" column="1">
           <widget class="QSpinBox" name="spinPreloadedSlices">
+           <property name="minimum">
+            <number>1</number>
+           </property>
            <property name="maximum">
-            <number>9999</number>
+            <number>99999</number>
            </property>
            <property name="value">
             <number>200</number>

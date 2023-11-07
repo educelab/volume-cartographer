@@ -140,15 +140,22 @@ public:
 
     /** @brief Set the input chain of re-segmentation points */
     void setReSegmentationChain(Chain c) { reSegStartingChain_ = std::move(c); }
-    /**@}*/
 
-    /** @brief Interpolate the points behind the possibly adjusted new starting line with the already computed masterCloud OrderedPointSet to get a smooth final surface 
+    /** @brief Set whether the neighboor slice should not be the directly adjacent previous one, but the one in the middle of the step size
      */
-    std::vector<std::vector<Voxel>> interpolatePoints(std::vector<std::vector<Voxel>> points, int window_size, bool backwards);
+    void setSampleStepMiddle(bool sample) { sample_step_middle_ = sample; }
+
+    /** @brief Interpolate the points with the existing masterCloud OrderedPointSet to get a smooth final surface
+     */
+    std::vector<std::vector<Voxel>> interpolateWithMasterCloud(std::vector<std::vector<Voxel>> points, int window_size, bool backwards);
+
+    /** @brief Interpolate the gaps in the result point set for step sizes greater than 1
+     */
+    std::vector<std::vector<Voxel>> interpolateGaps(std::vector<std::vector<Voxel>> points, int missingIndexes);
 
     /**@{*/
     /** @brief Compute the segmentation 1 Line */
-    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex, bool backwards=false);
+    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex, int startIndex, bool backwards=false);
     /**@}*/
 
     /**@{*/
@@ -268,6 +275,7 @@ private:
     bool interpolate_master_cloud{true};
     int smoothness_interpolation_window_{5}; //  window for interpolation (number if slices from interpolation distance/center in either direction)
     int smoothness_interpolation_distance_{25}; // distance from start slice where the interpolation center is
+    bool sample_step_middle_{false};
     Chain reSegStartingChain_;
     volcart::OrderedPointSet<cv::Vec3d> masterCloud_;
     mutable std::shared_mutex display_mutex_;
