@@ -1107,23 +1107,28 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
 
     // Check if interpolation is enabled (percent value > 0)
     if (!skipRun && useAnchor && interpolationPercent > 0 && anchor != -1) {
-        // With annotations we have to use the percentage of the delta between
+        // With anchors we have to use the percentage of the delta between
         // segmentation start slice and the end slice.
-        // So we now have to calculate the anchor distance, the midpoint and the resulting interpolation window.
-        auto segmentationLength = std::abs(startIndex - fSegParams.targetIndex);
+        // So we now have to calculate the segmentation length, the midpoint and the resulting interpolation window.
+        // Note: If we reached this coding, skipRun is false so that means that the seg run is valid from a slice perspective,
+        // so we can min to 1 (required for 1 slice wide runs, since technically the start is the end slice, but is different from
+        // the user's start slice (the one where the Seg Tool was started on), so is valid).
+        auto segmentationLength = std::max(1, std::abs(startIndex - fSegParams.targetIndex));
         std::cout << "OFS: Segmentation Length: " << segmentationLength << std::endl;
 
         interpolationDistance = std::round(segmentationLength / 2);
 
         // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards either side),
         // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
-        // Note: segmentationLength - 1 because the center slice is already part of the window as well
-        interpolationWindow = std::round((((float)interpolationPercent / 100.f * segmentationLength) - 1) / 2);
+        // Note: -1 because the center slice is already part of the window as well
+        if (segmentationLength > 1) {
+            interpolationWindow = std::round((((float)interpolationPercent / 100.f * segmentationLength) - 1) / 2);
 
-        auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex);
-        if (pointIndex != -1) {
-            for (int i = 0; i < fSegStructMap[segID].fMasterCloud.width(); i++) {
-                reSegStartingChain.push_back(fSegStructMap[segID].fMasterCloud[pointIndex + i]);
+            auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex);
+            if (pointIndex != -1) {
+                for (int i = 0; i < fSegStructMap[segID].fMasterCloud.width(); i++) {
+                    reSegStartingChain.push_back(fSegStructMap[segID].fMasterCloud[pointIndex + i]);
+                }
             }
         }
     }
