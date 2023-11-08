@@ -2059,8 +2059,10 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         {
             // If nothing really changed, leave directly (especially since we have two listeners active and
             // don't want to redraw the curves multiple times)
-            if (fHighlightedSegmentationId == aSegID)
+            if (fHighlightedSegmentationId == aSegID && qga::keyboardModifiers() != Qt::ShiftModifier &&
+                qga::keyboardModifiers() != Qt::AltModifier && qga::keyboardModifiers() != Qt::ControlModifier) {
                 return;
+            }
 
             for(auto& seg : fSegStructMap) {
                 seg.second.highlighted = false;
