@@ -336,6 +336,10 @@ struct SegmentationStruct {
 
     inline void MergePointSetIntoPointCloud(const volcart::Segmentation::PointSet ps)
     {
+        if (ps.empty()) {
+            return;
+        }
+
         // Ensure that everything matches
         if (fMasterCloud.width() != ps.width() || fMasterCloud.width() != fAnnotationCloud.width()) {
             std::cout << "Error: Width mismatch during cloud merging" << std::endl;

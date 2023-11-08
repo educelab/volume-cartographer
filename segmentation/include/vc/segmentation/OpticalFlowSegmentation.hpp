@@ -234,7 +234,7 @@ private:
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
-    auto computeSub(std::vector<std::vector<Voxel>>& points, Chain& currentVs, int startIndex, int endIndex, bool backwards, size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
+    auto computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startIndex, int endIndex, bool backwards, size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
         -> ChainSegmentationAlgorithm::Status;
 
     /** Start z-index */
