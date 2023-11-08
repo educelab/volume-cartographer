@@ -1124,7 +1124,9 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         if (segmentationLength > 1) {
             interpolationWindow = std::round((((float)interpolationPercent / 100.f * segmentationLength) - 1) / 2);
 
-            auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex);
+            // +1/-1 because, target index contains the first slice that should be changed/calculated by the algorithm, but
+            // OFS needs the chain of the slice before to work.
+            auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex + (forward ? 1 : -1));
             if (pointIndex != -1) {
                 for (int i = 0; i < fSegStructMap[segID].fMasterCloud.width(); i++) {
                     reSegStartingChain.push_back(fSegStructMap[segID].fMasterCloud[pointIndex + i]);
