@@ -20,6 +20,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
     spinFwdBackStepMs->setValue(settings.value("viewer/fwd_back_step_ms", 25).toInt());
     chkCenterOnZoom->setChecked(settings.value("viewer/center_on_zoom", false).toInt() != 0);
     edtImpactRange->setText(settings.value("viewer/impact_range_steps", "1-20").toString());
+    chkPlaySoundAfterSegRun->setChecked(settings.value("viewer/play_sound_after_seg_run", true).toInt() != 0);
 
     spinPreloadedSlices->setValue(settings.value("perf/preloaded_slices", 200).toInt());
 
@@ -36,6 +37,7 @@ void SettingsDialog::accept()
     settings.setValue("viewer/fwd_back_step_ms", spinFwdBackStepMs->value());
     settings.setValue("viewer/center_on_zoom", chkCenterOnZoom->isChecked() ? "1" : "0");
     settings.setValue("viewer/impact_range_steps", edtImpactRange->text());
+    settings.setValue("viewer/play_sound_after_seg_run", chkPlaySoundAfterSegRun->isChecked() ? "1" : "0");
 
     settings.setValue("perf/preloaded_slices", spinPreloadedSlices->value());
 

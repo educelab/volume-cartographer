@@ -1215,7 +1215,10 @@ void CWindow::executeNextSegmentation()
         worker_progress_updater_.stop();
         worker_progress_.close();
 
-        playPing();
+        QSettings settings("VC.ini", QSettings::IniFormat);
+        if (settings.value("viewer/play_sound_after_seg_run", "1").toInt() != 0) {
+            playPing();
+        }
     }
 }
 
@@ -2426,15 +2429,19 @@ void CWindow::ToggleSegmentationTool(void)
         }
 
         if (changesFound) {
-            const auto response = QMessageBox::question(this, "Changed Curves",
-                tr("You have made changes to curves that will get lost if you exit without starting a segmentation run.\n\nDiscard the changes?"),
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+            QMessageBox question(QMessageBox::Icon::Question, tr("Changed Curves"),
+                tr("You have made changes to curves that were not used in a segmentation run.\n\nReset those changes?\n\nNote: Keeping does not mean saving to disk."),
+                QMessageBox::Reset | QMessageBox::Cancel, this);
+            question.setDefaultButton(QMessageBox::Cancel);
+            QAbstractButton* buttonKeep = question.addButton(tr("Keep"), QMessageBox::AcceptRole);
+
+            const auto response = question.exec();
 
             if (response == QMessageBox::Cancel) {
                 // Stay in seg tool mode => check the button again and then leave
                 fSegTool->setChecked(true);
                 return;
-            } else if (response == QMessageBox::Save) {
+            } else if (question.clickedButton() == buttonKeep) {
                 // Save the changed curve and mark as manually changed
                 fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fSliceIndexToolStart, true);
                 fSegStructMap[fHighlightedSegmentationId].SetAnnotationManualPoints(fSliceIndexToolStart);
