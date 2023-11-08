@@ -111,29 +111,33 @@ Voxel OpticalFlowSegmentationClass::compute_moving_average(const std::vector<Vox
 }
 
 std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolatePoints(std::vector<std::vector<Voxel>> points, int window_size, bool backwards) {
-    // std::cout << "Interpolating points..." << std::endl;
-    // Find starting index of points[0][2] in masterCloud_
+
     if (points.size() == 0) {
         return points;
     }
-    int i=0;
+
+    // Find starting index of points[0][2] in masterCloud_
     // Previous segmentation is totally contained in new segmentation, cannot be used for interpolation and is discarded. CASE FOREWARDS
-    if (!backwards && (points[0][0][2] < masterCloud_.getRow(i)[masterCloud_.width()-1][2])){
+    if (!backwards && (points[0][0][2] < masterCloud_.getRow(0)[0][2])){
         return points;
     }
+
+    int i=0;
     for (; i < masterCloud_.height(); i++) {
         auto masterRowI = masterCloud_.getRow(i);
         // Found corresponding index in master cloud
-        if (points[0][0][2] == masterRowI[masterCloud_.width()-1][2]){
+        if (points[0][0][2] == masterRowI[0][2]){
             break;
         }
     }
+
     // Previous segmentation is totally contained in new segmentation, cannot be used for interpolation and is discarded. CASE BACKWARDS
     if (i == masterCloud_.height()) {
         return points;
     }
+
     // std::cout << "Starting index of points[0][0][2] in masterCloud_: " << i << std::endl;
-    // if (i == masterCloud_.height() || masterCloud_.getRow(i)[masterCloud_.width()-1][2] != points[0][0][2]) {
+    // if (i == masterCloud_.height() || masterCloud_.getRow(i)[0][2] != points[0][0][2]) {
     //     std::cout << "Error: Could not find starting index of points[0][0][2] in masterCloud_." << std::endl;
     //     return points;
     // }
@@ -721,7 +725,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
                 }
             }
 
-            // Now that we have update the master cloud, we only want to retain the portion of points that is outside
+            // Now that we have update the master cloud, we only want to retain the portion of resegmentation points that is outside
             // the interpolation window.
             // For extreme settings such as 100 % interpolation, we can skip the erase overhead and simply clear out.
             if (interpolationEnd == endIndex_ || interpolationStart == startIndexChain) {
@@ -740,12 +744,15 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             return create_final_pointset_(points);
         }
 
-        points = interpolatePoints(points, smoothness_interpolation_window_, !backwards);
+        // Split the points into the overwrite portion and the interpolation portion.
+        auto interpolationPoints = std::vector<std::vector<Voxel>>((backwards ? points.begin() : points.begin() + interpolationStart - startIndex_), (backwards ? points.begin() + interpolationStart - interpolationEnd + 1 : points.end()));
+        points.erase(backwards ? points.begin() : points.begin() + interpolationStart - startIndex_, backwards ? points.begin() + interpolationStart - interpolationEnd + 1: points.end());
 
-        // Merge the re-segmentation points with the "main" points created from the actual starting slice curve
-        if (!reSegPoints.empty()) {
-            points.insert((backwards ? points.begin() : points.end()), reSegPoints.begin(), reSegPoints.end());
-        }
+        interpolationPoints = interpolatePoints(interpolationPoints, smoothness_interpolation_window_, !backwards);
+
+        // Merge the interpolation and re-segmentation points with the "main" points created from the actual starting slice curve
+        points.insert((backwards ? points.begin() : points.end()), interpolationPoints.begin(), interpolationPoints.end());
+        points.insert((backwards ? points.begin() : points.end()), reSegPoints.begin(), reSegPoints.end());
 
     } else {
         // 3. If interpolation is not active: Segment from start index till end index
