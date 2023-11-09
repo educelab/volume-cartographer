@@ -276,7 +276,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 5) {
-        std::cout << all << std::endl;
+        std::cout << all << "\n";
         return EXIT_SUCCESS;
     }
 
@@ -359,6 +359,7 @@ auto main(int argc, char* argv[]) -> int
 
     std::string outStem;
     if (loadSeg) {
+        Logger()->debug("Loading segmentation");
         auto id = parsed["seg"].as<std::string>();
         outStem = id;
 
@@ -373,6 +374,7 @@ auto main(int argc, char* argv[]) -> int
         mesher->points = getPts->pointSet;
         results["mesh"] = &mesher->mesh;
     } else {
+        Logger()->debug("Loading mesh");
         fs::path inputPath = parsed["input-mesh"].as<std::string>();
         outStem = inputPath.stem().string();
 
@@ -388,8 +390,10 @@ auto main(int argc, char* argv[]) -> int
     //// Setup the output file path ////
     fs::path outputPath;
     if (parsed.count("output-file") > 0) {
+        Logger()->debug("Saving to user-provided output file");
         outputPath = parsed["output-file"].as<std::string>();
     } else {
+        Logger()->debug("Saving to default output file");
         outputPath = outStem + "_render.obj";
     }
 
@@ -422,9 +426,11 @@ auto main(int argc, char* argv[]) -> int
     // Set the cache size
     std::size_t cacheBytes{2'000'000'000};
     if (parsed.count("cache-memory-limit") > 0) {
+        Logger()->debug("Using user-provided cache size");
         auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
         cacheBytes = MemorySizeStringParser(cacheSizeOpt);
     } else {
+        Logger()->debug("Using automatic cache size");
         cacheBytes = SystemMemorySize() / 2;
     }
     auto volumeProps = graph->insertNode<VolumePropertiesNode>();
@@ -434,6 +440,7 @@ auto main(int argc, char* argv[]) -> int
 
     //// Scale the mesh /////
     if (parsed.count("scale-mesh") > 0) {
+        Logger()->debug("Adding scale mesh node");
         auto scaleMesh = graph->insertNode<ScaleMeshNode>();
         scaleMesh->input = *results["mesh"];
         scaleMesh->scaleFactor = parsed["scale-mesh"].as<double>();
@@ -447,12 +454,14 @@ auto main(int argc, char* argv[]) -> int
         auto smoothType =
             static_cast<SmoothOpt>(parsed["mesh-resample-smoothing"].as<int>());
         if (smoothType == SmoothOpt::Both || smoothType == SmoothOpt::Before) {
+            Logger()->debug("Adding mesh smoothing node (pre-resample)");
             auto smooth = graph->insertNode<LaplacianSmoothMeshNode>();
             smooth->input = *results["mesh"];
             results["mesh"] = &smooth->output;
         }
 
         // Setup resampling
+        Logger()->debug("Adding mesh resample node");
         auto resample = graph->insertNode<ResampleMeshNode>();
         resample->input = *results["mesh"];
         if (parsed.count("mesh-resample-anisotropic") > 0) {
@@ -476,6 +485,7 @@ auto main(int argc, char* argv[]) -> int
         }
 
         else {
+            Logger()->debug("Using automatic resample factor");
             auto calcVerts = graph->insertNode<CalculateNumVertsNode>();
             calcVerts->mesh = *results["mesh"];
             calcVerts->voxelSize = volumeProps->voxelSize;
@@ -486,6 +496,7 @@ auto main(int argc, char* argv[]) -> int
 
         // Post-smooth
         if (smoothType == SmoothOpt::Both || smoothType == SmoothOpt::After) {
+            Logger()->debug("Adding mesh smoothing node (post-resample)");
             auto smooth = graph->insertNode<LaplacianSmoothMeshNode>();
             smooth->input = *results["mesh"];
             results["mesh"] = &smooth->output;
@@ -494,6 +505,7 @@ auto main(int argc, char* argv[]) -> int
 
     ///// Reorient the mesh normals /////
     if (parsed.count("orient-normals") > 0) {
+        Logger()->debug("Adding normal reorientation node");
         auto orient = graph->insertNode<OrientNormalsNode>();
         orient->input = *results["mesh"];
         orient->referenceMode = OrientNormalsNode::ReferenceMode::Centroid;
@@ -502,6 +514,7 @@ auto main(int argc, char* argv[]) -> int
 
     ///// Save the intermediate mesh /////
     if (parsed.count("intermediate-mesh") > 0) {
+        Logger()->debug("Adding node to save intermediate mesh");
         fs::path meshPath = parsed["intermediate-mesh"].as<std::string>();
         auto writer = graph->insertNode<WriteMeshNode>();
         writer->path = meshPath;
@@ -518,6 +531,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Compute a UV map if we're not using a loaded one
     if (results.count("uvMap") == 0) {
+        Logger()->debug("Adding UV computation node");
         auto method =
             static_cast<FlatteningAlgorithm>(parsed["uv-algorithm"].as<int>());
         if (method == FlatteningAlgorithm::ABF ||
@@ -566,6 +580,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Rotate
     if (parsed.count("uv-rotate") > 0) {
+        Logger()->debug("Adding UV rotation node");
         auto rotate = graph->insertNode<RotateUVMapNode>();
         rotate->uvMapIn = *results["uvMap"];
         rotate->theta = parsed["uv-rotate"].as<double>();
@@ -577,6 +592,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Flip
     if (parsed.count("uv-flip") > 0) {
+        Logger()->debug("Adding UV flip node");
         auto axis = static_cast<UVMap::FlipAxis>(parsed["uv-flip"].as<int>());
         auto flip = graph->insertNode<FlipUVMapNode>();
         flip->uvMapIn = *results["uvMap"];
@@ -593,6 +609,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Make a UV Mesh if we don't have one yet
     if ((plotUV or plotUVError) and results.count("uvMesh") == 0) {
+        Logger()->debug("Adding UV meshing node");
         auto mesher = graph->insertNode<UVMapToMeshNode>();
         mesher->inputMesh = *results["mesh"];
         mesher->uvMap = *results["uvMap"];
@@ -602,6 +619,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Plot the UV Map
     if (plotUV) {
+        Logger()->debug("Adding UV plotting node");
         auto plot = graph->insertNode<PlotUVMapNode>();
         plot->uvMap = *results["uvMap"];
         plot->uvMesh = *results["uvMesh"];
@@ -612,6 +630,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Generate the PPM
+    Logger()->debug("Adding PPM generator node");
     using Shading = PPMGeneratorNode::Shading;
     auto ppmGen = graph->insertNode<PPMGeneratorNode>();
     ppmGen->mesh = *results["mesh"];
@@ -620,6 +639,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Save the PPM
     if (parsed.count("output-ppm") > 0) {
+        Logger()->debug("Adding PPM writer node");
         auto writer = graph->insertNode<WritePPMNode>();
         writer->path = parsed["output-ppm"].as<std::string>();
         writer->ppm = ppmGen->ppm;
@@ -629,6 +649,7 @@ auto main(int argc, char* argv[]) -> int
     // Needs PPM to compute
     if (plotUVError) {
         if (results.count("flatteningError") == 0) {
+            Logger()->debug("Adding UV error node");
             auto calcError = graph->insertNode<FlatteningErrorNode>();
             calcError->mesh3D = *results["mesh"];
             calcError->mesh2D = *results["uvMesh"];
@@ -636,16 +657,19 @@ auto main(int argc, char* argv[]) -> int
         }
 
         // PPM properties
+        Logger()->debug("Adding PPM properties node");
         auto ppmProps = graph->insertNode<PPMPropertiesNode>();
         ppmProps->ppm = ppmGen->ppm;
 
         // Generate the error plots
+        Logger()->debug("Adding UV error plotting node");
         auto plotErr = graph->insertNode<PlotLStretchErrorNode>();
         plotErr->error = *results["flatteningError"];
         plotErr->cellMap = ppmProps->cellMap;
         plotErr->drawLegend = parsed["uv-plot-error-legend"].as<bool>();
 
         // Save the images
+        Logger()->debug("Adding UV error writer nodes");
         fs::path baseName = parsed["uv-plot-error"].as<std::string>();
         auto l2File =
             baseName.stem().string() + "_l2" + baseName.extension().string();
@@ -663,6 +687,7 @@ auto main(int argc, char* argv[]) -> int
     // Neighborhood generator
     Method method = static_cast<Method>(parsed["method"].as<int>());
     if (method != Method::Intersection and method != Method::Thickness) {
+        Logger()->debug("Adding neighborhood generator node");
         using Shape = NeighborhoodGeneratorNode::Shape;
         auto neighborGen = graph->insertNode<NeighborhoodGeneratorNode>();
         neighborGen->shape =
@@ -698,11 +723,13 @@ auto main(int argc, char* argv[]) -> int
     // Setup texturing method
     smgl::Node::Pointer texturing;
     if (method == Method::Intersection) {
+        Logger()->debug("Adding intersection texture node");
         auto t = graph->insertNode<IntersectionTextureNode>();
         texturing = t;
     }
 
     else if (method == Method::Composite) {
+        Logger()->debug("Adding composite texture node");
         using Filter = CompositeTextureNode::Filter;
         auto filter = static_cast<Filter>(parsed["filter"].as<int>());
         auto t = graph->insertNode<CompositeTextureNode>();
@@ -712,6 +739,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     else if (method == Method::Integral) {
+        Logger()->debug("Adding integral texture node");
         using WeightMethod = IntegralTextureNode::WeightMethod;
         using WeightDirection = IntegralTextureNode::WeightDirection;
         using ExpoDiffBaseMethod = IntegralTextureNode::ExpoDiffBaseMethod;
@@ -747,10 +775,12 @@ auto main(int argc, char* argv[]) -> int
                 "path.");
             std::exit(EXIT_FAILURE);
         }
+        Logger()->debug("Adding volume mask reader node");
         auto reader = graph->insertNode<LoadVolumetricMaskNode>();
         reader->cacheArgs = true;
         reader->path = parsed["volume-mask"].as<std::string>();
 
+        Logger()->debug("Adding thickness texture node");
         auto t = graph->insertNode<ThicknessTextureNode>();
         t->volumetricMask = reader->volumetricMask;
         t->normalizeOutput = parsed["normalize-output"].as<bool>();
@@ -765,10 +795,12 @@ auto main(int argc, char* argv[]) -> int
 
     // Save final outputs
     if (vc::IsFileType(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
+        Logger()->debug("Adding result image writer node");
         auto writer = graph->insertNode<WriteImageNode>();
         writer->path = outputPath;
         writer->image = *results["texture"];
     } else if (vc::IsFileType(outputPath, {"obj", "ply"})) {
+        Logger()->debug("Adding result mesh writer node");
         auto writer = graph->insertNode<WriteMeshNode>();
         writer->path = outputPath;
         writer->mesh = *results["mesh"];
@@ -781,7 +813,15 @@ auto main(int argc, char* argv[]) -> int
 
     // Update the graph
     try {
-        graph->update();
+        Logger()->debug("Starting graph update");
+        auto status = graph->update();
+        if (status == smgl::Graph::Status::Updating) {
+            Logger()->error("Graph already updating");
+        } else if (status == smgl::Graph::Status::Error) {
+            Logger()->error("Graph pipeline failed to update");
+        } else {
+            Logger()->debug("Graph is idle");
+        }
     } catch (const std::exception& e) {
         Logger()->error(e.what());
         return EXIT_FAILURE;

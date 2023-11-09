@@ -6,6 +6,7 @@
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/io/UVMapIO.hpp"
 #include "vc/core/util/FloatComparison.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 namespace fs = volcart::filesystem;
@@ -38,7 +39,10 @@ LoadVolumePkgNode::LoadVolumePkgNode() : path{&path_}, volpkg{&vpkg_}
 {
     registerInputPort("path", path);
     registerOutputPort("volpkg", volpkg);
-    compute = [&]() { vpkg_ = VolumePkg::New(path_); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] loading volpkg: {}", path_.string());
+        vpkg_ = VolumePkg::New(path_);
+    };
 }
 
 auto LoadVolumePkgNode::serialize_(
@@ -74,9 +78,11 @@ VolumeSelectorNode::VolumeSelectorNode()
     registerOutputPort("volume", volume);
     compute = [&]() {
         if (id_.empty()) {
+            Logger()->debug("[graph.core] loading first volume");
             vol_ = vpkg_->volume();
             id_ = vol_->id();
         } else {
+            Logger()->debug("[graph.core] loading volume: {}", id_);
             vol_ = vpkg_->volume(id_);
         }
     };
@@ -108,7 +114,10 @@ VolumePropertiesNode::VolumePropertiesNode()
 
     compute = [&]() {
         if (volume_) {
+            Logger()->debug("[graph.core] setting cache size: {}", cacheMem_);
             volume_->setCacheMemoryInBytes(cacheMem_);
+        } else {
+            Logger()->debug("[graph.core] volume is nullptr");
         }
     };
 }
@@ -132,7 +141,10 @@ SegmentationSelectorNode::SegmentationSelectorNode()
     registerInputPort("id", id);
     registerOutputPort("segmentation", segmentation);
 
-    compute = [&]() { seg_ = vpkg_->segmentation(id_); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] loading segmentation: {}", id_);
+        seg_ = vpkg_->segmentation(id_);
+    };
 }
 
 auto SegmentationSelectorNode::serialize_(
@@ -178,7 +190,10 @@ LoadMeshNode::LoadMeshNode()
     registerOutputPort("mesh", mesh);
     registerOutputPort("uvMap", uvMap);
     registerOutputPort("texture", texture);
-    compute = [&]() { loaded_ = ReadMesh(path_); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] loading mesh: {}", path_.string());
+        loaded_ = ReadMesh(path_);
+    };
     usesCacheDir = [&]() { return cacheArgs_; };
 }
 
@@ -214,7 +229,10 @@ WriteMeshNode::WriteMeshNode()
     registerInputPort("uvMap", uvMap);
     registerInputPort("texture", texture);
     registerInputPort("cacheArgs", cacheArgs);
-    compute = [&]() { WriteMesh(path_, mesh_, uv_, texture_); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] writing mesh: {}", path_.string());
+        WriteMesh(path_, mesh_, uv_, texture_);
+    };
     usesCacheDir = [&]() { return cacheArgs_; };
 }
 
@@ -247,6 +265,7 @@ RotateUVMapNode::RotateUVMapNode()
     registerOutputPort("uvMapOut", uvMapOut);
 
     compute = [&]() {
+        Logger()->debug("[graph.core] rotating UV map {.3f} degrees", theta_);
         static constexpr double PI_CONST{3.1415926535897932385L};
         static constexpr double DEG_TO_RAD{PI_CONST / 180.0};
         uvMapOut_ = UVMap::New(*uvMapIn_);
@@ -287,6 +306,7 @@ FlipUVMapNode::FlipUVMapNode()
     registerOutputPort("uvMapOut", uvMapOut);
 
     compute = [&]() {
+        Logger()->debug("[graph.core] flipping UV map");
         uvMapOut_ = UVMap::New(*uvMapIn_);
         UVMap::Flip(*uvMapOut_, axis_);
     };
@@ -362,6 +382,7 @@ PlotUVMapNode::PlotUVMapNode()
 
     compute = [&]() {
         if (uvMap_ and uvMesh_ and not uvMap_->empty()) {
+            Logger()->debug("[graph.core] plotting UV map");
             plot_ = UVMap::Plot(*uvMap_, uvMesh_);
         }
     };
@@ -393,7 +414,10 @@ LoadImageNode::LoadImageNode()
     registerInputPort("path", path);
     registerInputPort("cacheArgs", cacheArgs);
     registerOutputPort("image", image);
-    compute = [&]() { image_ = ReadImage(path_); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] loading image: {}", path_.string());
+        image_ = ReadImage(path_);
+    };
     usesCacheDir = [&]() { return cacheArgs_; };
 }
 
@@ -422,7 +446,10 @@ WriteImageNode::WriteImageNode()
     registerInputPort("path", path);
     registerInputPort("image", image);
     registerInputPort("cacheArgs", cacheArgs);
-    compute = [&]() { WriteImage(path_, image_); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] writing image: {}", path_.string());
+        WriteImage(path_, image_);
+    };
     usesCacheDir = [&]() { return cacheArgs_; };
 }
 
@@ -452,7 +479,10 @@ LoadPPMNode::LoadPPMNode()
     registerInputPort("path", path);
     registerInputPort("cacheArgs", cacheArgs);
     registerOutputPort("ppm", ppm);
-    compute = [&]() { ppm_ = PerPixelMap::New(PerPixelMap::ReadPPM(path_)); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] loading PPM: {}", path_.string());
+        ppm_ = PerPixelMap::New(PerPixelMap::ReadPPM(path_));
+    };
     usesCacheDir = [&]() { return cacheArgs_; };
 }
 
@@ -481,7 +511,10 @@ WritePPMNode::WritePPMNode()
     registerInputPort("path", path);
     registerInputPort("ppm", ppm);
     registerInputPort("cacheArgs", cacheArgs);
-    compute = [&]() { PerPixelMap::WritePPM(path_, *ppm_); };
+    compute = [&]() {
+        Logger()->debug("[graph.core] writing PPM: {}", path_.string());
+        PerPixelMap::WritePPM(path_, *ppm_);
+    };
     usesCacheDir = [&]() { return cacheArgs_; };
 }
 
@@ -525,6 +558,8 @@ LoadVolumetricMaskNode::LoadVolumetricMaskNode()
     registerInputPort("cacheArgs", cacheArgs);
     registerOutputPort("volumetricMask", volumetricMask);
     compute = [&]() {
+        Logger()->debug(
+            "[graph.core] loading volumetric mask: {}", path_.string());
         using psio = PointSetIO<cv::Vec3i>;
         mask_ = VolumetricMask::New(psio::ReadPointSet(path_));
     };
