@@ -817,10 +817,14 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             return create_final_pointset_({startingChain_});
         }
 
+        PrintPointTable(reSegPoints);
+
         // For step sizes greater than 1 we have to interpolate the results
         if (stepSize_  > 1) {
             reSegPoints = interpolateGaps(reSegPoints, std::abs(endIndex_ + (backwards ? -1 : 1) - adjustedEnd) - reSegPoints.size());
         }
+
+        PrintPointTable(reSegPoints);
 
         // Overwrite points in local master cloud, so we can later use it for interpolation
         if (reSegPoints.size() > 0) {
@@ -903,10 +907,14 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             return create_final_pointset_({startingChain_});
         }
 
+        PrintPointTable(points);
+
         // For step sizes greater than 1 we have to interpolate the results
         if (stepSize_  > 1) {
             points = interpolateGaps(points, std::abs(endIndex_ - startIndexChain) - points.size());
         }
+
+        PrintPointTable(points);
     }
 
     /////////////////////////////////////////////////////////
