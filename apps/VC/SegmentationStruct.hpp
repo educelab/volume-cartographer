@@ -19,6 +19,7 @@
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
+#include "vc/segmentation/lrps/FittedCurve.hpp"
 
 #include <thread>
 #include <condition_variable>
@@ -457,8 +458,12 @@ struct SegmentationStruct {
             tempPt[2] = it->second.GetSliceIndex();
             row.push_back(tempPt);
         }
-        ps.pushRow(row);
 
+        // Resample points so they are evenly spaced
+        volcart::segmentation::FittedCurve evenlyStartingCurve(row, sliceIndex);
+        row = evenlyStartingCurve.evenlySpacePoints();
+
+        ps.pushRow(row);
         MergePointSetIntoPointCloud(ps);
     }
 

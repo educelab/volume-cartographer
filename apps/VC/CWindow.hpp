@@ -80,7 +80,9 @@ public:
         int fPeakDistanceWeight;
         int fWindowWidth{5};
         bool fIncludeMiddle;
+        int startIndex;
         int targetIndex;
+        int targetAnchor{-1};
         // Optical Flow Segmentation Parameters
         bool purge_cache;
         int cache_slices;
@@ -154,7 +156,9 @@ private:
 
     void SetPathPointCloud(void);
 
-    void prepareSegmentationOFS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    bool prepareSegmentationBase(std::string algorithm, std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    bool prepareSegmentationLRPS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    bool prepareSegmentationOFS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
     void queueSegmentation(std::string segmentationId, Segmenter::Pointer s);
     void executeNextSegmentation();
 
