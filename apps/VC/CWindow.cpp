@@ -1086,7 +1086,9 @@ bool CWindow::prepareSegmentationBase(std::string algorithm, std::string segID, 
     // If start and end index are the same, we can skip the run since nothing would happen
     if (!skipRun) {
         skipRun = (currentIndex == fSegParams.targetIndex);
-    } else {
+    }
+
+    if (skipRun) {
         std::cout << algorithm << ": => Run skipped!" << std::endl;
     }
 

@@ -858,8 +858,6 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
                 }
             }
 
-            // debug::PrintPointCloud(masterCloud_);
-
             // Now that we have update the master cloud, we only want to retain the portion of resegmentation points that is outside
             // the interpolation window.
             // For extreme settings such as 100 % interpolation, we can skip the erase overhead and simply clear out.
@@ -898,7 +896,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
         if  (stepSize_ > 1) {
             // Remove not needed slices that were added due to the required overshoot
             points.erase((backwards ? points.begin() : points.begin() + (interpolationEnd - startIndex_ + 1)),
-                         (backwards ? points.begin() + (interpolationEnd - endIndex_) : points.end()));
+                         (backwards ? points.begin() + (interpolationEnd - adjustedInterpolBorder) : points.end()));
         }
 
         // Split the points into the overwrite portion and the interpolation portion.
@@ -946,7 +944,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
     // 6. Output final mesh
     auto output = create_final_pointset_({points});
-    // volcart::debug::PrintPointCloud(output, "OFS Output", true);
+    // volcart::debug::PrintPointCloud(output, "OFS Output");
 
     return output;
 }

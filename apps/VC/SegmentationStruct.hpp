@@ -444,6 +444,8 @@ struct SegmentationStruct {
         }
 
         if (fMasterCloud.height() != fAnnotationCloud.height()) {
+            // volcart::debug::PrintPointCloud(fMasterCloud, "Master Cloud");
+            // volcart::debug::PrintPointCloud(fMasterCloud, "Annotation Cloud");
             std::cout << "Error: Height mismatch after cloud merging" << std::endl;
             return;
         }
