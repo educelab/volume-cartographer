@@ -420,18 +420,20 @@ class AlignUVMapToAxisNode : public smgl::Node
 private:
     /** Input UVMap */
     UVMap::Pointer uvMapIn_;
+    /** Input mesh, used to orient in volume space */
+    ITKMesh::Pointer mesh_;
     /** Axis to align to */
-    int axis_{0};
+    UVMap::AlignmentAxis axis_{UVMap::AlignmentAxis::ZPos};
     /** Output UVMap */
     UVMap::Pointer uvMapOut_;
 
 public:
-    /** @copydoc UVMap::AlignmentAxis */
-    using AlignmentAxis = UVMap::AlignmentAxis;
     /** @brief Input UVMap */
     smgl::InputPort<UVMap::Pointer> uvMapIn;
+    /** @brief Input mesh, used to orient in volume space */
+    smgl::InputPort<ITKMesh::Pointer> mesh;
     /** @brief Axis to align to */
-    smgl::InputPort<AlignmentAxis> axis;
+    smgl::InputPort<UVMap::AlignmentAxis> axis;
     /** @brief Output UVMap */
     smgl::OutputPort<UVMap::Pointer> uvMapOut;
 

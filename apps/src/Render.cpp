@@ -122,25 +122,28 @@ static auto GetUVOpts() -> po::options_description
                 "  2 = Orthographic Projection")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
+        ("uv-align-to-axis", po::value<int>()->default_value(1),
+            "Rotate the UV map so that up (-Y) in the texture image is aligned "
+            "as well as possible to the specified volume axis. Performed "
+            "before uv-rotate and uv-flip.\n"
+            "Volume axis:\n"
+                "  0 = None\n"
+                "  1 = +Z\n"
+                "  2 = -Z\n"
+                "  3 = +Y\n"
+                "  4 = -Y\n"
+                "  5 = +X\n"
+                "  6 = -X")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
-            "angle in degrees (counterclockwise).")
+            "angle in degrees (counterclockwise). Performed after "
+            "uv-align-to-axis and before uv-flip.")
         ("uv-flip", po::value<int>(),
-            "Flip the UV map along an axis. If uv-rotate is specified, flip is "
-            "performed after rotation.\n"
+            "Flip the UV map along an axis. Performed after uv-align-to-axis "
+            "and uv-rotate.\n"
             "Axis along which to flip:\n"
                 "  0 = Vertical\n"
                 "  1 = Horizontal\n"
                 "  2 = Both")
-        ("uv-align-to-axis", po::value<int>(),
-            "Rotate the UV map so that up (-Y) in the texture image is aligned "
-            "as well as possible to the specified volume axis.\n"
-            "Volume axis:\n"
-                "  0 = +Z\n"
-                "  1 = -Z\n"
-                "  2 = +Y\n"
-                "  3 = -Y\n"
-                "  4 = +X\n"
-                "  5 = -X")
         ("uv-plot", po::value<std::string>(), "Plot the UV points and save "
             "it to the provided image path.")
         ("uv-plot-error", po::value<std::string>(), "Plot the UV L-stretch "
@@ -554,13 +557,16 @@ auto main(int argc, char* argv[]) -> int
     // Align to axis
     if (parsed.count("uv-align-to-axis") > 0) {
         auto axis = static_cast<UVMap::AlignmentAxis>(parsed["uv-align-to-axis"].as<int>());
-        auto align = graph->insertNode<AlignUVMapToAxisNode>();
-        align->uvMapIn = *results["uvMap"];
-        align->axis = axis;
-        results["uvMap"] = &align->uvMapOut;
+        if (axis != UVMap::AlignmentAxis::None) {
+            auto align = graph->insertNode<AlignUVMapToAxisNode>();
+            align->uvMapIn = *results["uvMap"];
+            align->mesh = *results["mesh"];
+            align->axis = axis;
+            results["uvMap"] = &align->uvMapOut;
 
-        // UV Mesh needs to be recalculated after transform
-        results.erase("uvMesh");
+            // UV Mesh needs to be recalculated after transform
+            results.erase("uvMesh");
+        }
     }
 
     // Rotate

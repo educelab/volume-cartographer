@@ -151,7 +151,7 @@ public:
     enum class FlipAxis { Vertical = 0, Horizontal, Both };
 
     /** Align to axis enumeration */
-    enum class AlignmentAxis { ZPos = 0, ZNeg, YPos, YNeg, XPos, XNeg };
+    enum class AlignmentAxis { None = 0, ZPos, ZNeg, YPos, YNeg, XPos, XNeg };
 
     /**
      * @brief Plot the UV points on an image
@@ -174,7 +174,7 @@ public:
         const Color& color = color::LIGHT_GRAY) -> cv::Mat;
 
     /** @brief Align a UVMap to a specified volume axis */
-    static void AlignToAxis(UVMap& uv, AlignmentAxis axis);
+    static void AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis);
 
     /** @brief Rotate a UVMap by a multiple of 90 degrees */
     static void Rotate(UVMap& uv, Rotation rotation);

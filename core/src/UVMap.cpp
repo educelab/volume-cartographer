@@ -138,9 +138,12 @@ auto UVMap::Plot(
     return r;
 }
 
-void UVMap::AlignToAxis(UVMap& uv, AlignmentAxis axis)
+void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis)
 {
-    
+    // Find angle in radians, counter-clockwise to center {0.5, 0.5}
+    auto theta = 1.5;  // TODO LEFT OFF this is a made-up value
+
+    Rotate(uv, theta);
 }
 
 void UVMap::Rotate(UVMap& uv, Rotation rotation)

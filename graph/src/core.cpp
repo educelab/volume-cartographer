@@ -303,16 +303,17 @@ void FlipUVMapNode::deserialize_(
     }
 }
 
-void AlignUVMapToAxisNode::AlignUVMapToAxisNode()
-    : Node{true}, uvMapIn{&uvMapIn_}, axis{&axis_}, uvMapOut{&uvMapOut_}
+AlignUVMapToAxisNode::AlignUVMapToAxisNode()
+    : Node{true}, uvMapIn{&uvMapIn_}, mesh{&mesh_}, axis{&axis_}, uvMapOut{&uvMapOut_}
 {
     registerInputPort("uvMapIn", uvMapIn);
+    registerInputPort("mesh", mesh);
     registerInputPort("axis", axis);
     registerOutputPort("uvMapOut", uvMapOut);
 
     compute = [=]() {
         uvMapOut_ = UVMap::New(*uvMapIn_);
-        UVMap::AlignToAxis(*uvMapOut_, axis_);
+        UVMap::AlignToAxis(*uvMapOut_, mesh_, axis_);
     };
 }
 
@@ -331,7 +332,7 @@ auto AlignUVMapToAxisNode::serialize_(bool useCache, const fs::path& cacheDir)
 void AlignUVMapToAxisNode::deserialize_(
     const smgl::Metadata& meta, const fs::path& cacheDir)
 {
-    axis_ = meta["axis"].get<Axis>();
+    axis_ = meta["axis"].get<UVMap::AlignmentAxis>();
     if (meta.contains("uvMap")) {
         auto uvMapFile = meta["uvMap"].get<std::string>();
         uvMapOut_ = UVMap::New(io::ReadUVMap(cacheDir / uvMapFile));
