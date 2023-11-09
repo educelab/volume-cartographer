@@ -19,6 +19,7 @@
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
+#include "vc/segmentation/lrps/FittedCurve.hpp"
 
 #include <thread>
 #include <condition_variable>
@@ -336,6 +337,10 @@ struct SegmentationStruct {
 
     inline void MergePointSetIntoPointCloud(const volcart::Segmentation::PointSet ps)
     {
+        if (ps.empty()) {
+            return;
+        }
+
         // Ensure that everything matches
         if (fMasterCloud.width() != ps.width() || fMasterCloud.width() != fAnnotationCloud.width()) {
             std::cout << "Error: Width mismatch during cloud merging" << std::endl;
@@ -453,8 +458,12 @@ struct SegmentationStruct {
             tempPt[2] = it->second.GetSliceIndex();
             row.push_back(tempPt);
         }
-        ps.pushRow(row);
 
+        // Resample points so they are evenly spaced
+        volcart::segmentation::FittedCurve evenlyStartingCurve(row, sliceIndex);
+        row = evenlyStartingCurve.evenlySpacePoints();
+
+        ps.pushRow(row);
         MergePointSetIntoPointCloud(ps);
     }
 

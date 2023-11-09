@@ -160,7 +160,8 @@ CWindow::CWindow()
         "QWidget#dockWidgetAnnotationsContent { background: rgb(245, 245, 255); }"
         "QDockWidget::title { padding-top: 6px; background: rgb(205, 210, 240); }"
         "QTabBar::tab { background: rgb(205, 210, 240); }"
-        "QWidget#tabSegment { background: rgb(245, 245, 255); }";
+        "QWidget#tabSegment { background: rgb(245, 245, 255); }"
+        "QRadioButton:disabled { color: gray; }";
     setStyleSheet(style);
 
     OpenSlice();
@@ -435,7 +436,6 @@ void CWindow::CreateWidgets(void)
 
     ui.spinBackwardSlice->setMinimum(0);
     ui.spinBackwardSlice->setEnabled(false);
-    connect(ui.spinForwardSlice, &QSpinBox::editingFinished, this, &CWindow::OnEdtEndingSliceValChange);
 
     connect(ui.buttonGroupBackward, &QButtonGroup::buttonToggled, this, &CWindow::onBackwardButtonGroupToggled);
     connect(ui.buttonGroupForward, &QButtonGroup::buttonToggled, this, &CWindow::onForwardButtonGroupToggled);
@@ -995,8 +995,6 @@ void CWindow::DoSegmentation(void)
         auto& segStruct = seg.second;
         auto& segID = seg.first;
 
-        // qDebug() << "Segment " << segID.c_str() << " display: " << segStruct.display << " compute: " << segStruct.compute;
-
         // if the segmentation is not being computed, skip it
         if (!segStruct.display || !segStruct.compute) {
             continue;
@@ -1023,43 +1021,28 @@ void CWindow::DoSegmentation(void)
         seg.second.SetAnnotationAnchor(startIndex, true);
         seg.second.SetAnnotationManualPoints(startIndex);
 
-        Segmenter::Pointer segmenter;
+        // Prepare runs
         if (algoIdx == 0) {
-            // Setup LRPS
-            auto lrps = vcs::LocalResliceSegmentation::New();
-            lrps->setMaterialThickness(fVpkg->materialThickness());
-            lrps->setStartZIndex(startIndex);
-            lrps->setTargetZIndex(fSegParams.targetIndex);
-            lrps->setOptimizationIterations(fSegParams.fNumIters);
-            lrps->setResliceSize(fSegParams.fWindowWidth);
-            lrps->setAlpha(fSegParams.fAlpha);
-            lrps->setK1(fSegParams.fK1);
-            lrps->setK2(fSegParams.fK2);
-            lrps->setBeta(fSegParams.fBeta);
-            lrps->setDelta(fSegParams.fDelta);
-            lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
-            lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
-            segmenter = lrps;
 
-            // Set common parameters
-            segmenter->setChain(fSegStructMap[segID].fStartingPath);
-            segmenter->setVolume(currentVolume);
-            // Queue segmentation for execution
-            queueSegmentation(segID, segmenter);
+            // LRPS only supports forward runs
+            if (!ui.radioForwardNoRun->isChecked()) {
+                if (!prepareSegmentationBase("LRPS", segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value())) {
+                    prepareSegmentationLRPS(segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value());
+                }
+            }
 
-        } else if (algoIdx == 1) {
-            // Setup OFS
-
+        } else if(algoIdx == 1) {
             if (!ui.radioBackwardNoRun->isChecked()) {
-                prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinBackwardSlice->value());
-                ui.spinBackwardSlice->setValue(fSegParams.targetIndex);
+                if (!prepareSegmentationBase("OFS", segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value())) {
+                    prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value());
+                }
             }
 
             if (!ui.radioForwardNoRun->isChecked()) {
-                prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fPathOnSliceIndex, ui.spinForwardSlice->value());
-                ui.spinForwardSlice->setValue(fSegParams.targetIndex);
+                if (!prepareSegmentationBase("OFS", segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value())) {
+                    prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value());
+                }
             }
-
         }
         // ADD OTHER SEGMENTER SETUP HERE. MATCH THE IDX TO THE IDX IN THE
         // DROPDOWN LIST
@@ -1075,84 +1058,111 @@ void CWindow::DoSegmentation(void)
     executeNextSegmentation();
 }
 
-void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
+bool CWindow::prepareSegmentationBase(std::string algorithm, std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
 {
-    Segmenter::Pointer segmenter;
-    // Reset to have a clean slate
-    int startIndex = currentIndex + (forward ? 1 : -1);
+    // Clean slate
+    fSegParams.targetAnchor = -1;
+    fSegParams.startIndex = currentIndex + (forward ? 1 : -1);
+    fSegParams.targetIndex = -1;
+    bool skipRun = false;
+
+    std::cout << algorithm << ": === " << (forward ? "Forward" : "Backward") << " Run (" << segID << ") ===" << std::endl;
+    std::cout << algorithm << ": Mode: " << (useAnchor ? "Anchor" : "Slice") << std::endl;
+    std::cout << algorithm << ": Start Anchor Slice: " << currentIndex << std::endl;
+    std::cout << algorithm << ": Start Algorithm Slice: " << fSegParams.startIndex << std::endl;
+
+    fSegParams.targetAnchor = forward ? fSegStructMap[segID].FindNearestHigherAnchor(currentIndex) : fSegStructMap[segID].FindNearestLowerAnchor(currentIndex);
+    std::cout << algorithm << ": Nearest Target Anchor Slice: " << fSegParams.targetAnchor << std::endl;
+
+    if (!useAnchor) {
+        fSegParams.targetIndex = endIndex;
+        std::cout << algorithm << ": Original Target Slice: " << fSegParams.targetIndex << std::endl;
+
+        if (fSegParams.targetAnchor != -1 && (forward ? fSegParams.targetIndex >= fSegParams.targetAnchor : fSegParams.targetIndex <= fSegParams.targetAnchor)) {
+            // Stop one slice before the anchor
+            fSegParams.targetIndex = fSegParams.targetAnchor + (forward ? -1 : 1);
+            std::cout << algorithm << ": Target Slice changed (Cause: Anchor)" << std::endl;
+        }
+    } else {
+        fSegParams.targetIndex = (fSegParams.targetAnchor != -1 ? (forward ? fSegParams.targetAnchor - 1 : fSegParams.targetAnchor + 1) : currentIndex);
+        skipRun = (fSegParams.targetAnchor == -1);
+    }
+
+    std::cout << algorithm << ": Final Target Slice: " << fSegParams.targetIndex << std::endl;
+
+    // If start and end index are the same, we can skip the run since nothing would happen
+    if (!skipRun) {
+        skipRun = (currentIndex == fSegParams.targetIndex);
+    } else {
+        std::cout << algorithm << ": => Run skipped!" << std::endl;
+    }
+
+    return skipRun;
+}
+
+bool CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
+{
     int interpolationPercent = fSegParams.smoothness_interpolation_percent;
     int interpolationDistance = 0;
     int interpolationWindow  = 0;
     bool skipRun = false;
     volcart::segmentation::ChainSegmentationAlgorithm::Chain reSegStartingChain;
 
-    std::cout << "OFS: === " << (forward ? "Forward" : "Backward") << " Run (" << segID << ") ===" << std::endl;
-    std::cout << "OFS: Mode: " << (useAnchor ? "Anchor" : "Slice") << std::endl;
-    std::cout << "OFS: Start Anchor Slice: " << currentIndex << std::endl;
-    std::cout << "OFS: Start Algorithm Slice: " << startIndex << std::endl;
+    if (fSegParams.step_size > 1) {
+        std::cout << "OFS: Step Size: " << fSegParams.step_size << std::endl;
 
-    auto anchor = forward ? fSegStructMap[segID].FindNearestHigherAnchor(currentIndex) : fSegStructMap[segID].FindNearestLowerAnchor(currentIndex);
-    std::cout << "OFS: Nearest Target Anchor Slice: " << anchor << std::endl;
+        auto temp = fSegParams.targetIndex;
+        fSegParams.targetIndex = fSegParams.startIndex + (int)((fSegParams.targetIndex - fSegParams.startIndex ) / fSegParams.step_size) * fSegParams.step_size;
 
-    if (!useAnchor) {
-        fSegParams.targetIndex = endIndex;
-        std::cout << "OFS: Original Target Slice: " << fSegParams.targetIndex << std::endl;
-
-        if (fSegParams.step_size > 1) {
-            std::cout << "OFS: Step Size: " << fSegParams.step_size << std::endl;
-
-            auto temp = fSegParams.targetIndex;
-            fSegParams.targetIndex = startIndex + (int)((fSegParams.targetIndex - startIndex) / fSegParams.step_size) * fSegParams.step_size;
-
-            if (temp != fSegParams.targetIndex) {
-                std::cout << "OFS: Target Slice changed (Cause: Step Size)" << std::endl;
-            }
+        if (temp != fSegParams.targetIndex) {
+            std::cout << "OFS: Target Slice changed (Cause: Step Size)" << std::endl;
         }
-
-        if (anchor != -1 && (forward ? fSegParams.targetIndex >= anchor : fSegParams.targetIndex <= anchor)) {
-            // Stop one slice before the anchor
-            fSegParams.targetIndex = anchor + (forward ? -1 : 1);
-            std::cout << "OFS: Target Slice changed (Cause: Anchor)" << std::endl;
-        }
-
-        interpolationPercent = 0;
-
-    } else {
-        fSegParams.targetIndex = (anchor != -1 ? (forward ? anchor - 1 : anchor + 1) : startIndex);
-        skipRun = (anchor == -1);
-    }
-
-    // If start and end index are the same, we can skip the run since nothing would happen
-    if (!skipRun) {
-        skipRun = startIndex == fSegParams.targetIndex;
     }
 
     // Check if interpolation is enabled (percent value > 0)
-    if (!skipRun && useAnchor && interpolationPercent > 0 && anchor != -1) {
-        // With annotations we have to use the percentage of the delta between
-        // segmentation start slice and the anchor slice.
-        // So we now have to calculate the anchor distance, the midpoint and the resulting interpolation window.
-        auto anchorDistance = std::abs(startIndex - fSegParams.targetIndex);
-        std::cout << "OFS: Anchor Distance: " << anchorDistance << std::endl;
+    if (useAnchor && fSegParams.smoothness_interpolation_percent > 0 && fSegParams.targetAnchor != -1) {
+        // With anchors we have to use the percentage of the delta between
+        // segmentation start slice and the end slice.
+        // So we now have to calculate the segmentation length, the midpoint and the resulting interpolation window.
+        // Note: If we reached this coding, skipRun is false so that means that the seg run is valid from a slice perspective,
+        // so we can min to 1 (required for 1 slice wide runs, since technically the start is the end slice, but is different from
+        // the user's start slice (the one where the Seg Tool was started on), so is valid).
+        auto segmentationLength = std::max(1, std::abs(fSegParams.startIndex - fSegParams.targetIndex));
+        std::cout << "OFS: Segmentation Length: " << segmentationLength << std::endl;
 
-        interpolationDistance = std::round(anchorDistance / 2);
+        interpolationDistance = std::round(segmentationLength / 2);
 
         // Value for OFS needs to be halved, since the algorithm expects basically only half the window (from midpoint/length towards either side),
         // where as in VC it makes more sense for the user to specify a percetange of the range between the anchor and the start slice.
-        interpolationWindow = std::round(((float)interpolationPercent / 100.f * anchorDistance) / 2);
+        // Note: -1 because the center slice is already part of the window as well
+        if (segmentationLength > 1) {
+            interpolationWindow = std::round((((float)fSegParams.smoothness_interpolation_percent / 100.f * segmentationLength) - 1) / 2);
 
-        auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex);
-        if (pointIndex != -1) {
-            for (int i = 0; i < fSegStructMap[segID].fMasterCloud.width(); i++) {
-                reSegStartingChain.push_back(fSegStructMap[segID].fMasterCloud[pointIndex + i]);
+            // +1/-1 because, target index contains the first slice that should be changed/calculated by the algorithm, but
+            // OFS needs the chain of the slice before to work.
+            auto pointIndex = fSegStructMap[segID].GetPointIndexForSliceIndex(fSegParams.targetIndex + (forward ? 1 : -1));
+            if (pointIndex != -1) {
+                for (int i = 0; i < fSegStructMap[segID].fMasterCloud.width(); i++) {
+                    reSegStartingChain.push_back(fSegStructMap[segID].fMasterCloud[pointIndex + i]);
+                }
             }
         }
     }
 
     if (!skipRun) {
+
+        if (useAnchor && fSegParams.targetAnchor != -1) {
+            std::cout << "OFS: Interpolation Percentage: " << interpolationPercent << "%" << std::endl;
+            if (interpolationPercent > 0) {
+                std::cout << "OFS: Resulting Interpolation Center Distance: " << interpolationDistance << " (=> Slice " << fSegParams.startIndex + (forward ? 1 : -1) * interpolationDistance << ")" << std::endl;
+                std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolationWindow << " (=> Slice "        << fSegParams.startIndex + (forward ? 1 : -1) * (interpolationDistance - interpolationWindow) << " to "
+                                                                                                                        << fSegParams.startIndex + (forward ? 1 : -1) * (interpolationDistance + interpolationWindow) << ")"  << std::endl;
+            }
+        }
+
         auto ofsc = vcs::OpticalFlowSegmentationClass::New();
         ofsc->setMaterialThickness(fVpkg->materialThickness());
-        ofsc->setStartZIndex(startIndex);
+        ofsc->setStartZIndex(fSegParams.startIndex);
         ofsc->setTargetZIndex(fSegParams.targetIndex);
         ofsc->setOptimizationIterations(fSegParams.fNumIters);
         ofsc->setOutsideThreshold(fSegParams.outside_threshold);
@@ -1171,22 +1181,48 @@ void CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         ofsc->setReSegmentationChain(reSegStartingChain);
         ofsc->setStepSize(fSegParams.step_size);
         ofsc->setSampleStepMiddle(fSegParams.sample_from_step_middle);
-        segmenter = ofsc;
+        ofsc->setChain(fSegStructMap[segID].fStartingPath);
+        ofsc->setVolume(currentVolume);
 
-        std::cout << "OFS: Final Target Slice: " << fSegParams.targetIndex << std::endl;
-        std::cout << "OFS: Interpolation Percent: " << interpolationPercent << "%" << std::endl;
-        std::cout << "OFS: Resulting Interpolation Distance: " << interpolationDistance << " (=> " << startIndex + interpolationDistance << ")" << std::endl;
-        std::cout << "OFS: Resulting Interpolation Window: 2 x " << interpolationWindow << " (=> " << startIndex + interpolationDistance - interpolationWindow << " to "
-                                                                                                   << startIndex + interpolationDistance + interpolationWindow << ")"  << std::endl;
-
-        // Set common parameters
-        segmenter->setChain(fSegStructMap[segID].fStartingPath);
-        segmenter->setVolume(currentVolume);
         // Queue segmentation for execution
-        queueSegmentation(segID, segmenter);
+        queueSegmentation(segID, ofsc);
+        std::cout << "OFS: => Run queued" << std::endl;
     } else {
-        std::cout << "OFS: Run skipped" << std::endl;
+        std::cout << "OFS: => Run skipped" << std::endl;
     }
+
+    return skipRun;
+}
+
+bool CWindow::prepareSegmentationLRPS(std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
+{
+    bool skipRun = false;
+
+    if (!skipRun) {
+        auto lrps = vcs::LocalResliceSegmentation::New();
+        lrps->setMaterialThickness(fVpkg->materialThickness());
+        lrps->setStartZIndex(fSegParams.startIndex);
+        lrps->setTargetZIndex(fSegParams.targetIndex);
+        lrps->setOptimizationIterations(fSegParams.fNumIters);
+        lrps->setResliceSize(fSegParams.fWindowWidth);
+        lrps->setAlpha(fSegParams.fAlpha);
+        lrps->setK1(fSegParams.fK1);
+        lrps->setK2(fSegParams.fK2);
+        lrps->setBeta(fSegParams.fBeta);
+        lrps->setDelta(fSegParams.fDelta);
+        lrps->setDistanceWeightFactor(fSegParams.fPeakDistanceWeight);
+        lrps->setConsiderPrevious(fSegParams.fIncludeMiddle);
+        lrps->setChain(fSegStructMap[segID].fStartingPath);
+        lrps->setVolume(currentVolume);
+
+        // Queue segmentation for execution
+        queueSegmentation(segID, lrps);
+        std::cout << "LRPS: => Run queued" << std::endl;
+    } else {
+        std::cout << "LRPS: => Run skipped" << std::endl;
+    }
+
+    return skipRun;
 }
 
 void CWindow::queueSegmentation(std::string segmentationId, Segmenter::Pointer s)
@@ -1212,8 +1248,10 @@ void CWindow::executeNextSegmentation()
         // used the explicit slice number mode, use that one as chances are that this is the main
         // direction the user is segmenting. If both forward and backward slice inputs are active, chose the forward one.
         if (ui.spinForwardSlice->isEnabled()) {
+            fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinForwardSlice->value());
             fPathOnSliceIndex = ui.spinForwardSlice->value();
         } else if (ui.spinBackwardSlice->isEnabled()) {
+            fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinBackwardSlice->value());
             fPathOnSliceIndex = ui.spinBackwardSlice->value();
         } else {
             // Just take the last target index from an anchor (gives preference to the forward one since that is run last)
@@ -1230,7 +1268,10 @@ void CWindow::executeNextSegmentation()
         worker_progress_updater_.stop();
         worker_progress_.close();
 
-        playPing();
+        QSettings settings("VC.ini", QSettings::IniFormat);
+        if (settings.value("viewer/play_sound_after_seg_run", "1").toInt() != 0) {
+            playPing();
+        }
     }
 }
 
@@ -1306,8 +1347,8 @@ void CWindow::onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::Po
     }
 
     // Run finished => we can now mark it as "used in a run"
-    auto directionUp = (endIndex > startIndex);
-    fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex + (directionUp ? -1 : -1), true);
+    auto directionUp = (endIndex > fSliceIndexToolStart);
+    fSegStructMap[submittedSegmentationId].SetAnnotationUsedInRun(startIndex + (directionUp ? -1 : +1), true);
     fSegStructMap[submittedSegmentationId].SetAnnotationOriginalPos(ps);
 
     // For everything in between start and end slice, we can clear out the "manual" and "used in a run" flag, since we know
@@ -2074,8 +2115,10 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
         {
             // If nothing really changed, leave directly (especially since we have two listeners active and
             // don't want to redraw the curves multiple times)
-            if (fHighlightedSegmentationId == aSegID)
+            if (fHighlightedSegmentationId == aSegID && qga::keyboardModifiers() != Qt::ShiftModifier &&
+                qga::keyboardModifiers() != Qt::AltModifier && qga::keyboardModifiers() != Qt::ControlModifier) {
                 return;
+            }
 
             for(auto& seg : fSegStructMap) {
                 seg.second.highlighted = false;
@@ -2439,15 +2482,19 @@ void CWindow::ToggleSegmentationTool(void)
         }
 
         if (changesFound) {
-            const auto response = QMessageBox::question(this, "Changed Curves",
-                tr("You have made changes to curves that will get lost if you exit without starting a segmentation run.\n\nDiscard the changes?"),
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+            QMessageBox question(QMessageBox::Icon::Question, tr("Changed Curves"),
+                tr("You have made changes to curves that were not used in a segmentation run.\n\nReset those changes?\n\nNote: Keeping does not mean saving to disk."),
+                QMessageBox::Reset | QMessageBox::Cancel, this);
+            question.setDefaultButton(QMessageBox::Cancel);
+            QAbstractButton* buttonKeep = question.addButton(tr("Keep"), QMessageBox::AcceptRole);
+
+            const auto response = question.exec();
 
             if (response == QMessageBox::Cancel) {
                 // Stay in seg tool mode => check the button again and then leave
                 fSegTool->setChecked(true);
                 return;
-            } else if (response == QMessageBox::Save) {
+            } else if (question.clickedButton() == buttonKeep) {
                 // Save the changed curve and mark as manually changed
                 fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fSliceIndexToolStart, true);
                 fSegStructMap[fHighlightedSegmentationId].SetAnnotationManualPoints(fSliceIndexToolStart);
@@ -2466,6 +2513,18 @@ void CWindow::ToggleSegmentationTool(void)
 void CWindow::OnChangeSegAlgo(int index)
 {
     ui.segParamsStack->setCurrentIndex(index);
+
+    if (index == 0) {
+        // LRPS only supports forward runs
+        ui.radioBackwardSlice->setDisabled(true);
+        ui.radioBackwardAnchor->setDisabled(true);
+        ui.radioBackwardNoRun->setDisabled(true);
+        ui.radioBackwardNoRun->setChecked(true);
+    } else {
+        ui.radioBackwardSlice->setDisabled(false);
+        ui.radioBackwardAnchor->setDisabled(false);
+        ui.radioBackwardNoRun->setDisabled(false);
+    }
 }
 
 // Handle gravity value change
@@ -2573,20 +2632,6 @@ void CWindow::OnOptIncludeMiddleClicked(bool clicked)
 {
     fOptIncludeMiddle->setChecked(clicked);
     fSegParams.fIncludeMiddle = clicked;
-}
-
-// Handle ending slice value change
-void CWindow::OnEdtEndingSliceValChange()
-{
-    // ending slice index
-    int aNewVal = ui.spinForwardSlice->value();
-    if (aNewVal < currentVolume->numSlices()) {
-        fEndTargetOffset = aNewVal - fPathOnSliceIndex;
-    } else {
-        statusBar->showMessage(
-            tr("ERROR: Selected slice is out of range of the volume!"), 10000);
-        ui.spinForwardSlice->setValue(fPathOnSliceIndex + fEndTargetOffset);
-    }
 }
 
 // Handle start segmentation
