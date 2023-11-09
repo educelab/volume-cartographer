@@ -140,8 +140,57 @@ auto UVMap::Plot(
 
 void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis)
 {
+    auto num_samples = std::min(uv.size(), size_t(100));
+
+    // generate num_samples random indices
+    std::vector<size_t> idxs;
+    idxs.reserve(num_samples);
+    while (idxs.size() < num_samples) {
+        auto idx = rand() % uv.size();
+        if (std::find(idxs.begin(), idxs.end(), idx) == idxs.end()) {
+            idxs.push_back(idx);
+        }
+    }
+
+    // sample UV points and corresponding mesh coordinates of interest
+    std::vector<cv::Vec2d> uvs;
+    std::vector<double> coords;
+    uvs.reserve(num_samples);
+    coords.reserve(num_samples);
+    for (const auto& idx : idxs) {
+        auto uv_point = uv.get(idx);
+        double mesh_coord = 0;
+        switch (axis) {
+            case AlignmentAxis::ZPos:
+                mesh_coord = mesh->GetPoint(idx)[2];
+                break;
+            case AlignmentAxis::ZNeg:
+                mesh_coord = -mesh->GetPoint(idx)[2];
+                break;
+            case AlignmentAxis::YPos:
+                mesh_coord = mesh->GetPoint(idx)[1];
+                break;
+            case AlignmentAxis::YNeg:
+                mesh_coord = -mesh->GetPoint(idx)[1];
+                break;
+            case AlignmentAxis::XPos:
+                mesh_coord = mesh->GetPoint(idx)[0];
+                break;
+            case AlignmentAxis::XNeg:
+                mesh_coord = -mesh->GetPoint(idx)[0];
+                break;
+            default:
+                break;
+        }
+        uvs.push_back(uv_point);
+        coords.push_back(mesh_coord);
+    }
+
+    // TODO LEFT OFF optimize the angle
+    // need some objective function and an optimizer
+
     // Find angle in radians, counter-clockwise to center {0.5, 0.5}
-    auto theta = 1.5;  // TODO LEFT OFF this is a made-up value
+    auto theta = 1.5;  // this is a made-up value
 
     Rotate(uv, theta);
 }
