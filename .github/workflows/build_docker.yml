@@ -3,6 +3,7 @@ on:
   push:
     branches: ["develop"]
     tags: ["v*"]
+  workflow_dispatch:
 
 concurrency: docker
 
@@ -15,7 +16,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/schillij95/volume-cartographer-papyrus
+          images: ghcr.io/spacegaier/volume-cartographer
           tags: |
             type=ref,event=pr
             type=semver,pattern={{version}}
