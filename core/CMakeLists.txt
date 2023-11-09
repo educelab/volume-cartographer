@@ -57,6 +57,7 @@ set(util_srcs
     src/ImageConversion.cpp
     src/ApplyLUT.cpp
     src/ColorMaps.cpp
+    src/Debug.cpp
 )
 
 set(logging_srcs

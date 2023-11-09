@@ -261,8 +261,8 @@ void CWindow::CreateWidgets(void)
             OnLoadAnySlice(0);
             setDefaultWindowWidth(newVolume);
             fVolumeViewerWidget->setNumSlices(currentVolume->numSlices());
-            ui.spinBackwardSlice->setMaximum(currentVolume->numSlices());
-            ui.spinForwardSlice->setMaximum(currentVolume->numSlices());
+            ui.spinBackwardSlice->setMaximum(currentVolume->numSlices() - 1);
+            ui.spinForwardSlice->setMaximum(currentVolume->numSlices() - 1);
         });
 
     assignVol = this->findChild<QPushButton*>("assignVol");
@@ -354,7 +354,6 @@ void CWindow::CreateWidgets(void)
     edtStepSize->setMinimum(1);
     edtStepSize->setMaximum(100);
     edtStepSize->setValue(1);
-    auto* chkSampleStepMiddle = new QCheckBox(tr("Sample from Middle of Step Size"));
 
     connect(edtOutsideThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.outside_threshold = v;});
     connect(edtOpticalFlowPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_pixel_threshold = v;});
@@ -368,7 +367,6 @@ void CWindow::CreateWidgets(void)
     connect(chkPurgeCache, &QCheckBox::toggled, [=](bool checked){fSegParams.purge_cache = checked;});
     connect(edtCacheSize, &QSpinBox::valueChanged, [=](int v){fSegParams.cache_slices = v;});
     connect(edtStepSize, &QSpinBox::valueChanged, [=](int v){fSegParams.step_size = v;});
-    connect(chkSampleStepMiddle, &QCheckBox::toggled, [=](bool checked){fSegParams.sample_from_step_middle = checked;});
 
     auto* opticalFlowParamsContainer = new QWidget();
     auto* opticalFlowParamsLayout = new QVBoxLayout(opticalFlowParamsContainer);
@@ -395,7 +393,6 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(edtCacheSize);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Step Size")));
     opticalFlowParamsLayout->addWidget(edtStepSize);
-    opticalFlowParamsLayout->addWidget(chkSampleStepMiddle);
 
     ui.segParamsStack->addWidget(opticalFlowParamsContainer);
     // set the default segmentation method as Optical Flow Segmentation
@@ -865,10 +862,6 @@ void CWindow::UpdateView(void)
         QString("%1").arg(fSegParams.fPeakDistanceWeight));
     fEdtWindowWidth->setValue(fSegParams.fWindowWidth);
 
-    // Set / calculate backward and forward index
-    ui.spinBackwardSlice->setValue(std::clamp(fSliceIndexToolStart - fEndTargetOffset, 0, fSliceIndexToolStart));
-    ui.spinForwardSlice->setValue(std::clamp(fSliceIndexToolStart + fEndTargetOffset, fSliceIndexToolStart, currentVolume->numSlices() - 1));
-
     // Logic to enable/disable segmentation and pen tools. TODO add logic to check proper segmentations
     bool availableSegments = false;
     bool availableNewSegments = false;
@@ -1088,7 +1081,7 @@ bool CWindow::prepareSegmentationBase(std::string algorithm, std::string segID, 
         skipRun = (fSegParams.targetAnchor == -1);
     }
 
-    std::cout << algorithm << ": Final Target Slice: " << fSegParams.targetIndex << std::endl;
+    std::cout << algorithm << ": Updated Target Slice: " << fSegParams.targetIndex << std::endl;
 
     // If start and end index are the same, we can skip the run since nothing would happen
     if (!skipRun) {
@@ -1108,19 +1101,37 @@ bool CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
     bool skipRun = false;
     volcart::segmentation::ChainSegmentationAlgorithm::Chain reSegStartingChain;
 
+    std::cout << "OFS: Step Size: " << fSegParams.step_size << std::endl;
+
     if (fSegParams.step_size > 1) {
-        std::cout << "OFS: Step Size: " << fSegParams.step_size << std::endl;
 
-        auto temp = fSegParams.targetIndex;
-        fSegParams.targetIndex = fSegParams.startIndex + (int)((fSegParams.targetIndex - fSegParams.startIndex ) / fSegParams.step_size) * fSegParams.step_size;
+        auto tempTargetIndex = fSegParams.targetIndex;
+        int numSlicesWithSteps = std::floor((fSegParams.targetIndex - fSegParams.startIndex + (fSegParams.targetAnchor != -1 ? 0 : forward ? 1 : -1)) / fSegParams.step_size) * fSegParams.step_size;
 
-        if (temp != fSegParams.targetIndex) {
-            std::cout << "OFS: Target Slice changed (Cause: Step Size)" << std::endl;
+        // If based on the step size we would not get another calculated slice (apart from the starting one) into the range,
+        // we keep the original target index to ensure that we at least generate a non-interpolated curve on the first and last slice.
+        if (numSlicesWithSteps != 0) {
+
+            // For slice mode (so not running to an anchor) we need to stop at a multiple of the step size since there is nothing beyond that
+            // towards what we could extrapolate to fill the rest. In anchor mode however, there is the anchor we can us to fill the remainder.
+            if (!useAnchor) {
+                fSegParams.targetIndex = fSegParams.startIndex + numSlicesWithSteps - (forward ? 1 : -1);
+
+                if (tempTargetIndex != fSegParams.targetIndex) {
+                    std::cout << "OFS: Target Slice changed (Cause: Step Size)" << std::endl;
+                    std::cout << "OFS: Updated Target Slice: " << fSegParams.targetIndex << std::endl;
+                }
+            }
+        } else {
+            // fSegParams.step_size = std::abs(fSegParams.targetIndex - fSegParams.startIndex);
+            // std::cout << "OFS: Step Size too wide => Temporarily changed to " << fSegParams.step_size << " to have a valid Target Slice" << std::endl;
+            std::cout << "OFS: Step Size too wide => No valid Target Slice" << std::endl;
+            skipRun = true;
         }
     }
 
     // Check if interpolation is enabled (percent value > 0)
-    if (useAnchor && fSegParams.smoothness_interpolation_percent > 0 && fSegParams.targetAnchor != -1) {
+    if (!skipRun && useAnchor && fSegParams.smoothness_interpolation_percent > 0 && fSegParams.targetAnchor != -1) {
         // With anchors we have to use the percentage of the delta between
         // segmentation start slice and the end slice.
         // So we now have to calculate the segmentation length, the midpoint and the resulting interpolation window.
@@ -1180,7 +1191,6 @@ bool CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAn
         ofsc->setInterpolationWindow(interpolationWindow);
         ofsc->setReSegmentationChain(reSegStartingChain);
         ofsc->setStepSize(fSegParams.step_size);
-        ofsc->setSampleStepMiddle(fSegParams.sample_from_step_middle);
         ofsc->setChain(fSegStructMap[segID].fStartingPath);
         ofsc->setVolume(currentVolume);
 
@@ -1249,10 +1259,10 @@ void CWindow::executeNextSegmentation()
         // direction the user is segmenting. If both forward and backward slice inputs are active, chose the forward one.
         if (ui.spinForwardSlice->isEnabled()) {
             fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinForwardSlice->value());
-            fPathOnSliceIndex = ui.spinForwardSlice->value();
+            fPathOnSliceIndex = fSegParams.targetIndex;
         } else if (ui.spinBackwardSlice->isEnabled()) {
             fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinBackwardSlice->value());
-            fPathOnSliceIndex = ui.spinBackwardSlice->value();
+            fPathOnSliceIndex = fSegParams.targetIndex;
         } else {
             // Just take the last target index from an anchor (gives preference to the forward one since that is run last)
             fPathOnSliceIndex = fSegParams.targetIndex;
@@ -2349,7 +2359,7 @@ void CWindow::ShowGoToSliceDlg() {
 
 
     bool status;
-    const int sliceIndex = QInputDialog::getInt(this, tr("Go to slice"), tr("Slice Index"), 0, 0, currentVolume->numSlices(), 1, &status);
+    const int sliceIndex = QInputDialog::getInt(this, tr("Go to slice"), tr("Slice Index"), 0, 0, currentVolume->numSlices() - 1, 1, &status);
 
     if (status) {
         OnLoadAnySlice(sliceIndex);
@@ -2464,8 +2474,11 @@ void CWindow::ToggleSegmentationTool(void)
             edtInterpolationPercent->setVisible(fSegStructMap[fHighlightedSegmentationId].fSegmentation->hasAnnotations());
         }
 
+        // Set / calculate backward and forward index
         ui.spinBackwardSlice->setMaximum(fSliceIndexToolStart);
         ui.spinForwardSlice->setMinimum(fSliceIndexToolStart);
+        ui.spinBackwardSlice->setValue(std::clamp(fSliceIndexToolStart - fEndTargetOffset, 0, fSliceIndexToolStart));
+        ui.spinForwardSlice->setValue(std::clamp(fSliceIndexToolStart + fEndTargetOffset, fSliceIndexToolStart, currentVolume->numSlices() - 1));
 
         // turn off pen tool
         fPenTool->setChecked(false);

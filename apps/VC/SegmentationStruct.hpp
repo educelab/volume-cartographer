@@ -18,6 +18,7 @@
 #include "ui_VCMain.h"
 
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Debug.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 
@@ -335,6 +336,10 @@ struct SegmentationStruct {
         fIntersectionsChanged.clear();
     }
 
+    /**
+     * Merges the provided point set into the master point cloud
+     * Note: This method assumes that the provided point set is continuous so has no index/slice gaps
+    */
     inline void MergePointSetIntoPointCloud(const volcart::Segmentation::PointSet ps)
     {
         if (ps.empty()) {
@@ -393,7 +398,9 @@ struct SegmentationStruct {
         }
 
         int sizeDelta = fUpperPart.height() - fMasterCloud.height();
+        // volcart::debug::PrintPointCloud(fMasterCloud, "Before Copy", true);
         fMasterCloud = fUpperPart;
+        // volcart::debug::PrintPointCloud(fMasterCloud, "After Copy", true);
 
         // Handle annotation cloud logic
 

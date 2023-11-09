@@ -141,15 +141,11 @@ public:
     /** @brief Set the input chain of re-segmentation points */
     void setReSegmentationChain(Chain c) { reSegStartingChain_ = std::move(c); }
 
-    /** @brief Set whether the neighboor slice should not be the directly adjacent previous one, but the one in the middle of the step size
-     */
-    void setSampleStepMiddle(bool sample) { sample_step_middle_ = sample; }
-
     /** @brief Interpolate the points with the existing masterCloud OrderedPointSet to get a smooth final surface
      */
     std::vector<std::vector<Voxel>> interpolateWithMasterCloud(std::vector<std::vector<Voxel>> points, int window_size, bool backwards);
 
-    /** @brief Interpolate the gaps in the result point set for step sizes greater than 1
+    /** @brief Interpolate the gaps in the result point set
      */
     std::vector<std::vector<Voxel>> interpolateGaps(std::vector<std::vector<Voxel>> points, int missingIndexes);
 
@@ -241,7 +237,11 @@ private:
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
-    auto computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startIndex, int endIndex, bool backwards, size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
+    /**
+     * Compute a sub portion of the algorithm, e.g. the regualr "forward" portion or the backwards re-segmentation.
+     * @param initialStepAdjustment is required for the re-segmentation run in case of step sizes that do not directly hit the target anchor
+    */
+    auto computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startIndex, int endIndex, int initialStepAdjustment, bool backwards, size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
         -> ChainSegmentationAlgorithm::Status;
 
     /** Start z-index */
@@ -275,7 +275,6 @@ private:
     bool interpolate_master_cloud{true};
     int smoothness_interpolation_window_{5}; //  window for interpolation (number if slices from interpolation distance/center in either direction)
     int smoothness_interpolation_distance_{25}; // distance from start slice where the interpolation center is
-    bool sample_step_middle_{false};
     Chain reSegStartingChain_;
     volcart::OrderedPointSet<cv::Vec3d> masterCloud_;
     mutable std::shared_mutex display_mutex_;

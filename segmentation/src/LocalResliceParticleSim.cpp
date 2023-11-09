@@ -49,7 +49,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
         })) {
         status_ = Status::ReturnedEarly;
         progressComplete();
-        std::cout << "Error: Starting chain out of bounds!" << std::endl;
+        std::cout << "[Error]: Starting chain out of bounds!" << std::endl;
         return create_final_pointset_({currentVs});
     }
 

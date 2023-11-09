@@ -96,7 +96,6 @@ public:
         int edge_bounce_distance;
         int smoothness_interpolation_percent;
         int step_size{1};
-        bool sample_from_step_middle;
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
