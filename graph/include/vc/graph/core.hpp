@@ -408,6 +408,47 @@ private:
 };
 
 /**
+ * @copybrief UVMap::AlignToAxis()
+ *
+ * The original UVMap is not modified by this operation.
+ *
+ * @see UVMap::AlignToAxis()
+ * @ingroup Graph
+ */
+class AlignUVMapToAxisNode : public smgl::Node
+{
+private:
+    /** Input UVMap */
+    UVMap::Pointer uvMapIn_;
+    /** Axis to align to */
+    int axis_{0};
+    /** Output UVMap */
+    UVMap::Pointer uvMapOut_;
+
+public:
+    /** @copydoc UVMap::AlignmentAxis */
+    using AlignmentAxis = UVMap::AlignmentAxis;
+    /** @brief Input UVMap */
+    smgl::InputPort<UVMap::Pointer> uvMapIn;
+    /** @brief Axis to align to */
+    smgl::InputPort<AlignmentAxis> axis;
+    /** @brief Output UVMap */
+    smgl::OutputPort<UVMap::Pointer> uvMapOut;
+
+    /** Constructor */
+    AlignUVMapToAxisNode();
+
+private:
+    /** Smeagol custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** Smeagol custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
  * @copybrief UVMap::Plot()
  *
  * @see UVMap::Plot()

@@ -131,6 +131,16 @@ static auto GetUVOpts() -> po::options_description
                 "  0 = Vertical\n"
                 "  1 = Horizontal\n"
                 "  2 = Both")
+        ("uv-align-to-axis", po::value<int>(),
+            "Rotate the UV map so that up (-Y) in the texture image is aligned "
+            "as well as possible to the specified volume axis.\n"
+            "Volume axis:\n"
+                "  0 = +Z\n"
+                "  1 = -Z\n"
+                "  2 = +Y\n"
+                "  3 = -Y\n"
+                "  4 = +X\n"
+                "  5 = -X")
         ("uv-plot", po::value<std::string>(), "Plot the UV points and save "
             "it to the provided image path.")
         ("uv-plot-error", po::value<std::string>(), "Plot the UV L-stretch "
@@ -539,6 +549,18 @@ auto main(int argc, char* argv[]) -> int
                 parsed["uv-algorithm"].as<int>());
             return EXIT_FAILURE;
         }
+    }
+
+    // Align to axis
+    if (parsed.count("uv-align-to-axis") > 0) {
+        auto axis = static_cast<UVMap::AlignmentAxis>(parsed["uv-align-to-axis"].as<int>());
+        auto align = graph->insertNode<AlignUVMapToAxisNode>();
+        align->uvMapIn = *results["uvMap"];
+        align->axis = axis;
+        results["uvMap"] = &align->uvMapOut;
+
+        // UV Mesh needs to be recalculated after transform
+        results.erase("uvMesh");
     }
 
     // Rotate

@@ -138,6 +138,11 @@ auto UVMap::Plot(
     return r;
 }
 
+void UVMap::AlignToAxis(UVMap& uv, AlignmentAxis axis)
+{
+    
+}
+
 void UVMap::Rotate(UVMap& uv, Rotation rotation)
 {
     cv::Mat unused;

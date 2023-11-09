@@ -303,6 +303,41 @@ void FlipUVMapNode::deserialize_(
     }
 }
 
+void AlignUVMapToAxisNode::AlignUVMapToAxisNode()
+    : Node{true}, uvMapIn{&uvMapIn_}, axis{&axis_}, uvMapOut{&uvMapOut_}
+{
+    registerInputPort("uvMapIn", uvMapIn);
+    registerInputPort("axis", axis);
+    registerOutputPort("uvMapOut", uvMapOut);
+
+    compute = [=]() {
+        uvMapOut_ = UVMap::New(*uvMapIn_);
+        UVMap::AlignToAxis(*uvMapOut_, axis_);
+    };
+}
+
+auto AlignUVMapToAxisNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta;
+    meta["axis"] = axis_;
+    if (useCache and uvMapOut_ and not uvMapOut_->empty()) {
+        io::WriteUVMap(cacheDir / "uvMap_align.uvm", *uvMapOut_);
+        meta["uvMap"] = "uvMap_align.uvm";
+    }
+    return meta;
+}
+
+void AlignUVMapToAxisNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& cacheDir)
+{
+    axis_ = meta["axis"].get<Axis>();
+    if (meta.contains("uvMap")) {
+        auto uvMapFile = meta["uvMap"].get<std::string>();
+        uvMapOut_ = UVMap::New(io::ReadUVMap(cacheDir / uvMapFile));
+    }
+}
+
 PlotUVMapNode::PlotUVMapNode()
     : Node{true}, uvMap{&uvMap_}, uvMesh{&uvMesh_}, plot{&plot_}
 {
