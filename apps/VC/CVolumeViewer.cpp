@@ -18,12 +18,12 @@ CVolumeViewerView::CVolumeViewerView(QWidget* parent)
     timerTextAboveCursor->setSingleShot(true);
 }
 
-void CVolumeViewerView::setup() 
+void CVolumeViewerView::setup()
 {
     textAboveCursor = new QGraphicsTextItem("", 0);
     textAboveCursor->setFlag(QGraphicsItem::ItemIgnoresTransformations);
     textAboveCursor->setZValue(100);
-    textAboveCursor->setVisible(false);    
+    textAboveCursor->setVisible(false);
     textAboveCursor->setDefaultTextColor(DEFAULT_TEXT_COLOR);
     scene()->addItem(textAboveCursor);
 
@@ -63,7 +63,10 @@ void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
 
 void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString& label, const QColor& color)
 {
-    if (!hasFocus()) {
+    // Without this check, when you start VC with auto-load the initial slice will not be in the center of
+    // volume viewer, because during loading the initilization of the impact range slider and its callback slots
+    // will already move the position/scrollbars of the viewer and therefore the image is no longer centered.
+    if (!isVisible()) {
         return;
     }
 
@@ -143,7 +146,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fGraphicsView = new CVolumeViewerView(this);
     fGraphicsView->setRenderHint(QPainter::Antialiasing);
     setFocusProxy(fGraphicsView);
-    
+
     // Create graphics scene
     fScene = new QGraphicsScene(this);
 
@@ -238,7 +241,7 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
     if (watched == fGraphicsView || (fGraphicsView && watched == fGraphicsView->viewport()) && event->type() == QEvent::Wheel) {
 
         QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
-        
+
         // Range key pressed
         if (fGraphicsView->isRangeKeyPressed()) {
             int numDegrees = wheelEvent->angleDelta().y() / 8;
