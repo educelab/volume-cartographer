@@ -177,7 +177,8 @@ public:
         const Color& color = color::LIGHT_GRAY) -> cv::Mat;
 
     /** @brief Align a UVMap to a specified volume axis */
-    static void AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis);
+    static void AlignToAxis(
+        UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis);
 
     /** @brief Rotate a UVMap by a multiple of 90 degrees */
     static void Rotate(UVMap& uv, Rotation rotation);

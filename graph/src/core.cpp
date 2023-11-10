@@ -304,7 +304,11 @@ void FlipUVMapNode::deserialize_(
 }
 
 AlignUVMapToAxisNode::AlignUVMapToAxisNode()
-    : Node{true}, uvMapIn{&uvMapIn_}, mesh{&mesh_}, axis{&axis_}, uvMapOut{&uvMapOut_}
+    : Node{true}
+    , uvMapIn{&uvMapIn_}
+    , mesh{&mesh_}
+    , axis{&axis_}
+    , uvMapOut{&uvMapOut_}
 {
     registerInputPort("uvMapIn", uvMapIn);
     registerInputPort("mesh", mesh);

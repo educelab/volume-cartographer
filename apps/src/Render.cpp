@@ -556,7 +556,8 @@ auto main(int argc, char* argv[]) -> int
 
     // Align to axis
     if (parsed.count("uv-align-to-axis") > 0) {
-        auto axis = static_cast<UVMap::AlignmentAxis>(parsed["uv-align-to-axis"].as<int>());
+        auto axis = static_cast<UVMap::AlignmentAxis>(
+            parsed["uv-align-to-axis"].as<int>());
         if (axis != UVMap::AlignmentAxis::None) {
             auto align = graph->insertNode<AlignUVMapToAxisNode>();
             align->uvMapIn = *results["uvMap"];

@@ -150,8 +150,8 @@ auto UVMap::Plot(
 }
 
 // pearson correlation coefficient between two vectors
-static auto pearson_correlation(const std::vector<double>& x, const std::vector<double>& y)
-    -> double
+static auto pearson_correlation(
+    const std::vector<double>& x, const std::vector<double>& y) -> double
 {
     auto n = x.size();
     auto sum_x = std::accumulate(x.begin(), x.end(), 0.0);
@@ -161,8 +161,8 @@ static auto pearson_correlation(const std::vector<double>& x, const std::vector<
     auto sum_y2 = std::inner_product(y.begin(), y.end(), y.begin(), 0.0);
 
     auto numerator = n * sum_xy - sum_x * sum_y;
-    auto denominator = std::sqrt(
-        (n * sum_x2 - sum_x * sum_x) * (n * sum_y2 - sum_y * sum_y));
+    auto denominator =
+        std::sqrt((n * sum_x2 - sum_x * sum_x) * (n * sum_y2 - sum_y * sum_y));
 
     auto p = numerator / denominator;
     if (std::isnan(p)) {
@@ -172,7 +172,8 @@ static auto pearson_correlation(const std::vector<double>& x, const std::vector<
     }
 }
 
-void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis)
+void UVMap::AlignToAxis(
+    UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis)
 {
     // range of indices to sample from
     std::vector<size_t> range(uv.size());
@@ -184,13 +185,7 @@ void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis a
     // sample num_samples idxs
     std::vector<size_t> idxs(num_samples);
     std::mt19937 g(42);
-    std::sample(
-        range.begin(),
-        range.end(),
-        idxs.begin(),
-        num_samples,
-        g
-    );
+    std::sample(range.begin(), range.end(), idxs.begin(), num_samples, g);
     std::shuffle(idxs.begin(), idxs.end(), g);
 
     // sample UV points and corresponding mesh coordinates of interest
@@ -243,7 +238,8 @@ void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis a
         Rotate(*current_rotation_uvs, theta);
 
         // fill vs_neg which is -uv[1] for each uv
-        // want to align the specified volume axis to "up" in texture image (negative v in UV map)
+        // want to align the specified volume axis to "up" in texture image
+        // (negative v in UV map)
         std::vector<double> vs_neg;
         for (size_t i = 0; i < num_samples; i++) {
             vs_neg.push_back(-current_rotation_uvs->get(i)[1]);
@@ -261,7 +257,9 @@ void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis a
     // Perform rotation
     Rotate(uv, best_theta);
 
-    Logger()->debug("Rotated UV map with theta: {} and axis correlation {}", best_theta, best_pearson);
+    Logger()->debug(
+        "Rotated UV map with theta: {} and axis correlation {}", best_theta,
+        best_pearson);
 }
 
 void UVMap::Rotate(UVMap& uv, Rotation rotation)
