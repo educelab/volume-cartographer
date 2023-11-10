@@ -1,12 +1,14 @@
 #include "vc/core/types/UVMap.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <random>
 
 #include <opencv2/imgproc.hpp>
 
 #include "vc/core/util/Iteration.hpp"
+#include "vc/core/util/Logging.hpp"
 
 /** Top-left UV Origin */
 const static cv::Vec2d ORIGIN_TOP_LEFT(0, 0);
@@ -74,6 +76,9 @@ void UVMap::ratio(double w, double h)
     ratio_.height = h;
     ratio_.aspect = w / h;
 }
+
+void UVMap::clear_map() { map_.clear(); }
+
 auto UVMap::as_map() const -> std::map<size_t, cv::Vec2d> { return map_; }
 
 auto OriginVector(const UVMap::Origin& o) -> cv::Vec2d
@@ -87,6 +92,8 @@ auto OriginVector(const UVMap::Origin& o) -> cv::Vec2d
             return ORIGIN_BOTTOM_LEFT;
         case UVMap::Origin::BottomRight:
             return ORIGIN_BOTTOM_RIGHT;
+        default:
+            throw std::runtime_error("Invalid UVMap::Origin");
     }
 }
 
@@ -142,32 +149,60 @@ auto UVMap::Plot(
     return r;
 }
 
+// pearson correlation coefficient between two vectors
+static auto pearson_correlation(const std::vector<double>& x, const std::vector<double>& y)
+    -> double
+{
+    auto n = x.size();
+    auto sum_x = std::accumulate(x.begin(), x.end(), 0.0);
+    auto sum_y = std::accumulate(y.begin(), y.end(), 0.0);
+    auto sum_xy = std::inner_product(x.begin(), x.end(), y.begin(), 0.0);
+    auto sum_x2 = std::inner_product(x.begin(), x.end(), x.begin(), 0.0);
+    auto sum_y2 = std::inner_product(y.begin(), y.end(), y.begin(), 0.0);
+
+    auto numerator = n * sum_xy - sum_x * sum_y;
+    auto denominator = std::sqrt(
+        (n * sum_x2 - sum_x * sum_x) * (n * sum_y2 - sum_y * sum_y));
+
+    auto p = numerator / denominator;
+    if (std::isnan(p)) {
+        throw std::runtime_error("pearson correlation coefficient is NaN");
+    } else {
+        return p;
+    }
+}
+
 void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis)
 {
     // range of indices to sample from
     std::vector<size_t> range(uv.size());
     std::iota(range.begin(), range.end(), 0);
 
-    // number of points to use for alignment
-    auto num_samples = std::min(uv.size(), size_t(100));
+    // number of sample points to use for alignment
+    auto num_samples = std::min(uv.size(), size_t(500));
 
     // sample num_samples idxs
     std::vector<size_t> idxs(num_samples);
+    std::mt19937 g(42);
     std::sample(
         range.begin(),
         range.end(),
         idxs.begin(),
         num_samples,
-        std::mt19937{std::random_device{}()}
+        g
     );
+    std::shuffle(idxs.begin(), idxs.end(), g);
 
     // sample UV points and corresponding mesh coordinates of interest
-    std::vector<cv::Vec2d> uvs;
-    std::vector<double> coords;
-    uvs.reserve(num_samples);
-    coords.reserve(num_samples);
-    for (const auto& idx : idxs) {
-        auto uv_point = uv.get(idx);
+    auto sampled_uvs = UVMap::New(uv);
+    sampled_uvs->clear_map();
+    std::vector<double> mesh_coords(num_samples);
+
+    for (size_t i = 0; i < num_samples; i++) {
+        auto idx = idxs[i];
+
+        sampled_uvs->set(i, uv.get(idx));
+
         double mesh_coord = 0;
         switch (axis) {
             case AlignmentAxis::ZPos:
@@ -189,19 +224,44 @@ void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis a
                 mesh_coord = -mesh->GetPoint(idx)[0];
                 break;
             default:
-                break;
+                throw std::runtime_error("Invalid AlignmentAxis");
         }
-        uvs.push_back(uv_point);
-        coords.push_back(mesh_coord);
+        mesh_coords[i] = mesh_coord;
     }
 
-    // TODO LEFT OFF optimize the angle
-    // need some objective function and an optimizer
+    // optimize theta (angle in radians, counter-clockwise to center {0.5, 0.5})
+    auto angles = 720;
+    auto delta = 2 * M_PI / angles;
 
-    // Find angle in radians, counter-clockwise to center {0.5, 0.5}
-    auto theta = 1.5;  // this is a made-up value
+    auto best_pearson = -1.0;
+    auto best_theta = 0.0;
 
-    Rotate(uv, theta);
+    for (auto iter = 0; iter < angles; iter++) {
+        auto theta = iter * delta;
+
+        auto current_rotation_uvs = UVMap::New(*sampled_uvs);
+        Rotate(*current_rotation_uvs, theta);
+
+        // fill vs_neg which is -uv[1] for each uv
+        // want to align the specified volume axis to "up" in texture image (negative v in UV map)
+        std::vector<double> vs_neg;
+        for (size_t i = 0; i < num_samples; i++) {
+            vs_neg.push_back(-current_rotation_uvs->get(i)[1]);
+        }
+
+        // compute pearson correlation coefficient
+        auto pearson = pearson_correlation(vs_neg, mesh_coords);
+
+        if (pearson > best_pearson) {
+            best_pearson = pearson;
+            best_theta = theta;
+        }
+    }
+
+    // Perform rotation
+    Rotate(uv, best_theta);
+
+    Logger()->debug("Rotated UV map with theta: {} and axis correlation {}", best_theta, best_pearson);
 }
 
 void UVMap::Rotate(UVMap& uv, Rotation rotation)

@@ -128,6 +128,9 @@ public:
     /** @brief Check if the vertex index has a UV mapping */
     [[nodiscard]] auto contains(std::size_t id) const -> bool;
 
+    /** @brief Clear map. */
+    void clear_map();
+
     /** Access to underlying data. For serialization only. */
     [[nodiscard]] auto as_map() const -> std::map<size_t, cv::Vec2d>;
     /**@}*/
