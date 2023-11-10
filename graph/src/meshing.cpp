@@ -34,8 +34,9 @@ MeshingNode::MeshingNode()
 {
     registerInputPort("points", points);
     registerOutputPort("mesh", mesh);
+
     compute = [&]() {
-        Logger()->debug("[graph.meshing] meshing pointset");
+        Logger()->debug("[graph.meshing] meshing point set");
         mesh_ = mesher_.compute();
     };
 }

@@ -292,6 +292,7 @@ auto main(int argc, char* argv[]) -> int
     auto logLevel = parsed["log-level"].as<std::string>();
     to_lower(logLevel);
     logging::SetLogLevel(logLevel);
+    smgl::SetLogLevel(logLevel);
 
     // Register VC graph nodes
     vc::RegisterNodes();
@@ -815,9 +816,9 @@ auto main(int argc, char* argv[]) -> int
     try {
         Logger()->debug("Starting graph update");
         auto status = graph->update();
-        if (status == smgl::Graph::Status::Updating) {
+        if (status == smgl::Graph::State::Updating) {
             Logger()->error("Graph already updating");
-        } else if (status == smgl::Graph::Status::Error) {
+        } else if (status == smgl::Graph::State::Error) {
             Logger()->error("Graph pipeline failed to update");
         } else {
             Logger()->debug("Graph is idle");
