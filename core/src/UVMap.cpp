@@ -1,5 +1,9 @@
 #include "vc/core/types/UVMap.hpp"
 
+#include <algorithm>
+#include <numeric>
+#include <random>
+
 #include <opencv2/imgproc.hpp>
 
 #include "vc/core/util/Iteration.hpp"
@@ -140,17 +144,22 @@ auto UVMap::Plot(
 
 void UVMap::AlignToAxis(UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis)
 {
+    // range of indices to sample from
+    std::vector<size_t> range(uv.size());
+    std::iota(range.begin(), range.end(), 0);
+
+    // number of points to use for alignment
     auto num_samples = std::min(uv.size(), size_t(100));
 
-    // generate num_samples random indices
-    std::vector<size_t> idxs;
-    idxs.reserve(num_samples);
-    while (idxs.size() < num_samples) {
-        auto idx = rand() % uv.size();
-        if (std::find(idxs.begin(), idxs.end(), idx) == idxs.end()) {
-            idxs.push_back(idx);
-        }
-    }
+    // sample num_samples idxs
+    std::vector<size_t> idxs(num_samples);
+    std::sample(
+        range.begin(),
+        range.end(),
+        idxs.begin(),
+        num_samples,
+        std::mt19937{std::random_device{}()}
+    );
 
     // sample UV points and corresponding mesh coordinates of interest
     std::vector<cv::Vec2d> uvs;
