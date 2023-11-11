@@ -173,7 +173,7 @@ public:
         int height = -1,
         const Color& color = color::LIGHT_GRAY) -> cv::Mat;
 
-    /** @brief Align a UVMap to a specified volume axis */
+    /** @brief Rotate a UVMap to align a specified volume axis to the V axis */
     static void AlignToAxis(
         UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis);
 

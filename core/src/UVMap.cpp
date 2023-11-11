@@ -148,9 +148,9 @@ auto UVMap::Plot(
     return r;
 }
 
-// pearson correlation coefficient between two vectors
 namespace
 {
+// pearson correlation coefficient between two vectors
 auto PearsonCorrelation(
     const std::vector<double>& x, const std::vector<double>& y) -> double
 {
@@ -168,9 +168,8 @@ auto PearsonCorrelation(
     auto p = numerator / denominator;
     if (std::isnan(p)) {
         throw std::runtime_error("Pearson correlation coefficient is NaN");
-    } else {
-        return p;
     }
+    return p;
 }
 }  // namespace
 
@@ -188,14 +187,10 @@ void UVMap::AlignToAxis(
     std::vector<std::size_t> idxs(numSamples);
     std::mt19937 g(42);
     std::sample(range.begin(), range.end(), idxs.begin(), numSamples, g);
-    std::shuffle(idxs.begin(), idxs.end(), g);
 
-    // sample UV points and corresponding mesh coordinates of interest
-    auto sampledUVs = UVMap::New(uv);
-    sampledUVs->map_.clear();
-    std::vector<double> meshCoords(numSamples);
-
-    int elemSign, elemIdx;
+    // determine which element and direction we're aligning
+    std::size_t elemIdx{2};
+    double elemSign{1};
     switch (axis) {
         case AlignmentAxis::ZPos:
             elemIdx = 2;
@@ -225,33 +220,35 @@ void UVMap::AlignToAxis(
             throw std::runtime_error("Invalid AlignmentAxis");
     }
 
-    for (std::size_t i = 0; i < numSamples; i++) {
-        auto idx = idxs[i];
-
+    // sample UV points and corresponding mesh coordinates of interest
+    auto sampledUVs = UVMap::New(uv);
+    sampledUVs->map_.clear();
+    std::vector<double> meshCoords(numSamples);
+    for (auto [i, idx] : enumerate(idxs)) {
         sampledUVs->set(i, uv.get(idx));
-
         meshCoords[i] = elemSign * mesh->GetPoint(idx)[elemIdx];
     }
 
     // optimize theta (angle in radians, counter-clockwise to center {0.5, 0.5})
-    auto angles = 720;
-    auto delta = 2 * M_PI / angles;
+    const int angles{720};
+    const double delta{2. * M_PI / angles};
 
-    auto bestPearson = -1.0;
-    auto bestTheta = 0.0;
+    double bestPearson{-1.};
+    double bestTheta{0.};
 
-    for (auto iter = 0; iter < angles; iter++) {
+    UVMap currentRotationUVs;
+    for (auto iter : volcart::range(angles)) {
         auto theta = iter * delta;
 
-        auto currentRotationUVs = UVMap::New(*sampledUVs);
-        Rotate(*currentRotationUVs, theta);
+        currentRotationUVs = UVMap(*sampledUVs);
+        Rotate(currentRotationUVs, theta);
 
         // fill vsNeg which is -uv[1] for each uv
         // want to align the specified volume axis to "up" in texture image
         // (negative v in UV map)
         std::vector<double> vsNeg;
         for (std::size_t i = 0; i < numSamples; i++) {
-            vsNeg.push_back(-currentRotationUVs->get(i)[1]);
+            vsNeg.push_back(-currentRotationUVs.get(i)[1]);
         }
 
         // compute pearson correlation coefficient
@@ -267,8 +264,8 @@ void UVMap::AlignToAxis(
     Rotate(uv, bestTheta);
 
     Logger()->debug(
-        "Rotated UV map with theta: {} and axis correlation {}", bestTheta,
-        bestPearson);
+        "Rotated UV map with theta: {.5f} and axis correlation {.5f}",
+        bestTheta, bestPearson);
 }
 
 void UVMap::Rotate(UVMap& uv, Rotation rotation)

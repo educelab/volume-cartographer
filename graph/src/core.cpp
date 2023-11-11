@@ -20,6 +20,17 @@ NLOHMANN_JSON_SERIALIZE_ENUM(FlipAxis, {
     {FlipAxis::Horizontal, "horizontal"},
     {FlipAxis::Both, "both"}
 })
+
+using AlignmentAxis = UVMap::AlignmentAxis;
+NLOHMANN_JSON_SERIALIZE_ENUM(AlignmentAxis, {
+    {AlignmentAxis::None, "none"},
+    {AlignmentAxis::ZPos, "zpos"},
+    {AlignmentAxis::ZNeg, "zneg"},
+    {AlignmentAxis::YPos, "ypos"},
+    {AlignmentAxis::YNeg, "yneg"},
+    {AlignmentAxis::XPos, "xpos"},
+    {AlignmentAxis::XNeg, "xneg"},
+})
 // clang-format on
 }  // namespace volcart
 
@@ -315,7 +326,7 @@ AlignUVMapToAxisNode::AlignUVMapToAxisNode()
     registerInputPort("axis", axis);
     registerOutputPort("uvMapOut", uvMapOut);
 
-    compute = [=]() {
+    compute = [&]() {
         uvMapOut_ = UVMap::New(*uvMapIn_);
         UVMap::AlignToAxis(*uvMapOut_, mesh_, axis_);
     };
@@ -324,8 +335,7 @@ AlignUVMapToAxisNode::AlignUVMapToAxisNode()
 auto AlignUVMapToAxisNode::serialize_(bool useCache, const fs::path& cacheDir)
     -> smgl::Metadata
 {
-    smgl::Metadata meta;
-    meta["axis"] = axis_;
+    smgl::Metadata meta{{"axis", axis_}};
     if (useCache and uvMapOut_ and not uvMapOut_->empty()) {
         io::WriteUVMap(cacheDir / "uvMap_align.uvm", *uvMapOut_);
         meta["uvMap"] = "uvMap_align.uvm";
