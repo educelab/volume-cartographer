@@ -1684,7 +1684,12 @@ void CWindow::SetPathPointCloud(void)
         points.emplace_back(pt[0], pt[1], fPathOnSliceIndex);
         annotations.emplace_back(volcart::Segmentation::Annotation((long)fPathOnSliceIndex, (long)(AnnotationBits::ANO_ANCHOR | AnnotationBits::ANO_MANUAL), initialPos, initialPos));
     }
-    fSegStructMap[fSegmentationId].fMasterCloud.pushRow(points);
+
+    /// Evenly space the points on the initial drawn curve
+    volcart::segmentation::FittedCurve evenlyStartingCurve(points, fPathOnSliceIndex);
+    auto row = evenlyStartingCurve.evenlySpacePoints();
+
+    fSegStructMap[fSegmentationId].fMasterCloud.pushRow(row);
     fSegStructMap[fSegmentationId].fAnnotationCloud.pushRow(annotations);
 
     fSegStructMap[fSegmentationId].fMinSegIndex = static_cast<int>(floor(fSegStructMap[fSegmentationId].fMasterCloud[0][2]));
