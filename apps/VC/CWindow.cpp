@@ -592,7 +592,7 @@ void CWindow::CreateMenus(void)
 // Create actions
 void CWindow::CreateActions(void)
 {
-    fOpenVolAct = new QAction(tr("&Open volpkg..."), this);
+    fOpenVolAct = new QAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Open volpkg..."), this);
     connect(fOpenVolAct, SIGNAL(triggered()), this, SLOT(Open()));
     fOpenVolAct->setShortcut(QKeySequence::Open);
 
@@ -603,7 +603,7 @@ void CWindow::CreateActions(void)
         connect(action, &QAction::triggered, this, &CWindow::OpenRecent);
     }
 
-    fSavePointCloudAct = new QAction(tr("&Save volpkg..."), this);
+    fSavePointCloudAct = new QAction(style()->standardIcon(QStyle::SP_DialogSaveButton), tr("&Save volpkg..."), this);
     connect(
         fSavePointCloudAct, SIGNAL(triggered()), this, SLOT(SavePointCloud()));
     fSavePointCloudAct->setShortcut(QKeySequence::Save);
@@ -611,7 +611,7 @@ void CWindow::CreateActions(void)
     fSettingsAct = new QAction(tr("Settings"), this);
     connect(fSettingsAct, SIGNAL(triggered()), this, SLOT(ShowSettings()));
 
-    fExitAct = new QAction(tr("E&xit..."), this);
+    fExitAct = new QAction(style()->standardIcon(QStyle::SP_DialogCloseButton), tr("E&xit..."), this);
     connect(fExitAct, SIGNAL(triggered()), this, SLOT(Close()));
 
     fKeybinds = new QAction(tr("&Keybinds"), this);
