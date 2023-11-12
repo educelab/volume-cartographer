@@ -1745,6 +1745,7 @@ void CWindow::CloseVolume(void)
     OpenSlice();
     InitPathList();
     UpdateView();
+    fSegStructMap.clear();
 }
 
 // Handle open request
@@ -1961,6 +1962,7 @@ void CWindow::OnRemovePathClicked(void)
             try {
                 if (fVpkg->removeSegmentation(id.toStdString())) {
                     fSegStructMap[id.toStdString()].ResetPointCloud();
+                    fSegStructMap.erase(id.toStdString());
                     delete fPathListWidget->currentItem();
                 }
             } catch(std::exception) {
