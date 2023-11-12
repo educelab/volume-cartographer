@@ -13,7 +13,7 @@ This fork contains the following changes compared to upstream currently:
   * Added new keyboard shortcuts so that now via number keys slice navigation in 1, 2, 5, 10 and 100 steps is available
   * Added option to scan through slices while in the Segmentation Tool without losing any made curve changes (when user leaves the Segmentation Tool, a warning is shown to offer to either discard the curve changes, store them or cancel)
 
-- Implemented topics #2 (*"Anchor manually annotated lines"*) and #5 (*"Pull metadata for training autosegmenters"*) of the segmentation wish list ([Goole Doc](https://docs.google.com/document/d/1YFILhWVHyijU_Yky3lKPvGAjmYm2QnRTYzMM7VqcogA)):
+- Implemented topics #2 (*"Anchor manually annotated lines"*) and #6 (*"Pull metadata for training autosegmenters"*) of the segmentation wish list ([Goole Doc](https://docs.google.com/document/d/1YFILhWVHyijU_Yky3lKPvGAjmYm2QnRTYzMM7VqcogA)):
   * Implemented new `*.vcano` annotation file. It consists of 4 `double` values per point, storing the following information:
     * Slice number the annotation point belongs to
     * Bit flags to annotate each point (there is space for a lot more flags to extend further):
@@ -29,6 +29,9 @@ This fork contains the following changes compared to upstream currently:
     * Set anchor mode, in which case the end slice will automatically be the next anchor in that direction (if there is none, no segmentation will happen)
     * Set to none, if one of the directions should not be used
   * The "Interpolation Length" and "Interpolation Window" parameters of OFS were replaced by an "Interpolation Percentage" which will automatically be converted into the appropriate number of slices when using "Anchor mode" for segmentation
+
+- Implemented topic #3 (*"Skipping slices and segmentation runs"*) of the segmentation wish list ([Goole Doc](https://docs.google.com/document/d/1YFILhWVHyijU_Yky3lKPvGAjmYm2QnRTYzMM7VqcogA)):
+  * The OFS algorithm has now a new parameter "Step Size" to define which slices should be calculated, and the rest in between will get interpolated. As the goal was to reduce the number of needed calculations and number of slices that need to be loaded into RAM for the segmentation, I ensured that when there is a segmentation run between two anchors (which means a forward and backward run in one go for the bidirectional re-segmentation requirement) the backwards one uses the same slices for calculations even the step size is not a value that neatly fits (= without module rest) into the segmentation run range.
 
 ### UI / UX Improvements
 - Implemented image dragging/panning via right mouse button
@@ -57,6 +60,7 @@ This fork contains the following changes compared to upstream currently:
 - Added user setting to auto open the last `volpkg` upon app start
 - Added user setting to configure how many slices should automatically be preloaded once Segmentation Tool is entered (previously was hardcoded to 100 slices which depending on the slice image size, might be too much for the machine running the application)
 - Added user setting to configure the impact range values the application should use (still defaults to 1 to 20). User can specify a mixture of explicit numbers and ranges for example "1, 2, 3, 5, 7-10"
+- Added user setting to configure the scan range values the application should use (e.g. when Mouse Wheel + Shift scanning or via the buttons below the segment viewer). User can specify a mixture of explicit numbers and ranges for example "1, 2, 5, 10, 20, 100"
 - Added user setting to configure the delay in milliseconds between point jumps in the Mouse Forward/Backward button mode
 - Added user setting to center image slice on mouse cursor during mouse wheel zooming (configurable via settings)
 

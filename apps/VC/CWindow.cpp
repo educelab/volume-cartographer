@@ -121,26 +121,10 @@ CWindow::CWindow()
     fSegParams.edge_bounce_distance = 3;
     fSegParams.smoothness_interpolation_percent = 30;
 
-    // Process the raw impact range step string and convert to step vector
+    // Process the raw impact and scan ranges string and convert to step vectors
     QSettings settings("VC.ini", QSettings::IniFormat);
-    QString impactRangeStr = settings.value("viewer/impact_range_steps", "1-20").toString();
-    impactRangeStr = impactRangeStr.simplified();
-    impactRangeStr.replace(" ", "");
-    auto commaSplit = impactRangeStr.split(",");
-    for(auto str : commaSplit) {
-        if (str.contains("-")) {
-            // Expand the range to distinct values
-            auto dashSplit = str.split("-");
-            // We need to have two split results (before and after the dash), otherwise skip
-            if (dashSplit.size() == 2) {
-                for(int i = dashSplit.at(0).toInt(); i <= dashSplit.at(1).toInt(); i++) {
-                    impactRangeSteps.push_back(i);
-                }
-            }
-        } else {
-            impactRangeSteps.push_back(str.toInt());
-        }
-    }
+    impactRangeSteps = expandSettingToIntRange(settings.value("viewer/impact_range_steps", "1-20").toString());
+    scanRangeSteps = expandSettingToIntRange(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 100").toString());
 
     // create UI widgets
     CreateWidgets();
@@ -640,6 +624,7 @@ void CWindow::CreateActions(void)
     connect(fPrintDebugInfo, SIGNAL(triggered()), this, SLOT(PrintDebugInfo()));
 }
 
+// Create segmentation backend
 void CWindow::CreateBackend()
 {
     // Setup backend runner
@@ -2369,22 +2354,22 @@ void CWindow::ShowGoToSliceDlg() {
 }
 
 void CWindow::ScanRangeUp() {
-    if (currentScanRangeIndex < std::size(scanRanges) - 1) {
+    if (currentScanRangeIndex < std::size(scanRangeSteps) - 1) {
         currentScanRangeIndex++;
     }
 
     // Always inform the UI/user, even if the value stayed the same
-    fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
+    fVolumeViewerWidget->SetScanRange(scanRangeSteps[currentScanRangeIndex]);
 }
 
 void CWindow::ScanRangeDown() {
     if (currentScanRangeIndex > 0) {
         currentScanRangeIndex--;
-        fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
+        fVolumeViewerWidget->SetScanRange(scanRangeSteps[currentScanRangeIndex]);
     }
 
     // Always inform the UI/user, even if the value stayed the same
-    fVolumeViewerWidget->SetScanRange(scanRanges[currentScanRangeIndex]);
+    fVolumeViewerWidget->SetScanRange(scanRangeSteps[currentScanRangeIndex]);
 }
 
 void CWindow::ReturnToEditSlice() {
@@ -2782,4 +2767,33 @@ void CWindow::onForwardButtonGroupToggled(QAbstractButton* button, bool checked)
     }
 
     ui.spinForwardSlice->setDisabled((button == ui.radioForwardAnchor || button == ui.radioForwardNoRun) && checked);
+}
+
+// Expand string that contains a range definition from the user settings into an integer vector
+std::vector<int> CWindow::expandSettingToIntRange(QString setting)
+{
+    std::vector<int> res;
+    if (setting.isEmpty()) {
+        return res;
+    }
+
+    setting = setting.simplified();
+    setting.replace(" ", "");
+    auto commaSplit = setting.split(",");
+    for(auto str : commaSplit) {
+        if (str.contains("-")) {
+            // Expand the range to distinct values
+            auto dashSplit = str.split("-");
+            // We need to have two split results (before and after the dash), otherwise skip
+            if (dashSplit.size() == 2) {
+                for(int i = dashSplit.at(0).toInt(); i <= dashSplit.at(1).toInt(); i++) {
+                    res.push_back(i);
+                }
+            }
+        } else {
+            res.push_back(str.toInt());
+        }
+    }
+
+    return res;
 }

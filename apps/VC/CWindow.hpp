@@ -66,8 +66,6 @@ public:
     };  // idle
     enum SaveResponse : bool { Cancelled, Continue };
 
-    static constexpr const int scanRanges[] = {1, 2, 5, 10, 20, 100};
-
     // Structure for segmentation parameters
     // Declare parameters for new algos here and update SetUpSegParams()
     using SSegParams = struct SSegParams_tag {
@@ -147,6 +145,7 @@ private:
     void SetUpCurves(void);
     void SetCurrentCurve(int nCurrentSliceIndex);
     void SetUpAnnotations(void);
+    std::vector<int> expandSettingToIntRange(QString setting);
 
     void prefetchSlices(void);
     void startPrefetching(int index);
@@ -156,6 +155,7 @@ private:
     void UpdateAnnotationList(void);
 
     void SetPathPointCloud(void);
+    void ResetPointCloud(void);
 
     bool prepareSegmentationBase(std::string algorithm, std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
     bool prepareSegmentationLRPS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
@@ -166,7 +166,6 @@ private:
     void OpenVolume(const QString& path);
     void CloseVolume(void);
 
-    void ResetPointCloud(void);
     static void audio_callback(void *user_data, Uint8 *raw_buffer, int bytes);
     void playPing();
 
@@ -251,6 +250,7 @@ private:
     int fEndTargetOffset{5};
     int currentScanRangeIndex{0}; // Index 0 = range size 1 as starting value
     std::vector<int> impactRangeSteps;
+    std::vector<int> scanRangeSteps;
     int strideWidth;
 
     // for drawing mode

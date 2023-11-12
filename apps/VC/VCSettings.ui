@@ -55,6 +55,13 @@
          <string>Segment Viewer</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="edtImpactRange">
+           <property name="text">
+            <string>1-20</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="1">
           <widget class="QSpinBox" name="spinFwdBackStepMs">
            <property name="minimum">
@@ -65,13 +72,6 @@
            </property>
            <property name="value">
             <number>25</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="edtImpactRange">
-           <property name="text">
-            <string>1-20</string>
            </property>
           </widget>
          </item>
@@ -96,13 +96,27 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="4" column="0">
           <widget class="QCheckBox" name="chkPlaySoundAfterSegRun">
            <property name="text">
             <string>Play sound when segmenation run finished</string>
            </property>
            <property name="checked">
             <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Slice Scanning steps for Q/E and Mouse Wheel + Shift</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="edtScanRange">
+           <property name="text">
+            <string>1, 2, 5, 10, 20, 100</string>
            </property>
           </widget>
          </item>
