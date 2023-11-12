@@ -157,7 +157,8 @@ private:
     void SetPathPointCloud(void);
     void ResetPointCloud(void);
 
-    bool prepareSegmentationBase(std::string algorithm, std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    bool prepareSegmentationBaseBefore(std::string algorithm, std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    void prepareSegmentationBaseAfter(std::string algorithm, std::string segID, bool forward, bool anchor, int endIndex);
     bool prepareSegmentationLRPS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
     bool prepareSegmentationOFS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
     void queueSegmentation(std::string segmentationId, Segmenter::Pointer s);
@@ -248,6 +249,8 @@ private:
     int fPathOnSliceIndex; // currently visible slice
     int fSliceIndexToolStart{-1}; // slice for which the currently active tool was started / toggled
     int fEndTargetOffset{5};
+    int fFinalTargetIndexForward{-1}; // only for the highlighted segmentation ID
+    int fFinalTargetIndexBackward{-1}; // only for the highlighted segmentation ID
     int currentScanRangeIndex{0}; // Index 0 = range size 1 as starting value
     std::vector<int> impactRangeSteps;
     std::vector<int> scanRangeSteps;

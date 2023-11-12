@@ -957,6 +957,7 @@ void CWindow::SplitCloud(void)
 void CWindow::DoSegmentation(void)
 {
     statusBar->clearMessage();
+    fFinalTargetIndexForward = fFinalTargetIndexBackward = -1;
 
     // Make sure our seg params structure has the current values
     if (not SetUpSegParams()) {
@@ -1004,21 +1005,24 @@ void CWindow::DoSegmentation(void)
 
             // LRPS only supports forward runs
             if (!ui.radioForwardNoRun->isChecked()) {
-                if (!prepareSegmentationBase("LRPS", segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value())) {
+                if (!prepareSegmentationBaseBefore("LRPS", segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value())) {
                     prepareSegmentationLRPS(segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value());
+                    prepareSegmentationBaseAfter("LRPS", segID, true, ui.radioForwardAnchor->isChecked(), fSegParams.targetIndex);
                 }
             }
 
         } else if(algoIdx == 1) {
             if (!ui.radioBackwardNoRun->isChecked()) {
-                if (!prepareSegmentationBase("OFS", segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value())) {
+                if (!prepareSegmentationBaseBefore("OFS", segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value())) {
                     prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value());
+                    prepareSegmentationBaseAfter("OFS", segID, false, ui.radioBackwardAnchor->isChecked(), fSegParams.targetIndex);
                 }
             }
 
             if (!ui.radioForwardNoRun->isChecked()) {
-                if (!prepareSegmentationBase("OFS", segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value())) {
+                if (!prepareSegmentationBaseBefore("OFS", segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value())) {
                     prepareSegmentationOFS(segID, true, ui.radioForwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinForwardSlice->value());
+                    prepareSegmentationBaseAfter("OFS", segID, true, ui.radioForwardAnchor->isChecked(), fSegParams.targetIndex);
                 }
             }
         }
@@ -1036,7 +1040,7 @@ void CWindow::DoSegmentation(void)
     executeNextSegmentation();
 }
 
-bool CWindow::prepareSegmentationBase(std::string algorithm, std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
+bool CWindow::prepareSegmentationBaseBefore(std::string algorithm, std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
 {
     // Clean slate
     fSegParams.targetAnchor = -1;
@@ -1078,6 +1082,18 @@ bool CWindow::prepareSegmentationBase(std::string algorithm, std::string segID, 
     }
 
     return skipRun;
+}
+
+void CWindow::prepareSegmentationBaseAfter(std::string algorithm, std::string segID, bool forward, bool useAnchor, int endIndex)
+{
+    // Store the target index values for the highlighted segment (used later for jump target determination)
+    if (segID == fHighlightedSegmentationId) {
+        if (forward) {
+            fFinalTargetIndexForward = endIndex;
+        } else {
+            fFinalTargetIndexBackward = endIndex;
+        }
+    }
 }
 
 bool CWindow::prepareSegmentationOFS(std::string segID, bool forward, bool useAnchor, int currentIndex, int endIndex)
@@ -1244,15 +1260,25 @@ void CWindow::executeNextSegmentation()
         // Determine which slice to display now after the run. If there is one direction that
         // used the explicit slice number mode, use that one as chances are that this is the main
         // direction the user is segmenting. If both forward and backward slice inputs are active, chose the forward one.
+        if (ui.spinForwardSlice->isEnabled() && fFinalTargetIndexForward != -1) {
+            fPathOnSliceIndex = fFinalTargetIndexForward;
+        } else if (ui.spinBackwardSlice->isEnabled() && fFinalTargetIndexBackward != -1) {
+            fPathOnSliceIndex = fFinalTargetIndexBackward;
+        } else {
+            // Just take the last target index from an anchor (gives preference to the forward one)
+            if (fFinalTargetIndexForward != -1) {
+                fPathOnSliceIndex = fFinalTargetIndexForward;
+            } else if (fFinalTargetIndexBackward != -1) {
+                fPathOnSliceIndex = fFinalTargetIndexBackward;
+            }
+        }
+
+        // Determine target offset for next run (it does not matter here on which slice the last run
+        // actually ended up on, just how far the user wanted to segment originally)
         if (ui.spinForwardSlice->isEnabled()) {
             fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinForwardSlice->value());
-            fPathOnSliceIndex = fSegParams.targetIndex;
         } else if (ui.spinBackwardSlice->isEnabled()) {
             fEndTargetOffset = std::abs(fSliceIndexToolStart - ui.spinBackwardSlice->value());
-            fPathOnSliceIndex = fSegParams.targetIndex;
-        } else {
-            // Just take the last target index from an anchor (gives preference to the forward one since that is run last)
-            fPathOnSliceIndex = fSegParams.targetIndex;
         }
 
         CleanupSegmentation();
