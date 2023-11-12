@@ -124,7 +124,7 @@ CWindow::CWindow()
     // Process the raw impact and scan ranges string and convert to step vectors
     QSettings settings("VC.ini", QSettings::IniFormat);
     impactRangeSteps = expandSettingToIntRange(settings.value("viewer/impact_range_steps", "1-20").toString());
-    scanRangeSteps = expandSettingToIntRange(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 100").toString());
+    scanRangeSteps = expandSettingToIntRange(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100").toString());
 
     // create UI widgets
     CreateWidgets();

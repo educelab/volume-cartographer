@@ -60,7 +60,7 @@ This fork contains the following changes compared to upstream currently:
 - Added user setting to auto open the last `volpkg` upon app start
 - Added user setting to configure how many slices should automatically be preloaded once Segmentation Tool is entered (previously was hardcoded to 100 slices which depending on the slice image size, might be too much for the machine running the application)
 - Added user setting to configure the impact range values the application should use (still defaults to 1 to 20). User can specify a mixture of explicit numbers and ranges for example "1, 2, 3, 5, 7-10"
-- Added user setting to configure the scan range values the application should use (e.g. when Mouse Wheel + Shift scanning or via the buttons below the segment viewer). User can specify a mixture of explicit numbers and ranges for example "1, 2, 5, 10, 20, 100"
+- Added user setting to configure the scan range values the application should use (when Mouse Wheel + Shift scanning). User can specify a mixture of explicit numbers and ranges for example "1-5, 10, 20, 30, 100"
 - Added user setting to configure the delay in milliseconds between point jumps in the Mouse Forward/Backward button mode
 - Added user setting to center image slice on mouse cursor during mouse wheel zooming (configurable via settings)
 
