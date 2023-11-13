@@ -48,6 +48,17 @@ enum class Compression {
 };
 
 /**
+ * @brief Read a TIFF file
+ *
+ * Supports 8-bit and 16-bit integer types as well as 32-bit float types. This
+ * only supports single image TIFF files, so it's generally preferable to use
+ * something like cv::imread in most cases.
+ *
+ * @param path Path to TIFF file
+ */
+auto ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat;
+
+/**
  * @brief Write a TIFF image to file
  *
  * Supports writing floating point and signed integer TIFFs, in addition to

@@ -16,6 +16,101 @@ namespace lt
 namespace tio = volcart::tiffio;
 namespace fs = volcart::filesystem;
 
+namespace
+{
+// Return a CV Mat type using TIF type (signed, unsigned, float),
+// bit-depth, and number of channels
+auto GetCVMatType(
+    const uint16_t tifType, const uint16_t depth, const uint16_t channels)
+    -> int
+{
+    switch (depth) {
+        case 8:
+            if (tifType == SAMPLEFORMAT_INT) {
+                return CV_MAKETYPE(CV_8S, channels);
+            } else {
+                return CV_MAKETYPE(CV_8U, channels);
+            }
+        case 16:
+            if (tifType == SAMPLEFORMAT_INT) {
+                return CV_MAKETYPE(CV_16S, channels);
+            } else {
+                return CV_MAKETYPE(CV_16U, channels);
+            }
+        case 32:
+            if (tifType == SAMPLEFORMAT_INT) {
+                return CV_MAKETYPE(CV_32S, channels);
+            } else {
+                return CV_MAKETYPE(CV_32F, channels);
+            }
+        default:
+            return CV_8UC3;
+    }
+}
+}  // namespace
+
+auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
+{
+    // Make sure input file exists
+    if (!fs::exists(path)) {
+        throw std::runtime_error("File does not exist");
+    }
+
+    // Open the file read-only
+    lt::TIFF* tif = lt::TIFFOpen(path.c_str(), "r");
+    if (tif == nullptr) {
+        throw std::runtime_error("Failed to open tif");
+    }
+
+    // Get metadata
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint16_t type = 1;
+    uint16_t depth = 1;
+    uint16_t channels = 1;
+    uint16_t config = 0;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+    TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &type);
+    TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &depth);
+    TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &channels);
+    TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
+    auto cvType = ::GetCVMatType(type, depth, channels);
+
+    // Construct the mat
+    auto h = static_cast<int>(height);
+    auto w = static_cast<int>(width);
+    cv::Mat img = cv::Mat::zeros(h, w, cvType);
+
+    // Read the rows
+    auto bufSize = lt::TIFFScanlineSize(tif);
+    lt::tdata_t buf = lt::_TIFFmalloc(bufSize);
+    if (config == PLANARCONFIG_CONTIG) {
+        for (auto row = 0; row < height; row++) {
+            lt::TIFFReadScanline(tif, buf, row);
+            std::memcpy(img.ptr(row), buf, bufSize);
+        }
+    } else if (config == PLANARCONFIG_SEPARATE) {
+        std::runtime_error(
+            "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
+    }
+
+    // Do channel conversion
+    cv::Mat imgCopy;
+    if (img.channels() == 3) {
+        cv::cvtColor(img, imgCopy, cv::COLOR_BGR2RGB);
+    } else if (img.channels() == 4) {
+        cv::cvtColor(img, imgCopy, cv::COLOR_BGRA2RGBA);
+    } else {
+        imgCopy = img;
+    }
+
+    lt::_TIFFfree(buf);
+    lt::TIFFClose(tif);
+
+    return img;
+}
+
 // Write a TIFF to a file. This implementation heavily borrows from how OpenCV's
 // TIFFEncoder writes to the TIFF
 void tio::WriteTIFF(
