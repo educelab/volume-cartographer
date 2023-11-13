@@ -69,6 +69,8 @@ public:
                 return ReadOrderedPointSetBinary(path);
             case IOMode::ASCII:
                 return ReadOrderedPointSetAscii(path);
+            default:
+                throw IOException("unsupported IOMode");
         }
     }
 
@@ -84,6 +86,8 @@ public:
                 return ReadPointSetBinary(path);
             case IOMode::ASCII:
                 return ReadPointSetAscii(path);
+            default:
+                throw IOException("unsupported IOMode");
         }
     }
     /**@}*/

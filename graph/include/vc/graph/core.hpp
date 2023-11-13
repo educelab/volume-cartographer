@@ -408,6 +408,49 @@ private:
 };
 
 /**
+ * @copybrief UVMap::AlignToAxis()
+ *
+ * The input UVMap is not modified by this operation.
+ *
+ * @see UVMap::AlignToAxis()
+ * @ingroup Graph
+ */
+class AlignUVMapToAxisNode : public smgl::Node
+{
+private:
+    /** Input UVMap */
+    UVMap::Pointer uvMapIn_;
+    /** Input mesh, used to orient in volume space */
+    ITKMesh::Pointer mesh_;
+    /** Volume axis target */
+    UVMap::AlignmentAxis axis_{UVMap::AlignmentAxis::ZPos};
+    /** Output UVMap */
+    UVMap::Pointer uvMapOut_;
+
+public:
+    /** @brief Input UVMap */
+    smgl::InputPort<UVMap::Pointer> uvMapIn;
+    /** @brief Input mesh, used to orient in volume space */
+    smgl::InputPort<ITKMesh::Pointer> mesh;
+    /** @brief Volume axis to use for alignment */
+    smgl::InputPort<UVMap::AlignmentAxis> axis;
+    /** @brief Output UVMap */
+    smgl::OutputPort<UVMap::Pointer> uvMapOut;
+
+    /** Constructor */
+    AlignUVMapToAxisNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
  * @copybrief UVMap::Plot()
  *
  * @see UVMap::Plot()

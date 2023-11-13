@@ -33,7 +33,10 @@ enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
 // Available texturing algorithms
 enum class Method { Composite = 0, Intersection, Integral, Thickness };
 
-static auto GetGeneralOpts() -> po::options_description
+namespace
+{
+
+auto GetGeneralOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("General Options");
@@ -48,7 +51,7 @@ static auto GetGeneralOpts() -> po::options_description
     return opts;
 }
 
-static auto GetIOOpts() -> po::options_description
+auto GetIOOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Input/Output Options");
@@ -71,7 +74,7 @@ static auto GetIOOpts() -> po::options_description
     return opts;
 }
 
-static auto GetMeshingOpts() -> po::options_description
+auto GetMeshingOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Meshing Options");
@@ -110,7 +113,7 @@ static auto GetMeshingOpts() -> po::options_description
     return opts;
 }
 
-static auto GetUVOpts() -> po::options_description
+auto GetUVOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Flattening & UV Options");
@@ -122,11 +125,17 @@ static auto GetUVOpts() -> po::options_description
                 "  2 = Orthographic Projection")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
+        ("uv-align-to-axis", po::value<UVMap::AlignmentAxis>()->default_value(UVMap::AlignmentAxis::ZPos, "+Z"),
+            "Rotate the UV map so that the specified volume direction is aligned "
+            "as well as possible to \'up\' in the texture image (-Y). "
+            "Performed before uv-rotate and uv-flip. Options: None, +Z, -Z, "
+            "+Y, -Y, +X, -X")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
-            "angle in degrees (counterclockwise).")
+            "angle in degrees (counterclockwise). Performed after "
+            "uv-align-to-axis and before uv-flip.")
         ("uv-flip", po::value<int>(),
-            "Flip the UV map along an axis. If uv-rotate is specified, flip is "
-            "performed after rotation.\n"
+            "Flip the UV map along an axis. Performed after uv-align-to-axis "
+            "and uv-rotate.\n"
             "Axis along which to flip:\n"
                 "  0 = Vertical\n"
                 "  1 = Horizontal\n"
@@ -145,7 +154,7 @@ static auto GetUVOpts() -> po::options_description
     return opts;
 }
 
-static auto GetFilteringOpts() -> po::options_description
+auto GetFilteringOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Generic Texture Filtering Options");
@@ -179,7 +188,7 @@ static auto GetFilteringOpts() -> po::options_description
     return opts;
 }
 
-static auto GetCompositeOpts() -> po::options_description
+auto GetCompositeOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Composite Texture Options");
@@ -196,7 +205,7 @@ static auto GetCompositeOpts() -> po::options_description
     return opts;
 }
 
-static auto GetIntegralOpts() -> po::options_description
+auto GetIntegralOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Integral Texture Options");
@@ -227,7 +236,7 @@ static auto GetIntegralOpts() -> po::options_description
     return opts;
 }
 
-static auto GetThicknessOpts() -> po::options_description
+auto GetThicknessOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Thickness Texture Options");
@@ -240,19 +249,20 @@ static auto GetThicknessOpts() -> po::options_description
 
     return opts;
 }
+}  // namespace
 
 auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     po::options_description all("Usage");
-    all.add(GetGeneralOpts())
-        .add(GetIOOpts())
-        .add(GetMeshingOpts())
-        .add(GetUVOpts())
-        .add(GetFilteringOpts())
-        .add(GetCompositeOpts())
-        .add(GetIntegralOpts())
-        .add(GetThicknessOpts());
+    all.add(::GetGeneralOpts())
+        .add(::GetIOOpts())
+        .add(::GetMeshingOpts())
+        .add(::GetUVOpts())
+        .add(::GetFilteringOpts())
+        .add(::GetCompositeOpts())
+        .add(::GetIntegralOpts())
+        .add(::GetThicknessOpts());
 
     // Parse the cmd line
     po::variables_map parsed;
@@ -541,6 +551,19 @@ auto main(int argc, char* argv[]) -> int
         }
     }
 
+    // Align to axis
+    auto uvAlignAxis = parsed["uv-align-to-axis"].as<UVMap::AlignmentAxis>();
+    if (uvAlignAxis != UVMap::AlignmentAxis::None) {
+        auto align = graph->insertNode<AlignUVMapToAxisNode>();
+        align->uvMapIn = *results["uvMap"];
+        align->mesh = *results["mesh"];
+        align->axis = uvAlignAxis;
+        results["uvMap"] = &align->uvMapOut;
+
+        // UV Mesh needs to be recalculated after transform
+        results.erase("uvMesh");
+    }
+
     // Rotate
     if (parsed.count("uv-rotate") > 0) {
         auto rotate = graph->insertNode<RotateUVMapNode>();
@@ -764,3 +787,61 @@ auto main(int argc, char* argv[]) -> int
         return EXIT_FAILURE;
     }
 }
+
+///*** Custom program_options validators ***///
+
+// UVAlignmentAxis
+void validate(
+    boost::any& v,
+    const std::vector<std::string>& values,
+    UVMap::AlignmentAxis* /* target type */,
+    int /* unused */)
+{
+    using namespace boost::program_options;
+    // argument only passed once
+    validators::check_first_occurrence(v);
+    // get a single string, error ir more than one
+    const auto& s = validators::get_single_string(values);
+    // cast to type
+    v = boost::any(boost::lexical_cast<UVMap::AlignmentAxis>(s));
+}
+
+namespace volcart
+{
+auto operator>>(std::istream& is, UVMap::AlignmentAxis& v) -> std::istream&
+{
+    // get the first token
+    std::string s;
+    if (not(is >> s)) {
+        return is;
+    };
+
+    // find a match
+    vc::to_lower(s);
+    if (s == "none") {
+        v = UVMap::AlignmentAxis::None;
+        is.clear();
+    } else if (s == "+z") {
+        v = UVMap::AlignmentAxis::ZPos;
+        is.clear();
+    } else if (s == "-z") {
+        v = UVMap::AlignmentAxis::ZNeg;
+        is.clear();
+    } else if (s == "+y") {
+        v = UVMap::AlignmentAxis::YPos;
+        is.clear();
+    } else if (s == "-y") {
+        v = UVMap::AlignmentAxis::YNeg;
+        is.clear();
+    } else if (s == "+x") {
+        v = UVMap::AlignmentAxis::XPos;
+        is.clear();
+    } else if (s == "-x") {
+        v = UVMap::AlignmentAxis::XNeg;
+        is.clear();
+    } else {
+        is.setstate(std::ios_base::failbit);
+    }
+    return is;
+}
+}  // namespace volcart

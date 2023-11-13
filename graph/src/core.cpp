@@ -20,6 +20,17 @@ NLOHMANN_JSON_SERIALIZE_ENUM(FlipAxis, {
     {FlipAxis::Horizontal, "horizontal"},
     {FlipAxis::Both, "both"}
 })
+
+using AlignmentAxis = UVMap::AlignmentAxis;
+NLOHMANN_JSON_SERIALIZE_ENUM(AlignmentAxis, {
+    {AlignmentAxis::None, "none"},
+    {AlignmentAxis::ZPos, "zpos"},
+    {AlignmentAxis::ZNeg, "zneg"},
+    {AlignmentAxis::YPos, "ypos"},
+    {AlignmentAxis::YNeg, "yneg"},
+    {AlignmentAxis::XPos, "xpos"},
+    {AlignmentAxis::XNeg, "xneg"},
+})
 // clang-format on
 }  // namespace volcart
 
@@ -297,6 +308,45 @@ void FlipUVMapNode::deserialize_(
     const smgl::Metadata& meta, const fs::path& cacheDir)
 {
     axis_ = meta["flipAxis"].get<FlipAxis>();
+    if (meta.contains("uvMap")) {
+        auto uvMapFile = meta["uvMap"].get<std::string>();
+        uvMapOut_ = UVMap::New(io::ReadUVMap(cacheDir / uvMapFile));
+    }
+}
+
+AlignUVMapToAxisNode::AlignUVMapToAxisNode()
+    : Node{true}
+    , uvMapIn{&uvMapIn_}
+    , mesh{&mesh_}
+    , axis{&axis_}
+    , uvMapOut{&uvMapOut_}
+{
+    registerInputPort("uvMapIn", uvMapIn);
+    registerInputPort("mesh", mesh);
+    registerInputPort("axis", axis);
+    registerOutputPort("uvMapOut", uvMapOut);
+
+    compute = [&]() {
+        uvMapOut_ = UVMap::New(*uvMapIn_);
+        UVMap::AlignToAxis(*uvMapOut_, mesh_, axis_);
+    };
+}
+
+auto AlignUVMapToAxisNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta{{"axis", axis_}};
+    if (useCache and uvMapOut_ and not uvMapOut_->empty()) {
+        io::WriteUVMap(cacheDir / "uvMap_align.uvm", *uvMapOut_);
+        meta["uvMap"] = "uvMap_align.uvm";
+    }
+    return meta;
+}
+
+void AlignUVMapToAxisNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& cacheDir)
+{
+    axis_ = meta["axis"].get<UVMap::AlignmentAxis>();
     if (meta.contains("uvMap")) {
         auto uvMapFile = meta["uvMap"].get<std::string>();
         uvMapOut_ = UVMap::New(io::ReadUVMap(cacheDir / uvMapFile));
