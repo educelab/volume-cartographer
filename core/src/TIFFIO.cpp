@@ -98,9 +98,9 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     // Do channel conversion
     cv::Mat imgCopy;
     if (img.channels() == 3) {
-        cv::cvtColor(img, imgCopy, cv::COLOR_BGR2RGB);
+        cv::cvtColor(img, imgCopy, cv::COLOR_RGB2BGR);
     } else if (img.channels() == 4) {
-        cv::cvtColor(img, imgCopy, cv::COLOR_BGRA2RGBA);
+        cv::cvtColor(img, imgCopy, cv::COLOR_RGBA2BGRA);
     } else {
         imgCopy = img;
     }
