@@ -569,6 +569,7 @@ auto main(int argc, char* argv[]) -> int
     // Align to axis
     auto uvAlignAxis = parsed["uv-align-to-axis"].as<UVMap::AlignmentAxis>();
     if (uvAlignAxis != UVMap::AlignmentAxis::None) {
+        Logger()->debug("Adding UV align to axis node");
         auto align = graph->insertNode<AlignUVMapToAxisNode>();
         align->uvMapIn = *results["uvMap"];
         align->mesh = *results["mesh"];
