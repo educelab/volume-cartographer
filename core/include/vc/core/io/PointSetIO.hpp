@@ -450,14 +450,11 @@ private:
 
         // Read data
         T t;
-        auto nbytes = header.dim * typeBytes;
+        std::size_t nbytes = header.width * header.dim * typeBytes;
+        std::vector<T> points(header.width, 0);
+        points.reserve(header.width);
         for (size_t h = 0; h < header.height; ++h) {
-            std::vector<T> points;
-            points.reserve(header.width);
-            for (size_t w = 0; w < header.width; ++w) {
-                infile.read(reinterpret_cast<char*>(t.val), nbytes);
-                points.push_back(t);
-            }
+            infile.read(reinterpret_cast<char*>(points.data()), nbytes);
             ps.pushRow(points);
         }
 
