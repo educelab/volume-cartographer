@@ -1,5 +1,6 @@
 #include "vc/meshing/OrientNormals.hpp"
 
+#include "vc/core/util/Iteration.hpp"
 #include "vc/meshing/DeepCopy.hpp"
 
 using namespace volcart;
@@ -98,6 +99,14 @@ auto OrientNormals::compute() -> ITKMesh::Pointer
             output_->GetPointData(it.Index(), &normal);
             normal *= -1;
             output_->SetPointData(it.Index(), normal);
+        }
+
+        for (auto it = output_->GetCells()->Begin();
+             it != output_->GetCells()->End(); ++it) {
+            auto pointIds = it->Value()->GetPointIdsContainer().flip();
+            for (auto [localId, id] : enumerate(pointIds)) {
+                it->Value()->SetPointId(static_cast<int>(localId), id);
+            }
         }
     }
 
