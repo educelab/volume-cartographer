@@ -91,7 +91,7 @@ CWindow::CWindow()
     , stopPrefetching(false)
     , prefetchSliceIndex(-1)
 {
-
+    const QSettings settings("VC.ini", QSettings::IniFormat);
     ui.setupUi(this);
     setAttribute(Qt::WA_QuitOnClose);
     SDL_Init(SDL_INIT_AUDIO);
@@ -120,11 +120,11 @@ CWindow::CWindow()
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
     fSegParams.smoothness_interpolation_percent = 30;
+    fSegParams.step_size = settings.value("perf/initial_step_size", 1).toInt();
 
     // Process the raw impact and scan ranges string and convert to step vectors
-    QSettings settings("VC.ini", QSettings::IniFormat);
-    impactRangeSteps = expandSettingToIntRange(settings.value("viewer/impact_range_steps", "1-20").toString());
-    scanRangeSteps = expandSettingToIntRange(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100").toString());
+    impactRangeSteps = SettingsDialog::expandSettingToIntRange(settings.value("viewer/impact_range_steps", "1-20").toString());
+    scanRangeSteps = SettingsDialog::expandSettingToIntRange(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100").toString());
 
     // create UI widgets
     CreateWidgets();
@@ -136,7 +136,7 @@ CWindow::CWindow()
     CreateBackend();
 
     // stylesheets
-    auto style = "QMenuBar { background: qlineargradient( x0:0 y0:0, x1:1 y1:0, stop:0 rgb(85, 110, 200), stop:0.8 rgb(255, 120, 110), stop:1 rgb(255, 180, 30)); }"
+    const auto style = "QMenuBar { background: qlineargradient( x0:0 y0:0, x1:1 y1:0, stop:0 rgb(85, 110, 200), stop:0.8 rgb(255, 120, 110), stop:1 rgb(255, 180, 30)); }"
         "QMenuBar::item { background: transparent; }"
         "QMenuBar::item:selected { background: rgb(255, 200, 50); }"
         "QWidget#dockWidgetVolumesContent { background: rgb(245, 245, 255); }"
@@ -152,7 +152,7 @@ CWindow::CWindow()
     UpdateView();
 
     // Restore geometry / sizes
-    QSettings geometry;
+    const QSettings geometry;
     if (geometry.contains("mainWin/geometry")) {
         restoreGeometry(geometry.value("mainWin/geometry").toByteArray());
     }
@@ -160,12 +160,19 @@ CWindow::CWindow()
         restoreState(geometry.value("mainWin/state").toByteArray());
     }
 
+    // Set initial scan range based on settings
+    auto it = std::find(scanRangeSteps.begin(), scanRangeSteps.end(), settings.value("perf/initial_step_size", 1).toInt());
+    if (it != scanRangeSteps.end()) {
+        currentScanRangeIndex = std::distance(scanRangeSteps.begin(), it);
+        fVolumeViewerWidget->SetScanRange(scanRangeSteps[std::distance(scanRangeSteps.begin(), it)]);
+    }
+
     // If enabled, auto open the last used volpkg
     if (settings.value("volpkg/auto_open", false).toInt() != 0) {
 
         QStringList files = settings.value("volpkg/recent").toStringList();
 
-        if (files.size() > 0 && !files.at(0).isEmpty()) {
+        if (!files.empty() && !files.at(0).isEmpty()) {
             Open(files[0]);
         }
     }
@@ -201,7 +208,7 @@ void CWindow::CreateWidgets(void)
     connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalImpactRangeUp, this, &CWindow::onImpactRangeUp);
     connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalImpactRangeDown, this, &CWindow::onImpactRangeDown);
 
-    QVBoxLayout* aWidgetLayout = new QVBoxLayout;
+    auto aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fVolumeViewerWidget);
 
     ui.tabSegment->setLayout(aWidgetLayout);
@@ -337,7 +344,8 @@ void CWindow::CreateWidgets(void)
     edtStepSize = new QSpinBox();
     edtStepSize->setMinimum(1);
     edtStepSize->setMaximum(100);
-    edtStepSize->setValue(1);
+    QSettings settings("VC.ini", QSettings::IniFormat);
+    edtStepSize->setValue(settings.value("perf/initial_step_size", 1).toInt());
 
     connect(edtOutsideThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.outside_threshold = v;});
     connect(edtOpticalFlowPixelThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.optical_flow_pixel_threshold = v;});
@@ -1011,7 +1019,7 @@ void CWindow::DoSegmentation(void)
                 }
             }
 
-        } else if(algoIdx == 1) {
+        } else if (algoIdx == 1) {
             if (!ui.radioBackwardNoRun->isChecked()) {
                 if (!prepareSegmentationBaseBefore("OFS", segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value())) {
                     prepareSegmentationOFS(segID, false, ui.radioBackwardAnchor->isChecked(), fSliceIndexToolStart, ui.spinBackwardSlice->value());
@@ -1524,24 +1532,25 @@ void CWindow::prefetchSlices(void) {
     }
 
     QSettings settings("VC.ini", QSettings::IniFormat);
-    int prefetchWindow = settings.value("perf/preloaded_slices", 200).toInt() / 2;
+    int prefetchSize = settings.value("perf/preloaded_slices", 200).toInt() / 2;
+    int stepSize = std::max(fSegParams.step_size, 1);
     int currentSliceIndex = prefetchSliceIndex.load();
-    int start = std::max(0, currentSliceIndex - prefetchWindow);
-    int end = std::min(currentVolume->numSlices()-1, currentSliceIndex + prefetchWindow);
+    int start = std::max(0, currentSliceIndex - prefetchSize * stepSize);
+    int end = std::min(currentVolume->numSlices()-1, currentSliceIndex + prefetchSize * stepSize);
 
     int n = 5;  // Number Fetching Threads
     // fetching from index outwards
-    for (int offset = 0; offset <= prefetchWindow; offset = offset + n) {
+    for (int offset = 0; offset <= prefetchSize * stepSize; offset = offset + n * stepSize) {
         std::vector<std::thread> threads;
 
         for (int i = 0; i <= n; i++) {
             // Fetch the slice data on the right side
-            if (currentSliceIndex + offset + i <= end) {
-                threads.emplace_back(&volcart::Volume::getSliceData, currentVolume, currentSliceIndex + offset + i);
+            if (currentSliceIndex + offset + i * stepSize <= end) {
+                threads.emplace_back(&volcart::Volume::getSliceData, currentVolume, currentSliceIndex + offset + i * stepSize);
             }
             // Fetch the slice data on the left side
-            if (currentSliceIndex - offset - i >= start) {
-                threads.emplace_back(&volcart::Volume::getSliceData, currentVolume, currentSliceIndex - offset - i);
+            if (currentSliceIndex - offset - i * stepSize >= start) {
+                threads.emplace_back(&volcart::Volume::getSliceData, currentVolume, currentSliceIndex - offset - i * stepSize);
             }
         }
 
@@ -2806,33 +2815,4 @@ void CWindow::onForwardButtonGroupToggled(QAbstractButton* button, bool checked)
     }
 
     ui.spinForwardSlice->setDisabled((button == ui.radioForwardAnchor || button == ui.radioForwardNoRun) && checked);
-}
-
-// Expand string that contains a range definition from the user settings into an integer vector
-std::vector<int> CWindow::expandSettingToIntRange(QString setting)
-{
-    std::vector<int> res;
-    if (setting.isEmpty()) {
-        return res;
-    }
-
-    setting = setting.simplified();
-    setting.replace(" ", "");
-    auto commaSplit = setting.split(",");
-    for(auto str : commaSplit) {
-        if (str.contains("-")) {
-            // Expand the range to distinct values
-            auto dashSplit = str.split("-");
-            // We need to have two split results (before and after the dash), otherwise skip
-            if (dashSplit.size() == 2) {
-                for(int i = dashSplit.at(0).toInt(); i <= dashSplit.at(1).toInt(); i++) {
-                    res.push_back(i);
-                }
-            }
-        } else {
-            res.push_back(str.toInt());
-        }
-    }
-
-    return res;
 }

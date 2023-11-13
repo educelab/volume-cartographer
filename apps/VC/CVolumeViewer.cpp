@@ -140,7 +140,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
         fImageIndexEdit, SIGNAL(editingFinished()), this,
         SLOT(OnImageIndexEditTextChanged()));
 
-    fBaseImageItem = new QGraphicsPixmapItem();
+    fBaseImageItem = nullptr;
 
     // Create graphics view
     fGraphicsView = new CVolumeViewerView(this);

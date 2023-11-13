@@ -145,7 +145,6 @@ private:
     void SetUpCurves(void);
     void SetCurrentCurve(int nCurrentSliceIndex);
     void SetUpAnnotations(void);
-    std::vector<int> expandSettingToIntRange(QString setting);
 
     void prefetchSlices(void);
     void startPrefetching(int index);

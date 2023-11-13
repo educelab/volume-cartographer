@@ -24,12 +24,22 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
     chkPlaySoundAfterSegRun->setChecked(settings.value("viewer/play_sound_after_seg_run", true).toInt() != 0);
 
     spinPreloadedSlices->setValue(settings.value("perf/preloaded_slices", 200).toInt());
+    spinInitialStepSize->setValue(settings.value("perf/initial_step_size", 1).toInt());
 
     connect(btnHelpPreloadedSlices, &QPushButton::clicked, this, [this]{ QToolTip::showText(QCursor::pos(), btnHelpPreloadedSlices->toolTip()); });
+    connect(btnHelpInitialStepSize, &QPushButton::clicked, this, [this]{ QToolTip::showText(QCursor::pos(), btnHelpInitialStepSize->toolTip()); });
 }
 
 void SettingsDialog::accept()
 {
+    // Sanity checks first, before anything is stored
+    auto scanRanges = expandSettingToIntRange(edtScanRange->text());
+    if (std::find(scanRanges.begin(), scanRanges.end(), spinInitialStepSize->value()) == scanRanges.end()) {
+        QMessageBox::critical(this, tr("Invalid setting"), tr("The value %1 for the initial step size is not valid as it is not matching any configured slice scan steps!").arg(spinInitialStepSize->value()));
+        return;
+    }
+
+    // Store the settings
     QSettings settings("VC.ini", QSettings::IniFormat);
 
     settings.setValue("volpkg/default_path", edtDefaultPathVolpkg->text());
@@ -42,8 +52,38 @@ void SettingsDialog::accept()
     settings.setValue("viewer/play_sound_after_seg_run", chkPlaySoundAfterSegRun->isChecked() ? "1" : "0");
 
     settings.setValue("perf/preloaded_slices", spinPreloadedSlices->value());
+    settings.setValue("perf/initial_step_size", spinInitialStepSize->value());
 
     QMessageBox::information(this, tr("Restart required"), tr("Note: Some settings only take effect once you restarted the app."));
 
     close();
+}
+
+// Expand string that contains a range definition from the user settings into an integer vector
+std::vector<int> SettingsDialog::expandSettingToIntRange(const QString& setting)
+{
+    std::vector<int> res;
+    if (setting.isEmpty()) {
+        return res;
+    }
+
+    auto value = setting.simplified();
+    value.replace(" ", "");
+    auto commaSplit = value.split(",");
+    for(auto str : commaSplit) {
+        if (str.contains("-")) {
+            // Expand the range to distinct values
+            auto dashSplit = str.split("-");
+            // We need to have two split results (before and after the dash), otherwise skip
+            if (dashSplit.size() == 2) {
+                for(int i = dashSplit.at(0).toInt(); i <= dashSplit.at(1).toInt(); i++) {
+                    res.push_back(i);
+                }
+            }
+        } else {
+            res.push_back(str.toInt());
+        }
+    }
+
+    return res;
 }
