@@ -13,6 +13,11 @@ namespace volcart::meshing
  * @class OrientNormals
  *
  * @brief Orient vertex normals towards a reference point.
+ *
+ * If vertex normals are flipped, the face normals are also flipped by
+ * reversing the winding order of all faces. This assumes that vertex normals
+ * were originally derived from the face normals and point in generally the
+ * same direction as the face normals.
  */
 class OrientNormals
 {
