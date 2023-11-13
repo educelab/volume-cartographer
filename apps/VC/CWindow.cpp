@@ -1874,18 +1874,24 @@ void CWindow::PrintDebugInfo()
     // Add whatever should be printed via std::count via the action in the help menu.
     // Note: The menu entry is only visible with the matching INI entry.
 
+    volcart::debug::PrintPointCloud(fSegStructMap[fHighlightedSegmentationId].fMasterCloud, "Master Cloud");
+
     // Print Annotation Point Cloud
     std::cout << "=== Annotation Point Cloud ===" << std::endl;
     for(int i = 0; i < fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.height(); i++) {
         auto row = fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.getRow(i);
-        auto masterRow = fSegStructMap[fHighlightedSegmentationId].fMasterCloud.getRow(i);
 
         std::cout << "I ";
         std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << i;
         std::cout << " : S ";
         std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << std::get<long>(row[0][ANO_EL_SLICE]);
         std::cout << " (M: ";
-        std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << masterRow[0][2];
+        if (i < fSegStructMap[fHighlightedSegmentationId].fMasterCloud.height()) {
+            auto masterRow = fSegStructMap[fHighlightedSegmentationId].fMasterCloud.getRow(i);
+            std::cout << std::defaultfloat << std::setfill('0') << std::setw(4) << masterRow[0][2];
+        } else {
+            std::cout << "!ER!";
+        }
         std::cout << ") | ";
 
         for(auto ano : row) {

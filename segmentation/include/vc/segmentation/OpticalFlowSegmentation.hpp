@@ -147,11 +147,11 @@ public:
 
     /** @brief Interpolate the gaps in the result point set
      */
-    std::vector<std::vector<Voxel>> interpolateGaps(std::vector<std::vector<Voxel>> points, int missingIndexes);
+    std::vector<std::vector<Voxel>> interpolateGaps(std::vector<std::vector<Voxel>> points);
 
     /**@{*/
     /** @brief Compute the segmentation 1 Line */
-    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex, int startIndex, bool backwards=false);
+    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex, int stepSize, int startIndex, bool backwards=false);
     /**@}*/
 
     /**@{*/
@@ -238,10 +238,13 @@ private:
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
     /**
-     * Compute a sub portion of the algorithm, e.g. the regualr "forward" portion or the backwards re-segmentation.
+     * Compute a sub portion of the algorithm, e.g. the regular "forward" portion or the backwards re-segmentation.
+     * @param startChainIndex index of the starting chain (!= first slice for which we are calculating a curve) that is used as input for the algorithm
+     * @param endChainIndex index of the last chain (used for clamping the valid values in the method)
+     * @param endIndex index until which the algorithm should run
      * @param initialStepAdjustment is required for the re-segmentation run in case of step sizes that do not directly hit the target anchor
     */
-    auto computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startIndex, int endIndex, int initialStepAdjustment, bool backwards, size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
+    auto computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startChainIndex, int endChainIndex, int endIndex, int initialStepAdjustment, bool backwards, size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
         -> ChainSegmentationAlgorithm::Status;
 
     /** Start z-index */
