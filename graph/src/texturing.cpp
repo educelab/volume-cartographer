@@ -86,7 +86,8 @@ ABFNode::ABFNode()
     registerOutputPort("output", output);
     registerOutputPort("uvMap", uvMap);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] flattening mesh with ABF/LSCM");
         mesh_ = abf_.compute();
         uvMap_ = abf_.getUVMap();
     };
@@ -134,7 +135,9 @@ OrthographicFlatteningNode::OrthographicFlatteningNode()
     registerOutputPort("output", output);
     registerOutputPort("uvMap", uvMap);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug(
+            "[graph.texturing] flattening mesh with orthographic projection");
         mesh_ = ortho_.compute();
         uvMap_ = ortho_.getUVMap();
     };
@@ -174,8 +177,9 @@ FlatteningErrorNode::FlatteningErrorNode()
     registerInputPort("mesh2D", mesh2D);
     registerOutputPort("error", error);
 
-    compute = [=]() {
+    compute = [&]() {
         if (mesh3D_ and mesh2D_) {
+            Logger()->debug("[graph.texturing] computing flattening error");
             error_ = LStretch(mesh3D_, mesh2D_);
             Logger()->info(
                 "L2 Norm: {:.5g}, LInf Norm: {:.5g}", error_.l2, error_.lInf);
@@ -225,7 +229,8 @@ PlotLStretchErrorNode::PlotLStretchErrorNode()
     registerOutputPort("l2Plot", l2Plot);
     registerOutputPort("lInfPlot", lInfPlot);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] plotting stretch error");
         auto p = PlotLStretchError(error_, cellMap_, colorMap_, drawLegend_);
         l2Plot_ = p[0];
         lInfPlot_ = p[1];
@@ -266,13 +271,13 @@ void PlotLStretchErrorNode::deserialize_(
 PPMGeneratorNode::PPMGeneratorNode()
     : Node{true}
     , mesh{&ppmGen_, &PPMGen::setMesh}
-    , uvMap{[=](const auto& uv) {
+    , uvMap{[&](const auto& uv) {
         auto width = static_cast<size_t>(std::ceil(uv->ratio().width));
         auto height = static_cast<size_t>(std::ceil(uv->ratio().height));
         ppmGen_.setUVMap(uv);
         ppmGen_.setDimensions(height, width);
     }}
-    , shading{[=](const auto& s) {
+    , shading{[&](const auto& s) {
         shading_ = s;
         ppmGen_.setShading(s);
     }}
@@ -282,7 +287,10 @@ PPMGeneratorNode::PPMGeneratorNode()
     registerInputPort("uvMap", uvMap);
     registerInputPort("shading", shading);
     registerOutputPort("ppm", ppm);
-    compute = [=]() { ppm_ = ppmGen_.compute(); };
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] generating PPM");
+        ppm_ = ppmGen_.compute();
+    };
 }
 
 auto PPMGeneratorNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -313,7 +321,9 @@ CalculateNeighborhoodRadiusNode::CalculateNeighborhoodRadiusNode()
     registerInputPort("voxelSize", voxelSize);
     registerOutputPort("radius", radius);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug(
+            "[graph.texturing] auto-calculating neighborhood radius");
         radius_[0] = thickness_ / 2 / voxelSize_;
         radius_[1] = radius_[2] = std::abs(std::sqrt(radius_[0]));
     };
@@ -348,7 +358,8 @@ NeighborhoodGeneratorNode::NeighborhoodGeneratorNode()
     registerInputPort("direction", direction);
     registerOutputPort("generator", generator);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] setting up neighborhood generator");
         // TODO: Make a new one with every compute?
         if (shape_ == Shape::Line) {
             gen_ = LineGenerator::New();
@@ -392,7 +403,7 @@ CompositeTextureNode::CompositeTextureNode()
     , ppm{&textureGen_, &TAlgo::setPerPixelMap}
     , volume{&textureGen_, &TAlgo::setVolume}
     , generator{&textureGen_, &TAlgo::setGenerator}
-    , filter{[=](const auto& f) {
+    , filter{[&](const auto& f) {
         filter_ = f;
         textureGen_.setFilter(filter_);
     }}
@@ -403,7 +414,10 @@ CompositeTextureNode::CompositeTextureNode()
     registerInputPort("generator", generator);
     registerInputPort("filter", filter);
     registerOutputPort("texture", texture);
-    compute = [=]() { texture_ = textureGen_.compute().at(0); };
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] generating composite texture");
+        texture_ = textureGen_.compute().at(0);
+    };
 }
 
 auto CompositeTextureNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -438,7 +452,10 @@ IntersectionTextureNode::IntersectionTextureNode()
     registerInputPort("ppm", ppm);
     registerInputPort("volume", volume);
     registerOutputPort("texture", texture);
-    compute = [=]() { texture_ = textureGen_.compute().at(0); };
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] generating intersection texture");
+        texture_ = textureGen_.compute().at(0);
+    };
 }
 
 auto IntersectionTextureNode::serialize_(
@@ -490,7 +507,10 @@ IntegralTextureNode::IntegralTextureNode()
         "exponentialDiffSuppressBelowBase", exponentialDiffSuppressBelowBase);
     registerOutputPort("texture", texture);
 
-    compute = [=]() { texture_ = textureGen_.compute().at(0); };
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] generating integral texture");
+        texture_ = textureGen_.compute().at(0);
+    };
 }
 
 auto IntegralTextureNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -549,7 +569,10 @@ ThicknessTextureNode::ThicknessTextureNode()
     registerInputPort("normalizeOutput", normalizeOutput);
     registerOutputPort("texture", texture);
 
-    compute = [=]() { texture_ = textureGen_.compute().at(0); };
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] generating thickness texture");
+        texture_ = textureGen_.compute().at(0);
+    };
 }
 
 auto ThicknessTextureNode::serialize_(

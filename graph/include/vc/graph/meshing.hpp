@@ -105,7 +105,7 @@ class CalculateNumVertsNode : public smgl::Node
 {
 private:
     /** Input mesh */
-    ITKMesh::Pointer mesh_;
+    ITKMesh::Pointer mesh_{nullptr};
     /** Voxel size (um) in mesh/volume space */
     double voxelSize_{100};
     /** Target density factor */

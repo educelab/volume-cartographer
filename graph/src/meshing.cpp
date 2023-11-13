@@ -4,6 +4,7 @@
 
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/util/Json.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
 using namespace volcart;
@@ -33,7 +34,11 @@ MeshingNode::MeshingNode()
 {
     registerInputPort("points", points);
     registerOutputPort("mesh", mesh);
-    compute = [=]() { mesh_ = mesher_.compute(); };
+
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] meshing point set");
+        mesh_ = mesher_.compute();
+    };
 }
 
 auto MeshingNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -63,8 +68,10 @@ ScaleMeshNode::ScaleMeshNode()
     registerInputPort("scaleFactor", scaleFactor);
     registerOutputPort("output", output);
 
-    compute = [=]() {
+    compute = [&]() {
         if (input_) {
+            Logger()->debug(
+                "[graph.meshing] scaling mesh {.3f}x", scaleFactor_);
             output_ = ScaleMesh(input_, scaleFactor_);
         }
     };
@@ -102,7 +109,8 @@ CalculateNumVertsNode::CalculateNumVertsNode()
     registerInputPort("density", density);
     registerOutputPort("numVerts", numVerts);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] calculating number of vertices");
         using meshmath::SurfaceArea;
         static constexpr double UM_TO_MM{0.000001};
         static constexpr std::size_t MIN_NUM{100};
@@ -134,7 +142,10 @@ LaplacianSmoothMeshNode::LaplacianSmoothMeshNode()
 {
     registerInputPort("input", input);
     registerOutputPort("output", output);
-    compute = [=]() { mesh_ = smoother_.compute(); };
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] smoothing mesh");
+        mesh_ = smoother_.compute();
+    };
 }
 
 auto LaplacianSmoothMeshNode::serialize_(
@@ -187,7 +198,12 @@ ResampleMeshNode::ResampleMeshNode()
     registerInputPort("subsampleThreshold", subsampleThreshold);
     registerInputPort("quadricsOptimizationLevel", quadricsOptimizationLevel);
     registerOutputPort("output", output);
-    compute = [=]() { mesh_ = acvd_.compute(); };
+    compute = [&]() {
+        Logger()->debug(
+            "[graph.meshing] resampling mesh to {} vertices",
+            acvd_.numberOfClusters());
+        mesh_ = acvd_.compute();
+    };
 }
 
 auto ResampleMeshNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -234,7 +250,8 @@ UVMapToMeshNode::UVMapToMeshNode()
     registerInputPort("scaleToUVDimensions", scaleToUVDimensions);
     registerOutputPort("outputMesh", outputMesh);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] converting UV map to mesh");
         mesher_.setScaleToUVDimensions(scaleDims_);
         output_ = mesher_.compute();
     };
@@ -272,7 +289,10 @@ OrientNormalsNode::OrientNormalsNode()
     registerInputPort("referenceMode", referenceMode);
     registerInputPort("referencePoint", referencePoint);
     registerOutputPort("output", output);
-    compute = [&]() { output_ = orientNormals_.compute(); };
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] orienting vertex normals");
+        output_ = orientNormals_.compute();
+    };
 }
 
 auto OrientNormalsNode::serialize_(bool useCache, const fs::path& cacheDir)
