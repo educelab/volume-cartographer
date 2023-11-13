@@ -179,8 +179,8 @@ public:
      *
      * We want to rotate the virtually unwrapped image so that the bottom of
      * the content page is at the bottom of the virtually unwrapped image
-     * (\f$v \approx 1.\f$) and the top of the page is at the top of the image
-     * (\f$v \approx 0.\f$). As a consequence, this function aligns the given
+     * (\f( v ~= 1.\f)) and the top of the page is at the top of the image
+     * (\f( v ~= 0.\f)). As a consequence, this function aligns the given
      * 3D axis to the -V direction of UV space rather than the +V direction.
      *
      * Usually, we want the alignment axis to be the volume's +Z axis. It is a
