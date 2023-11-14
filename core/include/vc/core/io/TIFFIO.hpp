@@ -60,8 +60,12 @@ enum class Compression {
  * WriteTIFF). Unless you need to read some obscure image type (e.g. 32-bit
  * float or signed integer images), it's generally preferable to use cv::imread.
  *
+ * If the raw size of the image (width x height x channels x bytes-per-sample)
+ * is >= 4GB, the TIFF will be written using the BigTIFF extension to the TIFF
+ * format.
+ *
  * @param path Path to TIFF file
- * @throws std::runtime_error Hard reading errors
+ * @throws std::runtime_error Unrecoverable read errors
  */
 auto ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat;
 
