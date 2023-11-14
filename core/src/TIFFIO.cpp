@@ -49,6 +49,17 @@ auto GetCVMatType(
             return CV_8UC3;
     }
 }
+
+constexpr std::size_t MAX_TIFF_BYTES{4'294'967'296};
+constexpr std::size_t BITS_PER_BYTE{8};
+
+inline auto NeedBigTIFF(
+    std::size_t w, std::size_t h, std::size_t cns, std::size_t bps) -> bool
+{
+    const std::size_t bytes = w * h * cns * bps / BITS_PER_BYTE;
+    return bytes >= MAX_TIFF_BYTES;
+}
+
 }  // namespace
 
 auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
@@ -212,8 +223,15 @@ void tio::WriteTIFF(
         imgCopy = img;
     }
 
+    // Estimated file size in bytes
+    auto useBigTIFF = ::NeedBigTIFF(width, height, channels, bitsPerSample);
+    if (useBigTIFF) {
+        Logger()->warn("File estimate >= 4GB. Writing as BigTIFF.");
+    }
+
     // Open the file
-    auto out = lt::TIFFOpen(path.c_str(), "w");
+    const std::string mode = (useBigTIFF) ? "w8" : "w";
+    auto* out = lt::TIFFOpen(path.c_str(), mode.c_str());
     if (out == nullptr) {
         throw std::runtime_error("Failed to open file for writing");
     }
