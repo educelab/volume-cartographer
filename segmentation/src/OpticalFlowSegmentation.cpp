@@ -915,7 +915,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 
     } else {
         // 3. If interpolation is not active: Segment from start index till end index
-        if (computeSub(points, startingChain_, startIndexChain, startIndexReSegChain, endIndex_, 0, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
+        if (computeSub(points, startingChain_, startIndexChain, backwards ? endIndex_ - 1 : endIndex_ + 1, endIndex_, 0, backwards, iteration, backwards, outputDir, wholeChainDir) == Status::ReturnedEarly) {
             return create_final_pointset_({startingChain_});
         }
 
@@ -964,7 +964,7 @@ ChainSegmentationAlgorithm::Status OpticalFlowSegmentationClass::computeSub(std:
 
         int nextZIndex = zIndex + (backwards  ? -adjustedStepSize : adjustedStepSize);
 
-        // If we would hit an anchor with our next Z index exit. No need to re-calcualte the curve as we already know it.
+        // If we would hit an anchor with our next Z index exit. No need to re-calculate the curve as we already know it.
         if (backwards
             ? nextZIndex <= endChainIndex || nextZIndex >= startChainIndex
             : nextZIndex >= endChainIndex || nextZIndex <= startChainIndex)  {
