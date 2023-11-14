@@ -100,12 +100,18 @@ auto PerPixelMap::ReadPPM(const fs::path& path) -> PerPixelMap
     ppm.height_ = ppm.map_.height();
     ppm.width_ = ppm.map_.width();
 
-    ppm.mask_ = cv::imread(MaskPath(path).string(), cv::IMREAD_GRAYSCALE);
+    auto maskPath = MaskPath(path);
+    if (fs::exists(maskPath)) {
+        ppm.mask_ = cv::imread(maskPath.string(), cv::IMREAD_GRAYSCALE);
+    }
     if (ppm.mask_.empty()) {
         Logger()->warn("Failed to read mask: {}", MaskPath(path).string());
     }
 
-    ppm.cellMap_ = cv::imread(CellMapPath(path).string(), cv::IMREAD_UNCHANGED);
+    auto cellMapPath = CellMapPath(path);
+    if (fs::exists(cellMapPath)) {
+        ppm.cellMap_ = tiffio::ReadTIFF(cellMapPath);
+    }
     if (ppm.cellMap_.empty()) {
         Logger()->warn(
             "Failed to read cell map: {}", CellMapPath(path).string());
