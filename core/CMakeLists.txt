@@ -172,6 +172,7 @@ set(test_srcs
     test/LoggingTest.cpp
     test/SignalsTest.cpp
     test/IterationTest.cpp
+    test/TIFFIOTest.cpp
 )
 
 # Add a test executable for each src

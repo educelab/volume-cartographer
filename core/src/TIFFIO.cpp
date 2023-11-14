@@ -6,6 +6,7 @@
 
 #include "vc/core/Version.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/util/Logging.hpp"
 
 // Wrapping in a namespace to avoid define collisions
 namespace lt
@@ -13,6 +14,7 @@ namespace lt
 #include <tiffio.h>
 }
 
+namespace vc = volcart;
 namespace tio = volcart::tiffio;
 namespace fs = volcart::filesystem;
 
@@ -83,12 +85,12 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     cv::Mat img = cv::Mat::zeros(h, w, cvType);
 
     // Read the rows
-    auto bufSize = lt::TIFFScanlineSize(tif);
-    lt::tdata_t buf = lt::_TIFFmalloc(bufSize);
+    auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(tif));
+    std::vector<char> buffer(bufferSize + 4);
     if (config == PLANARCONFIG_CONTIG) {
         for (auto row = 0; row < height; row++) {
-            lt::TIFFReadScanline(tif, buf, row);
-            std::memcpy(img.ptr(row), buf, bufSize);
+            lt::TIFFReadScanline(tif, &buffer[0], row);
+            std::memcpy(img.ptr(row), &buffer[0], bufferSize);
         }
     } else if (config == PLANARCONFIG_SEPARATE) {
         std::runtime_error(
@@ -96,16 +98,24 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     }
 
     // Do channel conversion
-    cv::Mat imgCopy;
-    if (img.channels() == 3) {
-        cv::cvtColor(img, imgCopy, cv::COLOR_RGB2BGR);
-    } else if (img.channels() == 4) {
-        cv::cvtColor(img, imgCopy, cv::COLOR_RGBA2BGRA);
-    } else {
-        imgCopy = img;
+    auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
+    auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
+                        img.depth() != CV_32S;
+    if (cvtNeeded) {
+        if (cvtSupported) {
+            if (img.channels() == 3) {
+                cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
+            } else if (img.channels() == 4) {
+                cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
+            }
+        } else {
+            vc::Logger()->warn(
+                "[TIFFIO] RGB->BGR conversion for signed 8-bit and 16-bit "
+                "images is not supported. Image will be loaded with RGB "
+                "element order.");
+        }
     }
 
-    lt::_TIFFfree(buf);
     lt::TIFFClose(tif);
 
     return img;
@@ -183,6 +193,25 @@ void tio::WriteTIFF(
             throw std::runtime_error("Unsupported number of channels");
     }
 
+    // Get working copy with converted channels if an RGB-type image
+    auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
+    auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
+                        img.depth() != CV_32S;
+    cv::Mat imgCopy;
+    if (cvtNeeded and cvtSupported) {
+        if (img.channels() == 3) {
+            cv::cvtColor(img, imgCopy, cv::COLOR_BGR2RGB);
+        } else if (img.channels() == 4) {
+            cv::cvtColor(img, imgCopy, cv::COLOR_BGRA2RGBA);
+        }
+    } else if (cvtNeeded) {
+        throw std::runtime_error(
+            "BGR->RGB conversion for signed 8-bit and 16-bit images is not "
+            "supported.");
+    } else {
+        imgCopy = img;
+    }
+
     // Open the file
     auto out = lt::TIFFOpen(path.c_str(), "w");
     if (out == nullptr) {
@@ -216,16 +245,6 @@ void tio::WriteTIFF(
     // modifies its read buffer, so we can't use the cv::Mat directly
     auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(out));
     std::vector<char> buffer(bufferSize + 32);
-
-    // Get working copy with converted channels if an RGB-type image
-    cv::Mat imgCopy;
-    if (img.channels() == 3) {
-        cv::cvtColor(img, imgCopy, cv::COLOR_BGR2RGB);
-    } else if (img.channels() == 4) {
-        cv::cvtColor(img, imgCopy, cv::COLOR_BGRA2RGBA);
-    } else {
-        imgCopy = img;
-    }
 
     // For each row
     for (unsigned row = 0; row < height; row++) {
