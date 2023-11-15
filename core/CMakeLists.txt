@@ -41,6 +41,7 @@ set(type_srcs
     src/Render.cpp
     src/Reslice.cpp
     src/Segmentation.cpp
+    src/Transforms.cpp
     src/UVMap.cpp
     src/Volume.cpp
     src/VolumeMask.cpp
@@ -173,6 +174,7 @@ set(test_srcs
     test/SignalsTest.cpp
     test/IterationTest.cpp
     test/TIFFIOTest.cpp
+    test/TransformsTest.cpp
 )
 
 # Add a test executable for each src
