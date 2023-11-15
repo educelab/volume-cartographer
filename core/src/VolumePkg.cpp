@@ -50,7 +50,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     // Check directory structure
     if (!(fs::exists(rootDir_) && fs::exists(segsDir_) &&
           fs::exists(volsDir_) && fs::exists(rendDir_))) {
-        throw std::runtime_error("invalid volumepkg structure");
+        throw std::runtime_error("invalid volpkg structure (ensure required folders are present: " + SUBPATH_VOLS.generic_string() + ", " + SUBPATH_SEGS.generic_string() + ", " + SUBPATH_REND.generic_string() + ")");
     }
 
     // Loads the metadata
