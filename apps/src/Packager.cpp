@@ -80,8 +80,7 @@ auto main(int argc, char* argv[]) -> int
         ("flip,f", po::value<std::string>()->default_value("none"),
             "Flip options: Vertical flip (vf), horizontal flip (hf), both, "
             "z-flip (zf), all, [none].")
-        ("compress,c", po::value<std::string>()->default_value("n"),
-            "Compress slice images? [yN].");
+        ("compress,c", "Compress slice images");
     
     po::options_description helpOpts("Usage");
     helpOpts.add(options).add(volpkg_metadata).add(volume_options);
@@ -248,9 +247,7 @@ VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
     }
 
     // Whether to compress
-    auto compress = parsed["compress"].as<std::string>();
-    vc::to_lower(compress);
-    info.compress = compress == "y";
+    info.compress = parsed.count("compress") != 0;
 
     return info;
 }
