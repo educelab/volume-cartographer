@@ -115,3 +115,43 @@ auto AffineTransform::invert() const -> VolumeTransform::Pointer
 
     return inverted;
 }
+
+auto AffineTransform::translate(double x, double y, double z)
+    -> AffineTransform&
+{
+    Parameters p = Parameters::eye(4, 4);
+    p(0, 3) = x;
+    p(1, 3) = y;
+    p(2, 3) = z;
+    params_ = p * params_;
+    return *this;
+}
+
+auto AffineTransform::rotate(double theta, double x, double y, double z)
+    -> AffineTransform&
+{
+    static constexpr double PI{
+        3.141592653589793238462643383279502884198716939937510582097164L};
+
+    auto norm = std::sqrt(x * x + y * y + z * z);
+    x /= norm;
+    y /= norm;
+    z /= norm;
+
+    auto radians = theta * PI / 180.;
+    auto s = std::sin(radians);
+    auto c = std::cos(radians);
+
+    Parameters p = Parameters::eye(4, 4);
+    p(0, 0) = x * x * (1 - c) + c;
+    p(0, 1) = x * y * (1 - c) - z * s;
+    p(0, 2) = x * z * (1 - c) + y * s;
+    p(1, 0) = y * x * (1 - c) + z * s;
+    p(1, 1) = y * y * (1 - c) + c;
+    p(1, 2) = y * z * (1 - c) - x * s;
+    p(2, 0) = x * z * (1 - c) - y * s;
+    p(2, 1) = y * z * (1 - c) + x * s;
+    p(2, 2) = z * z * (1 - c) + c;
+    params_ = p * params_;
+    return *this;
+}
