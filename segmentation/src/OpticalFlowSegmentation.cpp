@@ -825,6 +825,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             }
 
             reSegPoints = interpolateGaps(reSegPoints);
+            // Remove re-segmentation chain
             reSegPoints.erase((backwards ? reSegPoints.begin() : reSegPoints.end()));
 
             // Remove everything before the interpolation start index and also the end anchor slice (which for very big interpolation
@@ -890,6 +891,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
             }
 
             points = interpolateGaps(points);
+            // Remove starting chain
             points.erase((backwards ? points.end() : points.begin()));
 
             // Remove everything beyond the interpolation end index and also the start anchor slice (which for very big interpolation

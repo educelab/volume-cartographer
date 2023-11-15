@@ -1903,10 +1903,11 @@ void CWindow::PrintDebugInfo()
         }
         std::cout << ") | ";
 
-        for(auto ano : row) {
-            std::cout << std::get<long>(ano[ANO_EL_FLAGS]) << " (" << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_X]), 6, 'f', 2, '0').toStdString()
-                                                           << ", " << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_Y]), 6, 'f', 2, '0').toStdString() << ") | ";
-        }
+        // Print coordinates
+        // for(auto ano : row) {
+        //     std::cout << std::get<long>(ano[ANO_EL_FLAGS]) << " (" << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_X]), 6, 'f', 2, '0').toStdString()
+        //                                                    << ", " << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_Y]), 6, 'f', 2, '0').toStdString() << ") | ";
+        // }
         std::cout << std::endl;
     }
 }
