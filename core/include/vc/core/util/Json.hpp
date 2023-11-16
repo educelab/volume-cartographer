@@ -72,4 +72,32 @@ struct adl_serializer<cv::Mat_<T>> {
         }
     }
 };
+
+/* cv::Matx */
+template <typename T, int M, int N>
+struct adl_serializer<cv::Matx<T, M, N>> {
+    template <class JsonT>
+    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
+    static void to_json(JsonT& j, const cv::Matx<T, M, N>& mat)
+    {
+        for (int r = 0; r < M; r++) {
+            JsonT row;
+            for (int c = 0; c < N; c++) {
+                row.push_back(mat(r, c));
+            }
+            j.push_back(row);
+        }
+    }
+
+    template <class JsonT>
+    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
+    static void from_json(const JsonT& j, cv::Matx<T, M, N>& mat)
+    {
+        for (int r = 0; r < M; r++) {
+            for (int c = 0; c < N; c++) {
+                mat(r, c) = j[r][c];
+            }
+        }
+    }
+};
 NLOHMANN_JSON_NAMESPACE_END
