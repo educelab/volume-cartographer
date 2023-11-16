@@ -32,8 +32,13 @@ public:
         const cv::Vec<double, 6>& ptN, bool normalize = true)
         -> cv::Vec<double, 6>;
 
-    [[maybe_unused]] virtual auto invertible() const -> bool;
+    [[nodiscard]] virtual auto invertible() const -> bool;
     virtual auto invert() const -> Pointer = 0;
+
+    // reset parameters
+    virtual void reset() = 0;
+    // clear transform (source and target)
+    virtual void clear();
 
     static void Save(const filesystem::path& path, const Pointer& transform);
     static auto Load(const filesystem::path& path) -> Pointer;
@@ -51,13 +56,13 @@ private:
 
 class AffineTransform : public Transform3D
 {
-    using Parameters = cv::Matx<double, 4, 4>;
-
 public:
-    AffineTransform() = default;
+    using Parameters = cv::Matx<double, 4, 4>;
 
     /** Pointer type */
     using Pointer = std::shared_ptr<AffineTransform>;
+
+    AffineTransform() = default;
 
     /** Static New function for all constructors of T */
     template <typename... Args>
@@ -71,6 +76,9 @@ public:
 
     [[nodiscard]] auto invertible() const -> bool final;
     [[nodiscard]] auto invert() const -> Transform3D::Pointer final;
+
+    void reset() final;
+    void clear() final;
 
     [[nodiscard]] auto params() const -> Parameters;
     void params(const Parameters& params);

@@ -49,6 +49,12 @@ auto Transform3D::applyPointAndNormal(
     return {p[0], p[1], p[2], n[0], n[1], n[2]};
 }
 
+void Transform3D::clear()
+{
+    src_.clear();
+    tgt_.clear();
+}
+
 void Transform3D::Save(
     const filesystem::path& path, const Transform3D::Pointer& transform)
 {
@@ -124,33 +130,18 @@ auto AffineTransform::invert() const -> Transform3D::Pointer
     inverted->source(target());
     inverted->target(source());
 
-    // Invert scale
-    cv::Matx33d tlInv;
-    for (auto colIdx : range(3)) {
-        auto col = params_.col(colIdx);
-        col /= cv::norm(col);
-        tlInv(0, colIdx) = col(0, 0);
-        tlInv(1, colIdx) = col(1, 0);
-        tlInv(2, colIdx) = col(2, 0);
-    }
-
-    // Invert rotation
-    tlInv = tlInv.t();
-
-    // Invert translation
-    auto transInv = -tlInv * params_.get_minor<3, 1>(0, 3);
-
-    // Copy top-left
-    for (auto [y, x] : range2D(3, 3)) {
-        inverted->params_(y, x) = tlInv(y, x);
-    }
-
-    // Copy translation
-    inverted->params_(0, 3) = transInv(0, 0);
-    inverted->params_(1, 3) = transInv(1, 0);
-    inverted->params_(2, 3) = transInv(2, 0);
+    // TODO: Can probably do this without using LU
+    inverted->params_ = params_.inv();
 
     return inverted;
+}
+
+void AffineTransform::reset() { params_ = Parameters::eye(); }
+
+void AffineTransform::clear()
+{
+    Transform3D::clear();
+    reset();
 }
 
 auto AffineTransform::translate(double x, double y, double z)
