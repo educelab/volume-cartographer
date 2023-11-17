@@ -1,6 +1,5 @@
 #include "vc/meshing/UVMapToITKMesh.hpp"
 
-
 using namespace volcart;
 using namespace volcart::meshing;
 

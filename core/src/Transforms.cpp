@@ -8,6 +8,7 @@
 #include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
+namespace vc = volcart;
 namespace fs = volcart::filesystem;
 
 namespace
@@ -234,4 +235,71 @@ auto operator<<(std::ostream& os, const AffineTransform& t) -> std::ostream&
     }
     os << "])";
     return os;
+}
+
+//////////////////////////////////////////
+///////////// ApplyTransform /////////////
+//////////////////////////////////////////
+
+auto vc::ApplyTransform(
+    const ITKMesh::Pointer& mesh,
+    const Transform3D::Pointer& transform,
+    bool normalize) -> ITKMesh::Pointer
+{
+    // Generate a new mesh
+    auto out = ITKMesh::New();
+
+    // Copy and transform the vertices/normals
+    for (auto pt = mesh->GetPoints()->Begin(); pt != mesh->GetPoints()->End();
+         ++pt) {
+
+        // Transform point
+        auto p = pt->Value();
+        auto tPt = transform->applyPoint({p[0], p[1], p[2]});
+        p[0] = tPt[0];
+        p[1] = tPt[1];
+        p[2] = tPt[2];
+        out->SetPoint(pt.Index(), p);
+
+        // Transform vertex normal
+        ITKPixel n;
+        if (mesh->GetPointData(pt.Index(), &n)) {
+            cv::Vec3d tNml;
+            if (normalize) {
+                tNml = transform->applyUnitVector({n[0], n[1], n[2]});
+            } else {
+                tNml = transform->applyVector({n[0], n[1], n[2]});
+            }
+            n[0] = tNml[0];
+            n[1] = tNml[1];
+            n[2] = tNml[2];
+            out->SetPointData(pt.Index(), n);
+        }
+    }
+
+    // Copy the faces
+    DeepCopy(mesh, out, false, true);
+
+    return out;
+}
+
+auto vc::ApplyTransform(
+    const PerPixelMap& ppm,
+    const Transform3D::Pointer& transform,
+    bool normalize) -> PerPixelMap
+{
+    PerPixelMap output(ppm);
+
+    for (auto m : output.getMappings()) {
+        auto p = transform->applyPoint(m.pos);
+        cv::Vec3d n;
+        if (normalize) {
+            n = transform->applyUnitVector(m.normal);
+        } else {
+            n = transform->applyVector(m.normal);
+        }
+        output(m.y, m.x) = {p[0], p[1], p[2], n[0], n[1], n[2]};
+    }
+
+    return output;
 }

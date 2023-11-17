@@ -75,5 +75,8 @@ void DeepCopy(
  * The resulting mesh is a unique (i.e. memory independent) copy of the
  * original.
  */
-auto DeepCopy(const ITKMesh::Pointer& input,bool copyVertices = true, bool copyFaces = true) -> ITKMesh::Pointer;
+auto DeepCopy(
+    const ITKMesh::Pointer& input,
+    bool copyVertices = true,
+    bool copyFaces = true) -> ITKMesh::Pointer;
 }  // namespace volcart

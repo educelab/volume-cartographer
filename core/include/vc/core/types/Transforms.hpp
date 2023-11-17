@@ -10,6 +10,8 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/types/ITKMesh.hpp"
+#include "vc/core/types/PerPixelMap.hpp"
 
 namespace volcart
 {
@@ -270,8 +272,23 @@ private:
     void from_meta_(const Metadata& meta) final;
 };
 
+/** @brief Apply a transform to an ITKMesh */
+auto ApplyTransform(
+    const ITKMesh::Pointer& mesh,
+    const Transform3D::Pointer& transform,
+    bool normalize = true) -> ITKMesh::Pointer;
+
+/** @brief Apply a transform to a PerPixelMap */
+auto ApplyTransform(
+    const PerPixelMap& ppm,
+    const Transform3D::Pointer& transform,
+    bool normalize = true) -> PerPixelMap;
+
+/** @brief Apply a transform to a PointSet */
+template <class PointSetT>
+auto ApplyTransform(const PointSetT& ps, const Transform3D::Pointer& transform)
+    -> PointSetT;
+
 }  // namespace volcart
 
-/** DEBUG ONLY: Print AffineTransform to std::ostream */
-auto operator<<(std::ostream& os, const volcart::AffineTransform& t)
-    -> std::ostream&;
+#include "vc/core/types/TransformsImpl.hpp"

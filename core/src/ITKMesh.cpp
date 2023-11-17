@@ -41,10 +41,11 @@ void vc::DeepCopy(
     }
 }
 
-auto vc::DeepCopy(const ITKMesh::Pointer& input, bool copyVertices, bool copyFaces) -> ITKMesh::Pointer
+auto vc::DeepCopy(
+    const ITKMesh::Pointer& input, bool copyVertices, bool copyFaces)
+    -> ITKMesh::Pointer
 {
     auto output = ITKMesh::New();
     DeepCopy(input, output, copyVertices, copyFaces);
     return output;
 }
-
