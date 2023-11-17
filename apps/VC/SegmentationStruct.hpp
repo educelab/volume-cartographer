@@ -55,6 +55,14 @@ enum AnnotationBits {
     ANO_USED_IN_RUN = (long)(1 << 2)
 };
 
+struct PathChangePoint {
+    int pointIndex; // index in curve
+    Vec2<double> position; // X and Y on slice
+    bool manuallyChanged = false; // annotation flag
+};
+
+typedef std::vector<PathChangePoint> PathChangePointVector;
+
 struct SegmentationStruct {
     volcart::VolumePkg::Pointer fVpkg;
     std::string fSegmentationId;
@@ -69,7 +77,7 @@ struct SegmentationStruct {
     volcart::Segmentation::PointSet fUpperPart;
     volcart::Segmentation::AnnotationSet fAnnotationCloud;
     std::vector<cv::Vec3d> fStartingPath;
-    std::map<int, AnnotationStruct> fAnnotations; // decoded annotations
+    std::map<int, AnnotationStruct> fAnnotations; // decoded annotations per slice
     std::set<int> fBufferedChangedPoints; // values are in range [0..(number of points on curve - 1)] (not global cloud index, but locally to the edited curve)
     int fPathOnSliceIndex = 0;
     bool display = false;
@@ -313,7 +321,7 @@ struct SegmentationStruct {
             fIntersections.size() != 0) {
 
             // If we have a buffered changed curve, use that one.
-            // Note: The map of changed intersections uses the slice nubmer as key,
+            // Note: The map of changed intersections uses the slice number as key,
             // where as the intersections vector needs to be accessed by the curveIndex (offset)
             auto it = fIntersectionsChanged.find(fPathOnSliceIndex);
             if (it != fIntersectionsChanged.end())
@@ -328,18 +336,25 @@ struct SegmentationStruct {
 
     inline bool HasChangedCurves()
     {
-        return (fIntersectionsChanged.empty() == false);
+        return (fBufferedChangedPoints.empty() == false);
     }
 
     inline void ForgetChangedCurves()
     {
         fIntersectionsChanged.clear();
+        fBufferedChangedPoints.clear();
     }
 
-    /**
-     * Merges the provided point set into the master point cloud
-     * Note: This method assumes that the provided point set is continuous so has no index/slice gaps
-    */
+    inline void UpdateChangedCurvePoints(int nSliceIndex, PathChangePointVector changes)
+    {
+        auto it = fIntersectionsChanged.find(nSliceIndex);
+        if(it != fIntersectionsChanged.end()) {
+            for (auto point : changes) {
+                it->second.SetPoint(point.pointIndex, point.position);
+            }
+        }
+    }
+
     inline void MergePointSetIntoPointCloud(const volcart::Segmentation::PointSet ps)
     {
         if (ps.empty()) {
@@ -569,8 +584,15 @@ struct SegmentationStruct {
         // We need to buffer the points that we potentially have to store as "manually changed" in
         // annotations, but we cannot directly update the cloud, since the manual changes might be
         // discarded, e.g. by leaving the segmentation tool. Only once they are "confirmed" by
-        // being used in a segmentation run, can we update the annotation cloud.
+        // being used in a segmentation run or explicitely saved, can we update the annotation cloud.
         fBufferedChangedPoints.insert(pointIndexes.begin(), pointIndexes.end());
+    }
+
+    inline void RemovePointsFromManualBuffer(std::set<int> pointIndexes)
+    {
+        for (auto index : pointIndexes) {
+            fBufferedChangedPoints.erase(std::find(fBufferedChangedPoints.begin(), fBufferedChangedPoints.end(), index));
+        }
     }
 
     inline int GetPointIndexForSliceIndex(int sliceIndex)

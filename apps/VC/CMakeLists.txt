@@ -14,6 +14,7 @@ set(srcs
     BlockingDialog.hpp
     ColorFrame.hpp
     SettingsDialog.cpp
+    UndoCommands.cpp
 )
 
 set(MACOSX_BUNDLE_ICON logo.icns)

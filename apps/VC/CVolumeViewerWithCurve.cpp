@@ -306,8 +306,6 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
             UpdateView();
 
         } else if (fViewState == EViewState::ViewStateEdit && event->button() == Qt::LeftButton) {
-            lineGrabbed = true;
-
             if (fImageIndex != sliceIndexToolStart) {
                 SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now.").arg(QString::number(sliceIndexToolStart)), 3000);
                 return;
@@ -323,15 +321,29 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 
             // Set fLastPos to the position of the selected point
             if (fSelectedPointIndex >= 0) {
+                lineGrabbed = true;
+
                 setCursor(Qt::PointingHandCursor);
+                pathChangeBefore.clear();
+
+                // Collect before curve change point information
+                auto annotationIndex = fSegStructMapRef[fSelectedSegID].GetAnnotationIndexForSliceIndex(sliceIndexToolStart);
+                for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
+                    // If value is in valid range, so >= 0 and <= number of points on curve
+                    if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
+                        auto pathChangePoint = PathChangePoint();
+                        pathChangePoint.pointIndex = fSelectedPointIndex + i;
+                        pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex + i);
+                        pathChangePoint.manuallyChanged = std::get<long>(fSegStructMapRef[fSelectedSegID].fAnnotationCloud[annotationIndex + fSelectedPointIndex + i][ANO_EL_FLAGS]) & AnnotationBits::ANO_MANUAL;
+                        pathChangeBefore.push_back(pathChangePoint);
+                    }
+                }
 
                 fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
                 fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
 
                 // Mouse move event to update the line
                 mouseMoveEvent(event);
-
-                // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
             }
         }
     } else if (event->button() == Qt::RightButton) {
@@ -375,17 +387,6 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         fSegStructMapRef[fSelectedSegID].fIntersectionCurve.SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
 
-        // Mark involved points as manually changed
-        std::set<int> pointIndexes;
-        for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
-            // If value is in valid range, so >= 0 and <= number of points on curve,
-            // it is valid for buffering.
-            if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
-                pointIndexes.insert(fSelectedPointIndex + i);
-            }
-        }
-        fSegStructMapRef[fSelectedSegID].AddPointsToManualBuffer(pointIndexes);
-
         fVertexIsChanged = true;
 
         UpdateView();
@@ -415,10 +416,6 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
         lastPressedSideButton = Qt::NoButton;  // unset the last pressed button
     }
 
-    if (event->button() == Qt::LeftButton) {
-        lineGrabbed = false;
-    }
-
     // end panning
     if (event->button() == Qt::RightButton) {
         isPanning = wantsPanning = rightPressed = false;
@@ -427,12 +424,38 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
         return;
     }
 
-    if (fIntersectionCurveRef != nullptr && fVertexIsChanged) {
-        // update the point positions in the path point cloud
-        SendSignalPathChanged();
+    if (fIntersectionCurveRef != nullptr && fVertexIsChanged && lineGrabbed) {
+
+        std::set<int> pointIndexes;
+        PathChangePointVector pathChangeAfter;
+        auto annotationIndex = fSegStructMapRef[fSelectedSegID].GetAnnotationIndexForSliceIndex(sliceIndexToolStart);
+
+        // Collect after change point information
+        for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
+            // If value is in valid range, so >= 0 and <= number of points on curve
+            if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
+                pointIndexes.insert(fSelectedPointIndex + i);
+
+                auto pathChangePoint = PathChangePoint();
+                pathChangePoint.pointIndex = fSelectedPointIndex + i;
+                pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex + i);
+                pathChangePoint.manuallyChanged = true;
+                pathChangeAfter.push_back(pathChangePoint);
+            }
+        }
+
+        // Mark involved points as manually changed
+        fSegStructMapRef[fSelectedSegID].AddPointsToManualBuffer(pointIndexes);
+
+        // update the point positions in the path point cloud and store undo command
+        SendSignalPathChanged(pathChangeBefore, pathChangeAfter);
 
         fVertexIsChanged = false;
         fSelectedPointIndex = -1;
+    }
+
+    if (event->button() == Qt::LeftButton) {
+        lineGrabbed = false;
     }
 
     setCursor(Qt::ArrowCursor);

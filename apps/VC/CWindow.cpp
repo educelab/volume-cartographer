@@ -10,6 +10,7 @@
 #include "CVolumeViewerWithCurve.hpp"
 #include "UDataManipulateUtils.hpp"
 #include "SettingsDialog.hpp"
+#include "UndoCommands.hpp"
 
 #include "vc/core/types/Color.hpp"
 #include "vc/core/types/Exceptions.hpp"
@@ -92,8 +93,9 @@ CWindow::CWindow()
     , prefetchSliceIndex(-1)
 {
     const QSettings settings("VC.ini", QSettings::IniFormat);
+    undoStack = new QUndoStack(this);
     ui.setupUi(this);
-    setAttribute(Qt::WA_QuitOnClose);
+    // setAttribute(Qt::WA_DeleteOnClose);
     SDL_Init(SDL_INIT_AUDIO);
     fVpkgChanged = false;
 
@@ -188,17 +190,6 @@ CWindow::~CWindow(void)
     SDL_Quit();
 }
 
-// Handle key press event
-void CWindow::keyPressEvent(QKeyEvent* event)
-{
-    if (event->key() == Qt::Key_Escape) {
-        // REVISIT - should prompt warning before exit
-        Close();
-    } else {
-        // REVISIT - dispatch key press event
-    }
-}
-
 // Create widgets
 void CWindow::CreateWidgets(void)
 {
@@ -227,8 +218,8 @@ void CWindow::CreateWidgets(void)
         fVolumeViewerWidget, SIGNAL(SendSignalOnLoadAnyImage(int)), this,
         SLOT(OnLoadAnySlice(int)));
     connect(
-        fVolumeViewerWidget, SIGNAL(SendSignalPathChanged()), this,
-        SLOT(OnPathChanged()));
+        fVolumeViewerWidget, SIGNAL(SendSignalPathChanged(PathChangePointVector, PathChangePointVector)), this,
+        SLOT(OnPathChanged(PathChangePointVector, PathChangePointVector)));
     connect(
         fVolumeViewerWidget, SIGNAL(SendSignalAnnotationChanged()), this,
         SLOT(OnAnnotationChanged()));
@@ -575,6 +566,10 @@ void CWindow::CreateMenus(void)
     fFileMenu->addSeparator();
     fFileMenu->addAction(fExitAct);
 
+    fEditMenu = new QMenu(tr("&Edit"), this);
+    fEditMenu->addAction(undoAction);
+    fEditMenu->addAction(redoAction);
+
     fViewMenu = new QMenu(tr("&View"), this);
     fViewMenu->addAction(findChild<QDockWidget*>("dockWidgetVolumes")->toggleViewAction());
     fViewMenu->addAction(findChild<QDockWidget*>("dockWidgetSegmentation")->toggleViewAction());
@@ -593,6 +588,7 @@ void CWindow::CreateMenus(void)
     fHelpMenu->addAction(fAboutAct);
 
     menuBar()->addMenu(fFileMenu);
+    menuBar()->addMenu(fEditMenu);
     menuBar()->addMenu(fViewMenu);
     menuBar()->addMenu(fHelpMenu);
 }
@@ -620,7 +616,7 @@ void CWindow::CreateActions(void)
     connect(fSettingsAct, SIGNAL(triggered()), this, SLOT(ShowSettings()));
 
     fExitAct = new QAction(style()->standardIcon(QStyle::SP_DialogCloseButton), tr("E&xit..."), this);
-    connect(fExitAct, SIGNAL(triggered()), this, SLOT(Close()));
+    connect(fExitAct, SIGNAL(triggered()), this, SLOT(close()));
 
     fKeybinds = new QAction(tr("&Keybinds"), this);
     connect(fKeybinds, SIGNAL(triggered()), this, SLOT(Keybindings()));
@@ -630,6 +626,13 @@ void CWindow::CreateActions(void)
 
     fPrintDebugInfo = new QAction  (tr("Debug info"), this);
     connect(fPrintDebugInfo, SIGNAL(triggered()), this, SLOT(PrintDebugInfo()));
+
+    // Undo / redo
+    undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+    undoAction->setShortcuts(QKeySequence::Undo);
+    redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+
+    undoAction->setShortcuts(QList<QKeySequence>({QKeySequence::Redo, Qt::Key_B}));
 }
 
 // Create segmentation backend
@@ -750,17 +753,13 @@ void CWindow::RemoveEntryFromRecentVolpkg(const QString& path)
 // Asks User to Save Data Prior to VC.app Exit
 void CWindow::closeEvent(QCloseEvent* event)
 {
-    if (SaveDialog() == SaveResponse::Continue) {
-        event->accept();
-    } else {
+    if (SaveDialog() != SaveResponse::Continue) {
         event->ignore();
         return;
     }
     QSettings settings;
     settings.setValue("mainWin/geometry", saveGeometry());
     settings.setValue("mainWin/state", saveState());
-
-    Close();
 
     QMainWindow::closeEvent(event);
 }
@@ -806,6 +805,11 @@ void CWindow::setDefaultWindowWidth(vc::Volume::Pointer volume)
 
 CWindow::SaveResponse CWindow::SaveDialog(void)
 {
+    // First check the state of the segmentation tool
+    if (fSegTool->isChecked() && SaveDialogSegTool() == SaveResponse::Cancelled) {
+        return SaveResponse::Cancelled;
+    }
+
     // Return if nothing has changed
     if (not fVpkgChanged) {
         return SaveResponse::Continue;
@@ -826,6 +830,44 @@ CWindow::SaveResponse CWindow::SaveDialog(void)
             return SaveResponse::Cancelled;
     }
     return SaveResponse::Cancelled;
+}
+
+CWindow::SaveResponse CWindow::SaveDialogSegTool(void)
+{
+    // Warn user that curve changes will get lost
+    bool changesFound = false;
+    for (auto& seg : fSegStructMap) {
+        if (seg.second.HasChangedCurves()) {
+            changesFound = true;
+            break;
+        }
+    }
+
+    if (changesFound) {
+        QMessageBox question(QMessageBox::Icon::Question, tr("Changed Curves"),
+            tr("You have made changes to curves that were not used in a segmentation run.\n\nReset those changes?\n\nNote: Keeping does not mean saving to disk."),
+            QMessageBox::Reset | QMessageBox::Cancel, this);
+        question.setDefaultButton(QMessageBox::Cancel);
+        QAbstractButton* buttonKeep = question.addButton(tr("Keep"), QMessageBox::AcceptRole);
+
+        const auto response = question.exec();
+
+        if (response == QMessageBox::Cancel) {
+            // Stay in seg tool mode => check the button again and then leave
+            fSegTool->setChecked(true);
+            return SaveResponse::Cancelled;
+        } else if (question.clickedButton() == buttonKeep) {
+            // Save the changed curve and mark as manually changed
+            fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fSliceIndexToolStart, true);
+            fSegStructMap[fHighlightedSegmentationId].SetAnnotationManualPoints(fSliceIndexToolStart);
+            fSegStructMap[fHighlightedSegmentationId].SetAnnotationUsedInRun(fSliceIndexToolStart, false);
+            fSegStructMap[fHighlightedSegmentationId].MergeChangedCurveIntoPointCloud(fSliceIndexToolStart);
+            fVpkgChanged = true;
+            return SaveResponse::Continue;
+        }
+    }
+
+    return SaveResponse::Continue;
 }
 
 // Update the widgets
@@ -1814,9 +1856,6 @@ void CWindow::OpenRecent()
         Open(action->data().toString());
 }
 
-// Close application
-void CWindow::Close(void) { close(); }
-
 // Pop up about dialog
 void CWindow::Keybindings(void)
 {
@@ -1880,10 +1919,12 @@ void CWindow::ShowSettings()
 
 void CWindow::PrintDebugInfo()
 {
+    bool printCoordinates = false;
+
     // Add whatever should be printed via std::count via the action in the help menu.
     // Note: The menu entry is only visible with the matching INI entry.
 
-    volcart::debug::PrintPointCloud(fSegStructMap[fHighlightedSegmentationId].fMasterCloud, "Master Cloud");
+    volcart::debug::PrintPointCloud(fSegStructMap[fHighlightedSegmentationId].fMasterCloud, "Master Cloud", printCoordinates);
 
     // Print Annotation Point Cloud
     std::cout << "=== Annotation Point Cloud ===" << std::endl;
@@ -1903,11 +1944,18 @@ void CWindow::PrintDebugInfo()
         }
         std::cout << ") | ";
 
-        // Print coordinates
-        // for(auto ano : row) {
-        //     std::cout << std::get<long>(ano[ANO_EL_FLAGS]) << " (" << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_X]), 6, 'f', 2, '0').toStdString()
-        //                                                    << ", " << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_Y]), 6, 'f', 2, '0').toStdString() << ") | ";
-        // }
+        // Print lags & coordinates
+        for(auto ano : row) {
+            std::cout << std::get<long>(ano[ANO_EL_FLAGS]);
+
+            // Print coordinates
+            if (printCoordinates) {
+                std::cout << " (" << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_X]), 6, 'f', 2, '0').toStdString()
+                          << ", " << QString("%1").arg(std::get<double>(ano[ANO_EL_POS_Y]), 6, 'f', 2, '0').toStdString() << ")";
+            }
+
+            std::cout << " | ";
+        }
         std::cout << std::endl;
     }
 }
@@ -2491,6 +2539,7 @@ void CWindow::TogglePenTool(void)
 // Toggle the status of the segmentation tool
 void CWindow::ToggleSegmentationTool(void)
 {
+    undoStack->clear();
     if (fSegTool->isChecked()) {
         // If the prefetching worker is not yet running, start it
         if (!prefetchWorker.joinable()) {
@@ -2766,7 +2815,7 @@ void CWindow::OnLoadPrevSliceShift(int shift)
 }
 
 // Handle path change event
-void CWindow::OnPathChanged(void)
+void CWindow::OnPathChanged(PathChangePointVector before, PathChangePointVector after)
 {
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         for (auto& seg : fSegStructMap) {
@@ -2774,8 +2823,11 @@ void CWindow::OnPathChanged(void)
             seg.second.OnPathChanged();
         }
     }
-}
 
+    auto undo = new PathChangeCommand(fVolumeViewerWidget, &fSegStructMap[fSegmentationId], before, after);
+    undo->setText(tr("Curve Change"));
+    undoStack->push(undo);
+}
 // Handle annotation change event
 void CWindow::OnAnnotationChanged(void)
 {

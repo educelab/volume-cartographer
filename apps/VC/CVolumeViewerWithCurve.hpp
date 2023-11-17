@@ -70,10 +70,8 @@ private:
     void DrawIntersectionCurve(QGraphicsScene* scene);
     void DrawControlPoints(QGraphicsScene* scene);
 
-private slots:
-
 signals:
-    void SendSignalPathChanged(void);
+    void SendSignalPathChanged(PathChangePointVector before, PathChangePointVector after);
     void SendSignalAnnotationChanged(void);
 
 private:
@@ -98,6 +96,7 @@ private:
     CXCurve* fIntersectionCurveRef;
     int fSelectedPointIndex;
     std::string fSelectedSegID;
+    PathChangePointVector pathChangeBefore;
 
     bool fVertexIsChanged;
     bool lineGrabbed{false};
