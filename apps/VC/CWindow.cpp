@@ -110,7 +110,7 @@ CWindow::CWindow()
     fSegParams.fWindowWidth = 5;
     fSegParams.targetIndex = 5;
     fSegParams.purge_cache = false;
-    fSegParams.cache_slices = 300;
+    fSegParams.cache_slices = settings.value("perf/preloaded_slices", 200).toInt();
     fSegParams.smoothen_by_brightness = 180;
     fSegParams.outside_threshold = 60;
     fSegParams.optical_flow_pixel_threshold = 80;
@@ -202,6 +202,8 @@ void CWindow::keyPressEvent(QKeyEvent* event)
 // Create widgets
 void CWindow::CreateWidgets(void)
 {
+    QSettings settings("VC.ini", QSettings::IniFormat);
+
     // add volume viewer
     fVolumeViewerWidget = new CVolumeViewerWithCurve(fSegStructMap);
     connect(fVolumeViewerWidget, &CVolumeViewerWithCurve::SendSignalStatusMessageAvailable, this, &CWindow::onShowStatusMessage);
@@ -340,11 +342,10 @@ void CWindow::CreateWidgets(void)
     auto* edtCacheSize = new QSpinBox();
     edtCacheSize->setMinimum(-1);
     edtCacheSize->setMaximum(20000);
-    edtCacheSize->setValue(300);
+    edtCacheSize->setValue(settings.value("perf/preloaded_slices", 200).toInt());
     edtStepSize = new QSpinBox();
     edtStepSize->setMinimum(1);
     edtStepSize->setMaximum(100);
-    QSettings settings("VC.ini", QSettings::IniFormat);
     edtStepSize->setValue(settings.value("perf/initial_step_size", 1).toInt());
 
     connect(edtOutsideThreshold, &QSpinBox::valueChanged, [=](int v){fSegParams.outside_threshold = v;});

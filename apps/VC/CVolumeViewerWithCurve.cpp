@@ -309,7 +309,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
             lineGrabbed = true;
 
             if (fImageIndex != sliceIndexToolStart) {
-                SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now.").arg(QString::number(sliceIndexToolStart)), 3000);
+                SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now. Press \"F\" to return to the active tool slice.").arg(QString::number(sliceIndexToolStart)), 3000);
                 return;
             }
 
