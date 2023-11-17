@@ -112,9 +112,6 @@ public:
     CWindow();
     ~CWindow(void);
 
-protected:
-    void keyPressEvent(QKeyEvent* event);
-
 private:
     void CreateWidgets(void);
     void CreateMenus(void);
@@ -132,6 +129,7 @@ private:
     bool InitializeVolumePkg(const std::string& nVpkgPath);
     void setDefaultWindowWidth(volcart::Volume::Pointer volume);
     SaveResponse SaveDialog(void);
+    SaveResponse SaveDialogSegTool(void);
 
     void UpdateView(void);
     void ChangePathItem(std::string segID);
@@ -173,7 +171,6 @@ private slots:
     void Open(void);
     void Open(const QString& path);
     void OpenRecent();
-    void Close(void);
     void Keybindings(void);
     void About(void);
     void SavePointCloud();
@@ -217,7 +214,7 @@ private slots:
     void OnLoadNextSliceShift(int shift);
     void OnLoadPrevSliceShift(int shift);
 
-    void OnPathChanged(void);
+    void OnPathChanged(PathChangePointVector before, PathChangePointVector after);
     void OnAnnotationChanged(void);
 
     void UpdateSegmentCheckboxes(std::string aSegID);
@@ -264,6 +261,7 @@ private:
 
     // window components
     QMenu* fFileMenu;
+    QMenu* fEditMenu;
     QMenu* fViewMenu;
     QMenu* fHelpMenu;
     QMenu* fRecentVolpkgMenu{};
@@ -346,6 +344,11 @@ private:
     size_t progress_{0};
     QLabel* progressLabel_;
     QProgressBar* progressBar_;
+
+    // Undo / redo
+    QUndoStack* undoStack;
+    QAction* undoAction;
+    QAction* redoAction;
 
     // Prefetching worker
     std::thread prefetchWorker;
