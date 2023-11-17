@@ -129,6 +129,10 @@ volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints()
 
         tempRow.emplace_back(p.x, p.y, p.z);
     }
+    if (tempRow.size() == output.width()) {
+        output.pushRow(tempRow);
+        tempRow.clear();
+    }
     return output;
 }
 
