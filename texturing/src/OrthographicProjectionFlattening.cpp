@@ -6,7 +6,6 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-#include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
 using namespace volcart;
@@ -23,10 +22,10 @@ ITKMesh::Pointer OrthographicProjectionFlattening::compute()
 {
     // Setup output
     output_ = ITKMesh::New();
-    vcm::DeepCopy(mesh_, output_);
+    DeepCopy(mesh_, output_);
 
     // convert input mesh to vtkMesh
-    vtkSmartPointer<vtkPolyData> vtkMesh = vtkSmartPointer<vtkPolyData>::New();
+    const auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
     vcm::ITK2VTK(mesh_, vtkMesh);
     cv::Vec3d origin, xAxis, yAxis, zAxis;
 

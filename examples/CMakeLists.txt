@@ -27,3 +27,6 @@ target_link_libraries(vc_signals_example VC::core)
 
 add_executable(vc_smooth_normals_example src/SmoothNormalsExample.cpp)
 target_link_libraries(vc_smooth_normals_example VC::core VC::meshing)
+
+add_executable(vc_apply_transform_example src/ApplyTransformsExample.cpp)
+target_link_libraries(vc_apply_transform_example VC::core VC::texturing)
