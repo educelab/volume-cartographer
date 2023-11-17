@@ -591,7 +591,10 @@ struct SegmentationStruct {
     inline void RemovePointsFromManualBuffer(std::set<int> pointIndexes)
     {
         for (auto index : pointIndexes) {
-            fBufferedChangedPoints.erase(std::find(fBufferedChangedPoints.begin(), fBufferedChangedPoints.end(), index));
+            auto it = std::find(fBufferedChangedPoints.begin(), fBufferedChangedPoints.end(), index);
+            if (it !=fBufferedChangedPoints.end()) {
+                fBufferedChangedPoints.erase(std::find(fBufferedChangedPoints.begin(), fBufferedChangedPoints.end(), index));
+            }
         }
     }
 

@@ -5,7 +5,8 @@
 
 using namespace ChaoVis;
 
-PathChangeCommand::PathChangeCommand(CVolumeViewerWithCurve* viewer, SegmentationStruct* segStruct, const PathChangePointVector before, const PathChangePointVector after, QUndoCommand* parent)
+PathChangeCommand::PathChangeCommand(CVolumeViewerWithCurve* viewer, SegmentationStruct* segStruct,
+    const PathChangePointVector before, const PathChangePointVector after, QUndoCommand* parent)
     : QUndoCommand(parent), viewer(viewer), segStruct(segStruct), before(before), after(after)
 {
 }
@@ -17,10 +18,8 @@ void PathChangeCommand::undo()
     // Check if we have annotation flags we need to adjust
     std::set<int> noLongerManual;
     for (int i = 0; i < after.size(); i++) {
-        if (before.at(i).manuallyChanged != after.at(i).manuallyChanged) {
-            if (!before.at(i).manuallyChanged) {
-                noLongerManual.insert(after.at(i).pointIndex);
-            }
+        if (after.at(i).manuallyChanged && before.at(i).manuallyChanged == false) {
+            noLongerManual.insert(after.at(i).pointIndex);
         }
     }
 
@@ -36,10 +35,8 @@ void PathChangeCommand::redo()
     // Check if we have annotation flags we need to adjust
     std::set<int> nowManual;
     for (int i = 0; i < after.size(); i++) {
-        if (before.at(i).manuallyChanged != after.at(i).manuallyChanged) {
-            if (after.at(i).manuallyChanged) {
-                nowManual.insert(after.at(i).pointIndex);
-            }
+        if (before.at(i).manuallyChanged == false && after.at(i).manuallyChanged) {
+            nowManual.insert(after.at(i).pointIndex);
         }
     }
 
