@@ -11,35 +11,21 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
 /* cv::Vec */
 template <typename T, int Cn>
 struct adl_serializer<cv::Vec<T, Cn>> {
+    template <class JsonT>
     // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void to_json(json& j, const cv::Vec<T, Cn>& v)
+    static void to_json(JsonT& j, const cv::Vec<T, Cn>& v)
     {
         for (int i = 0; i < Cn; i++) {
             j.push_back(v[i]);
         }
     }
 
+    template <class JsonT>
     // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void from_json(const json& j, cv::Vec<T, Cn>& v)
+    static void from_json(const JsonT& j, cv::Vec<T, Cn>& v)
     {
         for (int i = 0; i < Cn; i++) {
-            v[i] = j.at(i).get<T>();
-        }
-    }
-
-    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void to_json(ordered_json& j, const cv::Vec<T, Cn>& v)
-    {
-        for (int i = 0; i < Cn; i++) {
-            j.push_back(v[i]);
-        }
-    }
-
-    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void from_json(const ordered_json& j, cv::Vec<T, Cn>& v)
-    {
-        for (int i = 0; i < Cn; i++) {
-            v[i] = j.at(i).get<T>();
+            v[i] = j.at(i).template get<T>();
         }
     }
 };
@@ -47,8 +33,9 @@ struct adl_serializer<cv::Vec<T, Cn>> {
 /* cv::Mat_ */
 template <typename T>
 struct adl_serializer<cv::Mat_<T>> {
+    template <class JsonT>
     // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void to_json(json& j, const cv::Mat_<T>& m)
+    static void to_json(JsonT& j, const cv::Mat_<T>& m)
     {
         for (int r = 0; r < m.rows; r++) {
             json row;
@@ -59,8 +46,9 @@ struct adl_serializer<cv::Mat_<T>> {
         }
     }
 
+    template <class JsonT>
     // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void from_json(const json& j, cv::Mat_<T>& m)
+    static void from_json(const JsonT& j, cv::Mat_<T>& m)
     {
         auto rows = j.size();
         auto cols = j[0].size();
