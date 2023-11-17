@@ -35,6 +35,7 @@ This fork contains the following changes compared to upstream currently:
 
 ### UI / UX Improvements
 - Implemented image dragging/panning via right mouse button
+- Implemented Undo/Redo for curve drawing changes
 - Adjusted mouse wheel usage:
   * Mouse Wheel + Ctrl = Zoom in/out (as in most image apps); was previously Mouse Wheel + Shift in VC
   * Mouse Wheel + Shift = Next/previous slice (scan range can be set via Q/E keys with visual feedback)
@@ -67,5 +68,6 @@ This fork contains the following changes compared to upstream currently:
 
 ### Bug Fixes
 - Fixed a bug in the OFS segmentation implementation that would (during the interpolation part), output invalid `vcps` point sets, as the first two segment rows both list slice number 0 (should be of course 0 for the first and 1 for the second slice/row)
+- Ensure app ends slice preloading threads and exits properly
 - Correctly clear the "Display All" and "Compute All" checkboxes when closing a volume, so they are in the correct initial state when a new volume gets opened
 - Fixed some crashes I came across

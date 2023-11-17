@@ -348,7 +348,7 @@ struct SegmentationStruct {
     inline void UpdateChangedCurvePoints(int nSliceIndex, PathChangePointVector changes)
     {
         auto it = fIntersectionsChanged.find(nSliceIndex);
-        if(it != fIntersectionsChanged.end()) {
+        if (it != fIntersectionsChanged.end()) {
             for (auto point : changes) {
                 it->second.SetPoint(point.pointIndex, point.position);
             }

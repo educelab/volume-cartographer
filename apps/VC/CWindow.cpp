@@ -185,6 +185,9 @@ CWindow::~CWindow(void)
 {
     stopPrefetching.store(true);
     cv.notify_one();  // Wake up the thread if it's waitings
+    if (prefetchWorker.joinable()) {
+        prefetchWorker.join();
+    }
     worker_thread_.quit();
     worker_thread_.wait();
     SDL_Quit();
@@ -600,7 +603,7 @@ void CWindow::CreateActions(void)
     connect(fOpenVolAct, SIGNAL(triggered()), this, SLOT(Open()));
     fOpenVolAct->setShortcut(QKeySequence::Open);
 
-    for(auto& action : fOpenRecentVolpkg)
+    for (auto& action : fOpenRecentVolpkg)
     {
         action = new QAction(this);
         action->setVisible(false);
@@ -697,7 +700,7 @@ void CWindow::UpdateRecentVolpkgActions()
 
     const int numRecentFiles = qMin(files.size(), static_cast<int>(MAX_RECENT_VOLPKG));
 
-    for(int i = 0; i < numRecentFiles; ++i) {
+    for (int i = 0; i < numRecentFiles; ++i) {
         // Replace "&" with "&&" since otherwise they will be hidden and interpreted
         // as mnemonics
         QString fileName = QFileInfo(files[i]).fileName();
@@ -716,7 +719,7 @@ void CWindow::UpdateRecentVolpkgActions()
         fOpenRecentVolpkg[i]->setVisible(true);
     }
 
-    for(int j = numRecentFiles; j < MAX_RECENT_VOLPKG; ++j) {
+    for (int j = numRecentFiles; j < MAX_RECENT_VOLPKG; ++j) {
         fOpenRecentVolpkg[j]->setVisible(false);
     }
 
@@ -1353,7 +1356,7 @@ void CWindow::audio_callback(void *user_data, Uint8 *raw_buffer, int bytes) {
         int length = bytes / 2; // 2 bytes per sample for AUDIO_S16SYS
         int &sample_nr = *reinterpret_cast<int*>(user_data);
 
-        for(int i = 0; i < length; i++, sample_nr++)
+        for (int i = 0; i < length; i++, sample_nr++)
         {
             double time = static_cast<double>(sample_nr) / FREQUENCY;
             // This will give us a sine wave at 440 Hz
@@ -1567,7 +1570,7 @@ void CWindow::SetCurrentCurve(int nCurrentSliceIndex)
 void CWindow::prefetchSlices(void) {
   while (true) {
     std::unique_lock<std::mutex> lk(cv_m);
-    cv.wait(lk, [this]{return prefetchSliceIndex != -1;});
+    cv.wait(lk, [this]{return prefetchSliceIndex != -1 || stopPrefetching.load();});
 
     if (stopPrefetching.load()) {
       break;
@@ -1928,7 +1931,7 @@ void CWindow::PrintDebugInfo()
 
     // Print Annotation Point Cloud
     std::cout << "=== Annotation Point Cloud ===" << std::endl;
-    for(int i = 0; i < fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.height(); i++) {
+    for (int i = 0; i < fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.height(); i++) {
         auto row = fSegStructMap[fHighlightedSegmentationId].fAnnotationCloud.getRow(i);
 
         std::cout << "I ";
@@ -1945,7 +1948,7 @@ void CWindow::PrintDebugInfo()
         std::cout << ") | ";
 
         // Print lags & coordinates
-        for(auto ano : row) {
+        for (auto ano : row) {
             std::cout << std::get<long>(ano[ANO_EL_FLAGS]);
 
             // Print coordinates
@@ -2079,7 +2082,7 @@ void CWindow::UpdateSegmentCheckboxes(std::string aSegID) {
         // Disable all other new and empty Segmentations if new Segmentation created
         if (!fSegStructMap[aSegID].fSegmentationId.empty() && fSegStructMap[aSegID].fMasterCloud.empty()) {
             // qDebug() << "Disable all other new and empty Segmentations";
-            for(auto& seg : fSegStructMap) {
+            for (auto& seg : fSegStructMap) {
                 if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
                     seg.second.display = false;
                     seg.second.compute = false;
@@ -2099,7 +2102,7 @@ void CWindow::UpdateSegmentCheckboxes(std::string aSegID) {
         // Disable all empty Segmentations if Segmentation with point cloud is enabled
         if (!fSegStructMap[aSegID].fSegmentationId.empty() && !fSegStructMap[aSegID].fMasterCloud.empty()) {
             // qDebug() << "Disable all pen Segmentations";
-            for(auto& seg : fSegStructMap) {
+            for (auto& seg : fSegStructMap) {
                 if (!seg.second.fSegmentationId.empty() && seg.first != aSegID && seg.second.fMasterCloud.empty()) {
                     // qDebug() << "Disable " << seg.first.c_str() << " id " << seg.second.fSegmentationId.c_str() << " with current id segment clicked: " << aSegID.c_str();
                     seg.second.display = false;
@@ -2214,7 +2217,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
                 return;
             }
 
-            for(auto& seg : fSegStructMap) {
+            for (auto& seg : fSegStructMap) {
                 seg.second.highlighted = false;
             }
             fHighlightedSegmentationId = "";
@@ -2300,7 +2303,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 
         // Check if any other Segmentation has highlighted set to true
         bool anyHighlighted = false;
-        for(auto& seg : fSegStructMap) {
+        for (auto& seg : fSegStructMap) {
             if (seg.second.highlighted) {
                 anyHighlighted = true;
                 break;
@@ -2325,7 +2328,7 @@ void CWindow::OnPathItemClicked(QTreeWidgetItem* item, int column)
 void CWindow::PreviousSelectedId() {
     // seg that is currently highlighted
     std::string currentId;
-    for(auto& seg : fSegStructMap) {
+    for (auto& seg : fSegStructMap) {
         if (seg.second.highlighted) {
             currentId = seg.first;
         }
@@ -2335,7 +2338,7 @@ void CWindow::PreviousSelectedId() {
 
     // Find the previous seg that is active (compute or display)
     std::string previousId;
-    for(auto& seg : fSegStructMap) {
+    for (auto& seg : fSegStructMap) {
         if (seg.first == currentId) {
             break;
         }
@@ -2345,7 +2348,7 @@ void CWindow::PreviousSelectedId() {
     }
     // If no previous seg found, start from the end
     if (previousId.empty()) {
-        for(auto& seg : fSegStructMap) {
+        for (auto& seg : fSegStructMap) {
             if (seg.second.compute) {
                 previousId = seg.first;
             }
@@ -2369,7 +2372,7 @@ void CWindow::PreviousSelectedId() {
 void CWindow::OnPathItemSelectionChanged()
 {
     // First mark all as "not highlighted"
-    for(auto& seg : fSegStructMap) {
+    for (auto& seg : fSegStructMap) {
         seg.second.highlighted = false;
     }
     fHighlightedSegmentationId = "";
@@ -2386,7 +2389,7 @@ void CWindow::OnPathItemSelectionChanged()
 void CWindow::NextSelectedId() {
     // seg that is currently highlighted
     std::string currentId;
-    for(auto& seg : fSegStructMap) {
+    for (auto& seg : fSegStructMap) {
         if (seg.second.highlighted) {
             currentId = seg.first;
         }
@@ -2397,7 +2400,7 @@ void CWindow::NextSelectedId() {
     // Find the next seg that is active (compute or display)
     std::string nextId;
     bool found = false;
-    for(auto& seg : fSegStructMap) {
+    for (auto& seg : fSegStructMap) {
         if (found && seg.second.compute) {
             nextId = seg.first;
             break;
@@ -2408,7 +2411,7 @@ void CWindow::NextSelectedId() {
     }
     // If no next seg found, start from the beginning
     if (nextId.empty()) {
-        for(auto& seg : fSegStructMap) {
+        for (auto& seg : fSegStructMap) {
             if (seg.second.compute) {
                 nextId = seg.first;
                 break;
