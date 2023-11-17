@@ -242,6 +242,8 @@ VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
         info.flipOption = Flip::ZFlip;
     } else if (flip == "all") {
         info.flipOption = Flip::All;
+    } else if (flip == "none") {
+        info.flipOption = Flip::None;
     } else if (not flip.empty()) {
         std::cerr << "Ignoring unrecognized flip option: " << flip << "\n";
     }
