@@ -1,11 +1,9 @@
-/** @file DeepCopy.cpp */
+#include "vc/core/types/ITKMesh.hpp"
 
-#include "vc/meshing/DeepCopy.hpp"
+using namespace volcart;
+namespace vc = volcart;
 
-namespace volcart::meshing
-{
-
-void DeepCopy(
+void vc::DeepCopy(
     const ITKMesh::Pointer& input,
     const ITKMesh::Pointer& output,
     bool copyVertices,
@@ -42,4 +40,11 @@ void DeepCopy(
         }
     }
 }
-}  // namespace volcart::meshing
+
+auto vc::DeepCopy(const ITKMesh::Pointer& input, bool copyVertices, bool copyFaces) -> ITKMesh::Pointer
+{
+    auto output = ITKMesh::New();
+    DeepCopy(input, output, copyVertices, copyFaces);
+    return output;
+}
+

@@ -36,6 +36,7 @@ set(landmark_srcs
 
 set(type_srcs
     src/DiskBasedObjectBaseClass.cpp
+    src/ITKMesh.cpp
     src/Metadata.cpp
     src/PerPixelMap.cpp
     src/Render.cpp

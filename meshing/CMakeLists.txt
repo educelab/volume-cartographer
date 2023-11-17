@@ -3,7 +3,6 @@ project(libvc_meshing VERSION ${VC_VERSION} LANGUAGES CXX)
 set(srcs
     src/ACVD.cpp
     src/CalculateNormals.cpp
-    src/DeepCopy.cpp
     src/ITK2VTK.cpp
     src/ScaleMesh.cpp
     src/SmoothNormals.cpp

@@ -322,7 +322,8 @@ public:
             const auto* msg = "Unordered pointsets must have a size";
             throw IOException(msg);
         } else if (ordered && (h.width == 0 || h.height == 0)) {
-            const auto* msg = "Ordered pointsets must have a nonzero width and height";
+            const auto* msg =
+                "Ordered pointsets must have a nonzero width and height";
             throw IOException(msg);
         } else if (ordered && !h.ordered) {
             const auto* msg =

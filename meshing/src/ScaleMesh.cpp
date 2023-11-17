@@ -1,7 +1,6 @@
 /**@file ScaleMesh.cpp  */
 
 #include "vc/meshing/ScaleMesh.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 
 namespace volcart::meshing
 {

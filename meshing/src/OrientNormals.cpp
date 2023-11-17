@@ -1,7 +1,6 @@
 #include "vc/meshing/OrientNormals.hpp"
 
 #include "vc/core/util/Iteration.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 
 using namespace volcart;
 using namespace volcart::meshing;
