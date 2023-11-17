@@ -27,6 +27,10 @@ auto LoadMetadata(const fs::path& path) -> nlohmann::ordered_json
 }
 }  // namespace
 
+///////////////////////////////////////
+///////////// Transform3D /////////////
+///////////////////////////////////////
+
 void Transform3D::source(const std::string& src) { src_ = src; }
 
 auto Transform3D::source() const -> std::string { return src_; }
@@ -35,13 +39,13 @@ void Transform3D::target(const std::string& tgt) { tgt_ = tgt; }
 
 auto Transform3D::target() const -> std::string { return tgt_; }
 
-auto Transform3D::applyUnitVector(const cv::Vec3d& vector) -> cv::Vec3d
+auto Transform3D::applyUnitVector(const cv::Vec3d& vector) const -> cv::Vec3d
 {
     return cv::normalize(applyVector(vector));
 }
 
 auto Transform3D::applyPointAndNormal(
-    const cv::Vec<double, 6>& ptN, bool normalize) -> cv::Vec<double, 6>
+    const cv::Vec6d& ptN, bool normalize) const -> cv::Vec6d
 {
     auto p = applyPoint({ptN[0], ptN[1], ptN[2]});
     auto n = (normalize) ? applyUnitVector({ptN[3], ptN[4], ptN[5]})
@@ -90,15 +94,34 @@ auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
 
     return result;
 }
+
 auto Transform3D::invertible() const -> bool { return false; }
 
-auto AffineTransform::applyPoint(const cv::Vec3d& point) -> cv::Vec3d
+auto Transform3D::invert() const -> Transform3D::Pointer
+{
+    throw std::runtime_error(this->type() + " is not invertible");
+}
+
+///////////////////////////////////////////
+///////////// AffineTransform /////////////
+///////////////////////////////////////////
+
+auto AffineTransform::New() -> AffineTransform::Pointer
+{
+    // Trick to allow classes with protected/private constructors to be
+    // constructed with std::make_shared: https://stackoverflow.com/a/25069711
+    struct EnableSharedHelper : public AffineTransform {
+    };
+    return std::make_shared<EnableSharedHelper>();
+}
+
+auto AffineTransform::applyPoint(const cv::Vec3d& point) const -> cv::Vec3d
 {
     auto p = params_ * cv::Vec4d{point[0], point[1], point[2], 1.};
     return {p[0], p[1], p[2]};
 }
 
-auto AffineTransform::applyVector(const cv::Vec3d& vector) -> cv::Vec3d
+auto AffineTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
 {
     auto p = params_ * cv::Vec4d{vector[0], vector[1], vector[2], 0.};
     return {p[0], p[1], p[2]};
@@ -136,6 +159,8 @@ auto AffineTransform::invert() const -> Transform3D::Pointer
     return inverted;
 }
 
+auto AffineTransform::type() const -> std::string { return "AffineTransform"; }
+
 void AffineTransform::reset() { params_ = Parameters::eye(); }
 
 void AffineTransform::clear()
@@ -144,19 +169,21 @@ void AffineTransform::clear()
     reset();
 }
 
-auto AffineTransform::translate(double x, double y, double z)
-    -> AffineTransform&
+auto AffineTransform::clone() const -> Transform3D::Pointer
+{
+    return std::make_shared<AffineTransform>(*this);
+}
+
+void AffineTransform::translate(double x, double y, double z)
 {
     Parameters p = Parameters::eye();
     p(0, 3) = x;
     p(1, 3) = y;
     p(2, 3) = z;
     params_ = p * params_;
-    return *this;
 }
 
-auto AffineTransform::rotate(double theta, double x, double y, double z)
-    -> AffineTransform&
+void AffineTransform::rotate(double theta, double x, double y, double z)
 {
     static constexpr double PI{
         3.141592653589793238462643383279502884198716939937510582097164L};
@@ -181,24 +208,19 @@ auto AffineTransform::rotate(double theta, double x, double y, double z)
     p(2, 1) = y * z * (1 - c) + x * s;
     p(2, 2) = z * z * (1 - c) + c;
     params_ = p * params_;
-    return *this;
 }
 
-auto AffineTransform::scale(double sx, double sy, double sz) -> AffineTransform&
+void AffineTransform::scale(double sx, double sy, double sz)
 {
     const Parameters p{sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, 0, 0, 0, 1};
     params_ = p * params_;
-    return *this;
 }
 
-auto AffineTransform::scale(double s) -> AffineTransform&
-{
-    return scale(s, s, s);
-}
+void AffineTransform::scale(double s) { scale(s, s, s); }
 
 auto operator<<(std::ostream& os, const AffineTransform& t) -> std::ostream&
 {
-    os << "AffineTransform([";
+    os << t.type() << "([";
     for (auto [y, x] : range2D(4, 4)) {
         (x == 0) ? os << "[" : os << ", ";
         os << t.params()(y, x);
