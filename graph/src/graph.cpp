@@ -4,7 +4,9 @@
 
 using namespace volcart;
 
-static auto RegisterNodesImpl() -> bool
+namespace
+{
+auto RegisterNodesImpl() -> bool
 {
     bool registered{true};
 
@@ -31,6 +33,10 @@ static auto RegisterNodesImpl() -> bool
         PPMPropertiesNode,
         LoadVolumetricMaskNode
     >();
+
+    // Aliases
+    registered &= smgl::RegisterNode<TransformMeshNode>("TransformMeshNode");
+    registered &= smgl::RegisterNode<TransformPPMNode>("TransformPPMNode");
 
     // Meshing
     registered &= smgl::RegisterNode<
@@ -61,5 +67,9 @@ static auto RegisterNodesImpl() -> bool
 
     return registered;
 }
+}  // namespace
 
-void volcart::RegisterNodes() { static auto registered = RegisterNodesImpl(); }
+void volcart::RegisterNodes()
+{
+    static auto registered = ::RegisterNodesImpl();
+}

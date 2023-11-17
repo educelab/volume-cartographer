@@ -10,6 +10,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Segmentation.hpp"
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/UVMap.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -703,5 +704,71 @@ private:
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
 };
+
+/**
+ * @brief Generic class for applying 3D transforms
+ *
+ * There needs to be an apply function with the following signature:
+ * ApplyTransform(const T&, const Transform3D::Pointer&)
+ */
+template <class T>
+class ApplyTransformNode : public smgl::Node
+{
+private:
+    /** Input object */
+    T input_;
+    /** Input transform */
+    Transform3D::Pointer tfm_;
+    /** Output object */
+    T output_;
+
+public:
+    /** @brief Input path */
+    smgl::InputPort<T> input{&input_};
+    smgl::InputPort<Transform3D::Pointer> transform{&tfm_};
+    smgl::OutputPort<T> output{&output_};
+
+    /** Constructor */
+    ApplyTransformNode() : Node{true}
+    {
+        registerInputPort("input", input);
+        registerInputPort("transform", transform);
+        registerOutputPort("output", output);
+
+        compute = [&]() {
+            if (tfm_) {
+                output_ = ApplyTransform(input_, tfm_);
+            }
+        };
+    }
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override
+    {
+        smgl::Metadata meta;
+        if (useCache and tfm_) {
+            Transform3D::Save(cacheDir / "transform.json", tfm_);
+            meta["transform"] = "transform.json";
+        }
+        return meta;
+    }
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override
+    {
+        if (meta.contains("transform")) {
+            auto tfmFile = meta["transform"].get<std::string>();
+            tfm_ = Transform3D::Load(cacheDir / tfmFile);
+        }
+    }
+};
+
+/** @brief Mesh 3D transform node */
+using TransformMeshNode = ApplyTransformNode<ITKMesh::Pointer>;
+/** @brief PPM 3D transform node */
+using TransformPPMNode = ApplyTransformNode<PerPixelMap::Pointer>;
 
 }  // namespace volcart

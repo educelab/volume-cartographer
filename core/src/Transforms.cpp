@@ -303,3 +303,11 @@ auto vc::ApplyTransform(
 
     return output;
 }
+
+auto vc::ApplyTransform(
+    const PerPixelMap::Pointer& ppm,
+    const Transform3D::Pointer& transform,
+    bool normalize) -> PerPixelMap::Pointer
+{
+    return PerPixelMap::New(ApplyTransform(*ppm, transform, normalize));
+}

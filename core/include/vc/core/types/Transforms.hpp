@@ -284,6 +284,12 @@ auto ApplyTransform(
     const Transform3D::Pointer& transform,
     bool normalize = true) -> PerPixelMap;
 
+/** @brief Apply a transform to a PerPixelMap::Pointer */
+auto ApplyTransform(
+    const PerPixelMap::Pointer& ppm,
+    const Transform3D::Pointer& transform,
+    bool normalize = true) -> PerPixelMap::Pointer;
+
 /** @brief Apply a transform to a PointSet */
 template <class PointSetT>
 auto ApplyTransform(const PointSetT& ps, const Transform3D::Pointer& transform)
