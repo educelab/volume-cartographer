@@ -66,43 +66,8 @@ public:
     /** @brief Return the inverted transform */
     [[nodiscard]] virtual auto invert() const -> Pointer;
 
-    /**
-     * @brief Reset the transform parameters
-     *
-     * Resets all parameters controlled by the derived transform. Does not
-     * reset base transform properties like source and target.
-     *
-     * @see Transform3D::clear()
-     */
-    virtual void reset() = 0;
     /** @brief Clears all parameters and properties of the transform */
-    virtual void clear();
-
-    /**
-     * @brief Set the identifier for the source space
-     *
-     * This is a convenience feature for tracking the input and output spaces
-     * for the transform. This is usually a Volume::Identifier.
-     */
-    void source(const std::string& src);
-    /**
-     * @brief Get the source space identifier
-     *
-     * @copydetails source(const std::string&)
-     */
-    [[nodiscard]] auto source() const -> std::string;
-    /**
-     * @brief Set the identifier for the target space
-     *
-     * @copydetails source(const std::string&)
-     */
-    void target(const std::string& tgt);
-    /**
-     * @brief Set the identifier for the target space
-     *
-     * @copydetails source(const std::string&)
-     */
-    [[nodiscard]] auto target() const -> std::string;
+    virtual void clear() = 0;
 
     /** @brief Transform a 3D point */
     [[nodiscard]] virtual auto applyPoint(const cv::Vec3d& point) const
@@ -150,12 +115,6 @@ protected:
     virtual void to_meta_(Metadata& meta) = 0;
     /** Deserialize the derived class parameters */
     virtual void from_meta_(const Metadata& meta) = 0;
-
-private:
-    /** Source space identifier */
-    std::string src_;
-    /** Target space identifier */
-    std::string tgt_;
 };
 
 /**
@@ -198,8 +157,6 @@ public:
     [[nodiscard]] auto invertible() const -> bool final;
     /** @copydoc Transform3D::invert() */
     [[nodiscard]] auto invert() const -> Transform3D::Pointer final;
-    /** @copydoc Transform3D::reset() */
-    void reset() final;
     /** @copydoc Transform3D::clear() */
     void clear() final;
 
