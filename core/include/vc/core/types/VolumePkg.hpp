@@ -247,11 +247,13 @@ private:
     /** The root directory of the VolumePkg */
     filesystem::path rootDir_;
     /** The subdirectory containing Volume data */
-    filesystem::path volsDir_;
+    filesystem::path vols_dir_() const;
     /** The subdirectory containing Segmentation data */
-    filesystem::path segsDir_;
+    filesystem::path segs_dir_() const;
     /** The subdirectory containing Render data */
-    filesystem::path rendDir_;
+    filesystem::path rend_dir_() const;
+    /** The subdirectory containing Transform data */
+    filesystem::path tfm_dir_() const;
     /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
     /** The list of all Segmentations in the VolumePkg. */

@@ -6,18 +6,15 @@ using namespace volcart;
 
 namespace fs = volcart::filesystem;
 
-static const fs::path SUBPATH_META{"config.json"};
-static const fs::path SUBPATH_REND{"renders"};
-static const fs::path SUBPATH_SEGS{"paths"};
-static const fs::path SUBPATH_VOLS{"volumes"};
+namespace
+{
+constexpr auto CONFIG = "config.json";
+}
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
 VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
     : rootDir_{fileLocation}
-    , volsDir_{fileLocation / SUBPATH_VOLS}
-    , segsDir_{fileLocation / SUBPATH_SEGS}
-    , rendDir_{fileLocation / SUBPATH_REND}
 {
     // Lookup the metadata template from our library of versions
     auto findDict = VERSION_LIBRARY.find(version);
@@ -27,10 +24,10 @@ VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
 
     // Create the directories with the default values
     config_ = VolumePkg::InitConfig(findDict->second, version);
-    config_.setPath(rootDir_ / "config.json");
+    config_.setPath(rootDir_ / ::CONFIG);
 
     // Make directories
-    for (const auto& d : {rootDir_, volsDir_, segsDir_, rendDir_}) {
+    for (const auto& d : {rootDir_, vols_dir_(), segs_dir_(), rend_dir_()}) {
         if (!fs::exists(d)) {
             fs::create_directory(d);
         }
@@ -41,23 +38,19 @@ VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
 }
 
 // Use this when reading a volpkg from a file
-VolumePkg::VolumePkg(const fs::path& fileLocation)
-    : rootDir_{fileLocation}
-    , volsDir_{fileLocation / SUBPATH_VOLS}
-    , segsDir_{fileLocation / SUBPATH_SEGS}
-    , rendDir_{fileLocation / SUBPATH_REND}
+VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
 {
     // Check directory structure
-    if (!(fs::exists(rootDir_) && fs::exists(segsDir_) &&
-          fs::exists(volsDir_) && fs::exists(rendDir_))) {
+    if (!(fs::exists(rootDir_) && fs::exists(segs_dir_()) &&
+          fs::exists(vols_dir_()) && fs::exists(rend_dir_()))) {
         throw std::runtime_error("invalid volumepkg structure");
     }
 
     // Loads the metadata
-    config_ = Metadata(fileLocation / SUBPATH_META);
+    config_ = Metadata(fileLocation / ::CONFIG);
 
     // Load volumes into volumes_ vector
-    for (const auto& entry : fs::directory_iterator(volsDir_)) {
+    for (const auto& entry : fs::directory_iterator(vols_dir_())) {
         if (fs::is_directory(entry)) {
             auto v = Volume::New(entry);
             volumes_.emplace(v->id(), v);
@@ -65,7 +58,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     }
 
     // Load segmentations into the segmentations_ vector
-    for (const auto& entry : fs::directory_iterator(segsDir_)) {
+    for (const auto& entry : fs::directory_iterator(segs_dir_())) {
         if (fs::is_directory(entry)) {
             auto s = Segmentation::New(entry);
             segmentations_.emplace(s->id(), s);
@@ -73,7 +66,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation)
     }
 
     // Load Renders into the renders_ vector
-    for (const auto& entry : fs::directory_iterator(rendDir_)) {
+    for (const auto& entry : fs::directory_iterator(rend_dir_())) {
         if (fs::is_directory(entry)) {
             auto r = Render::New(entry);
             renders_.emplace(r->id(), r);
@@ -160,7 +153,7 @@ auto VolumePkg::newVolume(std::string name) -> Volume::Pointer
     }
 
     // Make the volume directory
-    auto volDir = volsDir_ / uuid;
+    auto volDir = vols_dir_() / uuid;
     if (!fs::exists(volDir)) {
         fs::create_directory(volDir);
     } else {
@@ -257,7 +250,7 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
     }
 
     // Make the volume directory
-    auto segDir = segsDir_ / uuid;
+    auto segDir = segs_dir_() / uuid;
     if (!fs::exists(segDir)) {
         fs::create_directory(segDir);
     } else {
@@ -321,7 +314,7 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
     }
 
     // Make the volume directory
-    auto renDir = rendDir_ / uuid;
+    auto renDir = rend_dir_() / uuid;
     if (!fs::exists(renDir)) {
         fs::create_directory(renDir);
     } else {
@@ -366,3 +359,11 @@ auto VolumePkg::InitConfig(const Dictionary& dict, int version) -> Metadata
 
     return config;
 }
+
+fs::path VolumePkg::vols_dir_() const { return rootDir_ / "volumes"; }
+
+fs::path VolumePkg::segs_dir_() const { return rootDir_ / "paths"; }
+
+fs::path VolumePkg::rend_dir_() const { return rootDir_ / "renders"; }
+
+fs::path VolumePkg::tfm_dir_() const { return rootDir_ / "transforms"; }
