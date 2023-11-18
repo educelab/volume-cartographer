@@ -9,6 +9,7 @@
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/Render.hpp"
 #include "vc/core/types/Segmentation.hpp"
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
 
@@ -241,19 +242,31 @@ public:
     auto render(const Render::Identifier& id) -> Render::Pointer;
     /**@}*/
 
+    /** @name Transform Data */
+    void addTransform(
+        const Volume::Identifier& src,
+        const Volume::Identifier& tgt,
+        const Transform3D::Pointer& transform);
+
+    auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
+        -> Transform3D::Pointer;
+    /**@}*/
+
 private:
     /** VolumePkg metadata */
     Metadata config_;
     /** The root directory of the VolumePkg */
     filesystem::path rootDir_;
     /** The subdirectory containing Volume data */
-    filesystem::path vols_dir_() const;
+    auto vols_dir_() const -> filesystem::path;
     /** The subdirectory containing Segmentation data */
-    filesystem::path segs_dir_() const;
+    auto segs_dir_() const -> filesystem::path;
     /** The subdirectory containing Render data */
-    filesystem::path rend_dir_() const;
+    auto rend_dir_() const -> filesystem::path;
     /** The subdirectory containing Transform data */
-    filesystem::path tfm_dir_() const;
+    auto tfm_dir_() const -> filesystem::path;
+    /** Get a list of required subdirectories */
+    inline auto required_dirs_() -> std::vector<filesystem::path>;
     /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
     /** The list of all Segmentations in the VolumePkg. */

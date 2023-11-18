@@ -1,6 +1,7 @@
 #include "vc/core/types/VolumePkg.hpp"
 
 #include "vc/core/util/DateTime.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 
@@ -27,7 +28,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
     config_.setPath(rootDir_ / ::CONFIG);
 
     // Make directories
-    for (const auto& d : {rootDir_, vols_dir_(), segs_dir_(), rend_dir_()}) {
+    for (const auto& d : required_dirs_()) {
         if (!fs::exists(d)) {
             fs::create_directory(d);
         }
@@ -41,9 +42,13 @@ VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
 VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
 {
     // Check directory structure
-    if (!(fs::exists(rootDir_) && fs::exists(segs_dir_()) &&
-          fs::exists(vols_dir_()) && fs::exists(rend_dir_()))) {
-        throw std::runtime_error("invalid volumepkg structure");
+    for (const auto& d : required_dirs_()) {
+        if (!fs::exists(d)) {
+            Logger()->warn(
+                "Creating missing VolumePkg directory: {}",
+                d.filename().string());
+            fs::create_directory(d);
+        }
     }
 
     // Loads the metadata
@@ -332,6 +337,22 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
     return r.first->second;
 }
 
+void VolumePkg::addTransform(
+    const Volume::Identifier& src,
+    const Volume::Identifier& tgt,
+    const Transform3D::Pointer& transform)
+{
+    // TODO: Not implemented
+}
+
+auto VolumePkg::transform(
+    const Volume::Identifier& src, const Volume::Identifier& tgt)
+    -> Transform3D::Pointer
+{
+    // TODO: Not implemented
+    return nullptr;
+}
+
 auto VolumePkg::InitConfig(const Dictionary& dict, int version) -> Metadata
 {
     Metadata config;
@@ -360,10 +381,15 @@ auto VolumePkg::InitConfig(const Dictionary& dict, int version) -> Metadata
     return config;
 }
 
-fs::path VolumePkg::vols_dir_() const { return rootDir_ / "volumes"; }
+auto VolumePkg::vols_dir_() const -> fs::path { return rootDir_ / "volumes"; }
 
-fs::path VolumePkg::segs_dir_() const { return rootDir_ / "paths"; }
+auto VolumePkg::segs_dir_() const -> fs::path { return rootDir_ / "paths"; }
 
-fs::path VolumePkg::rend_dir_() const { return rootDir_ / "renders"; }
+auto VolumePkg::rend_dir_() const -> fs::path { return rootDir_ / "renders"; }
 
-fs::path VolumePkg::tfm_dir_() const { return rootDir_ / "transforms"; }
+auto VolumePkg::tfm_dir_() const -> fs::path { return rootDir_ / "transforms"; }
+
+auto VolumePkg::required_dirs_() -> std::vector<filesystem::path>
+{
+    return {rootDir_, vols_dir_(), segs_dir_(), rend_dir_(), tfm_dir_()};
+}
