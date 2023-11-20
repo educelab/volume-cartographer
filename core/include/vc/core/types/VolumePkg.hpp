@@ -47,7 +47,7 @@ public:
      * @param fileLocation The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(filesystem::path  fileLocation, int version);
+    VolumePkg(filesystem::path fileLocation, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
@@ -265,7 +265,10 @@ public:
     /**@}*/
 
     /** Utility function for updating VolumePkgs */
-    static void Upgrade(const filesystem::path& path, int version = VOLPKG_VERSION_LATEST, bool force = false);
+    static void Upgrade(
+        const filesystem::path& path,
+        int version = VOLPKG_VERSION_LATEST,
+        bool force = false);
 
 private:
     /** VolumePkg metadata */

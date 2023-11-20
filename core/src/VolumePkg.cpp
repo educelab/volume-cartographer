@@ -180,8 +180,8 @@ auto VolpkgV6ToV7(const Metadata& meta) -> Metadata
 
     // Add vc keep files
     Logger()->debug("- Adding keep files");
-    for(const auto& d : {"paths", "renders", "volumes", "transforms"}) {
-        if(not fs::exists( path / d / ".vckeep")) {
+    for (const auto& d : {"paths", "renders", "volumes", "transforms"}) {
+        if (not fs::exists(path / d / ".vckeep")) {
             std::ofstream(path / d / ".vckeep");
         }
     }
@@ -195,12 +195,13 @@ auto VolpkgV6ToV7(const Metadata& meta) -> Metadata
 }
 
 using UpgradeFn = std::function<Metadata(const Metadata&)>;
-const std::vector<UpgradeFn> UPGRADE_FNS{VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7};
-}
+const std::vector<UpgradeFn> UPGRADE_FNS{
+    VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7};
+}  // namespace
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(fs::path  fileLocation, int version)
+VolumePkg::VolumePkg(fs::path fileLocation, int version)
     : rootDir_{std::move(fileLocation)}
 {
     // Lookup the metadata template from our library of versions
@@ -218,7 +219,7 @@ VolumePkg::VolumePkg(fs::path  fileLocation, int version)
         if (not fs::exists(d)) {
             fs::create_directory(d);
         }
-        if(d != rootDir_ and not fs::exists(d / ".vckeep")) {
+        if (d != rootDir_ and not fs::exists(d / ".vckeep")) {
             std::ofstream(d / ".vckeep");
         }
     }
@@ -248,7 +249,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
                 d.filename().string());
             fs::create_directory(d);
         }
-        if(d != rootDir_ and not fs::exists(d / ".vckeep")) {
+        if (d != rootDir_ and not fs::exists(d / ".vckeep")) {
             std::ofstream(d / ".vckeep");
         }
     }
@@ -278,7 +279,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     }
 
     // Load the transform files into transforms_
-    for (const auto& entry : fs::directory_iterator(rend_dir_())) {
+    for (const auto& entry : fs::directory_iterator(tfm_dir_())) {
         auto ep = entry.path();
         if (fs::is_regular_file(entry) and ep.extension() == ".json") {
             Transform3D::Pointer tfm;
@@ -682,7 +683,6 @@ auto VolumePkg::required_dirs_() -> std::vector<filesystem::path>
     return {rootDir_, vols_dir_(), segs_dir_(), rend_dir_(), tfm_dir_()};
 }
 
-
 ////////// Upgrade //////////
 void VolumePkg::Upgrade(const fs::path& path, int version, bool force)
 {
@@ -692,22 +692,24 @@ void VolumePkg::Upgrade(const fs::path& path, int version, bool force)
     // Get current version
     const auto currentVersion = meta.get<int>("version");
 
-    // Don't update for versions < 6 unless forced (those migrations are expensive)
-    if(currentVersion < 6 and not force) {
-        throw std::runtime_error("Volumepkg version " + std::to_string(currentVersion) + " should be upgraded with vc_volpkg_upgrade");
+    // Don't update for versions < 6 unless forced (those migrations are
+    // expensive)
+    if (currentVersion < 6 and not force) {
+        throw std::runtime_error(
+            "Volumepkg version " + std::to_string(currentVersion) +
+            " should be upgraded with vc_volpkg_upgrade");
     }
 
-    Logger()->info("Upgrading volpkg version {} to {}", currentVersion, version);
+    Logger()->info(
+        "Upgrading volpkg version {} to {}", currentVersion, version);
 
     // Plot path to final version
     // UpgradeFns start at v3->v4
     auto startIdx = currentVersion - 3;
     auto endIdx = version - 3;
-    for(auto idx = startIdx; idx < endIdx; idx++)
-    {
+    for (auto idx = startIdx; idx < endIdx; idx++) {
         meta = ::UPGRADE_FNS[idx](meta);
     }
     // Save the final metadata
     meta.save();
 }
-

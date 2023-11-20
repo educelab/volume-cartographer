@@ -95,7 +95,7 @@ auto main(int argc, char* argv[]) -> int
     for (const auto& r : vpkg.renderIDs()) {
         auto render = vpkg.render(r);
         std::cout << "[" << render->id() << "] " << render->name();
-        std::cout << ", Number of nodes: " << render->graph()->size();
+        std::cout << ", number of nodes: " << render->graph()->size();
         std::cout << "\n";
     }
     std::cout << "\n";
@@ -104,9 +104,9 @@ auto main(int argc, char* argv[]) -> int
     std::cout << " --- Transforms ---\n";
     for (const auto& t : vpkg.transformIDs()) {
         auto tfm = vpkg.transform(t);
-        std::cout << "[" << t << "] " << tfm->type();
-        std::cout << ", Source: " << tfm->source();
-        std::cout << ", Target: " << tfm->target();
+        std::cout << "[" << t << "] type: " << tfm->type();
+        std::cout << ", source: " << tfm->source();
+        std::cout << ", target: " << tfm->target();
         std::cout << "\n";
     }
     std::cout << "\n";
