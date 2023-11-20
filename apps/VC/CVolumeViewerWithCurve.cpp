@@ -624,6 +624,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         // Get annotations for current curve
         auto hasAnnotations = !segStruct.fAnnotationCloud.empty();
         auto pointIndex = segStruct.GetAnnotationIndexForSliceIndex(segStruct.fPathOnSliceIndex);
+        auto gray = QColor(180, 180, 180);
 
         for (int i = 0; i < pointsNum; ++i) {
             // Create new ellipse points
@@ -631,7 +632,16 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
             auto p1 = segStruct.fIntersectionCurve.GetPoint(i)[1] - 0.5;
             auto manualPoint = (hasAnnotations && (std::get<long>(segStruct.fAnnotationCloud[pointIndex + i][ANO_EL_FLAGS]) & AnnotationBits::ANO_MANUAL))
                 || (segStruct.fPathOnSliceIndex == sliceIndexToolStart && segStruct.fBufferedChangedPoints.find(i) != segStruct.fBufferedChangedPoints.end());
-            QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, manualPoint ? QPen(colorSelectorManual->color()) : QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
+
+            auto penColor = manualPoint ? colorSelectorManual->color() : QColor(r, g, b);
+            auto brushColor = QColor(r, g, b);
+            if (i % 20 == 0) {
+                brushColor = gray;
+            } else if (i % 10 == 0) {
+                brushColor = brushColor.darker(150);
+            }
+
+            QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(penColor), QBrush(brushColor));
             newEllipse->setVisible(true);
         }
     }
