@@ -31,12 +31,10 @@ auto RegisterNodesImpl() -> bool
         LoadPPMNode,
         WritePPMNode,
         PPMPropertiesNode,
-        LoadVolumetricMaskNode
+        LoadVolumetricMaskNode,
+        TransformMeshNode,
+        TransformPPMNode
     >();
-
-    // Aliases
-    registered &= smgl::RegisterNode<TransformMeshNode>("TransformMeshNode");
-    registered &= smgl::RegisterNode<TransformPPMNode>("TransformPPMNode");
 
     // Meshing
     registered &= smgl::RegisterNode<

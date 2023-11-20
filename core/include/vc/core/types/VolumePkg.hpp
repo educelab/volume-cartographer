@@ -257,7 +257,8 @@ public:
 
     /** @brief Get a transform from a source volume to a target volume */
     auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
-        -> std::vector<Transform3D::Pointer>;
+        -> std::vector<
+            std::pair<Transform3D::Identifier, Transform3D::Pointer>>;
 
     /** @brief Get the list of transform IDs */
     [[nodiscard]] auto transformIDs() const

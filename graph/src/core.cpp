@@ -594,3 +594,45 @@ void LoadVolumetricMaskNode::deserialize_(
         mask_ = VolumetricMask::New(psio::ReadPointSet(cacheDir / file));
     }
 }
+
+auto TransformMeshNode::serialize_(
+    bool useCache, const filesystem::path& cacheDir) -> smgl::Metadata
+{
+    auto meta = BaseT::serialize_(useCache, cacheDir);
+    if (useCache and output_) {
+        WriteMesh(cacheDir / "transformed.obj", output_);
+        meta["mesh"] = "transformed.obj";
+    }
+    return meta;
+}
+
+void TransformMeshNode::deserialize_(
+    const smgl::Metadata& meta, const filesystem::path& cacheDir)
+{
+    BaseT::deserialize_(meta, cacheDir);
+    if (meta.contains("mesh")) {
+        auto meshFile = meta["mesh"].get<std::string>();
+        output_ = ReadMesh(cacheDir / meshFile).mesh;
+    }
+}
+
+auto TransformPPMNode::serialize_(
+    bool useCache, const filesystem::path& cacheDir) -> smgl::Metadata
+{
+    auto meta = BaseT::serialize_(useCache, cacheDir);
+    if (useCache and output_) {
+        PerPixelMap::WritePPM(cacheDir / "transformed.ppm", *output_);
+        meta["ppm"] = "transformed.ppm";
+    }
+    return meta;
+}
+
+void TransformPPMNode::deserialize_(
+    const smgl::Metadata& meta, const filesystem::path& cacheDir)
+{
+    BaseT::deserialize_(meta, cacheDir);
+    if (meta.contains("ppm")) {
+        auto ppmFile = meta["ppm"].get<std::string>();
+        output_ = PerPixelMap::New(PerPixelMap::ReadPPM(cacheDir / ppmFile));
+    }
+}

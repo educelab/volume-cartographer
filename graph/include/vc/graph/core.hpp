@@ -714,7 +714,7 @@ private:
 template <class T>
 class ApplyTransformNode : public smgl::Node
 {
-private:
+protected:
     /** Input object */
     T input_;
     /** Input transform */
@@ -742,7 +742,7 @@ public:
         };
     }
 
-private:
+protected:
     /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override
@@ -767,8 +767,35 @@ private:
 };
 
 /** @brief Mesh 3D transform node */
-using TransformMeshNode = ApplyTransformNode<ITKMesh::Pointer>;
+class TransformMeshNode : public ApplyTransformNode<ITKMesh::Pointer>
+{
+private:
+    /** Base type */
+    using BaseT = ApplyTransformNode<ITKMesh::Pointer>;
+
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
 /** @brief PPM 3D transform node */
-using TransformPPMNode = ApplyTransformNode<PerPixelMap::Pointer>;
+class TransformPPMNode : public ApplyTransformNode<PerPixelMap::Pointer>
+{
+private:
+    /** Base type */
+    using BaseT = ApplyTransformNode<PerPixelMap::Pointer>;
+
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
 
 }  // namespace volcart

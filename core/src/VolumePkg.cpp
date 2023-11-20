@@ -617,16 +617,17 @@ auto VolumePkg::transform(const Transform3D::Identifier& id)
 
 auto VolumePkg::transform(
     const Volume::Identifier& src, const Volume::Identifier& tgt)
-    -> std::vector<Transform3D::Pointer>
+    -> std::vector<std::pair<Transform3D::Identifier, Transform3D::Pointer>>
 {
-    std::vector<Transform3D::Pointer> tfms;
-    for (auto& [id, tfm] : transforms_) {
+    std::vector<std::pair<Transform3D::Identifier, Transform3D::Pointer>> tfms;
+    for (const auto& [id, tfm] : transforms_) {
         if (tfm->source() == src and tfm->target() == tgt) {
-            tfms.emplace_back(tfm);
+            tfms.emplace_back(id, tfm);
         } else if (
             tfm->invertible() and tfm->source() == tgt and
             tfm->target() == src) {
-            tfms.emplace_back(tfm->invert());
+            auto idI = id + "*";
+            tfms.emplace_back(idI, tfm->invert());
         }
     }
 
