@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "vc/app_support/GetMemorySize.hpp"
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/ImageIO.hpp"
 #include "vc/core/io/OBJWriter.hpp"
@@ -55,7 +56,9 @@ auto main(int argc, char* argv[]) -> int
             "Output directory for layer images.")
         ("image-format,f", po::value<std::string>()->default_value("png"),
             "Image format for layer images. Default: png")
-        ("compression", po::value<int>(), "Image compression level");
+        ("compression", po::value<int>(), "Image compression level")
+        ("progress", po::value<bool>()->default_value(true),
+            "When enabled, show algorithm progress bars.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -221,23 +224,39 @@ auto main(int argc, char* argv[]) -> int
     line->setSamplingDirection(direction);
 
     // Layer texture
-    std::cout << "Generating layers..." << std::endl;
     vc::texturing::LayerTexture s;
     s.setVolume(volume);
     s.setPerPixelMap(ppm);
     s.setGenerator(line);
 
+    if (parsed["progress"].as<bool>()) {
+        vc::ReportProgress(s, "Generating layers:");
+        vc::Logger()->debug("Generating layers...");
+    } else {
+        vc::Logger()->info("Generating layers...");
+    }
+
     auto texture = s.compute();
 
     // Write the layers
-    std::cout << "Writing layers..." << std::endl;
     const int numChars =
         static_cast<int>(std::to_string(texture.size()).size());
     fs::path filepath;
-    for (const auto [i, image] : enumerate(texture)) {
-        auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
-        filepath = outputPath / fileName;
-        vc::WriteImage(filepath, image, writeOpts);
+    if (parsed["progress"].as<bool>()) {
+        vc::Logger()->debug("Writing layers...");
+        for (const auto [i, image] :
+             vc::ProgressWrap(enumerate(texture), "Writing layers:")) {
+            auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
+            filepath = outputPath / fileName;
+            vc::WriteImage(filepath, image, writeOpts);
+        }
+    } else {
+        vc::Logger()->info("Writing layers...");
+        for (const auto [i, image] : enumerate(texture)) {
+            auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
+            filepath = outputPath / fileName;
+            vc::WriteImage(filepath, image, writeOpts);
+        }
     }
 
     return EXIT_SUCCESS;

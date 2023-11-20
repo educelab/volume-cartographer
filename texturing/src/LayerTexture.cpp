@@ -29,7 +29,15 @@ Texture LayerTexture::compute()
         });
 
     // Iterate through the mappings
+    auto counter = 0;
+    auto updateStepSize = static_cast<int>(mappings.size() / 10000);
+    progressStarted();
+
     for (const auto& pixel : mappings) {
+        if (counter++ % updateStepSize == 0) {
+            progressUpdated(counter);
+        }
+
         // Generate the neighborhood
         auto neighborhood = gen_->compute(vol_, pixel.pos, {pixel.normal});
 
@@ -40,6 +48,8 @@ Texture LayerTexture::compute()
                 static_cast<int>(pixel.y), static_cast<int>(pixel.x)) = v;
         }
     }
+
+    progressComplete();
 
     return result_;
 }
