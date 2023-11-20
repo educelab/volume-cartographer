@@ -47,7 +47,7 @@ public:
      * @param fileLocation The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(const filesystem::path& fileLocation, int version);
+    VolumePkg(filesystem::path  fileLocation, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
@@ -145,7 +145,7 @@ public:
     /** @brief Return whether there are Volumes */
     auto hasVolumes() -> bool;
 
-    auto hasVolume(const Volume::Identifier& id) const -> bool;
+    [[nodiscard]] auto hasVolume(const Volume::Identifier& id) const -> bool;
 
     /** @brief Get the number of Volumes */
     auto numberOfVolumes() -> size_t;
@@ -260,9 +260,12 @@ public:
         -> std::vector<Transform3D::Pointer>;
 
     /** @brief Get the list of transform IDs */
-    [[nodiscard]] auto transformsIDs() const
+    [[nodiscard]] auto transformIDs() const
         -> std::vector<Transform3D::Identifier>;
     /**@}*/
+
+    /** Utility function for updating VolumePkgs */
+    static void Upgrade(const filesystem::path& path, int version = VOLPKG_VERSION_LATEST, bool force = false);
 
 private:
     /** VolumePkg metadata */

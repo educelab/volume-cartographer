@@ -1,5 +1,8 @@
 #include "vc/core/types/VolumePkg.hpp"
 
+#include <functional>
+#include <utility>
+
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
 
@@ -10,12 +13,195 @@ namespace fs = volcart::filesystem;
 namespace
 {
 constexpr auto CONFIG = "config.json";
+
+auto VolpkgV3ToV4(const Metadata& meta) -> Metadata
+{
+    // Nothing to do
+    if (meta.get<int>("version") != 3) {
+        return meta;
+    }
+    Logger()->info("Performing v4 migrations");
+
+    // VolumePkg path
+    const auto path = meta.path().parent_path();
+
+    // Write the new volpkg metadata
+    Logger()->debug("- Creating primary metadata");
+    Metadata newMeta;
+    newMeta.set("version", 4);
+    newMeta.set("name", meta.get<std::string>("volumepkg name"));
+    newMeta.set("materialthickness", meta.get<double>("materialthickness"));
+    newMeta.save(path / "config.json");
+
+    // Make the "volumes" directory
+    Logger()->debug("- Creating volumes directory");
+    const fs::path volumesDir = path / "volumes";
+    if (!fs::exists(volumesDir)) {
+        fs::create_directory(volumesDir);
+    }
+
+    // Set up a new Volume name and make a new folder for it
+    // Move the slices
+    Logger()->debug("- Migrating v3 volume");
+    const auto id = DateTime();
+    const auto newVolDir = volumesDir / id;
+    fs::rename(path / "slices", newVolDir);
+
+    // Setup and save the metadata to the new Volume folder
+    Metadata volMeta;
+    volMeta.set("uuid", id);
+    volMeta.set("name", id);
+    volMeta.set("width", meta.get<int>("width"));
+    volMeta.set("height", meta.get<int>("height"));
+    volMeta.set("slices", meta.get<int>("number of slices"));
+    volMeta.set("voxelsize", meta.get<double>("voxelsize"));
+    volMeta.set("min", meta.get<double>("min"));
+    volMeta.set("max", meta.get<double>("max"));
+    volMeta.save(newVolDir / "meta.json");
+
+    return newMeta;
+}
+
+auto VolpkgV4ToV5(const Metadata& meta) -> Metadata
+{
+    // Nothing to do check
+    if (meta.get<int>("version") != 4) {
+        return meta;
+    }
+    Logger()->info("Performing v5 migrations");
+
+    // VolumePkg path
+    const auto path = meta.path().parent_path();
+
+    // Add metadata to all the segmentations
+    Logger()->debug("- Initializing segmentation metadata");
+    fs::path seg;
+    const fs::path segsDir = path / "paths";
+    for (const auto& entry : fs::directory_iterator(segsDir)) {
+        if (fs::is_directory(entry)) {
+            // Get the folder as a fs::path
+            seg = entry;
+
+            // Generate basic metadata
+            Metadata segMeta;
+            segMeta.set("uuid", seg.stem().string());
+            segMeta.set("name", seg.stem().string());
+            segMeta.set("type", "seg");
+
+            // Link the metadata to the vcps file
+            if (fs::exists(seg / "pointset.vcps")) {
+                segMeta.set("vcps", "pointset.vcps");
+            } else {
+                segMeta.set("vcps", std::string{});
+            }
+
+            // Save the new metadata
+            segMeta.save(seg / "meta.json");
+        }
+    }
+
+    // Add renders folder
+    Logger()->debug("- Adding renders directory");
+    const fs::path rendersDir = path / "renders";
+    if (!fs::exists(rendersDir)) {
+        fs::create_directory(rendersDir);
+    }
+
+    // Update the version
+    auto newMeta = meta;
+    newMeta.set("version", 5);
+    newMeta.save();
+
+    return newMeta;
+}
+
+auto VolpkgV5ToV6(const Metadata& meta) -> Metadata
+{
+    // Nothing to do check
+    if (meta.get<int>("version") != 5) {
+        return meta;
+    }
+    Logger()->info("Performing v6 migrations");
+
+    // VolumePkg path
+    const auto path = meta.path().parent_path();
+
+    // Add metadata to all the volumes
+    Logger()->debug("- Updating volume metadata");
+    fs::path vol;
+    const fs::path volsDir = path / "volumes";
+    for (const auto& entry : fs::directory_iterator(volsDir)) {
+        if (fs::is_directory(entry)) {
+            // Get the folder as a fs::path
+            vol = entry;
+
+            // Generate basic metadata
+            Metadata volMeta(vol / "meta.json");
+            if (!volMeta.hasKey("uuid")) {
+                volMeta.set("uuid", vol.stem().string());
+            }
+            if (!volMeta.hasKey("name")) {
+                volMeta.set("name", vol.stem().string());
+            }
+            if (!volMeta.hasKey("type")) {
+                volMeta.set("type", "vol");
+            }
+
+            // Save the new metadata
+            volMeta.save();
+        }
+    }
+
+    // Update the version
+    auto newMeta = meta;
+    newMeta.set("version", 6);
+    newMeta.save();
+
+    return newMeta;
+}
+
+auto VolpkgV6ToV7(const Metadata& meta) -> Metadata
+{
+    // Nothing to do check
+    if (meta.get<int>("version") != 6) {
+        return meta;
+    }
+    Logger()->info("Performing v7 migrations");
+
+    // VolumePkg path
+    const auto path = meta.path().parent_path();
+
+    // Add renders folder
+    Logger()->debug("- Adding transforms directory");
+    const fs::path tfmsDir = path / "transforms";
+    if (not fs::exists(tfmsDir)) {
+        fs::create_directory(tfmsDir);
+    }
+
+    // Add vc keep files
+    Logger()->debug("- Adding keep files");
+    for(const auto& d : {"paths", "renders", "volumes", "transforms"}) {
+        if(not fs::exists( path / d / ".vckeep")) {
+            std::ofstream(path / d / ".vckeep");
+        }
+    }
+
+    // Update the version
+    auto newMeta = meta;
+    newMeta.set("version", 7);
+    newMeta.save();
+
+    return newMeta;
+}
+
+using UpgradeFn = std::function<Metadata(const Metadata&)>;
+const std::vector<UpgradeFn> UPGRADE_FNS{VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7};
 }
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
-    : rootDir_{fileLocation}
+VolumePkg::VolumePkg(fs::path  fileLocation, int version)
+    : rootDir_{std::move(fileLocation)}
 {
     // Lookup the metadata template from our library of versions
     auto findDict = VERSION_LIBRARY.find(version);
@@ -29,8 +215,11 @@ VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
 
     // Make directories
     for (const auto& d : required_dirs_()) {
-        if (!fs::exists(d)) {
+        if (not fs::exists(d)) {
             fs::create_directory(d);
+        }
+        if(d != rootDir_ and not fs::exists(d / ".vckeep")) {
+            std::ofstream(d / ".vckeep");
         }
     }
 
@@ -44,23 +233,23 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     // Loads the metadata
     config_ = Metadata(fileLocation / ::CONFIG);
 
-    // Going to auto-upgrade as much as possible
+    // Auto-upgrade on load from v
     auto version = config_.get<int>("version");
     if (version >= 6 and version != VOLPKG_VERSION_LATEST) {
-        Logger()->info(
-            "Upgrading volpkg version {} to {}", version,
-            VOLPKG_VERSION_LATEST);
-        config_.set("version", VOLPKG_VERSION_LATEST);
-        config_.save();
+        Upgrade(fileLocation, VOLPKG_VERSION_LATEST);
+        config_ = Metadata(fileLocation / ::CONFIG);
     }
 
     // Check directory structure
     for (const auto& d : required_dirs_()) {
-        if (!fs::exists(d)) {
+        if (not fs::exists(d)) {
             Logger()->warn(
                 "Creating missing VolumePkg directory: {}",
                 d.filename().string());
             fs::create_directory(d);
+        }
+        if(d != rootDir_ and not fs::exists(d / ".vckeep")) {
+            std::ofstream(d / ".vckeep");
         }
     }
 
@@ -443,7 +632,7 @@ auto VolumePkg::transform(
     return tfms;
 }
 
-auto VolumePkg::transformsIDs() const -> std::vector<Transform3D::Identifier>
+auto VolumePkg::transformIDs() const -> std::vector<Transform3D::Identifier>
 {
     std::vector<Transform3D::Identifier> keys;
     std::transform(
@@ -492,3 +681,33 @@ auto VolumePkg::required_dirs_() -> std::vector<filesystem::path>
 {
     return {rootDir_, vols_dir_(), segs_dir_(), rend_dir_(), tfm_dir_()};
 }
+
+
+////////// Upgrade //////////
+void VolumePkg::Upgrade(const fs::path& path, int version, bool force)
+{
+    // Copy the current metadata
+    Metadata meta(path / "config.json");
+
+    // Get current version
+    const auto currentVersion = meta.get<int>("version");
+
+    // Don't update for versions < 6 unless forced (those migrations are expensive)
+    if(currentVersion < 6 and not force) {
+        throw std::runtime_error("Volumepkg version " + std::to_string(currentVersion) + " should be upgraded with vc_volpkg_upgrade");
+    }
+
+    Logger()->info("Upgrading volpkg version {} to {}", currentVersion, version);
+
+    // Plot path to final version
+    // UpgradeFns start at v3->v4
+    auto startIdx = currentVersion - 3;
+    auto endIdx = version - 3;
+    for(auto idx = startIdx; idx < endIdx; idx++)
+    {
+        meta = ::UPGRADE_FNS[idx](meta);
+    }
+    // Save the final metadata
+    meta.save();
+}
+
