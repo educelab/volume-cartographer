@@ -41,6 +41,19 @@ VolumePkg::VolumePkg(const fs::path& fileLocation, int version)
 // Use this when reading a volpkg from a file
 VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
 {
+    // Loads the metadata
+    config_ = Metadata(fileLocation / ::CONFIG);
+
+    // Going to auto-upgrade as much as possible
+    auto version = config_.get<int>("version");
+    if (version >= 6 and version != VOLPKG_VERSION_LATEST) {
+        Logger()->info(
+            "Upgrading volpkg version {} to {}", version,
+            VOLPKG_VERSION_LATEST);
+        config_.set("version", VOLPKG_VERSION_LATEST);
+        config_.save();
+    }
+
     // Check directory structure
     for (const auto& d : required_dirs_()) {
         if (!fs::exists(d)) {
@@ -51,10 +64,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
         }
     }
 
-    // Loads the metadata
-    config_ = Metadata(fileLocation / ::CONFIG);
-
-    // Load volumes into volumes_ vector
+    // Load volumes into volumes_
     for (const auto& entry : fs::directory_iterator(vols_dir_())) {
         if (fs::is_directory(entry)) {
             auto v = Volume::New(entry);
@@ -62,7 +72,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
         }
     }
 
-    // Load segmentations into the segmentations_ vector
+    // Load segmentations into the segmentations_
     for (const auto& entry : fs::directory_iterator(segs_dir_())) {
         if (fs::is_directory(entry)) {
             auto s = Segmentation::New(entry);
@@ -70,11 +80,28 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
         }
     }
 
-    // Load Renders into the renders_ vector
+    // Load Renders into the renders_
     for (const auto& entry : fs::directory_iterator(rend_dir_())) {
         if (fs::is_directory(entry)) {
             auto r = Render::New(entry);
             renders_.emplace(r->id(), r);
+        }
+    }
+
+    // Load the transform files into transforms_
+    for (const auto& entry : fs::directory_iterator(rend_dir_())) {
+        auto ep = entry.path();
+        if (fs::is_regular_file(entry) and ep.extension() == ".json") {
+            Transform3D::Pointer tfm;
+            try {
+                tfm = Transform3D::Load(ep);
+            } catch (const std::exception& e) {
+                Logger()->warn(
+                    "Failed to load transform \"{}\". {}",
+                    ep.filename().string(), e.what());
+                continue;
+            }
+            transforms_.emplace(ep.stem(), tfm);
         }
     }
 }
@@ -277,13 +304,12 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
 // RENDER FUNCTIONS //
 auto VolumePkg::hasRenders() -> bool { return !renders_.empty(); }
 auto VolumePkg::numberOfRenders() -> size_t { return renders_.size(); }
-auto VolumePkg::render(const DiskBasedObjectBaseClass::Identifier& id) const
+auto VolumePkg::render(const Render::Identifier& id) const
     -> const Render::Pointer
 {
     return renders_.at(id);
 }
-auto VolumePkg::render(const DiskBasedObjectBaseClass::Identifier& id)
-    -> Render::Pointer
+auto VolumePkg::render(const Render::Identifier& id) -> Render::Pointer
 {
     return renders_.at(id);
 }
@@ -312,13 +338,16 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
 {
     // Generate a uuid
     auto uuid = DateTime();
+    while (renders_.count(uuid) > 0) {
+        uuid = DateTime();
+    }
 
     // Get dir name if not specified
     if (name.empty()) {
         name = uuid;
     }
 
-    // Make the volume directory
+    // Make the render directory
     auto renDir = rend_dir_() / uuid;
     if (!fs::exists(renDir)) {
         fs::create_directory(renDir);
@@ -337,20 +366,90 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
     return r.first->second;
 }
 
-void VolumePkg::addTransform(
-    const Volume::Identifier& src,
-    const Volume::Identifier& tgt,
-    const Transform3D::Pointer& transform)
+auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
+    -> Transform3D::Identifier
 {
-    // TODO: Not implemented
+    // Make sure the transform has a source and target
+    if (transform->source().empty()) {
+        throw std::invalid_argument("Transform is missing source");
+    }
+    if (transform->target().empty()) {
+        throw std::invalid_argument("Transform is missing target");
+    }
+
+    // Make sure we have a transforms directory
+    if (not fs::exists(tfm_dir_())) {
+        Logger()->debug("Creating transforms directory");
+        fs::create_directory(tfm_dir_());
+    }
+
+    // Generate a uuid
+    auto uuid = DateTime();
+    auto tfmPath = tfm_dir_() / (uuid + ".json");
+    while (fs::exists(tfmPath) or transforms_.count(uuid) > 0) {
+        uuid = DateTime();
+        tfmPath = tfmPath.replace_filename(uuid + ".json");
+    }
+
+    // Add to the internal ID map
+    auto r = transforms_.insert({uuid, transform});
+    if (!r.second) {
+        auto msg = "Transform already exists with id " + uuid;
+        throw std::runtime_error(msg);
+    }
+
+    // Write to disk
+    Transform3D::Save(tfmPath, transform);
+
+    return uuid;
+}
+
+void VolumePkg::setTransform(
+    const Transform3D::Identifier& id, const Transform3D::Pointer& transform)
+{
+    if (transforms_.count(id) == 0) {
+        throw std::range_error("Transform " + id + " does not exist");
+    }
+
+    // update the map
+    transforms_[id] = transform;
+    // update on disk
+    auto tfmPath = tfm_dir_() / id;
+    tfmPath = tfmPath.replace_extension("json");
+    Transform3D::Save(tfmPath, transform);
+}
+
+auto VolumePkg::transform(const Transform3D::Identifier& id)
+    -> Transform3D::Pointer
+{
+    return transforms_.at(id);
 }
 
 auto VolumePkg::transform(
     const Volume::Identifier& src, const Volume::Identifier& tgt)
-    -> Transform3D::Pointer
+    -> std::vector<Transform3D::Pointer>
 {
-    // TODO: Not implemented
-    return nullptr;
+    std::vector<Transform3D::Pointer> tfms;
+    for (auto& [id, tfm] : transforms_) {
+        if (tfm->source() == src and tfm->target() == tgt) {
+            tfms.emplace_back(tfm);
+        } else if (
+            tfm->invertible() and tfm->source() == tgt and
+            tfm->target() == src) {
+            tfms.emplace_back(tfm->invert());
+        }
+    }
+
+    return tfms;
+}
+
+auto VolumePkg::transformsIDs() const -> std::vector<Transform3D::Identifier>
+{
+    std::vector<Transform3D::Identifier> keys;
+    std::transform(
+        transforms_.begin(), transforms_.end(), std::back_inserter(keys),
+        [](const auto& p) { return p.first; });
+    return keys;
 }
 
 auto VolumePkg::InitConfig(const Dictionary& dict, int version) -> Metadata

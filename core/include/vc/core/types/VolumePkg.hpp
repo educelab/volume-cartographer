@@ -243,13 +243,25 @@ public:
     /**@}*/
 
     /** @name Transform Data */
-    void addTransform(
-        const Volume::Identifier& src,
-        const Volume::Identifier& tgt,
+    /** @brief Add a transform to the VolPkg */
+    auto addTransform(const Transform3D::Pointer& transform)
+        -> Transform3D::Identifier;
+
+    /** @brief Replace an existing transform */
+    void setTransform(
+        const Transform3D::Identifier& id,
         const Transform3D::Pointer& transform);
 
+    /** @brief Get a transform by ID */
+    auto transform(const Transform3D::Identifier& id) -> Transform3D::Pointer;
+
+    /** @brief Get a transform from a source volume to a target volume */
     auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
-        -> Transform3D::Pointer;
+        -> std::vector<Transform3D::Pointer>;
+
+    /** @brief Get the list of transform IDs */
+    [[nodiscard]] auto transformsIDs() const
+        -> std::vector<Transform3D::Identifier>;
     /**@}*/
 
 private:
@@ -258,13 +270,13 @@ private:
     /** The root directory of the VolumePkg */
     filesystem::path rootDir_;
     /** The subdirectory containing Volume data */
-    auto vols_dir_() const -> filesystem::path;
+    [[nodiscard]] auto vols_dir_() const -> filesystem::path;
     /** The subdirectory containing Segmentation data */
-    auto segs_dir_() const -> filesystem::path;
+    [[nodiscard]] auto segs_dir_() const -> filesystem::path;
     /** The subdirectory containing Render data */
-    auto rend_dir_() const -> filesystem::path;
+    [[nodiscard]] auto rend_dir_() const -> filesystem::path;
     /** The subdirectory containing Transform data */
-    auto tfm_dir_() const -> filesystem::path;
+    [[nodiscard]] auto tfm_dir_() const -> filesystem::path;
     /** Get a list of required subdirectories */
     inline auto required_dirs_() -> std::vector<filesystem::path>;
     /** The list of all Volumes in the VolumePkg. */
@@ -273,6 +285,8 @@ private:
     std::map<Segmentation::Identifier, Segmentation::Pointer> segmentations_;
     /** The list of all Renders in the VolumePkg. */
     std::map<Render::Identifier, Render::Pointer> renders_;
+    /** The list of Transforms in the VolumePkg */
+    std::map<Transform3D::Identifier, Transform3D::Pointer> transforms_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary
