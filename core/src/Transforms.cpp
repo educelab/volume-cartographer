@@ -32,6 +32,14 @@ auto LoadMetadata(const fs::path& path) -> nlohmann::ordered_json
 ///////////// Transform3D /////////////
 ///////////////////////////////////////
 
+void Transform3D::source(const std::string& src) { src_ = src; }
+
+auto Transform3D::source() const -> std::string { return src_; }
+
+void Transform3D::target(const std::string& tgt) { tgt_ = tgt; }
+
+auto Transform3D::target() const -> std::string { return tgt_; }
+
 auto Transform3D::applyUnitVector(const cv::Vec3d& vector) const -> cv::Vec3d
 {
     return cv::normalize(applyVector(vector));
@@ -46,10 +54,19 @@ auto Transform3D::applyPointAndNormal(
     return {p[0], p[1], p[2], n[0], n[1], n[2]};
 }
 
+void Transform3D::clear()
+{
+    src_.clear();
+    tgt_.clear();
+}
+
 void Transform3D::Save(
     const filesystem::path& path, const Transform3D::Pointer& transform)
 {
-    Metadata meta{{"type", "Transform3D"}};
+    Metadata meta{
+        {"type", "Transform3D"},
+        {"source", transform->src_},
+        {"target", transform->tgt_}};
     transform->to_meta_(meta);
     ::WriteMetadata(path, meta);
 }
@@ -72,6 +89,8 @@ auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
     } else {
         throw std::runtime_error("Unknown transform type: " + tfmType);
     }
+    result->src_ = meta["source"].get<std::string>();
+    result->tgt_ = meta["target"].get<std::string>();
     result->from_meta_(meta);
 
     return result;
@@ -132,6 +151,8 @@ auto AffineTransform::invertible() const -> bool { return true; }
 auto AffineTransform::invert() const -> Transform3D::Pointer
 {
     auto inverted = AffineTransform::New();
+    inverted->source(target());
+    inverted->target(source());
 
     // TODO: Can probably do this without using LU
     inverted->params_ = params_.inv();
@@ -141,7 +162,13 @@ auto AffineTransform::invert() const -> Transform3D::Pointer
 
 auto AffineTransform::type() const -> std::string { return "AffineTransform"; }
 
-void AffineTransform::clear() { params_ = Parameters::eye(); }
+void AffineTransform::reset() { params_ = Parameters::eye(); }
+
+void AffineTransform::clear()
+{
+    Transform3D::clear();
+    reset();
+}
 
 auto AffineTransform::clone() const -> Transform3D::Pointer
 {

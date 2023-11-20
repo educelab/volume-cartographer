@@ -12,6 +12,8 @@ TEST(Transform, AffineClone)
 {
     // Create transform
     auto tfm = AffineTransform::New();
+    tfm->source("abcdefgh");
+    tfm->target("ijklmnop");
     tfm->rotate(90, cv::Vec3d{0, 0, 1});
     tfm->translate(1, 2, 3);
 
@@ -20,6 +22,8 @@ TEST(Transform, AffineClone)
     auto result = std::static_pointer_cast<AffineTransform>(tfm->clone());
     // Compare equality
     EXPECT_EQ(result->type(), tfm->type());
+    EXPECT_EQ(result->source(), tfm->source());
+    EXPECT_EQ(result->target(), tfm->target());
     EXPECT_EQ(result->params(), tfm->params());
 }
 
@@ -27,6 +31,8 @@ TEST(Transforms, AffineSerialization)
 {
     // Create transform
     auto tfm = AffineTransform::New();
+    tfm->source("abcdefgh");
+    tfm->target("ijklmnop");
     tfm->rotate(90, cv::Vec3d{0, 0, 1});
     tfm->translate(1, 2, 3);
 
@@ -40,6 +46,8 @@ TEST(Transforms, AffineSerialization)
 
     // Compare equality
     EXPECT_EQ(result->type(), tfm->type());
+    EXPECT_EQ(result->source(), tfm->source());
+    EXPECT_EQ(result->target(), tfm->target());
     EXPECT_EQ(result->params(), tfm->params());
 }
 
@@ -59,12 +67,24 @@ TEST(Transforms, AffineResetClear)
 {
     // Build a transform
     auto tfm = AffineTransform::New();
+    tfm->source("abc");
+    tfm->target("def");
     tfm->translate(1, 2, 3);
     tfm->scale(2);
     tfm->rotate(90, cv::Vec3d{0, 0, 1});
+    auto params = tfm->params();
+
+    // Test that reset only affects parameters
+    tfm->reset();
+    EXPECT_EQ(tfm->source(), "abc");
+    EXPECT_EQ(tfm->target(), "def");
+    EXPECT_EQ(tfm->params(), AffineTransform::Parameters::eye());
 
     // Test that clear resets everything
+    tfm->params(params);
     tfm->clear();
+    EXPECT_EQ(tfm->source(), "");
+    EXPECT_EQ(tfm->target(), "");
     EXPECT_EQ(tfm->params(), AffineTransform::Parameters::eye());
 }
 
@@ -187,7 +207,7 @@ TEST(Transforms, AffineInvert)
     SmallOrClose(result, orig);
 
     // Test rotation forward
-    tfm->clear();
+    tfm->reset();
     tfm->rotate(90, 0, 0, 1);
     result = tfm->applyPoint(orig);
     SmallOrClose(result, {-1, 0, 1});
@@ -197,7 +217,7 @@ TEST(Transforms, AffineInvert)
     SmallOrClose(result, orig);
 
     // Test scale forward
-    tfm->clear();
+    tfm->reset();
     tfm->scale(1, 2, 3);
     result = tfm->applyPoint(orig);
     SmallOrClose(result, {0, 2, 3});
@@ -207,7 +227,7 @@ TEST(Transforms, AffineInvert)
     SmallOrClose(result, orig);
 
     // Test compound inverse
-    tfm->clear();
+    tfm->reset();
     tfm->scale(1, 2, 3);
     tfm->rotate(90, 0, 0, 1);
     tfm->translate(1, 2, 3);
