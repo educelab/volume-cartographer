@@ -31,7 +31,7 @@ namespace vc = volcart;
 using volcart::enumerate;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 // Number of vertices per square millimeter
 static constexpr double SAMPLING_DENSITY_FACTOR = 50;
 // Square Micron to square millimeter conversion factor
@@ -133,12 +133,11 @@ auto main(int argc, char* argv[]) -> int
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::stringstream msg;
-        msg << "Volume package is version " << vpkg.version()
-            << " but this program requires version " << VOLPKG_SUPPORTED_VERSION
-            << ".";
-        vc::Logger()->error(msg.str());
+    if (vpkg.version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg.version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 

@@ -12,7 +12,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -53,11 +53,11 @@ auto main(int argc, char* argv[]) -> int
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+    if (vpkg.version() < VOLPKG_MIN_VERSION) {
         vc::Logger()->error(
             "Volume package is version {} but this program requires version "
             "{}.",
-            vpkg.version(), VOLPKG_SUPPORTED_VERSION);
+            vpkg.version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -96,6 +96,17 @@ auto main(int argc, char* argv[]) -> int
         auto render = vpkg.render(r);
         std::cout << "[" << render->id() << "] " << render->name();
         std::cout << ", Number of nodes: " << render->graph()->size();
+        std::cout << "\n";
+    }
+    std::cout << "\n";
+
+    ///// List the transforms /////
+    std::cout << " --- Transforms ---\n";
+    for (const auto& t : vpkg.transformIDs()) {
+        auto tfm = vpkg.transform(t);
+        std::cout << "[" << t << "] " << tfm->type();
+        std::cout << ", Source: " << tfm->source();
+        std::cout << ", Target: " << tfm->target();
         std::cout << "\n";
     }
     std::cout << "\n";

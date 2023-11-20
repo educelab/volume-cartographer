@@ -21,7 +21,7 @@ namespace vc = volcart;
 namespace vs = vc::segmentation;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 // Default values for global options
 static const double kDefaultStep = 1;
@@ -176,10 +176,11 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+    if (vpkg.version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg.version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 

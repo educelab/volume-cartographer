@@ -17,6 +17,7 @@
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
@@ -29,7 +30,7 @@ namespace vc = volcart;
 namespace vct = volcart::texturing;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 // Globals
 po::variables_map parsed_;
@@ -89,10 +90,11 @@ int main(int argc, char* argv[])
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+    if (vpkg.version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg.version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 

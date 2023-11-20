@@ -22,7 +22,7 @@ namespace po = boost::program_options;
 using namespace volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 // When to smooth the mesh
 enum class SmoothOpt { Off = 0, Before, After, Both };
@@ -310,10 +310,11 @@ auto main(int argc, char* argv[]) -> int
         return EXIT_FAILURE;
     }
 
-    if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        Logger()->error(
-            "Volume Package is version {} but this program requires version {}",
-            vpkg->version(), VOLPKG_SUPPORTED_VERSION);
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
