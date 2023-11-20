@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "vc/app_support/GetMemorySize.hpp"
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/ImageIO.hpp"
 #include "vc/core/io/OBJWriter.hpp"
@@ -38,6 +39,21 @@ static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Min. number of points required to do flattening
 static constexpr size_t CLEANER_MIN_REQ_POINTS = 100;
 
+template <class Iterable>
+void WriteLayers(
+    const Iterable& iterable,
+    const fs::path& outDir,
+    int pad,
+    const std::string& fmt,
+    const vc::WriteImageOpts& opts)
+{
+    for (const auto [i, image] : iterable) {
+        auto fileName = vc::to_padded_string(i, pad) + "." + fmt;
+        auto filepath = outDir / fileName;
+        vc::WriteImage(filepath, image, opts);
+    }
+}
+
 auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
@@ -55,7 +71,9 @@ auto main(int argc, char* argv[]) -> int
             "Output directory for layer images.")
         ("image-format,f", po::value<std::string>()->default_value("png"),
             "Image format for layer images. Default: png")
-        ("compression", po::value<int>(), "Image compression level");
+        ("compression", po::value<int>(), "Image compression level")
+        ("progress", po::value<bool>()->default_value(true),
+            "When enabled, show algorithm progress bars.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -221,23 +239,33 @@ auto main(int argc, char* argv[]) -> int
     line->setSamplingDirection(direction);
 
     // Layer texture
-    std::cout << "Generating layers..." << std::endl;
     vc::texturing::LayerTexture s;
     s.setVolume(volume);
     s.setPerPixelMap(ppm);
     s.setGenerator(line);
 
+    if (parsed["progress"].as<bool>()) {
+        vc::ReportProgress(s, "Generating layers:");
+        vc::Logger()->debug("Generating layers...");
+    } else {
+        vc::Logger()->info("Generating layers...");
+    }
+
     auto texture = s.compute();
 
     // Write the layers
-    std::cout << "Writing layers..." << std::endl;
     const int numChars =
         static_cast<int>(std::to_string(texture.size()).size());
     fs::path filepath;
-    for (const auto [i, image] : enumerate(texture)) {
-        auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
-        filepath = outputPath / fileName;
-        vc::WriteImage(filepath, image, writeOpts);
+    if (parsed["progress"].as<bool>()) {
+        vc::Logger()->debug("Writing layers...");
+        WriteLayers(
+            vc::ProgressWrap(enumerate(texture), "Writing layers:"), outputPath,
+            numChars, imgFmt, writeOpts);
+    } else {
+        vc::Logger()->info("Writing layers...");
+        WriteLayers(
+            enumerate(texture), outputPath, numChars, imgFmt, writeOpts);
     }
 
     return EXIT_SUCCESS;
