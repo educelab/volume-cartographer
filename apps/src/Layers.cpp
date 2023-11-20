@@ -39,6 +39,21 @@ static constexpr double UM_TO_MM = 0.001 * 0.001;
 // Min. number of points required to do flattening
 static constexpr size_t CLEANER_MIN_REQ_POINTS = 100;
 
+template <class Iterable>
+void WriteLayers(
+    const Iterable& iterable,
+    const fs::path& outDir,
+    int pad,
+    const std::string& fmt,
+    const vc::WriteImageOpts& opts)
+{
+    for (const auto [i, image] : iterable) {
+        auto fileName = vc::to_padded_string(i, pad) + "." + fmt;
+        auto filepath = outDir / fileName;
+        vc::WriteImage(filepath, image, opts);
+    }
+}
+
 auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
@@ -244,19 +259,13 @@ auto main(int argc, char* argv[]) -> int
     fs::path filepath;
     if (parsed["progress"].as<bool>()) {
         vc::Logger()->debug("Writing layers...");
-        for (const auto [i, image] :
-             vc::ProgressWrap(enumerate(texture), "Writing layers:")) {
-            auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
-            filepath = outputPath / fileName;
-            vc::WriteImage(filepath, image, writeOpts);
-        }
+        WriteLayers(
+            vc::ProgressWrap(enumerate(texture), "Writing layers:"), outputPath,
+            numChars, imgFmt, writeOpts);
     } else {
         vc::Logger()->info("Writing layers...");
-        for (const auto [i, image] : enumerate(texture)) {
-            auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
-            filepath = outputPath / fileName;
-            vc::WriteImage(filepath, image, writeOpts);
-        }
+        WriteLayers(
+            enumerate(texture), outputPath, numChars, imgFmt, writeOpts);
     }
 
     return EXIT_SUCCESS;

@@ -181,7 +181,7 @@ public:
 
     /** Get a new ProgressIterable::iterator. Instantiates a new progress bar.
      */
-    iterator begin()
+    iterator begin() const
     {
         auto begin = std::begin(container_);
         auto end = std::end(container_);
@@ -194,7 +194,7 @@ public:
      * Get the end-valued ProgressIterable::iterator. Does not instantiate a
      * new progress bar.
      */
-    iterator end() { return iterator{std::end(container_)}; }
+    iterator end() const { return iterator{std::end(container_)}; }
 
     /**
      * Get a new ProgressIterable::const_iterator. Instantiates a new progress

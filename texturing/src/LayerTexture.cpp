@@ -30,7 +30,8 @@ Texture LayerTexture::compute()
 
     // Iterate through the mappings
     auto counter = 0;
-    auto updateStepSize = static_cast<int>(mappings.size() / 10000);
+    auto updateStepSize =
+        static_cast<int>(std::max(mappings.size() / 10000., 1.));
     progressStarted();
 
     for (const auto& pixel : mappings) {
