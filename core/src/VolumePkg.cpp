@@ -337,14 +337,17 @@ void VolumePkg::saveMetadata(const fs::path& filePath)
 }
 
 // VOLUME FUNCTIONS //
-auto VolumePkg::hasVolumes() -> bool { return !volumes_.empty(); }
+auto VolumePkg::hasVolumes() const -> bool { return !volumes_.empty(); }
 
 auto VolumePkg::hasVolume(const Volume::Identifier& id) const -> bool
 {
     return volumes_.count(id) > 0;
 }
 
-auto VolumePkg::numberOfVolumes() -> size_t { return volumes_.size(); }
+auto VolumePkg::numberOfVolumes() const -> std::size_t
+{
+    return volumes_.size();
+}
 
 auto VolumePkg::volumeIDs() const -> std::vector<Volume::Identifier>
 {
@@ -421,9 +424,12 @@ auto VolumePkg::volume(const Volume::Identifier& id) -> Volume::Pointer
 }
 
 // SEGMENTATION FUNCTIONS //
-auto VolumePkg::hasSegmentations() -> bool { return !segmentations_.empty(); }
+auto VolumePkg::hasSegmentations() const -> bool
+{
+    return !segmentations_.empty();
+}
 
-auto VolumePkg::numberOfSegmentations() -> size_t
+auto VolumePkg::numberOfSegmentations() const -> std::size_t
 {
     return segmentations_.size();
 }
@@ -492,8 +498,11 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
 }
 
 // RENDER FUNCTIONS //
-auto VolumePkg::hasRenders() -> bool { return !renders_.empty(); }
-auto VolumePkg::numberOfRenders() -> size_t { return renders_.size(); }
+auto VolumePkg::hasRenders() const -> bool { return !renders_.empty(); }
+auto VolumePkg::numberOfRenders() const -> std::size_t
+{
+    return renders_.size();
+}
 auto VolumePkg::render(const Render::Identifier& id) const
     -> const Render::Pointer
 {
@@ -554,6 +563,16 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
 
     // Return the Render Pointer
     return r.first->second;
+}
+
+auto VolumePkg::hasTransforms() const -> bool
+{
+    return not transforms_.empty();
+}
+
+auto VolumePkg::hasTransform(const Volume::Identifier& id) const -> bool
+{
+    return transforms_.count(id) > 0;
 }
 
 auto VolumePkg::addTransform(const Transform3D::Pointer& transform)

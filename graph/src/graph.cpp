@@ -32,6 +32,9 @@ auto RegisterNodesImpl() -> bool
         WritePPMNode,
         PPMPropertiesNode,
         LoadVolumetricMaskNode,
+        LoadTransformNode,
+        TransformSelectorNode,
+        InvertTransformNode,
         TransformMeshNode,
         TransformPPMNode
     >();

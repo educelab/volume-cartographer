@@ -706,6 +706,103 @@ private:
 };
 
 /**
+ * @copybrief Transform3D::Load()
+ *
+ * @see Transform3D::Load()
+ * @ingroup Graph
+ */
+class LoadTransformNode : public smgl::Node
+{
+private:
+    /** File path */
+    filesystem::path path_{};
+    /** Include the loaded file in the graph cache */
+    bool cacheArgs_{false};
+    /** Loaded image */
+    Transform3D::Pointer tfm_;
+
+public:
+    /** @brief Input path */
+    smgl::InputPort<filesystem::path> path;
+    /** @brief Include the loaded file in the graph cache */
+    smgl::InputPort<bool> cacheArgs;
+    /** @brief Loaded image */
+    smgl::OutputPort<Transform3D::Pointer> transform;
+
+    /** Constructor */
+    LoadTransformNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta,
+        const filesystem::path& /*cacheDir*/) override;
+};
+
+class TransformSelectorNode : public smgl::Node
+{
+private:
+    /** VolumePkg */
+    VolumePkg::Pointer vpkg_{nullptr};
+    /** Transform ID */
+    Transform3D::Identifier id_{};
+    /** Transform */
+    Transform3D::Pointer tfm_{nullptr};
+
+public:
+    /** @brief Input VolumePkg */
+    smgl::InputPort<VolumePkg::Pointer> volpkg;
+    /** @brief Transform ID */
+    smgl::InputPort<Transform3D::Identifier> id;
+    /** @brief Transform */
+    smgl::OutputPort<Transform3D::Pointer> transform;
+
+    /** Constructor */
+    TransformSelectorNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta,
+        const filesystem::path& /*cacheDir*/) override;
+};
+
+class InvertTransformNode : public smgl::Node
+{
+private:
+    /** Input transform */
+    Transform3D::Pointer input_;
+    /** Output transform */
+    Transform3D::Pointer output_;
+
+public:
+    /** @brief Input transform */
+    smgl::InputPort<Transform3D::Pointer> input;
+    /** @brief Output transform */
+    smgl::OutputPort<Transform3D::Pointer> output;
+
+    /** Constructor */
+    InvertTransformNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
  * @brief Generic class for applying 3D transforms
  *
  * There needs to be an apply function with the following signature:

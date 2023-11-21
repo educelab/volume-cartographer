@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <iostream>
 #include <map>
 
@@ -143,12 +144,12 @@ public:
     /** @name Volume Data */
     /**@{*/
     /** @brief Return whether there are Volumes */
-    auto hasVolumes() -> bool;
+    auto hasVolumes() const -> bool;
 
     [[nodiscard]] auto hasVolume(const Volume::Identifier& id) const -> bool;
 
     /** @brief Get the number of Volumes */
-    auto numberOfVolumes() -> size_t;
+    auto numberOfVolumes() const -> std::size_t;
 
     /** @brief Get the list of volume IDs */
     [[nodiscard]] auto volumeIDs() const -> std::vector<Volume::Identifier>;
@@ -181,10 +182,10 @@ public:
     /** @name Segmentation Data */
     /**@{*/
     /** @brief Return whether there are Segmentations */
-    auto hasSegmentations() -> bool;
+    auto hasSegmentations() const -> bool;
 
     /** @brief Get the number of Segmentations */
-    auto numberOfSegmentations() -> size_t;
+    auto numberOfSegmentations() const -> std::size_t;
 
     /** @brief Get the list of Segmentation IDs */
     [[nodiscard]] auto segmentationIDs() const
@@ -215,10 +216,10 @@ public:
     /** @name Render Data */
     /**@{*/
     /** @brief Return whether there are Renders */
-    auto hasRenders() -> bool;
+    auto hasRenders() const -> bool;
 
     /** @brief Get the number of Renders */
-    auto numberOfRenders() -> size_t;
+    auto numberOfRenders() const -> std::size_t;
 
     /** @brief Get the list of Render IDs */
     [[nodiscard]] auto renderIDs() const -> std::vector<Render::Identifier>;
@@ -243,6 +244,10 @@ public:
     /**@}*/
 
     /** @name Transform Data */
+    [[nodiscard]] auto hasTransforms() const -> bool;
+
+    [[nodiscard]] auto hasTransform(const Volume::Identifier& id) const -> bool;
+
     /** @brief Add a transform to the VolPkg */
     auto addTransform(const Transform3D::Pointer& transform)
         -> Transform3D::Identifier;

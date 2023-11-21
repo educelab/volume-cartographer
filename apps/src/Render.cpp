@@ -87,9 +87,10 @@ auto GetTransformOpts() -> po::options_description
             "perform coordinate transforms with the given transform. "
             "Otherwise, uses the default volume-to-volume transform only if "
             "required.")
-        ("transform-input", po::value<TransformInput>()->default_value(TransformInput::Raw, "raw"),
+        ("apply-transform-to", po::value<TransformInput>()->default_value(TransformInput::Raw, "raw"),
             "Selects the input to which the coordinate transform will be "
-            "applied. Options: raw (default), resampled, PPM.");
+            "applied. Options: raw (default), resampled, PPM.")
+        ("invert-transform", "When provided, invert the transform.");
     // clang-format on
 
     return opts;
@@ -445,16 +446,23 @@ auto main(int argc, char* argv[]) -> int
         tgtVolId = parsed["volume"].as<std::string>();
     }
 
-    // If source is empty and target is empty: default volume, no auto tfm
-    // If source is empty and target is set: tgtVol = tgtVol, no auto tfm
-    // If source is set and target is empty: tgtVol = srcVol, no auto tfm
-    if (not srcVolId.empty() and tgtVolId.empty()) {
+    // helpful booleans
+    const bool hasSrc = not srcVolId.empty();
+    bool hasTgt = not tgtVolId.empty();
+    bool volsDontMatch = hasSrc and hasTgt and srcVolId != tgtVolId;
+
+    // If source is empty and target is empty: default volume, no auto useTfm
+    // If source is empty and target is set: tgtVol = tgtVol, no auto useTfm
+    // If source is set and target is empty: tgtVol = srcVol, no auto useTfm
+    if (hasSrc and not hasTgt) {
         tgtVolId = srcVolId;
+        hasTgt = true;
+        volsDontMatch = false;
     }
+
+    // Report selected volume
     Logger()->debug(
         "Target volume: {}", (tgtVolId.empty()) ? tgtVolId : "auto");
-    const bool needSrcVol =
-        not srcVolId.empty() and not tgtVolId.empty() and srcVolId != tgtVolId;
 
     // Verify the target volume is in the vpkg
     Logger()->debug("Adding target volume selector node");
@@ -484,68 +492,68 @@ auto main(int argc, char* argv[]) -> int
     results["volume"] = &tgtVolProps->volumeOut;
 
     //// Setup transform ////
-    // Prioritize transform flag
-    Transform3D::Pointer tfm;
     Transform3D::Identifier tfmId;
+    bool useTfm{false};
+    bool tfmIdInVpkg{false};
+
+    // Prioritize transform flag
     if (parsed.count("transform") > 0) {
-        // get the ID/path
         tfmId = parsed["transform"].as<std::string>();
-        Logger()->debug("Loading transform from path/ID: {}", tfmId);
-
-        // try the volpkg first
-        try {
-            tfm = vpkg->transform(tfmId);
-        } catch (const std::exception&) {
-        }
-
-        // If it didn't work, try as a path instead
-        try {
-            if (not tfm) {
-                tfm = Transform3D::Load(tfmId);
-            }
-        } catch (const std::exception& e) {
-            Logger()->error(
-                "Could not load transform \"{}\": {}", tfmId, e.what());
-            return EXIT_FAILURE;
-        }
+        useTfm = true;
+        tfmIdInVpkg = vpkg->hasTransform(tfmId);
     }
 
-    // Source is set and target is set and srcVol != tgtVol: auto tfm
-    else if (
-        not srcVolId.empty() and not tgtVolId.empty() and
-        srcVolId != tgtVolId) {
-        Logger()->debug("Loading transform from volpkg");
+    // Source is set and target is set and srcVol != tgtVol: auto useTfm
+    else if (volsDontMatch) {
         // Ask the volume package for transforms
         auto tfms = vpkg->transform(srcVolId, tgtVolId);
+        useTfm = tfmIdInVpkg = not tfms.empty();
+        tfmId = (tfmIdInVpkg) ? tfms[0].first : "";
 
-        // Handle no transforms
+        // Report no and multiple transforms
         if (tfms.empty()) {
             Logger()->warn(
                 "Could not find transform from {} to {}. No transform will be "
                 "applied.",
                 srcVolId, tgtVolId);
-        } else {
-            tfm = tfms[0].second;
-            tfmId = tfms[0].first;
-            // Warn on multiple transforms
-            if (tfms.size() > 1) {
-                Logger()->warn(
-                    "Found {} transforms from {} to {}. Using transform \"{}\"",
-                    tfms.size(), srcVolId, tgtVolId, tfmId);
-            }
+        } else if (tfms.size() > 1) {
+            Logger()->warn(
+                "Found {} transforms from {} to {}. Using transform \"{}\"",
+                tfms.size(), srcVolId, tgtVolId, tfmId);
         }
     }
-    auto tfmInputType = parsed["transform-input"].as<TransformInput>();
+
+    // When to apply transform
+    auto tfmInputType = parsed["apply-transform-to"].as<TransformInput>();
+
+    //// Load transform ////
+    if (useTfm and tfmIdInVpkg) {
+        Logger()->debug("Loading transform from volpkg: {}", tfmId);
+        auto loadTfm = graph->insertNode<TransformSelectorNode>();
+        loadTfm->volpkg = vpkg;
+        loadTfm->id = tfmId;
+        results["transform"] = &loadTfm->transform;
+    } else if (useTfm) {
+        Logger()->debug("Loading transform from path/ID: {}", tfmId);
+        auto loadTfm = graph->insertNode<LoadTransformNode>();
+        loadTfm->path = tfmId;
+        results["transform"] = &loadTfm->transform;
+    }
+
+    //// Invert the transform ////
+    if (useTfm and parsed.count("invert-transform") > 0) {
+        Logger()->debug("Adding invert transform node");
+        auto invTfm = graph->insertNode<InvertTransformNode>();
+        invTfm->input = *results["transform"];
+        results["transform"] = &invTfm->output;
+    }
 
     //// Transform raw input ////
-    if (tfm and tfmInputType == TransformInput::Raw) {
-        Logger()->info(
-            "Transforming raw mesh from {} to {} [{}]", tfm->source(),
-            tfm->target(), tfmId);
+    if (useTfm and tfmInputType == TransformInput::Raw) {
         Logger()->debug("Adding transform raw mesh node");
         auto tfmNode = graph->insertNode<TransformMeshNode>();
         tfmNode->input = *results["mesh"];
-        tfmNode->transform = tfm;
+        tfmNode->transform = *results["transform"];
         results["mesh"] = &tfmNode->output;
     }
 
@@ -597,7 +605,7 @@ auto main(int argc, char* argv[]) -> int
 
         else {
             // Load source volume properties if needed
-            if (needSrcVol and tfmInputType > TransformInput::Raw) {
+            if (volsDontMatch and tfmInputType > TransformInput::Raw) {
                 Logger()->debug("Adding source volume selector node");
                 auto srcVolSelector = graph->insertNode<VolumeSelectorNode>();
                 srcVolSelector->volpkg = vpkg;
@@ -641,14 +649,11 @@ auto main(int argc, char* argv[]) -> int
     }
 
     //// Transform resampled input ////
-    if (tfm and tfmInputType == TransformInput::Resampled) {
-        Logger()->info(
-            "Transforming resampled mesh from {} to {} [{}]", tfm->source(),
-            tfm->target(), tfmId);
+    if (useTfm and tfmInputType == TransformInput::Resampled) {
         Logger()->debug("Adding transform resampled mesh node");
         auto tfmNode = graph->insertNode<TransformMeshNode>();
         tfmNode->input = *results["mesh"];
-        tfmNode->transform = tfm;
+        tfmNode->transform = *results["transform"];
         results["mesh"] = &tfmNode->output;
     }
 
@@ -780,14 +785,11 @@ auto main(int argc, char* argv[]) -> int
     results["ppm"] = &ppmGen->ppm;
 
     //// Transform resampled input ////
-    if (tfm and tfmInputType == TransformInput::PerPixelMap) {
-        Logger()->info(
-            "Transforming PPM from {} to {} [{}]", tfm->source(), tfm->target(),
-            tfmId);
+    if (useTfm and tfmInputType == TransformInput::PerPixelMap) {
         Logger()->debug("Adding transform PPM node");
         auto tfmNode = graph->insertNode<TransformPPMNode>();
         tfmNode->input = *results["ppm"];
-        tfmNode->transform = tfm;
+        tfmNode->transform = *results["transform"];
         results["ppm"] = &tfmNode->output;
     }
 
