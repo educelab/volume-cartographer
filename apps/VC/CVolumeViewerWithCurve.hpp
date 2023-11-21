@@ -97,9 +97,10 @@ private:
     int fSelectedPointIndex;
     std::string fSelectedSegID;
     PathChangePointVector pathChangeBefore;
+    std::set<int> movedPointIndexSet; // set of points that are currently grabbed and have been moved
 
     bool fVertexIsChanged;
-    bool lineGrabbed{false};
+    bool curveGrabbed{false};
     QPointF fLastPos;  // last mouse position on the image
     int fImpactRange;  // how many points a control point movement can affect
 

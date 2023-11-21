@@ -321,23 +321,11 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 
             // Set fLastPos to the position of the selected point
             if (fSelectedPointIndex >= 0) {
-                lineGrabbed = true;
+                curveGrabbed = true;
 
                 setCursor(Qt::PointingHandCursor);
                 pathChangeBefore.clear();
-
-                // Collect before curve change point information
-                auto annotationIndex = fSegStructMapRef[fSelectedSegID].GetAnnotationIndexForSliceIndex(sliceIndexToolStart);
-                for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
-                    // If value is in valid range, so >= 0 and <= number of points on curve
-                    if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
-                        auto pathChangePoint = PathChangePoint();
-                        pathChangePoint.pointIndex = fSelectedPointIndex + i;
-                        pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex + i);
-                        pathChangePoint.manuallyChanged = fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.find(fSelectedPointIndex + i) != fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.end();
-                        pathChangeBefore.push_back(pathChangePoint);
-                    }
-                }
+                movedPointIndexSet.clear();
 
                 fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
                 fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
@@ -367,12 +355,12 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         return;
     }
 
-    if (!wantsPanning && !rightPressed && !lineGrabbed) {
+    if (!wantsPanning && !rightPressed && !curveGrabbed) {
         return;
     }
 
     // Update the curve if we have a selected point
-    if (fSelectedPointIndex != -1 && lineGrabbed) {
+    if (fSelectedPointIndex != -1 && curveGrabbed) {
         // Get the mouse position in widget coordinates
         cv::Vec2f aWidgetLoc, aImgLoc;
         aWidgetLoc[0] = event->position().x();
@@ -383,6 +371,26 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         Vec2<double> aDelta;
         aDelta[0] = aImgLoc[0] - fLastPos.x();
         aDelta[1] = aImgLoc[1] - fLastPos.y();
+
+        // Collect points that were moved. Note: We cannot just grab them during the initial curve drag start,
+        // as additional points might get added if the user is changing the impact range during curve dragging.
+        for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
+            // If value is in valid range, so >= 0 and <= number of points on curve
+            if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
+
+                // Check if we already have the point in our set captured
+                auto it = movedPointIndexSet.find(fSelectedPointIndex + i);
+                if (it == movedPointIndexSet.end()) {
+                    movedPointIndexSet.insert(fSelectedPointIndex + i);
+
+                    auto pathChangePoint = PathChangePoint();
+                    pathChangePoint.pointIndex = fSelectedPointIndex + i;
+                    pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex + i);
+                    pathChangePoint.manuallyChanged = fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.find(fSelectedPointIndex + i) != fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.end();
+                    pathChangeBefore.push_back(pathChangePoint);
+                }
+            }
+        }
 
         fSegStructMapRef[fSelectedSegID].fIntersectionCurve.SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
@@ -424,28 +432,28 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
         return;
     }
 
-    if (fIntersectionCurveRef != nullptr && fVertexIsChanged && lineGrabbed) {
+    if (fIntersectionCurveRef != nullptr && fVertexIsChanged && curveGrabbed) {
 
-        std::set<int> pointIndexes;
         PathChangePointVector pathChangeAfter;
         auto annotationIndex = fSegStructMapRef[fSelectedSegID].GetAnnotationIndexForSliceIndex(sliceIndexToolStart);
 
         // Collect after change point information
-        for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
-            // If value is in valid range, so >= 0 and <= number of points on curve
-            if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
-                pointIndexes.insert(fSelectedPointIndex + i);
-
-                auto pathChangePoint = PathChangePoint();
-                pathChangePoint.pointIndex = fSelectedPointIndex + i;
-                pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex + i);
-                pathChangePoint.manuallyChanged = true;
-                pathChangeAfter.push_back(pathChangePoint);
-            }
+        for (auto index : movedPointIndexSet) {
+            auto pathChangePoint = PathChangePoint();
+            pathChangePoint.pointIndex = index;
+            pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(index);
+            pathChangePoint.manuallyChanged = true;
+            pathChangeAfter.push_back(pathChangePoint);
         }
 
         // Mark involved points as manually changed
-        fSegStructMapRef[fSelectedSegID].AddPointsToManualBuffer(pointIndexes);
+        fSegStructMapRef[fSelectedSegID].AddPointsToManualBuffer(movedPointIndexSet);
+
+        // As the user can change the impact range during curve dragging, there might be entries in the before snapshot
+        // that were not actually moved, in the sense that they are not in the moved point index set => remove them.
+        pathChangeBefore.erase(std::remove_if(pathChangeBefore.begin(), pathChangeBefore.end(), [this](auto before) {
+            return find_if(this->movedPointIndexSet.begin(), this->movedPointIndexSet.end(), [before](auto index) { return before.pointIndex == index; }) == this->movedPointIndexSet.end();
+        }), std::end(pathChangeBefore));
 
         // update the point positions in the path point cloud and store undo command
         SendSignalPathChanged(fSelectedSegID, pathChangeBefore, pathChangeAfter);
@@ -455,7 +463,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
     }
 
     if (event->button() == Qt::LeftButton) {
-        lineGrabbed = false;
+        curveGrabbed = false;
     }
 
     setCursor(Qt::ArrowCursor);
