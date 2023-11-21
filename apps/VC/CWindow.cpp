@@ -925,6 +925,7 @@ void CWindow::UpdateView(void)
     }
     fSegTool->setEnabled(fSegTool->isChecked() || !availableNewSegments && availableSegments);
     fPenTool->setEnabled(fPenTool->isChecked() || availableNewSegments);
+    ui.btnEvenlySpacePoints->setEnabled(fSegTool->isChecked() && fSliceIndexToolStart == fPathOnSliceIndex);
 
     volSelect->setEnabled(can_change_volume_());
     assignVol->setEnabled(can_change_volume_());
