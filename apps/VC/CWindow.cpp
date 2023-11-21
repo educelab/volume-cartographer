@@ -94,6 +94,7 @@ CWindow::CWindow()
 {
     const QSettings settings("VC.ini", QSettings::IniFormat);
     undoStack = new QUndoStack(this);
+    setWindowIcon(QPixmap(":/images/logo.png"));
     ui.setupUi(this);
     // setAttribute(Qt::WA_DeleteOnClose);
     SDL_Init(SDL_INIT_AUDIO);

@@ -1,5 +1,6 @@
 # VC Main app
 set(target VC)
+set(CMAKE_AUTORCC ON)
 
 set(srcs
     VCAppMain.cpp
@@ -33,7 +34,7 @@ string(CONCAT info_string
     ${copyright}
 )
 
-add_executable(${target} ${srcs})
+add_executable(${target} ${srcs} resources.qrc)
 set_target_properties(${target} PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
