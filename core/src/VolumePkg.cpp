@@ -5,6 +5,7 @@
 
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/core/util/String.hpp"
 
 using namespace volcart;
 
@@ -570,9 +571,28 @@ auto VolumePkg::hasTransforms() const -> bool
     return not transforms_.empty();
 }
 
-auto VolumePkg::hasTransform(const Volume::Identifier& id) const -> bool
+auto VolumePkg::hasTransform(Volume::Identifier id) const -> bool
 {
-    return transforms_.count(id) > 0;
+    // Don't allow empty IDs
+    if (id.empty()) {
+        throw std::invalid_argument("Transform ID is empty");
+    }
+
+    // Remove the star for inverse transforms
+    auto findInverse = id.back() == '*';
+    if (findInverse) {
+        id.pop_back();
+    }
+
+    // Find the forward transform
+    auto found = transforms_.count(id) > 0;
+
+    // See if this transform can be inverted
+    if (found and findInverse) {
+        found = transforms_.at(id)->invertible();
+    }
+
+    return found;
 }
 
 auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
@@ -616,6 +636,12 @@ auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
 void VolumePkg::setTransform(
     const Transform3D::Identifier& id, const Transform3D::Pointer& transform)
 {
+    // Don't allow empty IDs
+    if (id.empty()) {
+        throw std::invalid_argument("Transform ID is empty");
+    }
+
+    // See if the
     if (transforms_.count(id) == 0) {
         throw std::range_error("Transform " + id + " does not exist");
     }
@@ -628,10 +654,32 @@ void VolumePkg::setTransform(
     Transform3D::Save(tfmPath, transform);
 }
 
-auto VolumePkg::transform(const Transform3D::Identifier& id)
-    -> Transform3D::Pointer
+auto VolumePkg::transform(Transform3D::Identifier id) -> Transform3D::Pointer
 {
-    return transforms_.at(id);
+    // Don't allow empty IDs
+    if (id.empty()) {
+        throw std::invalid_argument("Transform ID is empty");
+    }
+
+    // Remove the star for inverse transforms
+    auto getInverse = id.back() == '*';
+    if (getInverse) {
+        id.pop_back();
+    }
+
+    // Find the forward transform
+    auto tfm = transforms_.at(id)->clone();
+
+    // Invert if requested
+    if (getInverse) {
+        if (tfm->invertible()) {
+            tfm = transforms_.at(id)->invert();
+        } else {
+            throw std::invalid_argument("Transform is not invertible: " + id);
+        }
+    }
+
+    return tfm;
 }
 
 auto VolumePkg::transform(

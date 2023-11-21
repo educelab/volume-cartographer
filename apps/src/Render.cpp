@@ -90,7 +90,8 @@ auto GetTransformOpts() -> po::options_description
         ("apply-transform-to", po::value<TransformInput>()->default_value(TransformInput::Raw, "raw"),
             "Selects the input to which the coordinate transform will be "
             "applied. Options: raw (default), resampled, PPM.")
-        ("invert-transform", "When provided, invert the transform.");
+        ("invert-transform", "When provided, invert the transform.")
+        ("disable-transform", "When provided, disable all transforms.");
     // clang-format on
 
     return opts;
@@ -449,7 +450,7 @@ auto main(int argc, char* argv[]) -> int
     // helpful booleans
     const bool hasSrc = not srcVolId.empty();
     bool hasTgt = not tgtVolId.empty();
-    bool volsDontMatch = hasSrc and hasTgt and srcVolId != tgtVolId;
+    bool volsDontMatch = srcVolId != tgtVolId;
 
     // If source is empty and target is empty: default volume, no auto useTfm
     // If source is empty and target is set: tgtVol = tgtVol, no auto useTfm
@@ -461,8 +462,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Report selected volume
-    Logger()->debug(
-        "Target volume: {}", (tgtVolId.empty()) ? tgtVolId : "auto");
+    Logger()->debug("Target volume: {}", (hasTgt) ? tgtVolId : "auto");
 
     // Verify the target volume is in the vpkg
     Logger()->debug("Adding target volume selector node");
@@ -493,18 +493,19 @@ auto main(int argc, char* argv[]) -> int
 
     //// Setup transform ////
     Transform3D::Identifier tfmId;
+    const bool disableTfm = parsed.count("disable-transform") > 0;
     bool useTfm{false};
     bool tfmIdInVpkg{false};
 
     // Prioritize transform flag
-    if (parsed.count("transform") > 0) {
+    if (not disableTfm and parsed.count("transform") > 0) {
         tfmId = parsed["transform"].as<std::string>();
         useTfm = true;
         tfmIdInVpkg = vpkg->hasTransform(tfmId);
     }
 
     // Source is set and target is set and srcVol != tgtVol: auto useTfm
-    else if (volsDontMatch) {
+    else if (not disableTfm and hasSrc and hasTgt and volsDontMatch) {
         // Ask the volume package for transforms
         auto tfms = vpkg->transform(srcVolId, tgtVolId);
         useTfm = tfmIdInVpkg = not tfms.empty();
@@ -537,6 +538,7 @@ auto main(int argc, char* argv[]) -> int
         Logger()->debug("Loading transform from path/ID: {}", tfmId);
         auto loadTfm = graph->insertNode<LoadTransformNode>();
         loadTfm->path = tfmId;
+        loadTfm->cacheArgs = true;
         results["transform"] = &loadTfm->transform;
     }
 

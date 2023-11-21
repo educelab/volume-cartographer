@@ -246,7 +246,7 @@ public:
     /** @name Transform Data */
     [[nodiscard]] auto hasTransforms() const -> bool;
 
-    [[nodiscard]] auto hasTransform(const Volume::Identifier& id) const -> bool;
+    [[nodiscard]] auto hasTransform(Volume::Identifier id) const -> bool;
 
     /** @brief Add a transform to the VolPkg */
     auto addTransform(const Transform3D::Pointer& transform)
@@ -258,7 +258,7 @@ public:
         const Transform3D::Pointer& transform);
 
     /** @brief Get a transform by ID */
-    auto transform(const Transform3D::Identifier& id) -> Transform3D::Pointer;
+    auto transform(Transform3D::Identifier id) -> Transform3D::Pointer;
 
     /** @brief Get a transform from a source volume to a target volume */
     auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)

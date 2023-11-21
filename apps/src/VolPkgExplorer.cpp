@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 
 #include <boost/program_options.hpp>
@@ -62,6 +63,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     ///// VolumePkg /////
+    std::cout << std::boolalpha;
     std::cout << "\n";
     std::cout << " --- VolumePkg ---\n";
     std::cout << "Name: " << vpkg.name() << "\n";
@@ -107,6 +109,7 @@ auto main(int argc, char* argv[]) -> int
         std::cout << "[" << t << "] type: " << tfm->type();
         std::cout << ", source: " << tfm->source();
         std::cout << ", target: " << tfm->target();
+        std::cout << ", invertible: " << tfm->invertible();
         std::cout << "\n";
     }
     std::cout << "\n";
