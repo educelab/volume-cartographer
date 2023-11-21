@@ -9,6 +9,7 @@
 #include "vc/core/io/ImageIO.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -39,6 +40,23 @@ void WriteLayers(
         vc::WriteImage(filepath, image, opts);
     }
 }
+
+namespace
+{
+auto GetTransformOpts() -> po::options_description
+{
+    // clang-format off
+    po::options_description opts("Transform Options");
+    opts.add_options()
+        ("transform", po::value<std::string>(), "The ID of a transform in the "
+            "VolumePkg or a path to a Transform3D .json file. If provided, "
+            "perform coordinate transforms with the given transform.")
+        ("invert-transform", "When provided, invert the transform.");
+    // clang-format on
+
+    return opts;
+}
+}  // namespace
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -89,6 +107,7 @@ auto main(int argc, char* argv[]) -> int
 
     po::options_description all("Usage");
     all.add(required)
+        .add(::GetTransformOpts())
         .add(filterOptions)
         .add(ppmOptions)
         .add(performanceOptions);
@@ -191,6 +210,21 @@ auto main(int argc, char* argv[]) -> int
     // Read the ppm
     std::cout << "Loading PPM..." << std::endl;
     auto ppm = vc::PerPixelMap::New(vc::PerPixelMap::ReadPPM(inputPPMPath));
+
+    ///// Transform the PPM /////
+    if (parsed.count("transform") > 0) {
+        // load the transform
+        auto tfmId = parsed.at("transform").as<std::string>();
+        vc::Transform3D::Pointer tfm;
+        if (vpkg.hasTransform(tfmId)) {
+            tfm = vpkg.transform(tfmId);
+        } else {
+            tfm = vc::Transform3D::Load(tfmId);
+        }
+
+        std::cout << "Applying transform..." << std::endl;
+        ppm = vc::ApplyTransform(ppm, tfm);
+    }
 
     // Setup line generator
     auto line = vc::LineGenerator::New();
