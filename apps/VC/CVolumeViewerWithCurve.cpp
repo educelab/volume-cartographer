@@ -448,7 +448,7 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
         fSegStructMapRef[fSelectedSegID].AddPointsToManualBuffer(pointIndexes);
 
         // update the point positions in the path point cloud and store undo command
-        SendSignalPathChanged(pathChangeBefore, pathChangeAfter);
+        SendSignalPathChanged(fSelectedSegID, pathChangeBefore, pathChangeAfter);
 
         fVertexIsChanged = false;
         fSelectedPointIndex = -1;

@@ -71,7 +71,7 @@ private:
     void DrawControlPoints(QGraphicsScene* scene);
 
 signals:
-    void SendSignalPathChanged(PathChangePointVector before, PathChangePointVector after);
+    void SendSignalPathChanged(std::string, PathChangePointVector before, PathChangePointVector after);
     void SendSignalAnnotationChanged(void);
 
 private:

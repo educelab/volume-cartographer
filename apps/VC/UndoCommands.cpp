@@ -44,3 +44,23 @@ void PathChangeCommand::redo()
     segStruct->SetCurrentCurve(segStruct->fPathOnSliceIndex);
     viewer->UpdateView();
 }
+
+EvenlySpaceCurveCommand::EvenlySpaceCurveCommand(CVolumeViewerWithCurve* viewer, SegmentationStruct* segStruct,
+    const PathChangePointVector before, const PathChangePointVector after, QUndoCommand* parent)
+    : PathChangeCommand(viewer, segStruct, before, after, parent)
+{
+}
+
+void EvenlySpaceCurveCommand::undo()
+{
+    segStruct->UpdateChangedCurvePoints(segStruct->fPathOnSliceIndex, before);
+    segStruct->SetCurrentCurve(segStruct->fPathOnSliceIndex);
+    viewer->UpdateView();
+}
+
+void EvenlySpaceCurveCommand::redo()
+{
+    segStruct->UpdateChangedCurvePoints(segStruct->fPathOnSliceIndex, after);
+    segStruct->SetCurrentCurve(segStruct->fPathOnSliceIndex);
+    viewer->UpdateView();
+}

@@ -33,7 +33,6 @@ void CVolumeViewerView::setup()
 
     backgroundBehindText = new QGraphicsRectItem();
     backgroundBehindText->setFlag(QGraphicsItem::ItemIgnoresTransformations);
-    backgroundBehindText->setBrush(QBrush(QColor(125, 125, 125, 200)));
     backgroundBehindText->setPen(Qt::NoPen);
     backgroundBehindText->setZValue(99);
     scene()->addItem(backgroundBehindText);
@@ -83,6 +82,11 @@ void CVolumeViewerView::showTextAboveCursor(const QString& value, const QString&
     backgroundBehindText->setVisible(true);
     backgroundBehindText->setPos(p);
     backgroundBehindText->setRect(0, 0, fm.horizontalAdvance((label.isEmpty() ? value : label)) + BGND_RECT_MARGIN, fm.height() * (label.isEmpty() ? 1 : 2) + BGND_RECT_MARGIN);
+    backgroundBehindText->setBrush(QBrush(QColor(
+        (2 * 125 + color.red())   / 3,
+        (2 * 125 + color.green()) / 3,
+        (2 * 125 + color.blue())  / 3,
+    200)));
 }
 
 void CVolumeViewerView::hideTextAboveCursor()
@@ -93,17 +97,17 @@ void CVolumeViewerView::hideTextAboveCursor()
 
 void CVolumeViewerView::showCurrentImpactRange(int range)
 {
-    showTextAboveCursor(QString::number(range), "", DEFAULT_TEXT_COLOR); // tr("Impact Range")
+    showTextAboveCursor(QString::number(range), "", QColor(255, 120, 110)); // tr("Impact Range")
 }
 
 void CVolumeViewerView::showCurrentScanRange(int range)
 {
-    showTextAboveCursor(QString::number(range), "", DEFAULT_TEXT_COLOR); // tr("Scan Range")
+    showTextAboveCursor(QString::number(range), "", QColor(160, 180, 255)); // tr("Scan Range")
 }
 
 void CVolumeViewerView::showCurrentSliceIndex(int slice, bool highlight)
 {
-    showTextAboveCursor(QString::number(slice), "", (highlight ? QColor(255, 0, 0) : DEFAULT_TEXT_COLOR)); // tr("Slice")
+    showTextAboveCursor(QString::number(slice), "", (highlight ? QColor(255, 50, 20) : QColor(255, 220, 30))); // tr("Slice")
 }
 
 // Constructor

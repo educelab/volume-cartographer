@@ -223,8 +223,8 @@ void CWindow::CreateWidgets(void)
         fVolumeViewerWidget, SIGNAL(SendSignalOnLoadAnyImage(int)), this,
         SLOT(OnLoadAnySlice(int)));
     connect(
-        fVolumeViewerWidget, SIGNAL(SendSignalPathChanged(PathChangePointVector, PathChangePointVector)), this,
-        SLOT(OnPathChanged(PathChangePointVector, PathChangePointVector)));
+        fVolumeViewerWidget, SIGNAL(SendSignalPathChanged(std::string, PathChangePointVector, PathChangePointVector)), this,
+        SLOT(OnPathChanged(std::string, PathChangePointVector, PathChangePointVector)));
     connect(
         fVolumeViewerWidget, SIGNAL(SendSignalAnnotationChanged()), this,
         SLOT(OnAnnotationChanged()));
@@ -441,6 +441,9 @@ void CWindow::CreateWidgets(void)
         fEdtImpactRng, SIGNAL(valueChanged(int)), this,
         SLOT(OnEdtImpactRange(int)));
     fEdtImpactRng->setValue(impactRangeSteps.size() / 2);
+
+    ui.btnEvenlySpacePoints->setDisabled(true);
+    connect(ui.btnEvenlySpacePoints, &QPushButton::clicked, this, &CWindow::OnEvenlySpacePoints);
 
     // Set up the status bar
     statusBar = this->findChild<QStatusBar*>("statusBar");
@@ -862,10 +865,15 @@ CWindow::SaveResponse CWindow::SaveDialogSegTool(void)
             return SaveResponse::Cancelled;
         } else if (question.clickedButton() == buttonKeep) {
             // Save the changed curve and mark as manually changed
-            fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fSliceIndexToolStart, true);
-            fSegStructMap[fHighlightedSegmentationId].SetAnnotationManualPoints(fSliceIndexToolStart);
-            fSegStructMap[fHighlightedSegmentationId].SetAnnotationUsedInRun(fSliceIndexToolStart, false);
-            fSegStructMap[fHighlightedSegmentationId].MergeChangedCurveIntoPointCloud(fSliceIndexToolStart);
+            for (auto& seg : fSegStructMap) {
+                if (seg.second.HasChangedCurves()) {
+                    seg.second.SetAnnotationAnchor(fSliceIndexToolStart, true);
+                    seg.second.SetAnnotationManualPoints(fSliceIndexToolStart);
+                    seg.second.SetAnnotationUsedInRun(fSliceIndexToolStart, false);
+                    seg.second.MergeChangedCurveIntoPointCloud(fSliceIndexToolStart);
+                }
+            }
+
             fVpkgChanged = true;
             return SaveResponse::Continue;
         }
@@ -2544,7 +2552,6 @@ void CWindow::TogglePenTool(void)
 // Toggle the status of the segmentation tool
 void CWindow::ToggleSegmentationTool(void)
 {
-    undoStack->clear();
     if (fSegTool->isChecked()) {
         // If the prefetching worker is not yet running, start it
         if (!prefetchWorker.joinable()) {
@@ -2572,6 +2579,7 @@ void CWindow::ToggleSegmentationTool(void)
 
         // turn off pen tool
         fPenTool->setChecked(false);
+        ui.btnEvenlySpacePoints->setEnabled(true);
         // pass focus so that viewer can directly listen to keyboard events
         fVolumeViewerWidget->setFocus();
     } else {
@@ -2599,16 +2607,22 @@ void CWindow::ToggleSegmentationTool(void)
                 return;
             } else if (question.clickedButton() == buttonKeep) {
                 // Save the changed curve and mark as manually changed
-                fSegStructMap[fHighlightedSegmentationId].SetAnnotationAnchor(fSliceIndexToolStart, true);
-                fSegStructMap[fHighlightedSegmentationId].SetAnnotationManualPoints(fSliceIndexToolStart);
-                fSegStructMap[fHighlightedSegmentationId].SetAnnotationUsedInRun(fSliceIndexToolStart, false);
-                fSegStructMap[fHighlightedSegmentationId].MergeChangedCurveIntoPointCloud(fSliceIndexToolStart);
+                for (auto& seg : fSegStructMap) {
+                    if (seg.second.HasChangedCurves()) {
+                        seg.second.SetAnnotationAnchor(fSliceIndexToolStart, true);
+                        seg.second.SetAnnotationManualPoints(fSliceIndexToolStart);
+                        seg.second.SetAnnotationUsedInRun(fSliceIndexToolStart, false);
+                        seg.second.MergeChangedCurveIntoPointCloud(fSliceIndexToolStart);
+                    }
+                }
             }
         }
 
+        undoStack->clear();
         CleanupSegmentation();
         fSliceIndexToolStart = -1;
         fVolumeViewerWidget->SetSliceIndexToolStart(fSliceIndexToolStart);
+        ui.btnEvenlySpacePoints->setEnabled(false);
     }
     UpdateView();
 }
@@ -2749,6 +2763,45 @@ void CWindow::OnEdtImpactRange(int nImpactRangeIndex)
     ui.labImpactRange->setText(QString::number(impactRange));
 }
 
+// Handle request to evenly space points
+void CWindow::OnEvenlySpacePoints()
+{
+    if (fSegTool->isChecked()) {
+        for (auto& seg : fSegStructMap) {
+            if (seg.second.compute) {
+
+                // Collect before snapshot
+                PathChangePointVector pathChangeBefore;
+                for (int i = 0; i < seg.second.fIntersectionCurve.GetPointsNum(); i++) {
+                    auto pathChangePoint = PathChangePoint();
+                    pathChangePoint.pointIndex = i;
+                    pathChangePoint.position = seg.second.fIntersectionCurve.GetPoint(i);
+                    pathChangeBefore.push_back(pathChangePoint);
+                }
+
+                // Actually move the points
+                seg.second.EvenlySpacePoints(fSliceIndexToolStart);
+
+                // Collect after snapshot
+                PathChangePointVector pathChangeAfter;
+                for (int i = 0; i < seg.second.fIntersectionCurve.GetPointsNum(); i++) {
+                    auto pathChangePoint = PathChangePoint();
+                    pathChangePoint.pointIndex = i;
+                    pathChangePoint.position = seg.second.fIntersectionCurve.GetPoint(i);
+                    pathChangeAfter.push_back(pathChangePoint);
+                }
+
+                // Add to undo stack
+                auto undo = new EvenlySpaceCurveCommand(fVolumeViewerWidget, &seg.second, pathChangeBefore, pathChangeAfter);
+                undo->setText(tr("Evenly Space Points"));
+                undoStack->push(undo);
+            }
+        }
+
+        UpdateView();
+    }
+}
+
 // Handle request to step impact range up
 void CWindow::onImpactRangeUp(void)
 {
@@ -2820,7 +2873,7 @@ void CWindow::OnLoadPrevSliceShift(int shift)
 }
 
 // Handle path change event
-void CWindow::OnPathChanged(PathChangePointVector before, PathChangePointVector after)
+void CWindow::OnPathChanged(std::string segID, PathChangePointVector before, PathChangePointVector after)
 {
     if (fWindowState == EWindowState::WindowStateSegmentation) {
         for (auto& seg : fSegStructMap) {
@@ -2829,10 +2882,11 @@ void CWindow::OnPathChanged(PathChangePointVector before, PathChangePointVector 
         }
     }
 
-    auto undo = new PathChangeCommand(fVolumeViewerWidget, &fSegStructMap[fSegmentationId], before, after);
+    auto undo = new PathChangeCommand(fVolumeViewerWidget, &fSegStructMap[segID], before, after);
     undo->setText(tr("Curve Change"));
     undoStack->push(undo);
 }
+
 // Handle annotation change event
 void CWindow::OnAnnotationChanged(void)
 {

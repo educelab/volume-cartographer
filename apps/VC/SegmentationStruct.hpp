@@ -336,7 +336,7 @@ struct SegmentationStruct {
 
     inline bool HasChangedCurves()
     {
-        return (fBufferedChangedPoints.empty() == false);
+        return (fIntersectionsChanged.empty() == false || fBufferedChangedPoints.empty() == false);
     }
 
     inline void ForgetChangedCurves()
@@ -770,6 +770,23 @@ struct SegmentationStruct {
         // Buffer the changed path, so that if we change the displayed slice we do not loose
         // the manual changes that were made to the points of the path
         fIntersectionsChanged[fPathOnSliceIndex] = fIntersectionCurve;
+    }
+
+    void EvenlySpacePoints(int sliceIndex) {
+        auto points = fIntersectionCurve.GetPoints();
+        std::vector<Voxel> voxels;
+        for (auto pt : points) {
+            voxels.push_back(cv::Vec3d(pt[0], pt[1], sliceIndex));
+        }
+        volcart::segmentation::FittedCurve curve(voxels, sliceIndex);
+
+        auto evenVoxels = curve.evenlySpacePoints();
+        int i = 0;
+        for (auto vx : evenVoxels) {
+            fIntersectionCurve.SetPoint(i, Vec2(vx[0], vx[1]));
+            i++;
+        }
+        fIntersectionsChanged[sliceIndex] = fIntersectionCurve;
     }
 };
 

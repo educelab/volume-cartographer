@@ -209,12 +209,13 @@ private slots:
     void OnBtnStartSegClicked(void);
 
     void OnEdtImpactRange(int nImpactRange);
+    void OnEvenlySpacePoints();
 
     void OnLoadAnySlice(int slice);
     void OnLoadNextSliceShift(int shift);
     void OnLoadPrevSliceShift(int shift);
 
-    void OnPathChanged(PathChangePointVector before, PathChangePointVector after);
+    void OnPathChanged(std::string segID, PathChangePointVector before, PathChangePointVector after);
     void OnAnnotationChanged(void);
 
     void UpdateSegmentCheckboxes(std::string aSegID);
