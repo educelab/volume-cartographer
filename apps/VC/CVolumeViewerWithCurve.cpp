@@ -334,7 +334,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
                         auto pathChangePoint = PathChangePoint();
                         pathChangePoint.pointIndex = fSelectedPointIndex + i;
                         pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex + i);
-                        pathChangePoint.manuallyChanged = std::get<long>(fSegStructMapRef[fSelectedSegID].fAnnotationCloud[annotationIndex + fSelectedPointIndex + i][ANO_EL_FLAGS]) & AnnotationBits::ANO_MANUAL;
+                        pathChangePoint.manuallyChanged = fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.find(fSelectedPointIndex + i) != fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.end();
                         pathChangeBefore.push_back(pathChangePoint);
                     }
                 }

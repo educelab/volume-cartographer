@@ -1045,14 +1045,15 @@ void CWindow::DoSegmentation(void)
         // that is going to get used for the segmentation since otherwise the manual changes would
         // be lost and the original curve would be used as starting point for the segmentation.
         seg.second.MergeChangedCurveIntoPointCloud(startIndex);
-        // Now we can forget all other changed curves
-        seg.second.ForgetChangedCurves();
 
         // This curve is now considered an anchor as it was used as the starting point for a segmentation run.
         // Update the annotations accordingly.
         // Note: This applies even if the run should fail. Some other annotations will only get set though if successful.
         seg.second.SetAnnotationAnchor(startIndex, true);
         seg.second.SetAnnotationManualPoints(startIndex);
+
+        // Now we can forget all other changed curves
+        seg.second.ForgetChangedCurves();
 
         // Prepare runs
         if (algoIdx == 0) {
