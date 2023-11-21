@@ -202,6 +202,16 @@ auto main(int argc, char* argv[]) -> int
             tfm = vc::Transform3D::Load(tfmId);
         }
 
+        if (parsed_.count("invert-transform") > 0) {
+            if (tfm->invertible()) {
+                tfm = tfm->invert();
+            } else {
+                std::cerr << "WARNING: ";
+                std::cerr << "Cannot invert transform. Using original.";
+                std::cerr << std::endl;
+            }
+        }
+
         std::cout << "Applying transform..." << std::endl;
         ppm = vc::ApplyTransform(ppm, tfm);
     }
