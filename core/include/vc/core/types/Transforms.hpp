@@ -49,6 +49,9 @@ public:
     /** Pointer type */
     using Pointer = std::shared_ptr<Transform3D>;
 
+    /** Transform identifier type (for VolumePkg) */
+    using Identifier = std::string;
+
     /** Default constructor */
     virtual ~Transform3D() = default;
     /** Disallow move construction */

@@ -594,3 +594,143 @@ void LoadVolumetricMaskNode::deserialize_(
         mask_ = VolumetricMask::New(psio::ReadPointSet(cacheDir / file));
     }
 }
+
+LoadTransformNode::LoadTransformNode()
+    : smgl::Node{true}, path{&path_}, cacheArgs{&cacheArgs_}, transform{&tfm_}
+{
+    registerInputPort("path", path);
+    registerInputPort("cacheArgs", cacheArgs);
+    registerOutputPort("transform", transform);
+
+    compute = [&]() {
+        Logger()->debug("[graph.core] loading transform: {}", path_.string());
+        tfm_ = Transform3D::Load(path_);
+    };
+    usesCacheDir = [&]() { return cacheArgs_; };
+}
+
+auto LoadTransformNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta{{"path", path_.string()}, {"cacheArgs", cacheArgs_}};
+    if (useCache and cacheArgs_ and tfm_) {
+        auto file = path_.filename().replace_extension(".json");
+        Transform3D::Save(cacheDir / file, tfm_);
+        meta["cachedFile"] = file.string();
+    }
+    return meta;
+}
+
+void LoadTransformNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& /** cacheDir */)
+{
+    path_ = meta["path"].get<std::string>();
+    cacheArgs_ = meta["cacheArgs"].get<bool>();
+}
+
+TransformSelectorNode::TransformSelectorNode()
+    : volpkg{&vpkg_}, id{&id_}, transform{&tfm_}
+{
+    registerInputPort("volpkg", volpkg);
+    registerInputPort("id", id);
+    registerOutputPort("transform", transform);
+    compute = [&]() {
+        if (id_.empty()) {
+            Logger()->error("[graph.core] empty transform ID");
+        } else {
+            Logger()->debug("[graph.core] loading transform: {}", id_);
+            tfm_ = vpkg_->transform(id_);
+        }
+    };
+}
+
+auto TransformSelectorNode::serialize_(
+    bool /*useCache*/, const fs::path& /*cacheDir*/) -> smgl::Metadata
+{
+    return {{"id", id_}};
+}
+
+void TransformSelectorNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& /*cacheDir*/)
+{
+    id_ = meta["id"].get<std::string>();
+}
+
+InvertTransformNode::InvertTransformNode()
+    : Node{true}, input{&input_}, output{&output_}
+{
+    registerInputPort("input", input);
+    registerOutputPort("output", output);
+
+    compute = [&]() {
+        if (input_ and input_->invertible()) {
+            output_ = input_->invert();
+        } else {
+            Logger()->warn(
+                "[graph.core] Cannot invert transform. Using original.");
+            output_ = input_;
+        }
+    };
+}
+
+auto InvertTransformNode::serialize_(
+    bool useCache, const filesystem::path& cacheDir) -> smgl::Metadata
+{
+    smgl::Metadata meta;
+    if (useCache and output_) {
+        Transform3D::Save(cacheDir / "inverted_transform.json", output_);
+        meta["transform"] = "inverted_transform.json";
+    }
+    return meta;
+}
+
+void InvertTransformNode::deserialize_(
+    const smgl::Metadata& meta, const filesystem::path& cacheDir)
+{
+    if (meta.contains("transform")) {
+        auto tfmFile = meta["transform"].get<std::string>();
+        output_ = Transform3D::Load(cacheDir / tfmFile);
+    }
+}
+
+auto TransformMeshNode::serialize_(
+    bool useCache, const filesystem::path& cacheDir) -> smgl::Metadata
+{
+    auto meta = BaseT::serialize_(useCache, cacheDir);
+    if (useCache and output_) {
+        WriteMesh(cacheDir / "transformed.obj", output_);
+        meta["mesh"] = "transformed.obj";
+    }
+    return meta;
+}
+
+void TransformMeshNode::deserialize_(
+    const smgl::Metadata& meta, const filesystem::path& cacheDir)
+{
+    BaseT::deserialize_(meta, cacheDir);
+    if (meta.contains("mesh")) {
+        auto meshFile = meta["mesh"].get<std::string>();
+        output_ = ReadMesh(cacheDir / meshFile).mesh;
+    }
+}
+
+auto TransformPPMNode::serialize_(
+    bool useCache, const filesystem::path& cacheDir) -> smgl::Metadata
+{
+    auto meta = BaseT::serialize_(useCache, cacheDir);
+    if (useCache and output_) {
+        PerPixelMap::WritePPM(cacheDir / "transformed.ppm", *output_);
+        meta["ppm"] = "transformed.ppm";
+    }
+    return meta;
+}
+
+void TransformPPMNode::deserialize_(
+    const smgl::Metadata& meta, const filesystem::path& cacheDir)
+{
+    BaseT::deserialize_(meta, cacheDir);
+    if (meta.contains("ppm")) {
+        auto ppmFile = meta["ppm"].get<std::string>();
+        output_ = PerPixelMap::New(PerPixelMap::ReadPPM(cacheDir / ppmFile));
+    }
+}

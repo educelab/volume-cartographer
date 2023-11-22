@@ -14,6 +14,7 @@
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/FormatStrToRegexStr.hpp"
 #include "vc/core/util/Iteration.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/core/util/String.hpp"
 
 namespace fs = volcart::filesystem;
@@ -30,7 +31,7 @@ static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 struct VolumeInfo {
     fs::path path;
@@ -136,10 +137,11 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Make sure we support this version of the VolPkg
-    if (volpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << volpkg->version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+    if (volpkg->version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            volpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 

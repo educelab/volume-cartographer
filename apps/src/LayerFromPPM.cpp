@@ -9,6 +9,7 @@
 #include "vc/core/io/ImageIO.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -21,7 +22,7 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 using volcart::enumerate;
 
@@ -39,6 +40,23 @@ void WriteLayers(
         vc::WriteImage(filepath, image, opts);
     }
 }
+
+namespace
+{
+auto GetTransformOpts() -> po::options_description
+{
+    // clang-format off
+    po::options_description opts("Transform Options");
+    opts.add_options()
+        ("transform", po::value<std::string>(), "The ID of a transform in the "
+            "VolumePkg or a path to a Transform3D .json file. If provided, "
+            "perform coordinate transforms with the given transform.")
+        ("invert-transform", "When provided, invert the transform.");
+    // clang-format on
+
+    return opts;
+}
+}  // namespace
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -89,6 +107,7 @@ auto main(int argc, char* argv[]) -> int
 
     po::options_description all("Usage");
     all.add(required)
+        .add(::GetTransformOpts())
         .add(filterOptions)
         .add(ppmOptions)
         .add(performanceOptions);
@@ -136,12 +155,11 @@ auto main(int argc, char* argv[]) -> int
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::stringstream msg;
-        msg << "Volume package is version " << vpkg.version()
-            << " but this program requires version " << VOLPKG_SUPPORTED_VERSION
-            << ".";
-        vc::Logger()->error(msg.str());
+    if (vpkg.version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg.version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -192,6 +210,31 @@ auto main(int argc, char* argv[]) -> int
     // Read the ppm
     std::cout << "Loading PPM..." << std::endl;
     auto ppm = vc::PerPixelMap::New(vc::PerPixelMap::ReadPPM(inputPPMPath));
+
+    ///// Transform the PPM /////
+    if (parsed.count("transform") > 0) {
+        // load the transform
+        auto tfmId = parsed.at("transform").as<std::string>();
+        vc::Transform3D::Pointer tfm;
+        if (vpkg.hasTransform(tfmId)) {
+            tfm = vpkg.transform(tfmId);
+        } else {
+            tfm = vc::Transform3D::Load(tfmId);
+        }
+
+        if (parsed.count("invert-transform") > 0) {
+            if (tfm->invertible()) {
+                tfm = tfm->invert();
+            } else {
+                std::cerr << "WARNING: ";
+                std::cerr << "Cannot invert transform. Using original.";
+                std::cerr << std::endl;
+            }
+        }
+
+        std::cout << "Applying transform..." << std::endl;
+        ppm = vc::ApplyTransform(ppm, tfm);
+    }
 
     // Setup line generator
     auto line = vc::LineGenerator::New();

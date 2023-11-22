@@ -21,7 +21,7 @@
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 static constexpr int VOLPKG_SLICE_MIN_INDEX = 0;
 
 namespace ChaoVis

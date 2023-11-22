@@ -22,7 +22,7 @@ namespace po = boost::program_options;
 using namespace volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 // When to smooth the mesh
 enum class SmoothOpt { Off = 0, Before, After, Both };
@@ -32,6 +32,9 @@ enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
 
 // Available texturing algorithms
 enum class Method { Composite = 0, Intersection, Integral, Thickness };
+
+// What to transform to the target volume
+enum class TransformInput { Raw = 0, Resampled, PerPixelMap };
 
 namespace
 {
@@ -69,6 +72,26 @@ auto GetIOOpts() -> po::options_description
         "Output file path for the generated PPM.")
     ("save-graph", po::value<bool>()->default_value(true),
         "Save the generated render graph into the volume package.");
+    // clang-format on
+
+    return opts;
+}
+
+auto GetTransformOpts() -> po::options_description
+{
+    // clang-format off
+    po::options_description opts("Transform Options");
+    opts.add_options()
+        ("transform", po::value<std::string>(), "The ID of a transform in the "
+            "VolumePkg or a path to a Transform3D .json file. If provided, "
+            "perform coordinate transforms with the given transform. "
+            "Otherwise, uses the default volume-to-volume transform only if "
+            "required.")
+        ("apply-transform-to", po::value<TransformInput>()->default_value(TransformInput::Raw, "raw"),
+            "Selects the input to which the coordinate transform will be "
+            "applied. Options: raw (default), resampled, PPM.")
+        ("invert-transform", "When provided, invert the transform.")
+        ("disable-transform", "When provided, disable all transforms.");
     // clang-format on
 
     return opts;
@@ -257,6 +280,7 @@ auto main(int argc, char* argv[]) -> int
     po::options_description all("Usage");
     all.add(::GetGeneralOpts())
         .add(::GetIOOpts())
+        .add(::GetTransformOpts())
         .add(::GetMeshingOpts())
         .add(::GetUVOpts())
         .add(::GetFilteringOpts())
@@ -310,10 +334,11 @@ auto main(int argc, char* argv[]) -> int
         return EXIT_FAILURE;
     }
 
-    if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        Logger()->error(
-            "Volume Package is version {} but this program requires version {}",
-            vpkg->version(), VOLPKG_SUPPORTED_VERSION);
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -330,7 +355,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Add the project metadata
     // clang-format off
-    smgl::Metadata projectInfo{{
+    const smgl::Metadata projectInfo{{
         vc::ProjectInfo::Name(), {
             {"version", ProjectInfo::VersionString()},
             {"git-url", ProjectInfo::RepositoryURL()},
@@ -347,13 +372,14 @@ auto main(int argc, char* argv[]) -> int
     std::unordered_map<std::string, smgl::Output*> results;
 
     //// Load the segmentation/mesh ////
-    bool loadSeg = parsed.count("seg") > 0;
-    bool loadMesh = parsed.count("input-mesh") > 0;
-    if (loadSeg && loadMesh) {
+    const bool loadSeg = parsed.count("seg") > 0;
+    const bool loadMesh = parsed.count("input-mesh") > 0;
+    if (loadSeg and loadMesh) {
         Logger()->error(
             "Specified mutually exclusive flags: --seg and --input-mesh");
         return EXIT_FAILURE;
-    } else if (not loadSeg and not loadMesh) {
+    }
+    if (not loadSeg and not loadMesh) {
         Logger()->error("Missing required flag: --seg or --input-mesh");
         return EXIT_FAILURE;
     }
@@ -361,7 +387,7 @@ auto main(int argc, char* argv[]) -> int
     std::string outStem;
     if (loadSeg) {
         Logger()->debug("Loading segmentation");
-        auto id = parsed["seg"].as<std::string>();
+        const auto id = parsed["seg"].as<std::string>();
         outStem = id;
 
         auto seg = graph->insertNode<SegmentationSelectorNode>();
@@ -376,7 +402,7 @@ auto main(int argc, char* argv[]) -> int
         results["mesh"] = &mesher->mesh;
     } else {
         Logger()->debug("Loading mesh");
-        fs::path inputPath = parsed["input-mesh"].as<std::string>();
+        const fs::path inputPath = parsed["input-mesh"].as<std::string>();
         outStem = inputPath.stem().string();
 
         auto reader = graph->insertNode<LoadMeshNode>();
@@ -398,31 +424,56 @@ auto main(int argc, char* argv[]) -> int
         outputPath = outStem + "_render.obj";
     }
 
-    //// Load the Volume ////
+    //// Load the Volume(s) ////
     if (not vpkg->hasVolumes()) {
         Logger()->error("Volume package does not contain any volumes");
         return EXIT_FAILURE;
     }
-    auto volumeSelector = graph->insertNode<VolumeSelectorNode>();
-    volumeSelector->volpkg = vpkg;
-    Volume::Identifier volId;
-    if (parsed.count("volume") > 0) {
-        volId = parsed["volume"].as<std::string>();
-    } else if (loadSeg) {
+
+    // Load the source volume from the segmentation
+    Volume::Identifier srcVolId;
+    if (loadSeg) {
         auto segId = parsed["seg"].as<std::string>();
         auto seg = vpkg->segmentation(segId);
         if (seg->hasVolumeID()) {
-            volId = seg->getVolumeID();
-            Logger()->debug(
-                "Selecting segmentation associated volume: {}", volId);
+            srcVolId = seg->getVolumeID();
+            Logger()->debug("Segmentation associated volume: {}", srcVolId);
         }
     }
-    if (not volId.empty() and not vpkg->hasVolume(volId)) {
+
+    // Get the target volume from options
+    Volume::Identifier tgtVolId;
+    if (parsed.count("volume") > 0) {
+        tgtVolId = parsed["volume"].as<std::string>();
+    }
+
+    // helpful booleans
+    const bool hasSrc = not srcVolId.empty();
+    bool hasTgt = not tgtVolId.empty();
+    bool volsDontMatch = srcVolId != tgtVolId;
+
+    // If source is empty and target is empty: default volume, no auto useTfm
+    // If source is empty and target is set: tgtVol = tgtVol, no auto useTfm
+    // If source is set and target is empty: tgtVol = srcVol, no auto useTfm
+    if (hasSrc and not hasTgt) {
+        tgtVolId = srcVolId;
+        hasTgt = true;
+        volsDontMatch = false;
+    }
+
+    // Report selected volume
+    Logger()->debug("Target volume: {}", (hasTgt) ? tgtVolId : "auto");
+
+    // Verify the target volume is in the vpkg
+    Logger()->debug("Adding target volume selector node");
+    auto tgtVolSelector = graph->insertNode<VolumeSelectorNode>();
+    tgtVolSelector->volpkg = vpkg;
+    if (not tgtVolId.empty() and not vpkg->hasVolume(tgtVolId)) {
         Logger()->error(
-            "Volume package does not contain volume with ID: {}", volId);
+            "Volume package does not contain volume with ID: {}", tgtVolId);
         return EXIT_FAILURE;
     }
-    volumeSelector->id = volId;
+    tgtVolSelector->id = tgtVolId;
 
     // Set the cache size
     std::size_t cacheBytes{2'000'000'000};
@@ -434,10 +485,79 @@ auto main(int argc, char* argv[]) -> int
         Logger()->debug("Using automatic cache size");
         cacheBytes = SystemMemorySize() / 2;
     }
-    auto volumeProps = graph->insertNode<VolumePropertiesNode>();
-    volumeProps->volumeIn = volumeSelector->volume;
-    volumeProps->cacheMemory = cacheBytes;
-    results["volume"] = &volumeProps->volumeOut;
+    auto tgtVolProps = graph->insertNode<VolumePropertiesNode>();
+    tgtVolProps->volumeIn = tgtVolSelector->volume;
+    tgtVolProps->cacheMemory = cacheBytes;
+    results["voxelsize"] = &tgtVolProps->voxelSize;
+    results["volume"] = &tgtVolProps->volumeOut;
+
+    //// Setup transform ////
+    Transform3D::Identifier tfmId;
+    const bool disableTfm = parsed.count("disable-transform") > 0;
+    bool useTfm{false};
+    bool tfmIdInVpkg{false};
+
+    // Prioritize transform flag
+    if (not disableTfm and parsed.count("transform") > 0) {
+        tfmId = parsed["transform"].as<std::string>();
+        useTfm = true;
+        tfmIdInVpkg = vpkg->hasTransform(tfmId);
+    }
+
+    // Source is set and target is set and srcVol != tgtVol: auto useTfm
+    else if (not disableTfm and hasSrc and hasTgt and volsDontMatch) {
+        // Ask the volume package for transforms
+        auto tfms = vpkg->transform(srcVolId, tgtVolId);
+        useTfm = tfmIdInVpkg = not tfms.empty();
+        tfmId = (tfmIdInVpkg) ? tfms[0].first : "";
+
+        // Report no and multiple transforms
+        if (tfms.empty()) {
+            Logger()->warn(
+                "Could not find transform from {} to {}. No transform will be "
+                "applied.",
+                srcVolId, tgtVolId);
+        } else if (tfms.size() > 1) {
+            Logger()->warn(
+                "Found {} transforms from {} to {}. Using transform \"{}\"",
+                tfms.size(), srcVolId, tgtVolId, tfmId);
+        }
+    }
+
+    // When to apply transform
+    auto tfmInputType = parsed["apply-transform-to"].as<TransformInput>();
+
+    //// Load transform ////
+    if (useTfm and tfmIdInVpkg) {
+        Logger()->debug("Loading transform from volpkg: {}", tfmId);
+        auto loadTfm = graph->insertNode<TransformSelectorNode>();
+        loadTfm->volpkg = vpkg;
+        loadTfm->id = tfmId;
+        results["transform"] = &loadTfm->transform;
+    } else if (useTfm) {
+        Logger()->debug("Loading transform from path/ID: {}", tfmId);
+        auto loadTfm = graph->insertNode<LoadTransformNode>();
+        loadTfm->path = tfmId;
+        loadTfm->cacheArgs = true;
+        results["transform"] = &loadTfm->transform;
+    }
+
+    //// Invert the transform ////
+    if (useTfm and parsed.count("invert-transform") > 0) {
+        Logger()->debug("Adding invert transform node");
+        auto invTfm = graph->insertNode<InvertTransformNode>();
+        invTfm->input = *results["transform"];
+        results["transform"] = &invTfm->output;
+    }
+
+    //// Transform raw input ////
+    if (useTfm and tfmInputType == TransformInput::Raw) {
+        Logger()->debug("Adding transform raw mesh node");
+        auto tfmNode = graph->insertNode<TransformMeshNode>();
+        tfmNode->input = *results["mesh"];
+        tfmNode->transform = *results["transform"];
+        results["mesh"] = &tfmNode->output;
+    }
 
     //// Scale the mesh /////
     if (parsed.count("scale-mesh") > 0) {
@@ -486,10 +606,27 @@ auto main(int argc, char* argv[]) -> int
         }
 
         else {
+            // Load source volume properties if needed
+            if (volsDontMatch and tfmInputType > TransformInput::Raw) {
+                Logger()->debug("Adding source volume selector node");
+                auto srcVolSelector = graph->insertNode<VolumeSelectorNode>();
+                srcVolSelector->volpkg = vpkg;
+                if (not srcVolId.empty() and not vpkg->hasVolume(srcVolId)) {
+                    Logger()->error(
+                        "Volume package does not contain volume with ID: {}",
+                        tgtVolId);
+                    return EXIT_FAILURE;
+                }
+                srcVolSelector->id = srcVolId;
+                auto srcVolProps = graph->insertNode<VolumePropertiesNode>();
+                srcVolProps->volumeIn = srcVolSelector->volume;
+                results["voxelsize"] = &srcVolProps->voxelSize;
+            }
+
             Logger()->debug("Using automatic resample factor");
             auto calcVerts = graph->insertNode<CalculateNumVertsNode>();
             calcVerts->mesh = *results["mesh"];
-            calcVerts->voxelSize = volumeProps->voxelSize;
+            calcVerts->voxelSize = *results["voxelsize"];
             calcVerts->density = parsed["mesh-resample-factor"].as<double>();
             resample->numVertices = calcVerts->numVerts;
         }
@@ -513,10 +650,19 @@ auto main(int argc, char* argv[]) -> int
         results["mesh"] = &orient->output;
     }
 
+    //// Transform resampled input ////
+    if (useTfm and tfmInputType == TransformInput::Resampled) {
+        Logger()->debug("Adding transform resampled mesh node");
+        auto tfmNode = graph->insertNode<TransformMeshNode>();
+        tfmNode->input = *results["mesh"];
+        tfmNode->transform = *results["transform"];
+        results["mesh"] = &tfmNode->output;
+    }
+
     ///// Save the intermediate mesh /////
     if (parsed.count("intermediate-mesh") > 0) {
         Logger()->debug("Adding node to save intermediate mesh");
-        fs::path meshPath = parsed["intermediate-mesh"].as<std::string>();
+        const fs::path meshPath = parsed["intermediate-mesh"].as<std::string>();
         auto writer = graph->insertNode<WriteMeshNode>();
         writer->path = meshPath;
         writer->mesh = *results["mesh"];
@@ -638,13 +784,23 @@ auto main(int argc, char* argv[]) -> int
     ppmGen->mesh = *results["mesh"];
     ppmGen->uvMap = *results["uvMap"];
     ppmGen->shading = static_cast<Shading>(parsed["shading"].as<int>());
+    results["ppm"] = &ppmGen->ppm;
+
+    //// Transform resampled input ////
+    if (useTfm and tfmInputType == TransformInput::PerPixelMap) {
+        Logger()->debug("Adding transform PPM node");
+        auto tfmNode = graph->insertNode<TransformPPMNode>();
+        tfmNode->input = *results["ppm"];
+        tfmNode->transform = *results["transform"];
+        results["ppm"] = &tfmNode->output;
+    }
 
     // Save the PPM
     if (parsed.count("output-ppm") > 0) {
         Logger()->debug("Adding PPM writer node");
         auto writer = graph->insertNode<WritePPMNode>();
         writer->path = parsed["output-ppm"].as<std::string>();
-        writer->ppm = ppmGen->ppm;
+        writer->ppm = *results["ppm"];
     }
 
     // Plot the UV error maps
@@ -672,7 +828,7 @@ auto main(int argc, char* argv[]) -> int
 
         // Save the images
         Logger()->debug("Adding UV error writer nodes");
-        fs::path baseName = parsed["uv-plot-error"].as<std::string>();
+        const fs::path baseName = parsed["uv-plot-error"].as<std::string>();
         auto l2File =
             baseName.stem().string() + "_l2" + baseName.extension().string();
         auto writerL2 = graph->insertNode<WriteImageNode>();
@@ -687,7 +843,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Neighborhood generator
-    Method method = static_cast<Method>(parsed["method"].as<int>());
+    const Method method = static_cast<Method>(parsed["method"].as<int>());
     if (method != Method::Intersection and method != Method::Thickness) {
         Logger()->debug("Adding neighborhood generator node");
         using Shape = NeighborhoodGeneratorNode::Shape;
@@ -715,7 +871,7 @@ auto main(int argc, char* argv[]) -> int
             auto radiusCalc =
                 graph->insertNode<CalculateNeighborhoodRadiusNode>();
             radiusCalc->thickness = vpkg->materialThickness();
-            radiusCalc->voxelSize = volumeProps->voxelSize;
+            radiusCalc->voxelSize = tgtVolProps->voxelSize;
             neighborGen->radius = radiusCalc->radius;
         }
 
@@ -791,7 +947,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Set/get generic parameters
-    texturing->getInputPort("ppm") = ppmGen->ppm;
+    texturing->getInputPort("ppm") = *results["ppm"];
     texturing->getInputPort("volume") = *results["volume"];
     results["texture"] = &texturing->getOutputPort("texture");
 
@@ -833,6 +989,7 @@ auto main(int argc, char* argv[]) -> int
 ///*** Custom program_options validators ***///
 
 // UVAlignmentAxis
+// NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
 void validate(
     boost::any& v,
     const std::vector<std::string>& values,
@@ -887,3 +1044,45 @@ auto operator>>(std::istream& is, UVMap::AlignmentAxis& v) -> std::istream&
     return is;
 }
 }  // namespace volcart
+
+// TransformInput
+// NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
+void validate(
+    boost::any& v,
+    const std::vector<std::string>& values,
+    TransformInput* /* target type */,
+    int /* unused */)
+{
+    using namespace boost::program_options;
+    // argument only passed once
+    validators::check_first_occurrence(v);
+    // get a single string, error ir more than one
+    const auto& s = validators::get_single_string(values);
+    // cast to type
+    v = boost::any(boost::lexical_cast<TransformInput>(s));
+}
+
+auto operator>>(std::istream& is, TransformInput& v) -> std::istream&
+{
+    // get the first token
+    std::string s;
+    if (not(is >> s)) {
+        return is;
+    };
+
+    // find a match
+    vc::to_lower(s);
+    if (s == "raw") {
+        v = TransformInput::Raw;
+        is.clear();
+    } else if (s == "resampled") {
+        v = TransformInput::Resampled;
+        is.clear();
+    } else if (s == "flattened" or s == "perpixelmap" or s == "ppm") {
+        v = TransformInput::PerPixelMap;
+        is.clear();
+    } else {
+        is.setstate(std::ios_base::failbit);
+    }
+    return is;
+}

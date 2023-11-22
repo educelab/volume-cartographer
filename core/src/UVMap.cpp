@@ -264,7 +264,7 @@ void UVMap::AlignToAxis(
     Rotate(uv, bestTheta);
 
     Logger()->debug(
-        "Rotated UV map with theta: {.5f} and axis correlation {.5f}",
+        "Rotated UV map with theta: {:.5f} and axis correlation {:.5f}",
         bestTheta, bestPearson);
 }
 

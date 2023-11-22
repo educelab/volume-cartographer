@@ -22,7 +22,7 @@ namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
 
 fs::path g_outputDir;
@@ -76,11 +76,11 @@ int main(int argc, char* argv[])
     ///// Load the volume package /////
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     auto vpkg = vc::VolumePkg::New(volpkgPath);
-    if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
         vc::Logger()->error(
             "Volume Package is version {} but this program requires version "
-            "{}. ",
-            vpkg->version(), VOLPKG_SUPPORTED_VERSION);
+            "{}+. ",
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
