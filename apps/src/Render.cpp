@@ -1002,7 +1002,7 @@ auto main(int argc, char* argv[]) -> int
         if (textureIsSeq) {
             auto ext = outputPath.extension().string();
             Logger()->error(
-                "Image sequence results cannot be saved to mesh format \'{}\'",
+                "Image sequences cannot be saved with mesh format: {}",
                 ext);
             return EXIT_FAILURE;
         }
