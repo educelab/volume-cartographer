@@ -233,7 +233,9 @@ void tio::WriteTIFF(
     const std::string mode = (useBigTIFF) ? "w8" : "w";
     auto* out = lt::TIFFOpen(path.c_str(), mode.c_str());
     if (out == nullptr) {
-        throw std::runtime_error("Failed to open file for writing");
+        Logger()->error("Failed to open file for writing: {}", path.string());
+        throw std::runtime_error(
+            "Failed to open file for writing: " + path.string());
     }
 
     // Encoding parameters

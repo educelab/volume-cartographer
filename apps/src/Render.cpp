@@ -31,7 +31,7 @@ enum class SmoothOpt { Off = 0, Before, After, Both };
 enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
 
 // Available texturing algorithms
-enum class Method { Composite = 0, Intersection, Integral, Thickness };
+enum class Method { Composite = 0, Intersection, Integral, Thickness, Layers };
 
 // What to transform to the target volume
 enum class TransformInput { Raw = 0, Resampled, PerPixelMap };
@@ -187,7 +187,8 @@ auto GetFilteringOpts() -> po::options_description
                  "  0 = Composite\n"
                  "  1 = Intersection\n"
                  "  2 = Integral\n"
-                 "  3 = Thickness")
+                 "  3 = Thickness\n"
+                 "  4 = Layers")
         ("neighborhood-shape,n", po::value<int>()->default_value(0),
              "Neighborhood shape:\n"
                  "  0 = Linear\n"
@@ -415,13 +416,22 @@ auto main(int argc, char* argv[]) -> int
     }
 
     //// Setup the output file path ////
+    fs::path outDir;
     fs::path outputPath;
+    bool userOutFile{false};
     if (parsed.count("output-file") > 0) {
-        Logger()->debug("Saving to user-provided output file");
-        outputPath = parsed["output-file"].as<std::string>();
-    } else {
+        auto p = parsed["output-file"].as<std::string>();
+        if (fs::is_directory(fs::weakly_canonical(p))) {
+            outDir = p;
+        } else {
+            Logger()->debug("Saving to user-provided output file");
+            outputPath = p;
+            userOutFile = true;
+        }
+    }
+    if (not userOutFile) {
         Logger()->debug("Saving to default output file");
-        outputPath = outStem + "_render.obj";
+        outputPath = outDir / (outStem + "_render.obj");
     }
 
     //// Load the Volume(s) ////
@@ -846,10 +856,19 @@ auto main(int argc, char* argv[]) -> int
     const Method method = static_cast<Method>(parsed["method"].as<int>());
     if (method != Method::Intersection and method != Method::Thickness) {
         Logger()->debug("Adding neighborhood generator node");
-        using Shape = NeighborhoodGeneratorNode::Shape;
         auto neighborGen = graph->insertNode<NeighborhoodGeneratorNode>();
-        neighborGen->shape =
-            static_cast<Shape>(parsed["neighborhood-shape"].as<int>());
+
+        // Get shape
+        using Shape = NeighborhoodGeneratorNode::Shape;
+        auto shape = static_cast<Shape>(parsed["neighborhood-shape"].as<int>());
+        if (method == Method::Layers and shape != Shape::Line) {
+            Logger()->warn("Forcing linear neighborhood for layer texturing.");
+            neighborGen->shape = Shape::Line;
+        } else {
+            neighborGen->shape = shape;
+        }
+
+        // Simple parameters
         neighborGen->interval = parsed["interval"].as<double>();
         neighborGen->direction =
             static_cast<Direction>(parsed["direction"].as<int>());
@@ -880,6 +899,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Setup texturing method
     smgl::Node::Pointer texturing;
+    bool textureIsSeq = false;
     if (method == Method::Intersection) {
         Logger()->debug("Adding intersection texture node");
         auto t = graph->insertNode<IntersectionTextureNode>();
@@ -946,18 +966,46 @@ auto main(int argc, char* argv[]) -> int
         texturing = t;
     }
 
+    else if (method == Method::Layers) {
+        Logger()->debug("Adding layer texture node");
+        auto t = graph->insertNode<LayerTextureNode>();
+        t->generator = *results["generator"];
+        texturing = t;
+        textureIsSeq = true;
+    }
+
     // Set/get generic parameters
     texturing->getInputPort("ppm") = *results["ppm"];
     texturing->getInputPort("volume") = *results["volume"];
     results["texture"] = &texturing->getOutputPort("texture");
 
+    // If we're generating an image sequence and using the default output file
+    // change the name to a sequence
+    if (not userOutFile and textureIsSeq) {
+        outputPath = outputPath.replace_filename(outStem + "_{}.tif");
+    }
+
     // Save final outputs
     if (vc::IsFileType(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
-        Logger()->debug("Adding result image writer node");
-        auto writer = graph->insertNode<WriteImageNode>();
-        writer->path = outputPath;
-        writer->image = *results["texture"];
+        if (textureIsSeq) {
+            Logger()->debug("Adding result image sequence writer node");
+            auto writer = graph->insertNode<WriteImageSequenceNode>();
+            writer->path = outputPath;
+            writer->images = *results["texture"];
+        } else {
+            Logger()->debug("Adding result image writer node");
+            auto writer = graph->insertNode<WriteImageNode>();
+            writer->path = outputPath;
+            writer->image = *results["texture"];
+        }
     } else if (vc::IsFileType(outputPath, {"obj", "ply"})) {
+        if (textureIsSeq) {
+            auto ext = outputPath.extension().string();
+            Logger()->error(
+                "Image sequence results cannot be saved to mesh format \'{}\'",
+                ext);
+            return EXIT_FAILURE;
+        }
         Logger()->debug("Adding result mesh writer node");
         auto writer = graph->insertNode<WriteMeshNode>();
         writer->path = outputPath;
