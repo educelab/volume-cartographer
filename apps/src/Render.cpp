@@ -70,6 +70,7 @@ auto GetIOOpts() -> po::options_description
         "will be placed in the current working directory.")
     ("output-ppm", po::value<std::string>(),
         "Output file path for the generated PPM.")
+    ("compression", po::value<int>(), "Image compression level")
     ("save-graph", po::value<bool>()->default_value(true),
         "Save the generated render graph into the volume package.");
     // clang-format on
@@ -985,6 +986,15 @@ auto main(int argc, char* argv[]) -> int
         outputPath = outputPath.replace_filename(outStem + "_{}.tif");
     }
 
+    // Set image writer options
+    vc::WriteImageOpts writeOpts;
+    if (parsed.count("compression") > 0) {
+        writeOpts.compression = parsed["compression"].as<int>();
+    } else if (vc::IsFileType(outputPath, {"tiff", "tif"})) {
+        // Default for tiff in this app: No compression
+        writeOpts.compression = 1;
+    }
+
     // Save final outputs
     if (vc::IsFileType(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
         if (textureIsSeq) {
@@ -992,11 +1002,13 @@ auto main(int argc, char* argv[]) -> int
             auto writer = graph->insertNode<WriteImageSequenceNode>();
             writer->path = outputPath;
             writer->images = *results["texture"];
+            writer->options = writeOpts;
         } else {
             Logger()->debug("Adding result image writer node");
             auto writer = graph->insertNode<WriteImageNode>();
             writer->path = outputPath;
             writer->image = *results["texture"];
+            writer->options = writeOpts;
         }
     } else if (vc::IsFileType(outputPath, {"obj", "ply"})) {
         if (textureIsSeq) {

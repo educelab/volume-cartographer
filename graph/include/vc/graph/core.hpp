@@ -6,6 +6,7 @@
 #include <smgl/Node.hpp>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
@@ -539,6 +540,8 @@ private:
     filesystem::path path_{};
     /** Image */
     cv::Mat image_{};
+    /** Image writer options */
+    WriteImageOpts opts_;
     /** Include the saved file in the graph cache */
     bool cacheArgs_{false};
 
@@ -547,6 +550,8 @@ public:
     smgl::InputPort<filesystem::path> path;
     /** @brief Output image */
     smgl::InputPort<cv::Mat> image;
+    /** @brief Image writer options */
+    smgl::InputPort<WriteImageOpts> options;
     /** @brief Include the saved file in the graph cache */
     smgl::InputPort<bool> cacheArgs;
 
@@ -554,11 +559,11 @@ public:
     WriteImageNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -579,6 +584,8 @@ private:
     filesystem::path path_{};
     /** Image sequence */
     ImageSequence images_;
+    /** Image writer options */
+    WriteImageOpts opts_;
     /** Include the saved file in the graph cache */
     bool cacheArgs_{false};
 
@@ -587,6 +594,8 @@ public:
     smgl::InputPort<filesystem::path> path;
     /** @brief Output image sequence */
     smgl::InputPort<ImageSequence> images;
+    /** @brief Image writer options */
+    smgl::InputPort<WriteImageOpts> options;
     /** @brief Include the saved file in the graph cache */
     smgl::InputPort<bool> cacheArgs;
 
