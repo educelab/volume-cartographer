@@ -245,7 +245,7 @@ public:
     /**@}*/
 
     /** @name Transform Data */
-
+    /**@{*/
     /** @brief Return whether there are transforms in the VolumePkg */
     [[nodiscard]] auto hasTransforms() const -> bool;
 
