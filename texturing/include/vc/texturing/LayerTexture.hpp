@@ -30,7 +30,7 @@ public:
     using Pointer = std::shared_ptr<LayerTexture>;
 
     /** Make shared pointer */
-    static Pointer New() { return std::make_shared<LayerTexture>(); }
+    static auto New() -> Pointer { return std::make_shared<LayerTexture>(); }
 
     /** Default destructor */
     ~LayerTexture() override = default;
@@ -44,7 +44,7 @@ public:
 
     /**@{*/
     /** @brief Compute the Texture */
-    Texture compute() override;
+    auto compute() -> Texture override;
     /**@}*/
 private:
     /** Neighborhood Generator */

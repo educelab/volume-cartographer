@@ -214,6 +214,9 @@ public:
      */
     const_iterator cend() const { return const_iterator{std::end(container_)}; }
 
+    /** Get the size of the underlying iterable */
+    auto size() const -> std::size_t { return std::size(container_); }
+
 private:
     Iterable container_;
     /** Progress bar label */
@@ -292,7 +295,7 @@ inline auto ReportProgress(
         if (useColors) {
             progressBar->set_option(ForegroundColor{indicators::Color::green});
         }
-        progressBar->tick();
+        progressBar->set_progress(iters);
     });
     // Disconnect on completion
     p.progressComplete.connect([&p]() {
