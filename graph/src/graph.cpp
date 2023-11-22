@@ -28,6 +28,7 @@ auto RegisterNodesImpl() -> bool
         PlotUVMapNode,
         LoadImageNode,
         WriteImageNode,
+        WriteImageSequenceNode,
         LoadPPMNode,
         WritePPMNode,
         PPMPropertiesNode,
@@ -62,7 +63,8 @@ auto RegisterNodesImpl() -> bool
         CompositeTextureNode,
         IntersectionTextureNode,
         IntegralTextureNode,
-        ThicknessTextureNode
+        ThicknessTextureNode,
+        LayerTextureNode
     >();
     // clang-format on
 

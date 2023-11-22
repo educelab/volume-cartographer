@@ -1,5 +1,7 @@
 #include "vc/graph/texturing.hpp"
 
+#include <memory>
+
 #include <nlohmann/json.hpp>
 
 #include "vc/core/io/ImageIO.hpp"
@@ -600,5 +602,51 @@ void ThicknessTextureNode::deserialize_(
     if (meta.contains("texture")) {
         auto imgFile = meta["texture"].get<std::string>();
         texture_ = ReadImage(cacheDir / imgFile);
+    }
+}
+
+LayerTextureNode::LayerTextureNode()
+    : Node{true}
+    , ppm{&textureGen_, &TAlgo::setPerPixelMap}
+    , generator{[&](auto ptr) {
+        auto derived = std::dynamic_pointer_cast<LineGenerator>(ptr);
+        if (not derived) {
+            throw std::runtime_error("Generator is not a LineGenerator");
+        }
+        textureGen_.setGenerator(derived);
+    }}
+    , volume{&textureGen_, &TAlgo::setVolume}
+    , texture{&texture_}
+{
+    registerInputPort("ppm", ppm);
+    registerInputPort("volume", volume);
+    registerInputPort("generator", generator);
+    registerOutputPort("texture", texture);
+
+    compute = [&]() {
+        Logger()->debug("[graph.texturing] generating layers");
+        texture_ = textureGen_.compute();
+        Logger()->debug("[graph.texturing] done");
+    };
+}
+
+auto LayerTextureNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta;
+    if (useCache and not texture_.empty()) {
+        WriteImageSequence(cacheDir / "layers_{}.tif", texture_);
+        meta["texture"] = "layers_{}.tif";
+    }
+    return meta;
+}
+
+void LayerTextureNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& cacheDir)
+{
+    // TODO: Load textures
+    if (meta.contains("texture")) {
+        auto imgFile = meta["texture"].get<std::string>();
+        // texture_ = ReadImage(cacheDir / imgFile);
     }
 }

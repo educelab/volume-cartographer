@@ -1,8 +1,8 @@
 #include "vc/texturing/LayerTexture.hpp"
 
-#include "vc/core/util/Iteration.hpp"
-
 #include <opencv2/core.hpp>
+
+#include "vc/core/util/Iteration.hpp"
 
 using namespace volcart;
 using namespace volcart::texturing;

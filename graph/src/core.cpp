@@ -473,6 +473,40 @@ void WriteImageNode::deserialize_(
     cacheArgs_ = meta["cacheArgs"].get<bool>();
 }
 
+WriteImageSequenceNode::WriteImageSequenceNode()
+    : smgl::Node{true}, path{&path_}, images{&images_}, cacheArgs{&cacheArgs_}
+{
+    registerInputPort("path", path);
+    registerInputPort("images", images);
+    registerInputPort("cacheArgs", cacheArgs);
+    compute = [&]() {
+        Logger()->debug(
+            "[graph.core] writing image sequence: {}", path_.string());
+        WriteImageSequence(path_, images_);
+    };
+    usesCacheDir = [&]() { return cacheArgs_; };
+}
+
+auto WriteImageSequenceNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta{{"path", path_.string()}, {"cacheArgs", cacheArgs_}};
+    if (useCache and cacheArgs_ and not images_.empty()) {
+        auto file = path_.filename().replace_extension(".tif");
+        WriteImageSequence(cacheDir / file, images_);
+        meta["cachedFile"] = file.string();
+    }
+
+    return meta;
+}
+
+void WriteImageSequenceNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& /*cacheDir*/)
+{
+    path_ = meta["path"].get<std::string>();
+    cacheArgs_ = meta["cacheArgs"].get<bool>();
+}
+
 LoadPPMNode::LoadPPMNode()
     : smgl::Node{true}, path{&path_}, cacheArgs{&cacheArgs_}, ppm{&ppm_}
 {

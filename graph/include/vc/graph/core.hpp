@@ -565,6 +565,46 @@ private:
 };
 
 /**
+ * @copybrief WriteImageSequence()
+ *
+ * @see WriteImageSequence()
+ * @ingroup Graph
+ */
+class WriteImageSequenceNode : public smgl::Node
+{
+private:
+    /** Image sequence type */
+    using ImageSequence = std::vector<cv::Mat>;
+    /** File path */
+    filesystem::path path_{};
+    /** Image sequence */
+    ImageSequence images_;
+    /** Include the saved file in the graph cache */
+    bool cacheArgs_{false};
+
+public:
+    /** @brief Output file */
+    smgl::InputPort<filesystem::path> path;
+    /** @brief Output image sequence */
+    smgl::InputPort<ImageSequence> images;
+    /** @brief Include the saved file in the graph cache */
+    smgl::InputPort<bool> cacheArgs;
+
+    /** Constructor */
+    WriteImageSequenceNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta,
+        const filesystem::path& /*cacheDir*/) override;
+};
+
+/**
  * @copybrief PerPixelMap::ReadPPM()
  *
  * @see PerPixelMap::ReadPPM()
