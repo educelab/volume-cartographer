@@ -1002,8 +1002,7 @@ auto main(int argc, char* argv[]) -> int
         if (textureIsSeq) {
             auto ext = outputPath.extension().string();
             Logger()->error(
-                "Image sequences cannot be saved with mesh format: {}",
-                ext);
+                "Image sequences cannot be saved with mesh format: {}", ext);
             return EXIT_FAILURE;
         }
         Logger()->debug("Adding result mesh writer node");
