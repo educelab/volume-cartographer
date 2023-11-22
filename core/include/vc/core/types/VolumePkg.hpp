@@ -146,6 +146,7 @@ public:
     /** @brief Return whether there are Volumes */
     auto hasVolumes() const -> bool;
 
+    /** @brief Whether a volume with the given identifier is in the VolumePkg */
     [[nodiscard]] auto hasVolume(const Volume::Identifier& id) const -> bool;
 
     /** @brief Get the number of Volumes */
@@ -244,7 +245,17 @@ public:
     /**@}*/
 
     /** @name Transform Data */
+
+    /** @brief Return whether there are transforms in the VolumePkg */
     [[nodiscard]] auto hasTransforms() const -> bool;
+
+    /**
+     * @brief Return whether a transform with the given identifier is in the
+     * VolumePkg
+     *
+     * If the provided identifier ends with "*", additionally checks if the
+     * transform can be inverted.
+     */
 
     [[nodiscard]] auto hasTransform(Volume::Identifier id) const -> bool;
 
@@ -257,10 +268,19 @@ public:
         const Transform3D::Identifier& id,
         const Transform3D::Pointer& transform);
 
-    /** @brief Get a transform by ID */
+    /**
+     * @brief Get a transform by ID
+     *
+     * If the provided identifier ends with "*", returns the inverse transform.
+     */
     auto transform(Transform3D::Identifier id) -> Transform3D::Pointer;
 
-    /** @brief Get a transform from a source volume to a target volume */
+    /**
+     * @brief Get a list of transforms which map from a source volume to a
+     * target volume
+     *
+     * The list also includes inverse transforms which satisfy the mapping.
+     */
     auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
         -> std::vector<
             std::pair<Transform3D::Identifier, Transform3D::Pointer>>;
@@ -281,16 +301,6 @@ private:
     Metadata config_;
     /** The root directory of the VolumePkg */
     filesystem::path rootDir_;
-    /** The subdirectory containing Volume data */
-    [[nodiscard]] auto vols_dir_() const -> filesystem::path;
-    /** The subdirectory containing Segmentation data */
-    [[nodiscard]] auto segs_dir_() const -> filesystem::path;
-    /** The subdirectory containing Render data */
-    [[nodiscard]] auto rend_dir_() const -> filesystem::path;
-    /** The subdirectory containing Transform data */
-    [[nodiscard]] auto tfm_dir_() const -> filesystem::path;
-    /** Get a list of required subdirectories */
-    inline auto required_dirs_() -> std::vector<filesystem::path>;
     /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
     /** The list of all Segmentations in the VolumePkg. */

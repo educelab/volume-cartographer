@@ -726,7 +726,7 @@ public:
     smgl::InputPort<filesystem::path> path;
     /** @brief Include the loaded file in the graph cache */
     smgl::InputPort<bool> cacheArgs;
-    /** @brief Loaded image */
+    /** @brief Loaded transform */
     smgl::OutputPort<Transform3D::Pointer> transform;
 
     /** Constructor */
@@ -743,6 +743,12 @@ private:
         const filesystem::path& /*cacheDir*/) override;
 };
 
+/**
+ * @copybrief VolumePkg::transform(Transform3D::Identifier)
+ *
+ * @see VolumePkg::transform(Transform3D::Identifier)
+ * @ingroup Graph
+ */
 class TransformSelectorNode : public smgl::Node
 {
 private:
@@ -775,6 +781,14 @@ private:
         const filesystem::path& /*cacheDir*/) override;
 };
 
+/**
+ * @copybrief Transform3D::invert()
+ *
+ * If the transform is not invertible, returns the input transform.
+ *
+ * @see Transform3D::invert()
+ * @ingroup Graph
+ */
 class InvertTransformNode : public smgl::Node
 {
 private:
@@ -803,10 +817,10 @@ private:
 };
 
 /**
- * @brief Generic class for applying 3D transforms
+ * @brief Template node for applying 3D transforms to objects
  *
- * There needs to be an apply function with the following signature:
- * ApplyTransform(const T&, const Transform3D::Pointer&)
+ * To specialize for a new type, make sure there is an apply function with the
+ * following signature: ApplyTransform(const T&, const Transform3D::Pointer&)
  */
 template <class T>
 class ApplyTransformNode : public smgl::Node
@@ -863,7 +877,11 @@ protected:
     }
 };
 
-/** @brief Mesh 3D transform node */
+/**
+ * @brief Apply a transform to an ITKMesh
+ *
+ * @ingroup Graph
+ */
 class TransformMeshNode : public ApplyTransformNode<ITKMesh::Pointer>
 {
 private:
@@ -879,7 +897,11 @@ private:
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
 
-/** @brief PPM 3D transform node */
+/**
+ * @brief Apply a transform to a PerPixelMap
+ *
+ * @ingroup Graph
+ */
 class TransformPPMNode : public ApplyTransformNode<PerPixelMap::Pointer>
 {
 private:

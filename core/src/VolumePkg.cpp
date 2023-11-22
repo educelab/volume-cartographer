@@ -13,8 +13,44 @@ namespace fs = volcart::filesystem;
 
 namespace
 {
+////// Convenience vars and fns for accessing VolumePkg sub-paths //////
 constexpr auto CONFIG = "config.json";
 
+inline auto VolsDir(const fs::path& baseDir) -> fs::path
+{
+    return baseDir / "volumes";
+}
+
+inline auto SegsDir(const fs::path& baseDir) -> fs::path
+{
+    return baseDir / "paths";
+}
+
+inline auto RendDir(const fs::path& baseDir) -> fs::path
+{
+    return baseDir / "renders";
+}
+
+inline auto TfmDir(const fs::path& baseDir) -> fs::path
+{
+    return baseDir / "transforms";
+}
+
+inline auto ReqDirs(const fs::path& baseDir) -> std::vector<filesystem::path>
+{
+    return {
+        baseDir, ::VolsDir(baseDir), ::SegsDir(baseDir), ::RendDir(baseDir),
+        ::TfmDir(baseDir)};
+}
+
+inline void keep(const fs::path& dir)
+{
+    if (not fs::exists(dir / ".vckeep")) {
+        std::ofstream(dir / ".vckeep", std::ostream::ate);
+    }
+}
+
+////// Upgrade functions //////
 auto VolpkgV3ToV4(const Metadata& meta) -> Metadata
 {
     // Nothing to do
@@ -182,9 +218,7 @@ auto VolpkgV6ToV7(const Metadata& meta) -> Metadata
     // Add vc keep files
     Logger()->debug("- Adding keep files");
     for (const auto& d : {"paths", "renders", "volumes", "transforms"}) {
-        if (not fs::exists(path / d / ".vckeep")) {
-            std::ofstream(path / d / ".vckeep");
-        }
+        ::keep(path / d);
     }
 
     // Update the version
@@ -198,6 +232,7 @@ auto VolpkgV6ToV7(const Metadata& meta) -> Metadata
 using UpgradeFn = std::function<Metadata(const Metadata&)>;
 const std::vector<UpgradeFn> UPGRADE_FNS{
     VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7};
+
 }  // namespace
 
 // CONSTRUCTORS //
@@ -216,12 +251,12 @@ VolumePkg::VolumePkg(fs::path fileLocation, int version)
     config_.setPath(rootDir_ / ::CONFIG);
 
     // Make directories
-    for (const auto& d : required_dirs_()) {
+    for (const auto& d : ::ReqDirs(rootDir_)) {
         if (not fs::exists(d)) {
             fs::create_directory(d);
         }
-        if (d != rootDir_ and not fs::exists(d / ".vckeep")) {
-            std::ofstream(d / ".vckeep");
+        if (d != rootDir_) {
+            ::keep(d);
         }
     }
 
@@ -243,20 +278,20 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     }
 
     // Check directory structure
-    for (const auto& d : required_dirs_()) {
+    for (const auto& d : ::ReqDirs(rootDir_)) {
         if (not fs::exists(d)) {
             Logger()->warn(
                 "Creating missing VolumePkg directory: {}",
                 d.filename().string());
             fs::create_directory(d);
         }
-        if (d != rootDir_ and not fs::exists(d / ".vckeep")) {
-            std::ofstream(d / ".vckeep");
+        if (d != rootDir_) {
+            ::keep(d);
         }
     }
 
     // Load volumes into volumes_
-    for (const auto& entry : fs::directory_iterator(vols_dir_())) {
+    for (const auto& entry : fs::directory_iterator(::VolsDir(rootDir_))) {
         if (fs::is_directory(entry)) {
             auto v = Volume::New(entry);
             volumes_.emplace(v->id(), v);
@@ -264,7 +299,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     }
 
     // Load segmentations into the segmentations_
-    for (const auto& entry : fs::directory_iterator(segs_dir_())) {
+    for (const auto& entry : fs::directory_iterator(::SegsDir(rootDir_))) {
         if (fs::is_directory(entry)) {
             auto s = Segmentation::New(entry);
             segmentations_.emplace(s->id(), s);
@@ -272,7 +307,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     }
 
     // Load Renders into the renders_
-    for (const auto& entry : fs::directory_iterator(rend_dir_())) {
+    for (const auto& entry : fs::directory_iterator(::RendDir(rootDir_))) {
         if (fs::is_directory(entry)) {
             auto r = Render::New(entry);
             renders_.emplace(r->id(), r);
@@ -280,7 +315,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     }
 
     // Load the transform files into transforms_
-    for (const auto& entry : fs::directory_iterator(tfm_dir_())) {
+    for (const auto& entry : fs::directory_iterator(::TfmDir(rootDir_))) {
         auto ep = entry.path();
         if (fs::is_regular_file(entry) and ep.extension() == ".json") {
             Transform3D::Pointer tfm;
@@ -379,7 +414,7 @@ auto VolumePkg::newVolume(std::string name) -> Volume::Pointer
     }
 
     // Make the volume directory
-    auto volDir = vols_dir_() / uuid;
+    auto volDir = ::VolsDir(rootDir_) / uuid;
     if (!fs::exists(volDir)) {
         fs::create_directory(volDir);
     } else {
@@ -479,7 +514,7 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
     }
 
     // Make the volume directory
-    auto segDir = segs_dir_() / uuid;
+    auto segDir = ::SegsDir(rootDir_) / uuid;
     if (!fs::exists(segDir)) {
         fs::create_directory(segDir);
     } else {
@@ -548,7 +583,7 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
     }
 
     // Make the render directory
-    auto renDir = rend_dir_() / uuid;
+    auto renDir = ::RendDir(rootDir_) / uuid;
     if (!fs::exists(renDir)) {
         fs::create_directory(renDir);
     } else {
@@ -607,14 +642,14 @@ auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
     }
 
     // Make sure we have a transforms directory
-    if (not fs::exists(tfm_dir_())) {
+    if (not fs::exists(::TfmDir(rootDir_))) {
         Logger()->debug("Creating transforms directory");
-        fs::create_directory(tfm_dir_());
+        fs::create_directory(::TfmDir(rootDir_));
     }
 
     // Generate a uuid
     auto uuid = DateTime();
-    auto tfmPath = tfm_dir_() / (uuid + ".json");
+    auto tfmPath = ::TfmDir(rootDir_) / (uuid + ".json");
     while (fs::exists(tfmPath) or transforms_.count(uuid) > 0) {
         uuid = DateTime();
         tfmPath = tfmPath.replace_filename(uuid + ".json");
@@ -649,7 +684,7 @@ void VolumePkg::setTransform(
     // update the map
     transforms_[id] = transform;
     // update on disk
-    auto tfmPath = tfm_dir_() / id;
+    auto tfmPath = ::TfmDir(rootDir_) / id;
     tfmPath = tfmPath.replace_extension("json");
     Transform3D::Save(tfmPath, transform);
 }
@@ -668,7 +703,7 @@ auto VolumePkg::transform(Transform3D::Identifier id) -> Transform3D::Pointer
     }
 
     // Find the forward transform
-    auto tfm = transforms_.at(id)->clone();
+    auto tfm = transforms_.at(id);
 
     // Invert if requested
     if (getInverse) {
@@ -736,19 +771,6 @@ auto VolumePkg::InitConfig(const Dictionary& dict, int version) -> Metadata
     }
 
     return config;
-}
-
-auto VolumePkg::vols_dir_() const -> fs::path { return rootDir_ / "volumes"; }
-
-auto VolumePkg::segs_dir_() const -> fs::path { return rootDir_ / "paths"; }
-
-auto VolumePkg::rend_dir_() const -> fs::path { return rootDir_ / "renders"; }
-
-auto VolumePkg::tfm_dir_() const -> fs::path { return rootDir_ / "transforms"; }
-
-auto VolumePkg::required_dirs_() -> std::vector<filesystem::path>
-{
-    return {rootDir_, vols_dir_(), segs_dir_(), rend_dir_(), tfm_dir_()};
 }
 
 ////////// Upgrade //////////
