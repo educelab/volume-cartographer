@@ -2,7 +2,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/io/UVMapIO.hpp"
 #include "vc/core/util/FloatComparison.hpp"
@@ -441,10 +440,15 @@ void LoadImageNode::deserialize_(
 }
 
 WriteImageNode::WriteImageNode()
-    : smgl::Node{true}, path{&path_}, image{&image_}, cacheArgs{&cacheArgs_}
+    : smgl::Node{true}
+    , path{&path_}
+    , image{&image_}
+    , options{&opts_}
+    , cacheArgs{&cacheArgs_}
 {
     registerInputPort("path", path);
     registerInputPort("image", image);
+    registerInputPort("options", options);
     registerInputPort("cacheArgs", cacheArgs);
     compute = [&]() {
         Logger()->debug("[graph.core] writing image: {}", path_.string());
@@ -457,9 +461,10 @@ auto WriteImageNode::serialize_(bool useCache, const fs::path& cacheDir)
     -> smgl::Metadata
 {
     smgl::Metadata meta{{"path", path_.string()}, {"cacheArgs", cacheArgs_}};
+    // TODO: Serialize writer options
     if (useCache and cacheArgs_ and not image_.empty()) {
         auto file = path_.filename().replace_extension(".tif");
-        WriteImage(cacheDir / file, image_);
+        WriteImage(cacheDir / file, image_, opts_);
         meta["cachedFile"] = file.string();
     }
 
@@ -467,6 +472,46 @@ auto WriteImageNode::serialize_(bool useCache, const fs::path& cacheDir)
 }
 
 void WriteImageNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& /*cacheDir*/)
+{
+    path_ = meta["path"].get<std::string>();
+    cacheArgs_ = meta["cacheArgs"].get<bool>();
+}
+
+WriteImageSequenceNode::WriteImageSequenceNode()
+    : smgl::Node{true}
+    , path{&path_}
+    , images{&images_}
+    , options{&opts_}
+    , cacheArgs{&cacheArgs_}
+{
+    registerInputPort("path", path);
+    registerInputPort("images", images);
+    registerInputPort("options", options);
+    registerInputPort("cacheArgs", cacheArgs);
+    compute = [&]() {
+        Logger()->debug(
+            "[graph.core] writing image sequence: {}", path_.string());
+        WriteImageSequence(path_, images_, opts_);
+    };
+    usesCacheDir = [&]() { return cacheArgs_; };
+}
+
+auto WriteImageSequenceNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta{{"path", path_.string()}, {"cacheArgs", cacheArgs_}};
+    // TODO: Serialize writer options
+    if (useCache and cacheArgs_ and not images_.empty()) {
+        auto file = path_.filename().replace_extension(".tif");
+        WriteImageSequence(cacheDir / file, images_);
+        meta["cachedFile"] = file.string();
+    }
+
+    return meta;
+}
+
+void WriteImageSequenceNode::deserialize_(
     const smgl::Metadata& meta, const fs::path& /*cacheDir*/)
 {
     path_ = meta["path"].get<std::string>();

@@ -19,6 +19,7 @@
 #include "vc/texturing/FlatteningError.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"
+#include "vc/texturing/LayerTexture.hpp"
 #include "vc/texturing/OrthographicProjectionFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 #include "vc/texturing/ThicknessTexture.hpp"
@@ -536,6 +537,53 @@ private:
         -> smgl::Metadata override;
 
     /** Smeagol custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
+ * @copybrief texturing::LayerTexture
+ * @see texturing::LayerTexture
+ * @ingroup Graph
+ */
+class LayerTextureNode : public smgl::Node
+{
+private:
+    /** Image list type */
+    using ImageList = std::vector<cv::Mat>;
+    /** Algorithm class type */
+    using TAlgo = texturing::LayerTexture;
+    /** Generator class type */
+    using Generator = NeighborhoodGenerator::Pointer;
+    /** Texturing algorithm */
+    TAlgo textureGen_;
+    /** Output layer images */
+    ImageList texture_;
+
+public:
+    /** @brief Input PerPixelMap */
+    smgl::InputPort<PerPixelMap::Pointer> ppm;
+    /** @brief Input Volume */
+    smgl::InputPort<Volume::Pointer> volume;
+    /**
+     * @brief Neighborhood generator
+     *
+     * @throws std::runtime_error If the provided generator is not a
+     * LineGenerator.
+     */
+    smgl::InputPort<Generator> generator;
+    /** @brief Generated texture image */
+    smgl::OutputPort<ImageList> texture;
+
+    /** Constructor */
+    LayerTextureNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };

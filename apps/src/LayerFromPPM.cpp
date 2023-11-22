@@ -26,21 +26,6 @@ static constexpr int VOLPKG_MIN_VERSION = 6;
 
 using volcart::enumerate;
 
-template <class Iterable>
-void WriteLayers(
-    const Iterable& iterable,
-    const fs::path& outDir,
-    int pad,
-    const std::string& fmt,
-    const vc::WriteImageOpts& opts)
-{
-    for (const auto [i, image] : iterable) {
-        auto fileName = vc::to_padded_string(i, pad) + "." + fmt;
-        auto filepath = outDir / fileName;
-        vc::WriteImage(filepath, image, opts);
-    }
-}
-
 namespace
 {
 auto GetTransformOpts() -> po::options_description
@@ -136,11 +121,21 @@ auto main(int argc, char* argv[]) -> int
     fs::path inputPPMPath = parsed["ppm"].as<std::string>();
 
     // Check for output file
-    auto outputPath = fs::canonical(parsed["output-dir"].as<std::string>());
-    if (!fs::is_directory(outputPath) || !fs::exists(outputPath)) {
-        std::cerr << "Provided output path is not a directory or does not exist"
-                  << std::endl;
+    auto outDir = fs::weakly_canonical(parsed["output-dir"].as<std::string>());
+    if (outDir.has_extension()) {
+        vc::Logger()->error(
+            "Provided output path is not a directory: {}", outDir.string());
         return EXIT_FAILURE;
+    }
+    if (not fs::exists(outDir)) {
+        auto success = fs::create_directory(outDir);
+        if (not success) {
+            vc::Logger()->error(
+                "Could not create output directory: {}. Check that parent "
+                "exists and is writable.",
+                outDir.string());
+            return EXIT_FAILURE;
+        }
     }
     auto imgFmt = vc::to_lower_copy(parsed["image-format"].as<std::string>());
     vc::WriteImageOpts writeOpts;
@@ -257,23 +252,20 @@ auto main(int argc, char* argv[]) -> int
 
     auto texture = s.compute();
 
-    const auto numChars =
-        static_cast<int>(std::to_string(texture.size()).size());
-    fs::path filepath;
+    // Write the image sequence
+    const fs::path filepath = outDir / ("{}." + imgFmt);
     if (parsed["progress"].as<bool>()) {
         vc::Logger()->debug("Writing layers...");
-        WriteLayers(
-            vc::ProgressWrap(enumerate(texture), "Writing layers:"), outputPath,
-            numChars, imgFmt, writeOpts);
+        auto progIt = vc::ProgressWrap(texture, "Writing layers:");
+        vc::WriteImageSequence(filepath, progIt, writeOpts);
     } else {
         vc::Logger()->info("Writing layers...");
-        WriteLayers(
-            enumerate(texture), outputPath, numChars, imgFmt, writeOpts);
+        vc::WriteImageSequence(filepath, texture, writeOpts);
     }
 
     if (parsed.count("output-ppm") > 0) {
         std::cout << "Generating new PPM..." << std::endl;
-        fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
+        const fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
 
         // Setup new PPM
         auto height = ppm->height();

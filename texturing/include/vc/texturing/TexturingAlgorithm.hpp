@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <memory>
 
 #include "vc/core/neighborhood/NeighborhoodGenerator.hpp"
@@ -30,13 +31,13 @@ public:
     void setVolume(Volume::Pointer vol) { vol_ = std::move(vol); }
 
     /** @brief Compute the Texture */
-    virtual Texture compute() = 0;
+    virtual auto compute() -> Texture = 0;
 
     /** @brief Get the generated Texture */
-    Texture getTexture() { return result_; }
+    auto getTexture() -> Texture { return result_; }
 
     /** @brief Returns the maximum progress value */
-    size_t progressIterations() const override
+    [[nodiscard]] auto progressIterations() const -> std::size_t override
     {
         return ppm_->getMappings().size();
     }
