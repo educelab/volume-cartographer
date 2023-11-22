@@ -45,8 +45,8 @@ void WriteImage(
 
 template <class Iterable>
 void WriteImageSequence(
-    const Iterable& iterable,
     const filesystem::path& path,
+    const Iterable& iterable,
     const WriteImageOpts& opts = {})
 {
     namespace fs = volcart::filesystem;

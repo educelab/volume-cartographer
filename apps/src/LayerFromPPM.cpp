@@ -257,10 +257,10 @@ auto main(int argc, char* argv[]) -> int
     if (parsed["progress"].as<bool>()) {
         vc::Logger()->debug("Writing layers...");
         auto progIt = vc::ProgressWrap(texture, "Writing layers:");
-        vc::WriteImageSequence(progIt, filepath, writeOpts);
+        vc::WriteImageSequence(filepath, progIt, writeOpts);
     } else {
         vc::Logger()->info("Writing layers...");
-        vc::WriteImageSequence(texture, filepath, writeOpts);
+        vc::WriteImageSequence(filepath, texture, writeOpts);
     }
 
     if (parsed.count("output-ppm") > 0) {
