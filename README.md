@@ -49,11 +49,13 @@ This fork contains the following changes compared to upstream currently:
 - Added a "Recent volpkg" list and menu option to easily reopen one of the last 10 volume packages
 - Added the feature to remove a path from the `volpkg`
 - Use spin boxes for slice numbers (they allow proper min/max value handling and mouse wheel can be used to change the numeric value)
+- Added button to "Evenly Space Points" on the active "Compute" curves in Segmentation Tool mode (handy when during manual curve changes points get too bunched up to work with)
 - Added volume name into volume dropdown
 - Ensured that columns in segment table auto adjust their width (so that segment ID is fully visible)
 - Highlight the toggle button of the currently active tool mode
-- Added a scroll area for the segmentation algorithm parameters, since at least on my screen size, there often was not enough space and all the labels/inputs got visually squished together.
+- Added a scroll area for the segmentation algorithm parameters, since on smaller screen sizes, there often was not enough vertical space and all the labels/inputs got visually squished together.
 - Added tooltips to the color selectors boxes below the segment viewer
+- Added app logo for Linux
 
 #### User Settings Dialog
 - Added settings dialog (using an INI file `VC.ini`) to make some features configurable by the user
@@ -67,7 +69,7 @@ This fork contains the following changes compared to upstream currently:
 - Added user setting to center image slice on mouse cursor during mouse wheel zooming (configurable via settings)
 
 ### Bug Fixes
-- Fixed a bug in the OFS segmentation implementation that would (during the interpolation part), output invalid `vcps` point sets, as the first two segment rows both list slice number 0 (should be of course 0 for the first and 1 for the second slice/row)
+- Fixed a bug in the OFS segmentation implementation that would (during the interpolation part), output invalid `vcps` point sets, as the first two segment rows both used the same slice number / Z-value (e.g. 0 when it should have been 0 for the first and 1 for the second slice/row)
 - Ensure app ends slice preloading threads and exits properly
 - Correctly clear the "Display All" and "Compute All" checkboxes when closing a volume, so they are in the correct initial state when a new volume gets opened
 - Fixed some crashes I came across
