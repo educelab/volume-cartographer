@@ -122,7 +122,7 @@ protected:
     QImage* fImgQImage;
     double fScaleFactor;
     int fImageIndex;
-    int sliceIndexToolStart;
+    int sliceIndexToolStart{-1};
     int fScanRange;  // how many slices a mouse wheel step will jump
 
     bool fCenterOnZoomEnabled;
