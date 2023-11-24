@@ -59,11 +59,11 @@ public:
     ABFNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -98,11 +98,11 @@ public:
     OrthographicFlatteningNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -137,11 +137,11 @@ public:
     FlatteningErrorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -189,11 +189,11 @@ public:
     PlotLStretchErrorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -235,11 +235,11 @@ public:
     PPMGeneratorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -275,11 +275,11 @@ public:
     CalculateNeighborhoodRadiusNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -334,11 +334,11 @@ public:
     NeighborhoodGeneratorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -382,11 +382,11 @@ public:
     CompositeTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -418,11 +418,11 @@ public:
     IntersectionTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -490,11 +490,11 @@ public:
     IntegralTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -532,11 +532,11 @@ public:
     ThicknessTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };

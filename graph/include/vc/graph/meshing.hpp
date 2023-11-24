@@ -43,11 +43,11 @@ public:
     MeshingNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -80,11 +80,11 @@ public:
     ScaleMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -131,11 +131,11 @@ public:
     CalculateNumVertsNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -166,11 +166,11 @@ public:
     LaplacianSmoothMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -214,11 +214,11 @@ public:
     ResampleMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -253,11 +253,11 @@ public:
     UVMapToMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -295,11 +295,11 @@ public:
     OrientNormalsNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };

@@ -11,7 +11,7 @@
 namespace volcart
 {
 
-/** @brief Register all VC provided nodes with the Smeagol library */
+/** @brief Register all VC provided nodes with the smgl library */
 void RegisterNodes();
 
 }  // namespace volcart

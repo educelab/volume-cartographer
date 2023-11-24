@@ -43,11 +43,11 @@ public:
     LoadVolumePkgNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -105,11 +105,11 @@ public:
     VolumeSelectorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -150,11 +150,11 @@ public:
     VolumePropertiesNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -187,11 +187,11 @@ public:
     SegmentationSelectorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -273,11 +273,11 @@ public:
     LoadMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -319,11 +319,11 @@ public:
     WriteMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -360,11 +360,11 @@ public:
     RotateUVMapNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -400,11 +400,11 @@ public:
     FlipUVMapNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -480,11 +480,11 @@ public:
     PlotUVMapNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -517,11 +517,11 @@ public:
     LoadImageNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -641,11 +641,11 @@ public:
     LoadPPMNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -679,11 +679,11 @@ public:
     WritePPMNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -744,11 +744,11 @@ public:
     LoadVolumetricMaskNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
