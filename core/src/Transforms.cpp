@@ -16,7 +16,7 @@ namespace
 void WriteMetadata(const fs::path& path, const nlohmann::ordered_json& m)
 {
     std::ofstream o{path};
-    o << m << std::endl;
+    o << m << "\n";
 }
 
 auto LoadMetadata(const fs::path& path) -> nlohmann::ordered_json
@@ -80,20 +80,19 @@ auto Transform3D::compose_(const Transform3D::Pointer& rhs) const
     return nullptr;
 }
 
-void Transform3D::Save(
-    const filesystem::path& path, const Transform3D::Pointer& transform)
+auto Transform3D::Serialize(const Transform3D::Pointer& transform) -> Metadata
 {
     Metadata meta{
         {"type", "Transform3D"},
         {"source", transform->src_},
-        {"target", transform->tgt_}};
+        {"target", transform->tgt_},
+        {"transform-type", transform->type()}};
     transform->to_meta_(meta);
-    ::WriteMetadata(path, meta);
+    return meta;
 }
 
-auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
+auto Transform3D::Deserialize(const Metadata& meta) -> Transform3D::Pointer
 {
-    auto meta = ::LoadMetadata(path);
     if (meta["type"].get<std::string>() != "Transform3D") {
         throw std::runtime_error("File not of type: Transform3D");
     }
@@ -104,10 +103,12 @@ auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
 
     auto tfmType = meta["transform-type"].get<std::string>();
     Transform3D::Pointer result;
-    if (tfmType == "AffineTransform") {
+    if (tfmType == AffineTransform::TYPE) {
         result = AffineTransform::New();
-    } else if (tfmType == "IdentityTransform") {
+    } else if (tfmType == IdentityTransform::TYPE) {
         result = IdentityTransform::New();
+    } else if (tfmType == CompositeTransform::TYPE) {
+        result = CompositeTransform::New();
     } else {
         throw std::runtime_error("Unknown transform type: " + tfmType);
     }
@@ -116,6 +117,18 @@ auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
     result->from_meta_(meta);
 
     return result;
+}
+
+void Transform3D::Save(
+    const filesystem::path& path, const Transform3D::Pointer& transform)
+{
+    ::WriteMetadata(path, Serialize(transform));
+}
+
+auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
+{
+    auto meta = ::LoadMetadata(path);
+    return Deserialize(meta);
 }
 
 auto Transform3D::invertible() const -> bool { return false; }
@@ -152,17 +165,10 @@ auto AffineTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
     return {p[0], p[1], p[2]};
 }
 
-void AffineTransform::to_meta_(Metadata& meta)
-{
-    meta["transform-type"] = type();
-    meta["params"] = params_;
-}
+void AffineTransform::to_meta_(Metadata& meta) { meta["params"] = params_; }
 
 void AffineTransform::from_meta_(const Metadata& meta)
 {
-    if (meta["transform-type"] != type()) {
-        throw std::invalid_argument("Transform is not " + std::string(type()));
-    }
     params_ = meta["params"].get<Parameters>();
 }
 
@@ -200,9 +206,9 @@ auto AffineTransform::compose_(const Transform3D::Pointer& rhs) const
     res->target(rhs->target());
 
     // If IdentityTransform
-    if (rhs->type() == IdentityTransform::Type) {
+    if (rhs->type() == IdentityTransform::TYPE) {
         // No-op
-    } else if (rhs->type() == AffineTransform::Type) {
+    } else if (rhs->type() == AffineTransform::TYPE) {
         // Compose the parameters
         auto affRhs = std::dynamic_pointer_cast<AffineTransform>(rhs);
         if (not affRhs) {
@@ -217,7 +223,7 @@ auto AffineTransform::compose_(const Transform3D::Pointer& rhs) const
     return res;
 }
 
-auto AffineTransform::type() const -> std::string_view { return Type; }
+auto AffineTransform::type() const -> std::string_view { return TYPE; }
 
 void AffineTransform::reset() { params_ = Parameters::eye(); }
 
@@ -288,6 +294,10 @@ auto operator<<(std::ostream& os, const AffineTransform& t) -> std::ostream&
     return os;
 }
 
+/////////////////////////////////////////////
+///////////// IdentityTransform /////////////
+/////////////////////////////////////////////
+
 auto IdentityTransform::New() -> IdentityTransform::Pointer
 {
     struct EnableSharedHelper : public IdentityTransform {
@@ -295,7 +305,7 @@ auto IdentityTransform::New() -> IdentityTransform::Pointer
     return std::make_shared<EnableSharedHelper>();
 }
 
-auto IdentityTransform::type() const -> std::string_view { return Type; }
+auto IdentityTransform::type() const -> std::string_view { return TYPE; }
 
 auto IdentityTransform::clone() const -> Transform3D::Pointer
 {
@@ -335,15 +345,77 @@ auto IdentityTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
     return vector;
 }
 
-void IdentityTransform::to_meta_(Metadata& meta)
+void IdentityTransform::to_meta_(Metadata& meta) {}
+
+void IdentityTransform::from_meta_(const Metadata& meta) {}
+
+//////////////////////////////////////////////
+///////////// CompositeTransform /////////////
+//////////////////////////////////////////////
+
+auto CompositeTransform::New() -> CompositeTransform::Pointer
 {
-    meta["transform-type"] = type();
+    struct EnableSharedHelper : public CompositeTransform {
+    };
+    return std::make_shared<EnableSharedHelper>();
 }
 
-void IdentityTransform::from_meta_(const Metadata& meta)
+auto CompositeTransform::type() const -> std::string_view { return TYPE; }
+
+auto CompositeTransform::clone() const -> Transform3D::Pointer
 {
-    if (meta["transform-type"] != type()) {
-        throw std::invalid_argument("Transform is not " + std::string(type()));
+    return std::make_shared<CompositeTransform>(*this);
+}
+
+void CompositeTransform::reset() { tfmStack_.clear(); }
+
+auto CompositeTransform::applyPoint(const cv::Vec3d& point) const -> cv::Vec3d
+{
+    auto pt = point;
+    for (const auto& t : tfmStack_) {
+        pt = t->applyPoint(pt);
+    }
+    return pt;
+}
+
+auto CompositeTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
+{
+    auto vec = vector;
+    for (const auto& t : tfmStack_) {
+        vec = t->applyVector(vec);
+    }
+    return vector;
+}
+
+void CompositeTransform::push_back(const Transform3D::Pointer& t)
+{
+    tfmStack_.push_back(t->clone());
+}
+
+auto CompositeTransform::size() const noexcept -> std::size_t
+{
+    return tfmStack_.size();
+}
+
+void CompositeTransform::flatten()
+{
+    // TODO: Implement
+}
+
+void CompositeTransform::to_meta_(Metadata& meta)
+{
+    Metadata stack;
+    for (const auto& tfm : tfmStack_) {
+        stack.push_back(Serialize(tfm));
+    }
+    meta["transform-stack"] = stack;
+}
+
+void CompositeTransform::from_meta_(const Metadata& meta)
+{
+    tfmStack_.clear();
+    for (const auto& m : meta["transform-stack"]) {
+        tfmStack_.push_back(Deserialize(m));
     }
 }
 

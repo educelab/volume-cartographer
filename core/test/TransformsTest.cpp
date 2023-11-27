@@ -323,3 +323,44 @@ TEST(Transforms, IdentityApplyAndInvert)
     result = inv->applyVector(result);
     EXPECT_EQ(result, orig);
 }
+
+TEST(Transform, CompositeClone)
+{
+    // Create transform
+    auto tfm = CompositeTransform::New();
+    tfm->source("abcdefgh");
+    tfm->target("ijklmnop");
+
+    // Clone
+    auto result = std::dynamic_pointer_cast<CompositeTransform>(tfm->clone());
+
+    // Compare equality
+    EXPECT_EQ(result->type(), tfm->type());
+    EXPECT_EQ(result->source(), tfm->source());
+    EXPECT_EQ(result->target(), tfm->target());
+}
+
+TEST(Transforms, CompositeSerialization)
+{
+    // Create transform
+    auto tfm = CompositeTransform::New();
+    tfm->source("abcdefgh");
+    tfm->target("ijklmnop");
+
+    tfm->push_back(AffineTransform::New());
+    tfm->push_back(IdentityTransform::New());
+
+    // Write to disk
+    const fs::path path{"vc_core_Transforms_CompositeTransform.json"};
+    Transform3D::Save(path, tfm);
+
+    // Read from disk
+    auto result =
+        std::dynamic_pointer_cast<CompositeTransform>(Transform3D::Load(path));
+
+    // Compare equality
+    EXPECT_EQ(result->type(), tfm->type());
+    EXPECT_EQ(result->source(), tfm->source());
+    EXPECT_EQ(result->target(), tfm->target());
+    EXPECT_EQ(result->size(), tfm->size());
+}

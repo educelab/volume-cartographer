@@ -46,7 +46,7 @@ namespace volcart
 class Transform3D
 {
 public:
-    static constexpr std::string_view Type{"Transform3D"};
+    static constexpr std::string_view TYPE{"Transform3D"};
     /** Pointer type */
     using Pointer = std::shared_ptr<Transform3D>;
 
@@ -161,6 +161,10 @@ protected:
 
     /** On-disk metadata type */
     using Metadata = nlohmann::ordered_json;
+    /** Serialize the transform to metadata */
+    static auto Serialize(const Pointer& transform) -> Metadata;
+    /** Deserialize the transform from metadata */
+    static auto Deserialize(const Metadata& meta) -> Pointer;
     /** Serialize the derived class parameters */
     virtual void to_meta_(Metadata& meta) = 0;
     /** Deserialize the derived class parameters */
@@ -196,7 +200,7 @@ private:
 class AffineTransform : public Transform3D
 {
 public:
-    static constexpr std::string_view Type{"AffineTransform"};
+    static constexpr std::string_view TYPE{"AffineTransform"};
     /** Parameters type: 4x4 matrix */
     using Parameters = cv::Matx<double, 4, 4>;
 
@@ -306,7 +310,7 @@ private:
 class IdentityTransform : public Transform3D
 {
 public:
-    static constexpr std::string_view Type{"IdentityTransform"};
+    static constexpr std::string_view TYPE{"IdentityTransform"};
     /** Pointer type */
     using Pointer = std::shared_ptr<IdentityTransform>;
 
@@ -339,6 +343,62 @@ private:
     /** @copydoc Transform3D::compose_() */
     [[nodiscard]] auto compose_(const Transform3D::Pointer& rhs) const
         -> Transform3D::Pointer final;
+    /** @copydoc Transform3D::to_meta_() */
+    void to_meta_(Metadata& meta) final;
+    /** @copydoc Transform3D::from_meta_() */
+    void from_meta_(const Metadata& meta) final;
+};
+
+/**
+ * @brief 3D composite transform
+ *
+ * Identity transform that simply returns input parameters. Useful for
+ * creating explicit mappings between a source and a target which share the
+ * same coordinate space.
+ *
+ * @code
+ * auto tfm = IdentityTransform::New();
+ * auto pt = tfm->applyPoint({0, 1, 0}); // {0, 1, 0}
+ * @endcode
+ */
+class CompositeTransform : public Transform3D
+{
+public:
+    static constexpr std::string_view TYPE{"CompositeTransform"};
+    /** Pointer type */
+    using Pointer = std::shared_ptr<CompositeTransform>;
+
+    /** @brief Create a new AffineTransform */
+    static auto New() -> Pointer;
+
+    /** @copydoc Transform3D::type() */
+    [[nodiscard]] auto type() const -> std::string_view final;
+    /** @copydoc Transform3D::clone() */
+    [[nodiscard]] auto clone() const -> Transform3D::Pointer final;
+    /** @copydoc Transform3D::reset() */
+    void reset() final;
+
+    /** @copydoc Transform3D::applyPoint() */
+    [[nodiscard]] auto applyPoint(const cv::Vec3d& point) const
+        -> cv::Vec3d final;
+    /** @copydoc Transform3D::applyVector() */
+    [[nodiscard]] auto applyVector(const cv::Vec3d& vector) const
+        -> cv::Vec3d final;
+
+    /** @brief Add a transform to the end of the composite transform */
+    void push_back(const Transform3D::Pointer& t);
+
+    /** @brief Get the number of transforms in the composite transform */
+    auto size() const noexcept -> std::size_t;
+
+    /** @brief Compose all composable transforms */
+    void flatten();
+
+private:
+    /** Don't allow construction on the stack */
+    CompositeTransform() = default;
+    /** List of transforms */
+    std::vector<Transform3D::Pointer> tfmStack_;
     /** @copydoc Transform3D::to_meta_() */
     void to_meta_(Metadata& meta) final;
     /** @copydoc Transform3D::from_meta_() */
