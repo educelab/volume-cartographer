@@ -18,7 +18,7 @@ TEST(Transform, AffineClone)
     tfm->translate(1, 2, 3);
 
     // Clone
-    auto result = std::static_pointer_cast<AffineTransform>(tfm->clone());
+    auto result = std::dynamic_pointer_cast<AffineTransform>(tfm->clone());
 
     // Compare equality
     EXPECT_EQ(result->type(), tfm->type());
@@ -42,7 +42,7 @@ TEST(Transforms, AffineSerialization)
 
     // Read from disk
     auto result =
-        std::static_pointer_cast<AffineTransform>(AffineTransform::Load(path));
+        std::dynamic_pointer_cast<AffineTransform>(AffineTransform::Load(path));
 
     // Compare equality
     EXPECT_EQ(result->type(), tfm->type());
@@ -248,7 +248,7 @@ TEST(Transform, IdentityClone)
     tfm->target("ijklmnop");
 
     // Clone
-    auto result = std::static_pointer_cast<IdentityTransform>(tfm->clone());
+    auto result = std::dynamic_pointer_cast<IdentityTransform>(tfm->clone());
 
     // Compare equality
     EXPECT_EQ(result->type(), tfm->type());
@@ -269,7 +269,7 @@ TEST(Transforms, IdentitySerialization)
 
     // Read from disk
     auto result =
-        std::static_pointer_cast<IdentityTransform>(Transform3D::Load(path));
+        std::dynamic_pointer_cast<IdentityTransform>(Transform3D::Load(path));
 
     // Compare equality
     EXPECT_EQ(result->type(), tfm->type());

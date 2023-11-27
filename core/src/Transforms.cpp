@@ -61,6 +61,25 @@ void Transform3D::clear()
     reset();
 }
 
+auto Transform3D::Compose(
+    const Transform3D::Pointer& lhs, const Transform3D::Pointer& rhs)
+    -> std::pair<Transform3D::Pointer, Transform3D::Pointer>
+{
+    // Return the inputs if either are not composable
+    if (not lhs->composable() or not rhs->composable()) {
+        return {lhs, rhs};
+    }
+
+    // Defer to the transform for composition
+    return {lhs->compose_(rhs), nullptr};
+}
+
+auto Transform3D::compose_(const Transform3D::Pointer& rhs) const
+    -> Transform3D::Pointer
+{
+    return nullptr;
+}
+
 void Transform3D::Save(
     const filesystem::path& path, const Transform3D::Pointer& transform)
 {
@@ -103,8 +122,10 @@ auto Transform3D::invertible() const -> bool { return false; }
 
 auto Transform3D::invert() const -> Transform3D::Pointer
 {
-    throw std::runtime_error(this->type() + " is not invertible");
+    throw std::runtime_error(std::string(this->type()) + " is not invertible");
 }
+
+auto Transform3D::composable() const -> bool { return false; }
 
 ///////////////////////////////////////////
 ///////////// AffineTransform /////////////
@@ -140,7 +161,7 @@ void AffineTransform::to_meta_(Metadata& meta)
 void AffineTransform::from_meta_(const Metadata& meta)
 {
     if (meta["transform-type"] != type()) {
-        throw std::runtime_error("Transform is not " + type());
+        throw std::invalid_argument("Transform is not " + std::string(type()));
     }
     params_ = meta["params"].get<Parameters>();
 }
@@ -166,7 +187,37 @@ auto AffineTransform::invert() const -> Transform3D::Pointer
     return inverted;
 }
 
-auto AffineTransform::type() const -> std::string { return "AffineTransform"; }
+auto AffineTransform::composable() const -> bool { return true; }
+
+auto AffineTransform::compose_(const Transform3D::Pointer& rhs) const
+    -> Transform3D::Pointer
+{
+    // Get a copy of self
+    auto res = AffineTransform::New();
+
+    // Copy Transform3D parameters
+    res->source(source());
+    res->target(rhs->target());
+
+    // If IdentityTransform
+    if (rhs->type() == IdentityTransform::Type) {
+        // No-op
+    } else if (rhs->type() == AffineTransform::Type) {
+        // Compose the parameters
+        auto affRhs = std::dynamic_pointer_cast<AffineTransform>(rhs);
+        if (not affRhs) {
+            throw std::invalid_argument("rhs argument is not AffineTransform");
+        }
+        res->params_ = affRhs->params_ * params_;
+    } else {
+        throw std::invalid_argument(
+            "Unsupported transform type: " + std::string(rhs->type()));
+    }
+
+    return res;
+}
+
+auto AffineTransform::type() const -> std::string_view { return Type; }
 
 void AffineTransform::reset() { params_ = Parameters::eye(); }
 
@@ -235,6 +286,65 @@ auto operator<<(std::ostream& os, const AffineTransform& t) -> std::ostream&
     }
     os << "])";
     return os;
+}
+
+auto IdentityTransform::New() -> IdentityTransform::Pointer
+{
+    struct EnableSharedHelper : public IdentityTransform {
+    };
+    return std::make_shared<EnableSharedHelper>();
+}
+
+auto IdentityTransform::type() const -> std::string_view { return Type; }
+
+auto IdentityTransform::clone() const -> Transform3D::Pointer
+{
+    return std::make_shared<IdentityTransform>(*this);
+}
+
+auto IdentityTransform::invertible() const -> bool { return true; }
+
+auto IdentityTransform::invert() const -> Transform3D::Pointer
+{
+    auto ret = New();
+    ret->source(target());
+    ret->target(source());
+    return ret;
+}
+
+auto IdentityTransform::composable() const -> bool { return true; }
+
+auto IdentityTransform::compose_(const Transform3D::Pointer& rhs) const
+    -> Transform3D::Pointer
+{
+    auto res = rhs->clone();
+    res->source(source());
+
+    return res;
+}
+
+void IdentityTransform::reset() {}
+
+auto IdentityTransform::applyPoint(const cv::Vec3d& point) const -> cv::Vec3d
+{
+    return point;
+}
+
+auto IdentityTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
+{
+    return vector;
+}
+
+void IdentityTransform::to_meta_(Metadata& meta)
+{
+    meta["transform-type"] = type();
+}
+
+void IdentityTransform::from_meta_(const Metadata& meta)
+{
+    if (meta["transform-type"] != type()) {
+        throw std::invalid_argument("Transform is not " + std::string(type()));
+    }
 }
 
 //////////////////////////////////////////
@@ -310,55 +420,4 @@ auto vc::ApplyTransform(
     bool normalize) -> PerPixelMap::Pointer
 {
     return PerPixelMap::New(ApplyTransform(*ppm, transform, normalize));
-}
-
-auto IdentityTransform::New() -> IdentityTransform::Pointer
-{
-    struct EnableSharedHelper : public IdentityTransform {
-    };
-    return std::make_shared<EnableSharedHelper>();
-}
-
-auto IdentityTransform::type() const -> std::string
-{
-    return "IdentityTransform";
-}
-
-auto IdentityTransform::clone() const -> Transform3D::Pointer
-{
-    return std::make_shared<IdentityTransform>(*this);
-}
-
-auto IdentityTransform::invertible() const -> bool { return true; }
-
-auto IdentityTransform::invert() const -> Transform3D::Pointer
-{
-    auto ret = New();
-    ret->source(target());
-    ret->target(source());
-    return ret;
-}
-
-void IdentityTransform::reset() {}
-
-auto IdentityTransform::applyPoint(const cv::Vec3d& point) const -> cv::Vec3d
-{
-    return point;
-}
-
-auto IdentityTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
-{
-    return vector;
-}
-
-void IdentityTransform::to_meta_(Metadata& meta)
-{
-    meta["transform-type"] = type();
-}
-
-void IdentityTransform::from_meta_(const Metadata& meta)
-{
-    if (meta["transform-type"] != type()) {
-        throw std::runtime_error("Transform is not " + type());
-    }
 }

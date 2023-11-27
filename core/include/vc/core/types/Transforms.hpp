@@ -46,6 +46,7 @@ namespace volcart
 class Transform3D
 {
 public:
+    static constexpr std::string_view Type{"Transform3D"};
     /** Pointer type */
     using Pointer = std::shared_ptr<Transform3D>;
 
@@ -60,7 +61,7 @@ public:
     auto operator=(Transform3D&& other) -> Transform3D& = delete;
 
     /** @brief Return a string representation of the transform type */
-    [[nodiscard]] virtual auto type() const -> std::string = 0;
+    [[nodiscard]] virtual auto type() const -> std::string_view = 0;
     /** @brief Clone the transform */
     [[nodiscard]] virtual auto clone() const -> Pointer = 0;
 
@@ -68,6 +69,8 @@ public:
     [[nodiscard]] virtual auto invertible() const -> bool;
     /** @brief Return the inverted transform */
     [[nodiscard]] virtual auto invert() const -> Pointer;
+    /** @brief Return whether the underlying transform is composable */
+    [[nodiscard]] virtual auto composable() const -> bool;
 
     /**
      * @brief Reset the transform parameters
@@ -134,6 +137,11 @@ public:
     [[nodiscard]] auto applyPointAndNormal(
         const cv::Vec6d& ptN, bool normalize = true) const -> cv::Vec6d;
 
+    /** @brief */
+    static auto Compose(
+        const Transform3D::Pointer& lhs, const Transform3D::Pointer& rhs)
+        -> std::pair<Transform3D::Pointer, Transform3D::Pointer>;
+
     /** @brief Save a transform to a JSON file */
     static void Save(const filesystem::path& path, const Pointer& transform);
     /** @brief Load a transform from a JSON file */
@@ -146,6 +154,10 @@ protected:
     Transform3D(const Transform3D&) = default;
     /** Only derived classes can copy */
     auto operator=(const Transform3D& other) -> Transform3D& = default;
+
+    /** Helper compose function */
+    virtual auto compose_(const Transform3D::Pointer& rhs) const
+        -> Transform3D::Pointer;
 
     /** On-disk metadata type */
     using Metadata = nlohmann::ordered_json;
@@ -184,6 +196,7 @@ private:
 class AffineTransform : public Transform3D
 {
 public:
+    static constexpr std::string_view Type{"AffineTransform"};
     /** Parameters type: 4x4 matrix */
     using Parameters = cv::Matx<double, 4, 4>;
 
@@ -194,13 +207,15 @@ public:
     static auto New() -> Pointer;
 
     /** @copydoc Transform3D::type() */
-    [[nodiscard]] auto type() const -> std::string final;
+    [[nodiscard]] auto type() const -> std::string_view final;
     /** @copydoc Transform3D::clone() */
     [[nodiscard]] auto clone() const -> Transform3D::Pointer final;
     /** @copydoc Transform3D::invertible() */
     [[nodiscard]] auto invertible() const -> bool final;
     /** @copydoc Transform3D::invert() */
     [[nodiscard]] auto invert() const -> Transform3D::Pointer final;
+    /** @copydoc Transform3D::composable() */
+    [[nodiscard]] auto composable() const -> bool final;
     /** @copydoc Transform3D::reset() */
     void reset() final;
 
@@ -267,6 +282,9 @@ private:
     AffineTransform() = default;
     /** Current parameters */
     Parameters params_{cv::Matx<double, 4, 4>::eye()};
+    /** @copydoc Transform3D::compose_() */
+    auto compose_(const Transform3D::Pointer& rhs) const
+        -> Transform3D::Pointer final;
     /** @copydoc Transform3D::to_meta_() */
     void to_meta_(Metadata& meta) final;
     /** @copydoc Transform3D::from_meta_() */
@@ -288,6 +306,7 @@ private:
 class IdentityTransform : public Transform3D
 {
 public:
+    static constexpr std::string_view Type{"IdentityTransform"};
     /** Pointer type */
     using Pointer = std::shared_ptr<IdentityTransform>;
 
@@ -295,13 +314,15 @@ public:
     static auto New() -> Pointer;
 
     /** @copydoc Transform3D::type() */
-    [[nodiscard]] auto type() const -> std::string final;
+    [[nodiscard]] auto type() const -> std::string_view final;
     /** @copydoc Transform3D::clone() */
     [[nodiscard]] auto clone() const -> Transform3D::Pointer final;
     /** @copydoc Transform3D::invertible() */
     [[nodiscard]] auto invertible() const -> bool final;
     /** @copydoc Transform3D::invert() */
     [[nodiscard]] auto invert() const -> Transform3D::Pointer final;
+    /** @copydoc Transform3D::composable() */
+    [[nodiscard]] auto composable() const -> bool final;
     /** @copydoc Transform3D::reset() */
     void reset() final;
 
@@ -315,6 +336,9 @@ public:
 private:
     /** Don't allow construction on the stack */
     IdentityTransform() = default;
+    /** @copydoc Transform3D::compose_() */
+    auto compose_(const Transform3D::Pointer& rhs) const
+        -> Transform3D::Pointer final;
     /** @copydoc Transform3D::to_meta_() */
     void to_meta_(Metadata& meta) final;
     /** @copydoc Transform3D::from_meta_() */
