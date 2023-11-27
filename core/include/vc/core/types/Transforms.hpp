@@ -275,6 +275,42 @@ private:
     void from_meta_(const Metadata& meta) final;
 };
 
+class IdentityTransform : public Transform3D
+{
+public:
+    /** Pointer type */
+    using Pointer = std::shared_ptr<IdentityTransform>;
+
+    /** @brief Create a new AffineTransform */
+    static auto New() -> Pointer;
+
+    /** @copydoc Transform3D::type() */
+    [[nodiscard]] auto type() const -> std::string final;
+    /** @copydoc Transform3D::clone() */
+    [[nodiscard]] auto clone() const -> Transform3D::Pointer final;
+    /** @copydoc Transform3D::invertible() */
+    [[nodiscard]] auto invertible() const -> bool final;
+    /** @copydoc Transform3D::invert() */
+    [[nodiscard]] auto invert() const -> Transform3D::Pointer final;
+    /** @copydoc Transform3D::reset() */
+    void reset() final;
+
+    /** @copydoc Transform3D::applyPoint() */
+    [[nodiscard]] auto applyPoint(const cv::Vec3d& point) const
+        -> cv::Vec3d final;
+    /** @copydoc Transform3D::applyVector() */
+    [[nodiscard]] auto applyVector(const cv::Vec3d& vector) const
+        -> cv::Vec3d final;
+
+private:
+    /** Don't allow construction on the stack */
+    IdentityTransform() = default;
+    /** @copydoc Transform3D::to_meta_() */
+    void to_meta_(Metadata& meta) final;
+    /** @copydoc Transform3D::from_meta_() */
+    void from_meta_(const Metadata& meta) final;
+};
+
 /** @brief Apply a transform to an ITKMesh */
 auto ApplyTransform(
     const ITKMesh::Pointer& mesh,

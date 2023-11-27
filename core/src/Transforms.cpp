@@ -311,3 +311,51 @@ auto vc::ApplyTransform(
 {
     return PerPixelMap::New(ApplyTransform(*ppm, transform, normalize));
 }
+
+auto IdentityTransform::New() -> IdentityTransform::Pointer
+{
+    struct EnableSharedHelper : public IdentityTransform {
+    };
+    return std::make_shared<EnableSharedHelper>();
+}
+
+auto IdentityTransform::type() const -> std::string
+{
+    return "IdentityTransform";
+}
+
+auto IdentityTransform::clone() const -> Transform3D::Pointer
+{
+    return std::make_shared<IdentityTransform>(*this);
+}
+
+auto IdentityTransform::invertible() const -> bool { return true; }
+
+auto IdentityTransform::invert() const -> Transform3D::Pointer
+{
+    auto ret = New();
+    ret->source(target());
+    ret->target(source());
+}
+
+void IdentityTransform::reset() {}
+
+auto IdentityTransform::applyPoint(const cv::Vec3d& point) const -> cv::Vec3d
+{
+    return point;
+}
+
+auto IdentityTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
+{
+    return vector;
+}
+
+void IdentityTransform::to_meta_(volcart::Transform3D::Metadata& meta)
+{
+    // TODO: Implement
+}
+
+void IdentityTransform::from_meta_(const volcart::Transform3D::Metadata& meta)
+{
+    // TODO: Implement
+}
