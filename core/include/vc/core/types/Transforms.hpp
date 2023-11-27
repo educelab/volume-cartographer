@@ -156,7 +156,7 @@ protected:
     auto operator=(const Transform3D& other) -> Transform3D& = default;
 
     /** Helper compose function */
-    virtual auto compose_(const Transform3D::Pointer& rhs) const
+    [[nodiscard]] virtual auto compose_(const Transform3D::Pointer& rhs) const
         -> Transform3D::Pointer;
 
     /** On-disk metadata type */
@@ -283,7 +283,7 @@ private:
     /** Current parameters */
     Parameters params_{cv::Matx<double, 4, 4>::eye()};
     /** @copydoc Transform3D::compose_() */
-    auto compose_(const Transform3D::Pointer& rhs) const
+    [[nodiscard]] auto compose_(const Transform3D::Pointer& rhs) const
         -> Transform3D::Pointer final;
     /** @copydoc Transform3D::to_meta_() */
     void to_meta_(Metadata& meta) final;
@@ -337,7 +337,7 @@ private:
     /** Don't allow construction on the stack */
     IdentityTransform() = default;
     /** @copydoc Transform3D::compose_() */
-    auto compose_(const Transform3D::Pointer& rhs) const
+    [[nodiscard]] auto compose_(const Transform3D::Pointer& rhs) const
         -> Transform3D::Pointer final;
     /** @copydoc Transform3D::to_meta_() */
     void to_meta_(Metadata& meta) final;
