@@ -58,6 +58,7 @@ void Transform3D::clear()
 {
     src_.clear();
     tgt_.clear();
+    reset();
 }
 
 void Transform3D::Save(
@@ -86,6 +87,8 @@ auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
     Transform3D::Pointer result;
     if (tfmType == "AffineTransform") {
         result = AffineTransform::New();
+    } else if (tfmType == "IdentityTransform") {
+        result = IdentityTransform::New();
     } else {
         throw std::runtime_error("Unknown transform type: " + tfmType);
     }
@@ -130,12 +133,15 @@ auto AffineTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
 
 void AffineTransform::to_meta_(Metadata& meta)
 {
-    meta["transform-type"] = "AffineTransform";
+    meta["transform-type"] = type();
     meta["params"] = params_;
 }
 
 void AffineTransform::from_meta_(const Metadata& meta)
 {
+    if (meta["transform-type"] != type()) {
+        throw std::runtime_error("Transform is not " + type());
+    }
     params_ = meta["params"].get<Parameters>();
 }
 
@@ -163,12 +169,6 @@ auto AffineTransform::invert() const -> Transform3D::Pointer
 auto AffineTransform::type() const -> std::string { return "AffineTransform"; }
 
 void AffineTransform::reset() { params_ = Parameters::eye(); }
-
-void AffineTransform::clear()
-{
-    Transform3D::clear();
-    reset();
-}
 
 auto AffineTransform::clone() const -> Transform3D::Pointer
 {
@@ -336,6 +336,7 @@ auto IdentityTransform::invert() const -> Transform3D::Pointer
     auto ret = New();
     ret->source(target());
     ret->target(source());
+    return ret;
 }
 
 void IdentityTransform::reset() {}
@@ -350,12 +351,14 @@ auto IdentityTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
     return vector;
 }
 
-void IdentityTransform::to_meta_(volcart::Transform3D::Metadata& meta)
+void IdentityTransform::to_meta_(Metadata& meta)
 {
-    // TODO: Implement
+    meta["transform-type"] = type();
 }
 
-void IdentityTransform::from_meta_(const volcart::Transform3D::Metadata& meta)
+void IdentityTransform::from_meta_(const Metadata& meta)
 {
-    // TODO: Implement
+    if (meta["transform-type"] != type()) {
+        throw std::runtime_error("Transform is not " + type());
+    }
 }

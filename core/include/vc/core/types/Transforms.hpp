@@ -79,7 +79,7 @@ public:
      */
     virtual void reset() = 0;
     /** @brief Clears all parameters and properties of the transform */
-    virtual void clear();
+    void clear();
 
     /**
      * @brief Set the identifier for the source space
@@ -203,8 +203,6 @@ public:
     [[nodiscard]] auto invert() const -> Transform3D::Pointer final;
     /** @copydoc Transform3D::reset() */
     void reset() final;
-    /** @copydoc Transform3D::clear() */
-    void clear() final;
 
     /** @copydoc Transform3D::applyPoint() */
     [[nodiscard]] auto applyPoint(const cv::Vec3d& point) const
@@ -275,6 +273,18 @@ private:
     void from_meta_(const Metadata& meta) final;
 };
 
+/**
+ * @brief 3D identity transform
+ *
+ * Identity transform that simply returns input parameters. Useful for
+ * creating explicit mappings between a source and a target which share the
+ * same coordinate space.
+ *
+ * @code
+ * auto tfm = IdentityTransform::New();
+ * auto pt = tfm->applyPoint({0, 1, 0}); // {0, 1, 0}
+ * @endcode
+ */
 class IdentityTransform : public Transform3D
 {
 public:

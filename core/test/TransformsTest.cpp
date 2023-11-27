@@ -17,9 +17,9 @@ TEST(Transform, AffineClone)
     tfm->rotate(90, cv::Vec3d{0, 0, 1});
     tfm->translate(1, 2, 3);
 
-    AffineTransform test = *tfm;
-
+    // Clone
     auto result = std::static_pointer_cast<AffineTransform>(tfm->clone());
+
     // Compare equality
     EXPECT_EQ(result->type(), tfm->type());
     EXPECT_EQ(result->source(), tfm->source());
@@ -38,7 +38,7 @@ TEST(Transforms, AffineSerialization)
 
     // Write to disk
     const fs::path path{"vc_core_Transforms_AffineTransform.json"};
-    AffineTransform::Save(path, tfm);
+    Transform3D::Save(path, tfm);
 
     // Read from disk
     auto result =
@@ -238,4 +238,88 @@ TEST(Transforms, AffineInvert)
     inv = tfm->invert();
     result = inv->applyPoint(result);
     SmallOrClose(result, orig);
+}
+
+TEST(Transform, IdentityClone)
+{
+    // Create transform
+    auto tfm = IdentityTransform::New();
+    tfm->source("abcdefgh");
+    tfm->target("ijklmnop");
+
+    // Clone
+    auto result = std::static_pointer_cast<IdentityTransform>(tfm->clone());
+
+    // Compare equality
+    EXPECT_EQ(result->type(), tfm->type());
+    EXPECT_EQ(result->source(), tfm->source());
+    EXPECT_EQ(result->target(), tfm->target());
+}
+
+TEST(Transforms, IdentitySerialization)
+{
+    // Create transform
+    auto tfm = IdentityTransform::New();
+    tfm->source("abcdefgh");
+    tfm->target("ijklmnop");
+
+    // Write to disk
+    const fs::path path{"vc_core_Transforms_IdentityTransform.json"};
+    Transform3D::Save(path, tfm);
+
+    // Read from disk
+    auto result =
+        std::static_pointer_cast<IdentityTransform>(Transform3D::Load(path));
+
+    // Compare equality
+    EXPECT_EQ(result->type(), tfm->type());
+    EXPECT_EQ(result->source(), tfm->source());
+    EXPECT_EQ(result->target(), tfm->target());
+}
+
+TEST(Transforms, IdentityResetClear)
+{
+    // Build a transform
+    auto tfm = IdentityTransform::New();
+    tfm->source("abc");
+    tfm->target("def");
+
+    // Test that reset doesn't affect source/target
+    tfm->reset();
+    EXPECT_EQ(tfm->source(), "abc");
+    EXPECT_EQ(tfm->target(), "def");
+
+    // Test that clear resets everything
+    tfm->clear();
+    EXPECT_EQ(tfm->source(), "");
+    EXPECT_EQ(tfm->target(), "");
+}
+
+TEST(Transforms, IdentityApplyAndInvert)
+{
+    // Original point
+    const cv::Vec3d orig{0, 1, 1};
+
+    // Get forward transform
+    auto tfm = IdentityTransform::New();
+    tfm->source("abc");
+    tfm->target("def");
+
+    // Get inverse transform
+    EXPECT_TRUE(tfm->invertible());
+    auto inv = tfm->invert();
+    EXPECT_EQ(inv->source(), tfm->target());
+    EXPECT_EQ(inv->target(), tfm->source());
+
+    // Test apply point
+    auto result = tfm->applyPoint(orig);
+    EXPECT_EQ(result, orig);
+    result = inv->applyPoint(result);
+    EXPECT_EQ(result, orig);
+
+    // Test apply vector
+    result = tfm->applyVector(orig);
+    EXPECT_EQ(result, orig);
+    result = inv->applyVector(result);
+    EXPECT_EQ(result, orig);
 }
