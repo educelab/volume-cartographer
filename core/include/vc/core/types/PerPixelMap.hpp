@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <memory>
 
 #include <opencv2/core.hpp>
@@ -9,6 +10,7 @@
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/UVMap.hpp"
+#include "vc/core/types/Volume.hpp"
 
 namespace volcart
 {
@@ -54,18 +56,12 @@ public:
         PixelMap() = default;
 
         /** Construct and initialize */
-        PixelMap(size_t x, size_t y, cv::Vec6d value)
-            : x{x}
-            , y{y}
-            , pos{value[0], value[1], value[2]}
-            , normal{value[3], value[4], value[5]}
-        {
-        }
+        PixelMap(std::size_t x, std::size_t y, cv::Vec6d value);
 
         /** PPM Pixel position X */
-        size_t x{0};
+        std::size_t x{0};
         /** PPM Pixel position Y */
-        size_t y{0};
+        std::size_t y{0};
         /** Mapped Volume position */
         cv::Vec3d pos;
         /** Surface normal at mapped Volume position */
@@ -80,7 +76,7 @@ public:
     PerPixelMap() = default;
 
     /** @brief Constructor with width and height parameters */
-    PerPixelMap(size_t height, size_t width);
+    PerPixelMap(std::size_t height, std::size_t width);
 
     /** Static New function for all constructors of T */
     template <typename... Args>
@@ -99,10 +95,10 @@ public:
 
     /**@{*/
     /** @brief Get the mapping for a pixel by x, y coordinate */
-    auto operator()(size_t y, size_t x) const -> const cv::Vec6d&;
+    auto operator()(std::size_t y, std::size_t x) const -> const cv::Vec6d&;
 
     /** @copydoc operator()() */
-    auto operator()(size_t y, size_t x) -> cv::Vec6d&;
+    auto operator()(std::size_t y, std::size_t x) -> cv::Vec6d&;
 
     /** @copydoc operator()() */
     [[nodiscard]] auto getMapping(std::size_t y, std::size_t x) const
@@ -116,10 +112,10 @@ public:
      *
      * Returns `true` is the pixel mask has not been set or is empty
      */
-    [[nodiscard]] auto hasMapping(size_t y, size_t x) const -> bool;
+    [[nodiscard]] auto hasMapping(std::size_t y, std::size_t x) const -> bool;
 
     /** @brief Get the mapping for a pixel as a PixelMap */
-    auto getAsPixelMap(size_t y, size_t x) -> PixelMap;
+    auto getAsPixelMap(std::size_t y, std::size_t x) -> PixelMap;
 
     /**
      * @brief Get all valid pixel mappings as a list of PixelMap
@@ -136,25 +132,25 @@ public:
      * @warning Changing the size of the PerPixelMap will clear it of data.
      * Setting either dimension to 0 will result in undefined behavior.
      */
-    void setDimensions(size_t h, size_t w);
+    void setDimensions(std::size_t h, std::size_t w);
 
     /**
      * @brief Set the width of the map
      * @copydetails setDimensions()
      */
-    void setWidth(size_t w);
+    void setWidth(std::size_t w);
 
     /**
      * @brief Set the height of the map
      * @copydetails setDimensions()
      */
-    void setHeight(size_t h);
+    void setHeight(std::size_t h);
 
     /** @brief Get the width of the map */
-    [[nodiscard]] auto width() const -> size_t;
+    [[nodiscard]] auto width() const -> std::size_t;
 
     /** @brief Get the height of the map */
-    [[nodiscard]] auto height() const -> size_t;
+    [[nodiscard]] auto height() const -> std::size_t;
     /**@}*/
 
     /**@{*/
@@ -190,6 +186,15 @@ public:
     void setCellMap(const cv::Mat& m);
     /**@}*/
 
+    /** @brief Return whether this PerPixelMap is associated with a Volume */
+    [[nodiscard]] auto hasVolumeID() const -> bool;
+
+    /** @brief Get the ID of the Volume associated with this PerPixelMap */
+    [[nodiscard]] auto getVolumeID() const -> Volume::Identifier;
+
+    /** @brief Set the ID of the Volume associated with this PerPixelMap */
+    void setVolumeID(const Volume::Identifier& id);
+
     /**@{*/
     /** @brief Write a PerPixelMap to disk */
     static void WritePPM(const filesystem::path& path, const PerPixelMap& map);
@@ -207,9 +212,9 @@ private:
     void initialize_map_();
 
     /** Height of the map */
-    size_t height_{0};
+    std::size_t height_{0};
     /** Width of the map */
-    size_t width_{0};
+    std::size_t width_{0};
     /** Map data storage */
     OrderedPointSet<cv::Vec6d> map_;
 

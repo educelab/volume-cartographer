@@ -127,25 +127,24 @@ public:
     static std::string MakeHeader(PointSet<T> ps)
     {
         std::stringstream ss;
-        ss << "size: " << ps.size() << std::endl;
-        ss << "dim: " << T::channels << std::endl;
-        ss << "ordered: false" << std::endl;
+        ss << "size: " << ps.size() << '\n';
+        ss << "dim: " << T::channels << '\n';
+        ss << "ordered: false\n";
 
         // Output type information
         ss << "type: ";
-        if (std::is_same<typename T::value_type, int>::value) {
-            ss << "int" << std::endl;
-        } else if (std::is_same<typename T::value_type, float>::value) {
-            ss << "float" << std::endl;
-        } else if (std::is_same<typename T::value_type, double>::value) {
-            ss << "double" << std::endl;
+        if (std::is_same_v<typename T::value_type, int>) {
+            ss << "int" << '\n';
+        } else if (std::is_same_v<typename T::value_type, float>) {
+            ss << "float" << '\n';
+        } else if (std::is_same_v<typename T::value_type, double>) {
+            ss << "double" << '\n';
         } else {
-            auto msg = "unsupported type";
-            throw IOException(msg);
+            throw IOException("unsupported type");
         }
 
-        ss << "version: " << PointSet<T>::FORMAT_VERSION << std::endl;
-        ss << PointSet<T>::HEADER_TERMINATOR << std::endl;
+        ss << "version: " << PointSet<T>::FORMAT_VERSION << '\n';
+        ss << PointSet<T>::HEADER_TERMINATOR << '\n';
 
         return ss.str();
     }
@@ -153,26 +152,25 @@ public:
     static std::string MakeOrderedHeader(OrderedPointSet<T> ps)
     {
         std::stringstream ss;
-        ss << "width: " << ps.width() << std::endl;
-        ss << "height: " << ps.height() << std::endl;
-        ss << "dim: " << T::channels << std::endl;
-        ss << "ordered: true" << std::endl;
+        ss << "width: " << ps.width() << '\n';
+        ss << "height: " << ps.height() << '\n';
+        ss << "dim: " << T::channels << '\n';
+        ss << "ordered: true" << '\n';
 
         // Output type information
         ss << "type: ";
-        if (std::is_same<typename T::value_type, int>::value) {
-            ss << "int" << std::endl;
-        } else if (std::is_same<typename T::value_type, float>::value) {
-            ss << "float" << std::endl;
-        } else if (std::is_same<typename T::value_type, double>::value) {
-            ss << "double" << std::endl;
+        if (std::is_same_v<typename T::value_type, int>) {
+            ss << "int" << '\n';
+        } else if (std::is_same_v<typename T::value_type, float>) {
+            ss << "float" << '\n';
+        } else if (std::is_same_v<typename T::value_type, double>) {
+            ss << "double" << '\n';
         } else {
-            auto msg = "unsupported type";
-            throw IOException(msg);
+            throw IOException("unsupported type");
         }
 
-        ss << "version: " << PointSet<T>::FORMAT_VERSION << std::endl;
-        ss << PointSet<T>::HEADER_TERMINATOR << std::endl;
+        ss << "version: " << PointSet<T>::FORMAT_VERSION << '\n';
+        ss << PointSet<T>::HEADER_TERMINATOR << '\n';
 
         return ss.str();
     }
@@ -182,7 +180,7 @@ public:
      *
      * The input file stream should be open and pointing at the beginning of
      * the file. Will throw an exception if the ordered parameter does not match
-     * the ordereing type of the file.
+     * the ordering type of the file.
      */
     static Header ParseHeader(std::ifstream& infile, bool ordered = true)
     {
@@ -216,7 +214,7 @@ public:
             }
 
             // Width
-            else if (std::regex_match(strs[0], width)) {
+            if (std::regex_match(strs[0], width)) {
                 h.width = std::stoul(strs[1]);
             }
 
@@ -315,17 +313,21 @@ public:
         if (h.type.empty()) {
             const auto* msg = "Must provide type";
             throw IOException(msg);
-        } else if (h.dim == 0) {
+        }
+        if (h.dim == 0) {
             const auto* msg = "Must provide dim";
             throw IOException(msg);
-        } else if (!ordered && h.size == 0) {
+        }
+        if (!ordered && h.size == 0) {
             const auto* msg = "Unordered pointsets must have a size";
             throw IOException(msg);
-        } else if (ordered && (h.width == 0 || h.height == 0)) {
+        }
+        if (ordered && (h.width == 0 || h.height == 0)) {
             const auto* msg =
                 "Ordered pointsets must have a nonzero width and height";
             throw IOException(msg);
-        } else if (ordered && !h.ordered) {
+        }
+        if (ordered && !h.ordered) {
             const auto* msg =
                 "Tried to read unordered pointset with ordered PointSetIO";
             throw IOException(msg);
@@ -479,7 +481,7 @@ private:
             for (size_t i = 0; i < T::channels; ++i) {
                 outfile << p(i) << " ";
             }
-            outfile << std::endl;
+            outfile << '\n';
         }
 
         outfile.flush();
@@ -532,7 +534,7 @@ private:
             for (size_t i = 0; i < T::channels; ++i) {
                 outfile << p(i) << " ";
             }
-            outfile << std::endl;
+            outfile << '\n';
         }
 
         outfile.flush();

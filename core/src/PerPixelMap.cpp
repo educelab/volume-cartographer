@@ -164,3 +164,27 @@ auto PerPixelMap::mask() const -> cv::Mat { return mask_; }
 void PerPixelMap::setMask(const cv::Mat& m) { mask_ = m.clone(); }
 auto PerPixelMap::cellMap() const -> cv::Mat { return cellMap_; }
 void PerPixelMap::setCellMap(const cv::Mat& m) { cellMap_ = m.clone(); }
+
+auto PerPixelMap::hasVolumeID() const -> bool
+{
+    //    return metadata_.hasKey("volume") && !getVolumeID().empty();
+}
+
+auto PerPixelMap::getVolumeID() const -> Volume::Identifier
+{
+    //    return metadata_.get<Volume::Identifier>("volume");
+}
+
+void PerPixelMap::setVolumeID(const Volume::Identifier& id)
+{
+    //    metadata_.set<std::string>("volume", id);
+    //    metadata_.save();
+}
+
+PerPixelMap::PixelMap::PixelMap(std::size_t x, std::size_t y, cv::Vec6d value)
+    : x{x}
+    , y{y}
+    , pos{value[0], value[1], value[2]}
+    , normal{value[3], value[4], value[5]}
+{
+}
