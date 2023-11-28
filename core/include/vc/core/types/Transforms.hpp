@@ -163,9 +163,8 @@ public:
      * }
      * @endcode
      */
-    static auto Compose(
-        const Transform3D::Pointer& lhs, const Transform3D::Pointer& rhs)
-        -> std::pair<Transform3D::Pointer, Transform3D::Pointer>;
+    static auto Compose(const Pointer& lhs, const Pointer& rhs)
+        -> std::pair<Pointer, Pointer>;
 
     /** @brief Save a transform to a JSON file */
     static void Save(const filesystem::path& path, const Pointer& transform);
@@ -180,7 +179,11 @@ protected:
     /** Only derived classes can copy */
     auto operator=(const Transform3D& other) -> Transform3D& = default;
 
-    /** Helper compose function */
+    /**
+     * Helper compose function. The base implementation returns a nullptr.
+     * Implementing derived classes should set the returned transform's source
+     * to this->source() and the target to rhs->target().
+     */
     [[nodiscard]] virtual auto compose_(const Transform3D::Pointer& rhs) const
         -> Transform3D::Pointer;
 
@@ -201,6 +204,18 @@ private:
     /** Target space identifier */
     std::string tgt_;
 };
+
+/**
+ * @brief Compose transform convenience operator
+ *
+ * Same as Transform3D::Compose but only returns the composed transform. If
+ * composition fails for any reason, will throw an exception.
+ *
+ * @throws std::invalid_argument if lhs or rhs are not composable
+ * @throws std::runtime_error if transform composition failed
+ */
+auto operator*(const Transform3D::Pointer& lhs, const Transform3D::Pointer& rhs)
+    -> Transform3D::Pointer;
 
 /**
  * @brief 3D affine transform

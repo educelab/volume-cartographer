@@ -137,6 +137,29 @@ auto Transform3D::invert() const -> Pointer
 
 auto Transform3D::composable() const -> bool { return false; }
 
+auto vc::operator*(
+    const Transform3D::Pointer& lhs, const Transform3D::Pointer& rhs)
+    -> Transform3D::Pointer
+{
+    // catch early
+    if (not lhs->composable()) {
+        throw std::invalid_argument(
+            "lhs transform is not composable: " + std::string(lhs->type()));
+    }
+    if (not rhs->composable()) {
+        throw std::invalid_argument(
+            "rhs transform is not composable: " + std::string(rhs->type()));
+    }
+    // try compose
+    auto [ret, should_be_null] = Transform3D::Compose(lhs, rhs);
+    // failed compose
+    if (should_be_null) {
+        throw std::runtime_error("Inputs could not be composed");
+    }
+    // return lhs
+    return ret;
+}
+
 ///////////////////////////////////////////
 ///////////// AffineTransform /////////////
 ///////////////////////////////////////////
@@ -201,7 +224,7 @@ auto AffineTransform::compose_(const Transform3D::Pointer& rhs) const
 
     // If IdentityTransform
     if (rhs->type() == IdentityTransform::TYPE) {
-        // No-op
+        res->params_ = params_;
     } else if (rhs->type() == AffineTransform::TYPE) {
         // Compose the parameters
         auto affRhs = std::dynamic_pointer_cast<AffineTransform>(rhs);
@@ -397,7 +420,7 @@ void CompositeTransform::push_back(const Transform3D::Pointer& t)
         queue.pop_front();
 
         // If a composite transform, push its stack to the front of the queue
-        if (t->type() == CompositeTransform::TYPE) {
+        if (tfm->type() == CompositeTransform::TYPE) {
             auto cmp = std::dynamic_pointer_cast<CompositeTransform>(t);
             queue.insert(queue.begin(), cmp->tfms_.begin(), cmp->tfms_.end());
         }

@@ -332,6 +332,150 @@ TEST(Transforms, IdentityApplyAndInvert)
     EXPECT_EQ(result, orig);
 }
 
+///////////////////////////////////
+///////////// Compose /////////////
+///////////////////////////////////
+
+TEST(Transforms, ComposeFunction)
+{
+    /// Affine-to-Affine ///
+    // Expected transform
+    auto tfmA = AffineTransform::New();
+    tfmA->source("a");
+    tfmA->target("c");
+    tfmA->scale(2, 3, 4);
+    tfmA->translate(1, 2, 3);
+    EXPECT_TRUE(tfmA->composable());
+
+    // Setup good transforms
+    auto lhsA = AffineTransform::New();
+    lhsA->source("a");
+    lhsA->target("b");
+    lhsA->scale(2, 3, 4);
+    auto rhsA = AffineTransform::New();
+    rhsA->source("b");
+    rhsA->target("c");
+    rhsA->translate(1, 2, 3);
+
+    // Compose
+    auto [res, should_be_null] = Transform3D::Compose(lhsA, rhsA);
+
+    // Verify composition worked correctly
+    EXPECT_FALSE(should_be_null);
+
+    // Compare equality
+    auto resultA = std::dynamic_pointer_cast<AffineTransform>(res);
+    EXPECT_EQ(resultA->type(), tfmA->type());
+    EXPECT_EQ(resultA->source(), tfmA->source());
+    EXPECT_EQ(resultA->target(), tfmA->target());
+    EXPECT_EQ(resultA->params(), tfmA->params());
+
+    /// Identity-to-Identity ///
+    auto tfmI = IdentityTransform::New();
+    tfmI->source("a");
+    tfmI->target("c");
+    EXPECT_TRUE(tfmI->composable());
+
+    auto lhsI = IdentityTransform::New();
+    lhsI->source("a");
+    lhsI->target("b");
+    auto rhsI = IdentityTransform::New();
+    rhsI->source("b");
+    rhsI->target("c");
+
+    // Compose
+    std::tie(res, should_be_null) = Transform3D::Compose(lhsI, rhsI);
+
+    // Verify composition worked correctly
+    EXPECT_FALSE(should_be_null);
+
+    // Compare equality
+    auto resultI = std::dynamic_pointer_cast<IdentityTransform>(res);
+    EXPECT_EQ(resultI->type(), tfmI->type());
+    EXPECT_EQ(resultI->source(), tfmI->source());
+    EXPECT_EQ(resultI->target(), tfmI->target());
+
+    /// Affine-to-Identity ///
+    tfmA = std::dynamic_pointer_cast<AffineTransform>(lhsA->clone());
+    tfmA->source("a");
+    tfmA->target("c");
+
+    // Compose
+    std::tie(res, should_be_null) = Transform3D::Compose(lhsA, rhsI);
+
+    // Verify composition worked correctly
+    EXPECT_FALSE(should_be_null);
+
+    // Compare equality
+    resultA = std::dynamic_pointer_cast<AffineTransform>(res);
+    EXPECT_EQ(resultA->type(), tfmA->type());
+    EXPECT_EQ(resultA->source(), tfmA->source());
+    EXPECT_EQ(resultA->target(), tfmA->target());
+    EXPECT_EQ(resultA->params(), tfmA->params());
+
+    /// Identity-to-Affine ///
+    tfmA = std::dynamic_pointer_cast<AffineTransform>(rhsA->clone());
+    tfmA->source("a");
+    tfmA->target("c");
+
+    // Compose
+    std::tie(res, should_be_null) = Transform3D::Compose(lhsI, rhsA);
+
+    // Verify composition worked correctly
+    EXPECT_FALSE(should_be_null);
+
+    // Compare equality
+    resultA = std::dynamic_pointer_cast<AffineTransform>(res);
+    EXPECT_EQ(resultA->type(), tfmA->type());
+    EXPECT_EQ(resultA->source(), tfmA->source());
+    EXPECT_EQ(resultA->target(), tfmA->target());
+    EXPECT_EQ(resultA->params(), tfmA->params());
+
+    /// Composite-to-Anything ///
+    auto tfmC = CompositeTransform::New();
+    EXPECT_FALSE(tfmC->composable());
+
+    Transform3D::Pointer should_not_be_null;
+    std::tie(res, should_not_be_null) = Transform3D::Compose(tfmC, rhsA);
+    EXPECT_TRUE(should_not_be_null);
+    std::tie(res, should_not_be_null) = Transform3D::Compose(lhsI, tfmC);
+    EXPECT_TRUE(should_not_be_null);
+}
+
+TEST(Transforms, ComposeOperator)
+{
+    // Expected transform
+    auto tfm = AffineTransform::New();
+    tfm->source("a");
+    tfm->target("c");
+    tfm->scale(2, 3, 4);
+    tfm->translate(1, 2, 3);
+
+    // Set up good transforms
+    auto lhs = AffineTransform::New();
+    lhs->source("a");
+    lhs->target("b");
+    lhs->scale(2, 3, 4);
+    auto rhs = AffineTransform::New();
+    rhs->source("b");
+    rhs->target("c");
+    rhs->translate(1, 2, 3);
+
+    // Compose
+    Transform3D::Pointer res;
+    EXPECT_NO_THROW(res = lhs * rhs);
+
+    // Compare equality
+    auto result = std::dynamic_pointer_cast<AffineTransform>(res);
+    EXPECT_EQ(result->type(), tfm->type());
+    EXPECT_EQ(result->source(), tfm->source());
+    EXPECT_EQ(result->target(), tfm->target());
+    EXPECT_EQ(result->params(), tfm->params());
+
+    auto lhsC = CompositeTransform::New();
+    EXPECT_THROW(res = lhsC * rhs, std::invalid_argument);
+}
+
 //////////////////////////////////////////////
 ///////////// CompositeTransform /////////////
 //////////////////////////////////////////////
@@ -342,6 +486,9 @@ TEST(Transform, CompositeClone)
     auto tfm = CompositeTransform::New();
     tfm->source("abcdefgh");
     tfm->target("ijklmnop");
+    tfm->push_back(AffineTransform::New());
+    tfm->push_back(IdentityTransform::New());
+    tfm->push_back(AffineTransform::New());
 
     // Clone
     auto result = std::dynamic_pointer_cast<CompositeTransform>(tfm->clone());
@@ -350,6 +497,7 @@ TEST(Transform, CompositeClone)
     EXPECT_EQ(result->type(), tfm->type());
     EXPECT_EQ(result->source(), tfm->source());
     EXPECT_EQ(result->target(), tfm->target());
+    EXPECT_EQ(result->size(), tfm->size());
 }
 
 TEST(Transforms, CompositeSerialization)
@@ -375,4 +523,70 @@ TEST(Transforms, CompositeSerialization)
     EXPECT_EQ(result->source(), tfm->source());
     EXPECT_EQ(result->target(), tfm->target());
     EXPECT_EQ(result->size(), tfm->size());
+}
+
+TEST(Transforms, CompositeApply)
+{
+    // Set up composite transform
+    auto tfm = CompositeTransform::New();
+    auto affine = AffineTransform::New();
+    affine->scale(5);
+    tfm->push_back(affine);
+    tfm->push_back(IdentityTransform::New());
+    affine->reset();
+    affine->rotate(90, 0, 0, 1);
+    tfm->push_back(affine);
+    tfm->push_back(IdentityTransform::New());
+    affine->reset();
+    affine->translate(0, 10, 0);
+    tfm->push_back(affine);
+    tfm->push_back(IdentityTransform::New());
+
+    auto result = tfm->applyPoint({0, 1, 0});
+    SmallOrClose(result, {-5., 10., 0.});
+
+    // Test simplify
+    auto origSize = tfm->size();
+    tfm->simplify();
+    EXPECT_NE(tfm->size(), origSize);
+    EXPECT_EQ(tfm->size(), 1);
+
+    result = tfm->applyPoint({0, 1, 0});
+    SmallOrClose(result, {-5., 10., 0.});
+}
+
+TEST(Transforms, CompositePushComposite)
+{
+    auto outer = CompositeTransform::New();
+
+    auto inner = CompositeTransform::New();
+    inner->push_back(AffineTransform::New());
+    inner->push_back(IdentityTransform::New());
+    inner->push_back(AffineTransform::New());
+    inner->push_back(IdentityTransform::New());
+    inner->push_back(AffineTransform::New());
+    inner->push_back(IdentityTransform::New());
+    inner->push_back(AffineTransform::New());
+    inner->push_back(IdentityTransform::New());
+
+    EXPECT_EQ(outer->size(), 0);
+    outer->push_back(inner);
+    EXPECT_EQ(outer->size(), inner->size());
+}
+
+TEST(Transforms, CompositeReset)
+{
+    auto tfm = CompositeTransform::New();
+    tfm->push_back(AffineTransform::New());
+    tfm->push_back(IdentityTransform::New());
+    tfm->push_back(AffineTransform::New());
+    tfm->push_back(IdentityTransform::New());
+    tfm->push_back(AffineTransform::New());
+    tfm->push_back(IdentityTransform::New());
+    tfm->push_back(AffineTransform::New());
+    tfm->push_back(IdentityTransform::New());
+    EXPECT_EQ(tfm->size(), 8);
+
+    tfm->reset();
+    EXPECT_EQ(tfm->size(), 0);
 }
