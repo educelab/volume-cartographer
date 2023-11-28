@@ -54,6 +54,8 @@ This fork contains the following changes compared to upstream currently:
 - Added tooltips to the color selectors boxes below the segment viewer
 - Added app logo for Linux
 
+![Screenshot GUI Overview](screenshot_gui_overview.png)
+
 #### User Settings Dialog
 - Added settings dialog (using an INI file `VC.ini`) to make some features configurable by the user
 - Added user defined default path to look for `volpkg` when in "Open volpkg" dialog
@@ -64,6 +66,8 @@ This fork contains the following changes compared to upstream currently:
 - Added user setting to configure the scan range values the application should use (when Mouse Wheel + Shift scanning). User can specify a mixture of explicit numbers and ranges for example "1-5, 10, 20, 30, 100"
 - Added user setting to configure the delay in milliseconds between point jumps in the Mouse Forward/Backward button mode
 - Added user setting to center image slice on mouse cursor during mouse wheel zooming (configurable via settings)
+
+![Screenshot GUI Settings](screenshot_gui_settings.png)
 
 ### Bug Fixes
 - Fixed a bug in the OFS segmentation implementation that would (during the interpolation part), output invalid `vcps` point sets, as the first two segment rows both used the same slice number / Z-value (e.g. 0 when it should have been 0 for the first and 1 for the second slice/row)
