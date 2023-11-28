@@ -555,6 +555,25 @@ TEST(Transforms, CompositeApply)
     SmallOrClose(result, {-5., 10., 0.});
 }
 
+TEST(Transforms, CompositeExplicitInvert)
+{
+    auto tfm = CompositeTransform::New();
+    auto a = AffineTransform::New();
+    a->translate(1, 2, 3);
+    a->scale(5);
+    a->rotate(90, 0, 0, 1);
+
+    tfm->push_back(a);
+    tfm->push_back(a->invert());
+
+    auto res = tfm->applyPoint({0, 0, 0});
+    SmallOrClose(res, {0, 0, 0});
+
+    tfm->simplify();
+    res = tfm->applyPoint({0, 0, 0});
+    SmallOrClose(res, {0, 0, 0});
+}
+
 TEST(Transforms, CompositePushComposite)
 {
     auto outer = CompositeTransform::New();
