@@ -7,7 +7,6 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/ITKMesh.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 
 namespace volcart::meshing
 {
@@ -33,11 +32,7 @@ public:
     /**
      * @param mesh Input Mesh whose normals you want computed
      */
-    explicit CalculateNormals(const ITKMesh::Pointer& mesh)
-        : input_{mesh}, output_{ITKMesh::New()}
-    {
-        DeepCopy(input_, output_);
-    }
+    explicit CalculateNormals(const ITKMesh::Pointer& mesh);
     //@}
 
     //** @name Input/Output */

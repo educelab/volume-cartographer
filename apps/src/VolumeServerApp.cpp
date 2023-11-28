@@ -17,7 +17,7 @@ namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 int main(int argc, char* argv[])
 {
@@ -80,11 +80,11 @@ int main(int argc, char* argv[])
         vc::Logger()->info("Loading volume package: {}", volpkgPath);
         try {
             vc::VolumePkg volpkg(volpkgPath);
-            if (volpkg.version() != VOLPKG_SUPPORTED_VERSION) {
+            if (volpkg.version() < VOLPKG_MIN_VERSION) {
                 vc::Logger()->error(
                     "Volume package is version {} but this program requires "
                     "version {}.",
-                    volpkg.version(), VOLPKG_SUPPORTED_VERSION);
+                    volpkg.version(), VOLPKG_MIN_VERSION);
                 return EXIT_FAILURE;
             }
             if (volpkgs.count(volpkg.name())) {

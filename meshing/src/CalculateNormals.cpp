@@ -3,6 +3,12 @@
 using namespace volcart;
 using namespace volcart::meshing;
 
+CalculateNormals::CalculateNormals(const ITKMesh::Pointer& mesh)
+    : input_{mesh}, output_{ITKMesh::New()}
+{
+    DeepCopy(input_, output_);
+}
+
 ///// Input/Output /////
 void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh) { input_ = mesh; }
 

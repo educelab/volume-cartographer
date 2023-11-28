@@ -1,8 +1,15 @@
 #include "vc/core/types/UVMap.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <numeric>
+#include <random>
+
 #include <opencv2/imgproc.hpp>
 
 #include "vc/core/util/Iteration.hpp"
+#include "vc/core/util/Logging.hpp"
 
 /** Top-left UV Origin */
 const static cv::Vec2d ORIGIN_TOP_LEFT(0, 0);
@@ -20,7 +27,7 @@ using namespace volcart;
 
 inline auto OriginVector(const UVMap::Origin& o) -> cv::Vec2d;
 
-void UVMap::set(size_t id, const cv::Vec2d& uv, const Origin& o)
+void UVMap::set(std::size_t id, const cv::Vec2d& uv, const Origin& o)
 {
     // transform to be relative to top-left
     cv::Vec2d transformed;
@@ -28,9 +35,9 @@ void UVMap::set(size_t id, const cv::Vec2d& uv, const Origin& o)
     map_[id] = transformed;
 }
 
-void UVMap::set(size_t id, const cv::Vec2d& uv) { set(id, uv, origin_); }
+void UVMap::set(std::size_t id, const cv::Vec2d& uv) { set(id, uv, origin_); }
 
-auto UVMap::get(size_t id, const Origin& o) const -> cv::Vec2d
+auto UVMap::get(std::size_t id, const Origin& o) const -> cv::Vec2d
 {
     auto it = map_.find(id);
     if (it != map_.end()) {
@@ -43,7 +50,7 @@ auto UVMap::get(size_t id, const Origin& o) const -> cv::Vec2d
     }
 }
 
-auto UVMap::get(size_t id) const -> cv::Vec2d { return get(id, origin_); }
+auto UVMap::get(std::size_t id) const -> cv::Vec2d { return get(id, origin_); }
 
 auto UVMap::contains(std::size_t id) const -> bool
 {
@@ -52,7 +59,7 @@ auto UVMap::contains(std::size_t id) const -> bool
 
 UVMap::UVMap(UVMap::Origin o) : origin_{o} {}
 
-auto UVMap::size() const -> size_t { return map_.size(); }
+auto UVMap::size() const -> std::size_t { return map_.size(); }
 
 auto UVMap::empty() const -> bool { return map_.empty(); }
 
@@ -70,7 +77,8 @@ void UVMap::ratio(double w, double h)
     ratio_.height = h;
     ratio_.aspect = w / h;
 }
-auto UVMap::as_map() const -> std::map<size_t, cv::Vec2d> { return map_; }
+
+auto UVMap::as_map() const -> std::map<std::size_t, cv::Vec2d> { return map_; }
 
 auto OriginVector(const UVMap::Origin& o) -> cv::Vec2d
 {
@@ -83,6 +91,8 @@ auto OriginVector(const UVMap::Origin& o) -> cv::Vec2d
             return ORIGIN_BOTTOM_LEFT;
         case UVMap::Origin::BottomRight:
             return ORIGIN_BOTTOM_RIGHT;
+        default:
+            throw std::runtime_error("Invalid UVMap::Origin");
     }
 }
 
@@ -136,6 +146,126 @@ auto UVMap::Plot(
     }
 
     return r;
+}
+
+namespace
+{
+// pearson correlation coefficient between two vectors
+auto PearsonCorrelation(
+    const std::vector<double>& x, const std::vector<double>& y) -> double
+{
+    auto n = x.size();
+    auto sumX = std::accumulate(x.begin(), x.end(), 0.0);
+    auto sumY = std::accumulate(y.begin(), y.end(), 0.0);
+    auto sumXY = std::inner_product(x.begin(), x.end(), y.begin(), 0.0);
+    auto sumX2 = std::inner_product(x.begin(), x.end(), x.begin(), 0.0);
+    auto sumY2 = std::inner_product(y.begin(), y.end(), y.begin(), 0.0);
+
+    auto numerator = n * sumXY - sumX * sumY;
+    auto denominator =
+        std::sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+    auto p = numerator / denominator;
+    if (std::isnan(p)) {
+        throw std::runtime_error("Pearson correlation coefficient is NaN");
+    }
+    return p;
+}
+}  // namespace
+
+void UVMap::AlignToAxis(
+    UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis)
+{
+    // range of indices to sample from
+    std::vector<std::size_t> range(uv.size());
+    std::iota(range.begin(), range.end(), 0);
+
+    // number of sample points to use for alignment
+    auto numSamples = std::min(uv.size(), std::size_t(500));
+
+    // sample numSamples idxs
+    std::vector<std::size_t> idxs(numSamples);
+    std::mt19937 g(42);
+    std::sample(range.begin(), range.end(), idxs.begin(), numSamples, g);
+
+    // determine which element and direction we're aligning
+    std::size_t elemIdx{2};
+    double elemSign{1};
+    switch (axis) {
+        case AlignmentAxis::ZPos:
+            elemIdx = 2;
+            elemSign = 1;
+            break;
+        case AlignmentAxis::ZNeg:
+            elemIdx = 2;
+            elemSign = -1;
+            break;
+        case AlignmentAxis::YPos:
+            elemIdx = 1;
+            elemSign = 1;
+            break;
+        case AlignmentAxis::YNeg:
+            elemIdx = 1;
+            elemSign = -1;
+            break;
+        case AlignmentAxis::XPos:
+            elemIdx = 0;
+            elemSign = 1;
+            break;
+        case AlignmentAxis::XNeg:
+            elemIdx = 0;
+            elemSign = -1;
+            break;
+        default:
+            throw std::runtime_error("Invalid AlignmentAxis");
+    }
+
+    // sample UV points and corresponding mesh coordinates of interest
+    auto sampledUVs = UVMap::New(uv);
+    sampledUVs->map_.clear();
+    std::vector<double> meshCoords(numSamples);
+    for (auto [i, idx] : enumerate(idxs)) {
+        sampledUVs->set(i, uv.get(idx));
+        meshCoords[i] = elemSign * mesh->GetPoint(idx)[elemIdx];
+    }
+
+    // optimize theta (angle in radians, counter-clockwise to center {0.5, 0.5})
+    const int angles{720};
+    const double delta{2. * M_PI / angles};
+
+    double bestPearson{-1.};
+    double bestTheta{0.};
+
+    UVMap currentRotationUVs;
+    for (auto iter : volcart::range(angles)) {
+        auto theta = iter * delta;
+
+        currentRotationUVs = UVMap(*sampledUVs);
+        Rotate(currentRotationUVs, theta);
+
+        // fill vsNeg which is -uv[1] for each uv
+        // want to align the specified volume axis to "up" in texture image
+        // (negative v in UV map)
+        std::vector<double> vsNeg;
+        for (std::size_t i = 0; i < numSamples; i++) {
+            vsNeg.push_back(-currentRotationUVs.get(i)[1]);
+        }
+
+        // compute pearson correlation coefficient
+        auto pearson = ::PearsonCorrelation(vsNeg, meshCoords);
+
+        if (pearson > bestPearson) {
+            bestPearson = pearson;
+            bestTheta = theta;
+        }
+    }
+
+    // Perform rotation
+    Rotate(uv, bestTheta);
+
+    Logger()->debug(
+        "Rotated UV map with theta: {:.5f} and axis correlation {:.5f}",
+        bestTheta, bestPearson);
 }
 
 void UVMap::Rotate(UVMap& uv, Rotation rotation)

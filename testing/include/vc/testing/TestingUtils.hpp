@@ -20,8 +20,24 @@ namespace volcart::testing
 void SmallOrClose(
     double observed,
     double expected,
-    double smallTolerance = 0.00001,
+    double smallTolerance = 1e-5,
     double pctDiffTolerance = 1.0);
+
+template <
+    typename Tp,
+    int Cn,
+    std::enable_if_t<std::is_floating_point_v<Tp>, bool> = true>
+void SmallOrClose(
+    const cv::Vec<Tp, Cn>& observed,
+    const cv::Vec<Tp, Cn>& expected,
+    Tp smallTolerance = 1e-5,
+    Tp pctDiffTolerance = 1.0)
+{
+    for (int i = 0; i < Cn; i++) {
+        SmallOrClose(
+            observed[i], expected[i], smallTolerance, pctDiffTolerance);
+    }
+}
 
 void ExpectNear(double observed, double expected, double pctDiffTolerance);
 

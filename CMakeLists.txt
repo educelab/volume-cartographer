@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24..3.27 FATAL_ERROR)
 include(FetchContent)
 include(CMakeDependentOption)
 
-set(VC_VERSION 2.25.0)
+set(VC_VERSION 2.26.0)
 
 option(VC_VERSION_DATESTAMP "Append date stamp to version number" off)
 if(VC_VERSION_DATESTAMP)

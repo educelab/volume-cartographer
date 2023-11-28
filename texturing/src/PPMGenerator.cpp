@@ -14,7 +14,6 @@
 #include "vc/core/util/BarycentricCoordinates.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 
 using namespace volcart;
 using namespace texturing;

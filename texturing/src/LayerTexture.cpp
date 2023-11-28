@@ -2,12 +2,14 @@
 
 #include <opencv2/core.hpp>
 
+#include "vc/core/util/Iteration.hpp"
+
 using namespace volcart;
 using namespace volcart::texturing;
 
 using Texture = LayerTexture::Texture;
 
-Texture LayerTexture::compute()
+auto LayerTexture::compute() -> Texture
 {
     // Setup
     result_.clear();
@@ -28,18 +30,27 @@ Texture LayerTexture::compute()
             return lhs.pos[2] < rhs.pos[2];
         });
 
+    // Reduce the amount of progress reporting
+    auto updateStepSize = std::max(mappings.size() / 10'000UL, 1UL);
+
     // Iterate through the mappings
-    for (const auto& pixel : mappings) {
+    progressStarted();
+    for (const auto [idx, pixel] : enumerate(mappings)) {
+        if (idx % updateStepSize == 0) {
+            progressUpdated(idx);
+        }
+
         // Generate the neighborhood
         auto neighborhood = gen_->compute(vol_, pixel.pos, {pixel.normal});
 
         // Assign to the output images
-        size_t it = 0;
-        for (const auto& v : neighborhood) {
-            result_.at(it++).at<uint16_t>(
-                static_cast<int>(pixel.y), static_cast<int>(pixel.x)) = v;
+        for (const auto [it, v] : enumerate(neighborhood)) {
+            const auto yy = static_cast<int>(pixel.y);
+            const auto xx = static_cast<int>(pixel.x);
+            result_.at(it).at<std::uint16_t>(yy, xx) = v;
         }
     }
+    progressComplete();
 
     return result_;
 }

@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <iostream>
 #include <map>
 
@@ -9,6 +10,7 @@
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/Render.hpp"
 #include "vc/core/types/Segmentation.hpp"
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
 
@@ -46,7 +48,7 @@ public:
      * @param fileLocation The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(const filesystem::path& fileLocation, int version);
+    VolumePkg(filesystem::path fileLocation, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
@@ -142,12 +144,13 @@ public:
     /** @name Volume Data */
     /**@{*/
     /** @brief Return whether there are Volumes */
-    auto hasVolumes() -> bool;
+    auto hasVolumes() const -> bool;
 
-    auto hasVolume(const Volume::Identifier& id) const -> bool;
+    /** @brief Whether a volume with the given identifier is in the VolumePkg */
+    [[nodiscard]] auto hasVolume(const Volume::Identifier& id) const -> bool;
 
     /** @brief Get the number of Volumes */
-    auto numberOfVolumes() -> size_t;
+    auto numberOfVolumes() const -> std::size_t;
 
     /** @brief Get the list of volume IDs */
     [[nodiscard]] auto volumeIDs() const -> std::vector<Volume::Identifier>;
@@ -180,10 +183,10 @@ public:
     /** @name Segmentation Data */
     /**@{*/
     /** @brief Return whether there are Segmentations */
-    auto hasSegmentations() -> bool;
+    auto hasSegmentations() const -> bool;
 
     /** @brief Get the number of Segmentations */
-    auto numberOfSegmentations() -> size_t;
+    auto numberOfSegmentations() const -> std::size_t;
 
     /** @brief Get the list of Segmentation IDs */
     [[nodiscard]] auto segmentationIDs() const
@@ -220,10 +223,10 @@ public:
     /** @name Render Data */
     /**@{*/
     /** @brief Return whether there are Renders */
-    auto hasRenders() -> bool;
+    auto hasRenders() const -> bool;
 
     /** @brief Get the number of Renders */
-    auto numberOfRenders() -> size_t;
+    auto numberOfRenders() const -> std::size_t;
 
     /** @brief Get the list of Render IDs */
     [[nodiscard]] auto renderIDs() const -> std::vector<Render::Identifier>;
@@ -247,23 +250,71 @@ public:
     auto render(const Render::Identifier& id) -> Render::Pointer;
     /**@}*/
 
+    /** @name Transform Data */
+    /**@{*/
+    /** @brief Return whether there are transforms in the VolumePkg */
+    [[nodiscard]] auto hasTransforms() const -> bool;
+
+    /**
+     * @brief Return whether a transform with the given identifier is in the
+     * VolumePkg
+     *
+     * If the provided identifier ends with "*", additionally checks if the
+     * transform can be inverted.
+     */
+
+    [[nodiscard]] auto hasTransform(Volume::Identifier id) const -> bool;
+
+    /** @brief Add a transform to the VolPkg */
+    auto addTransform(const Transform3D::Pointer& transform)
+        -> Transform3D::Identifier;
+
+    /** @brief Replace an existing transform */
+    void setTransform(
+        const Transform3D::Identifier& id,
+        const Transform3D::Pointer& transform);
+
+    /**
+     * @brief Get a transform by ID
+     *
+     * If the provided identifier ends with "*", returns the inverse transform.
+     */
+    auto transform(Transform3D::Identifier id) -> Transform3D::Pointer;
+
+    /**
+     * @brief Get a list of transforms which map from a source volume to a
+     * target volume
+     *
+     * The list also includes inverse transforms which satisfy the mapping.
+     */
+    auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
+        -> std::vector<
+            std::pair<Transform3D::Identifier, Transform3D::Pointer>>;
+
+    /** @brief Get the list of transform IDs */
+    [[nodiscard]] auto transformIDs() const
+        -> std::vector<Transform3D::Identifier>;
+    /**@}*/
+
+    /** Utility function for updating VolumePkgs */
+    static void Upgrade(
+        const filesystem::path& path,
+        int version = VOLPKG_VERSION_LATEST,
+        bool force = false);
+
 private:
     /** VolumePkg metadata */
     Metadata config_;
     /** The root directory of the VolumePkg */
     filesystem::path rootDir_;
-    /** The subdirectory containing Volume data */
-    filesystem::path volsDir_;
-    /** The subdirectory containing Segmentation data */
-    filesystem::path segsDir_;
-    /** The subdirectory containing Render data */
-    filesystem::path rendDir_;
     /** The list of all Volumes in the VolumePkg. */
     std::map<Volume::Identifier, Volume::Pointer> volumes_;
     /** The list of all Segmentations in the VolumePkg. */
     std::map<Segmentation::Identifier, Segmentation::Pointer> segmentations_;
     /** The list of all Renders in the VolumePkg. */
     std::map<Render::Identifier, Render::Pointer> renders_;
+    /** The list of Transforms in the VolumePkg */
+    std::map<Transform3D::Identifier, Transform3D::Pointer> transforms_;
 
     /**
      * @brief Populates an empty VolumePkg::config from a volcart::Dictionary

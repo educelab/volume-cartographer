@@ -9,6 +9,7 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/util/Json.hpp"
 
 namespace volcart
 {
@@ -104,26 +105,3 @@ protected:
     volcart::filesystem::path path_;
 };
 }  // namespace volcart
-
-/** JSON Serializer for cv::Vec */
-namespace nlohmann
-{
-template <typename T, int Cn>
-struct adl_serializer<cv::Vec<T, Cn>> {
-    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void to_json(nlohmann::json& j, const cv::Vec<T, Cn>& v)
-    {
-        for (int i = 0; i < Cn; i++) {
-            j.push_back(v[i]);
-        }
-    }
-
-    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void from_json(const nlohmann::json& j, cv::Vec<T, Cn>& v)
-    {
-        for (int i = 0; i < Cn; i++) {
-            v[i] = j.at(i).get<T>();
-        }
-    }
-};
-}  // namespace nlohmann
