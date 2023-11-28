@@ -614,19 +614,17 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         }
         else if (segStruct.display && segStruct.highlighted) {
             // Mix the colors to show Highlight and Display without Compute
-            r = (colorSelectorHighlight->color().red() + colorSelector->color().red()) / 1.5;
-            g = (colorSelectorHighlight->color().green() + colorSelector->color().green()) / 1.5;
-            b = (colorSelectorHighlight->color().blue() + colorSelector->color().blue()) / 1.5;
+            r = 0.65 * colorSelectorHighlight->color().red()    + 0.35 * colorSelector->color().red();
+            g = 0.65 * colorSelectorHighlight->color().green()  + 0.35 * colorSelector->color().green();
+            b = 0.65 * colorSelectorHighlight->color().blue()   + 0.35 * colorSelector->color().blue();
         }
         else {
             colorSelector->color().getRgb(&r, &g, &b);
         }
         if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
-            // qDebug() << "DrawIntersectionCurve: early exit. Scene " << scene << " segStruct.display " << segStruct.display << " segStruct.fIntersectionCurve.GetPointsNum() " << segStruct.fIntersectionCurve.GetPointsNum() << " colorSelector " << colorSelector;
-            // qDebug() << "segStruct id " << segStruct.fSegmentationId.c_str();
             continue;  // Early continue if either object is null or the list is empty
         }
-        // qDebug() << "Drawing segStruct id " << segStruct.fSegmentationId.c_str() << " with num points " << segStruct.fIntersectionCurve.GetPointsNum();
+
         int pointsNum = segStruct.fIntersectionCurve.GetPointsNum();
 
         // Get annotations for current curve
