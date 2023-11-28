@@ -46,7 +46,9 @@ namespace volcart
 class Transform3D
 {
 public:
+    /** @brief Transform type string constant */
     static constexpr std::string_view TYPE{"Transform3D"};
+
     /** Pointer type */
     using Pointer = std::shared_ptr<Transform3D>;
 
@@ -137,7 +139,30 @@ public:
     [[nodiscard]] auto applyPointAndNormal(
         const cv::Vec6d& ptN, bool normalize = true) const -> cv::Vec6d;
 
-    /** @brief */
+    /**
+     * @brief Compose two transforms into a single new transform
+     *
+     * Returns a pair of transform pointers. If the composition fails, the pair
+     * will contain pointers to both of the original inputs. If the second
+     * value in the pair is nullptr, then the composition was successful, and
+     * the new transform is available from the first pointer.
+     *
+     * @code{.cpp}
+     * // Two transforms
+     * Transform3D::Pointer lhs = AffineTransform::New();
+     * Transform3D::Pointer rhs = AffineTransform::New();
+     *
+     * // Compose and assign the results to existing variables
+     * std::tie(lhs, rhs) = Transform3D::Compose(lhs, rhs);
+     *
+     * // Check the result
+     * if(rhs) {
+     *   std::cout << "Failed to compose transforms!\n";
+     * } else {
+     *   std::cout << "Composition successful!\n";
+     * }
+     * @endcode
+     */
     static auto Compose(
         const Transform3D::Pointer& lhs, const Transform3D::Pointer& rhs)
         -> std::pair<Transform3D::Pointer, Transform3D::Pointer>;
@@ -185,7 +210,7 @@ private:
  * transform with the stored affine transform. For example, the following
  * transform will scale, rotate, and translate the 3D point, in that order:
  *
- * @code
+ * @code{.cpp}
  * auto tfm = AffineTransform::New();
  * // scale by 5
  * tfm->scale(5);
@@ -200,7 +225,9 @@ private:
 class AffineTransform : public Transform3D
 {
 public:
+    /** @copydoc Transform3D::TYPE */
     static constexpr std::string_view TYPE{"AffineTransform"};
+
     /** Parameters type: 4x4 matrix */
     using Parameters = cv::Matx<double, 4, 4>;
 
@@ -296,13 +323,13 @@ private:
 };
 
 /**
- * @brief 3D identity transform
+ * @brief Identity transform
  *
  * Identity transform that simply returns input parameters. Useful for
  * creating explicit mappings between a source and a target which share the
  * same coordinate space.
  *
- * @code
+ * @code{.cpp}
  * auto tfm = IdentityTransform::New();
  * auto pt = tfm->applyPoint({0, 1, 0}); // {0, 1, 0}
  * @endcode
@@ -310,11 +337,13 @@ private:
 class IdentityTransform : public Transform3D
 {
 public:
+    /** @copydoc Transform3D::TYPE */
     static constexpr std::string_view TYPE{"IdentityTransform"};
+
     /** Pointer type */
     using Pointer = std::shared_ptr<IdentityTransform>;
 
-    /** @brief Create a new AffineTransform */
+    /** @brief Create a new IdentityTransform */
     static auto New() -> Pointer;
 
     /** @copydoc Transform3D::type() */
@@ -350,25 +379,53 @@ private:
 };
 
 /**
- * @brief 3D composite transform
+ * @brief Collection of transforms
  *
- * Identity transform that simply returns input parameters. Useful for
- * creating explicit mappings between a source and a target which share the
- * same coordinate space.
+ * A convenience class which holds a list of transforms. When transforming
+ * points and vectors, each transform is applied sequentially to the input.
  *
- * @code
- * auto tfm = IdentityTransform::New();
- * auto pt = tfm->applyPoint({0, 1, 0}); // {0, 1, 0}
+ * @code{.cpp}
+ * // New transform
+ * auto tfm = CompositeTransform::New();
+ *
+ * // Add some transforms
+ * auto t = AffineTransform::New();
+ * t->translate(1, 2, 3);
+ * tfm->push_back(t);
+ * t->reset();
+ * t->scale(4);
+ * tfm->push_back(t);
+ *
+ * // Apply all transforms to an input
+ * auto pt = tfm->applyPoint({0, 1, 0}); // {4, 12, 12}
+ * @endcode
+ *
+ * It can often be preferable, for both performance and numerical stability, to
+ * simplify all adjacent, composable transforms (e.g. AffineTransform,
+ * IdentityTransform) into a single transform.
+ *
+ * @code{.cpp}
+ * // Add some composable transforms
+ * tfm->push_back(AffineTransform::New());
+ * tfm->push_back(IdentityTransform::New());
+ * tfm->push_back(AffineTransform::New());
+ * tfm->size(); // 3
+ *
+ * // Simplify the transform
+ * tfm->simplify();
+ * tfm->size(); // 1
  * @endcode
  */
 class CompositeTransform : public Transform3D
 {
 public:
+    /** @copydoc Transform3D::TYPE */
     static constexpr std::string_view TYPE{"CompositeTransform"};
+
     /** Pointer type */
     using Pointer = std::shared_ptr<CompositeTransform>;
 
-    /** @brief Create a new AffineTransform */
+    /** @brief Create a new CompositeTransform */
     static auto New() -> Pointer;
 
     /** @copydoc Transform3D::type() */
@@ -385,20 +442,32 @@ public:
     [[nodiscard]] auto applyVector(const cv::Vec3d& vector) const
         -> cv::Vec3d final;
 
-    /** @brief Add a transform to the end of the composite transform */
+    /**
+     * @brief Add a transform to the end of the composite transform stack
+     *
+     * The transform is cloned before being added to the transform stack. If
+     * the transform is also a CompositeTransform, its transform stack is
+     * expanded and copied to the end of this transform's stack.
+     */
     void push_back(const Transform3D::Pointer& t);
 
     /** @brief Get the number of transforms in the composite transform */
-    auto size() const noexcept -> std::size_t;
+    [[nodiscard]] auto size() const noexcept -> std::size_t;
 
-    /** @brief Compose all composable transforms */
-    void flatten();
+    /**
+     * @brief Compose all composable transforms
+     *
+     * Simplifies the transform by composing all adjacent, composable
+     * transforms in the composite transform list. This can lead to better
+     * runtime performance and numerical stability for the apply functions.
+     */
+    void simplify();
 
 private:
     /** Don't allow construction on the stack */
     CompositeTransform() = default;
-    /** List of transforms */
-    std::vector<Transform3D::Pointer> tfmStack_;
+    /** Transform list */
+    std::vector<Transform3D::Pointer> tfms_;
     /** @copydoc Transform3D::to_meta_() */
     void to_meta_(Metadata& meta) final;
     /** @copydoc Transform3D::from_meta_() */

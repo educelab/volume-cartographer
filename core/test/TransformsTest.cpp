@@ -8,6 +8,10 @@ using namespace volcart;
 using namespace volcart::testing;
 namespace fs = volcart::filesystem;
 
+///////////////////////////////////////////
+///////////// AffineTransform /////////////
+///////////////////////////////////////////
+
 TEST(Transform, AffineClone)
 {
     // Create transform
@@ -240,6 +244,10 @@ TEST(Transforms, AffineInvert)
     SmallOrClose(result, orig);
 }
 
+/////////////////////////////////////////////
+///////////// IdentityTransform /////////////
+/////////////////////////////////////////////
+
 TEST(Transform, IdentityClone)
 {
     // Create transform
@@ -323,6 +331,10 @@ TEST(Transforms, IdentityApplyAndInvert)
     result = inv->applyVector(result);
     EXPECT_EQ(result, orig);
 }
+
+//////////////////////////////////////////////
+///////////// CompositeTransform /////////////
+//////////////////////////////////////////////
 
 TEST(Transform, CompositeClone)
 {

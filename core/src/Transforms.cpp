@@ -61,9 +61,8 @@ void Transform3D::clear()
     reset();
 }
 
-auto Transform3D::Compose(
-    const Transform3D::Pointer& lhs, const Transform3D::Pointer& rhs)
-    -> std::pair<Transform3D::Pointer, Transform3D::Pointer>
+auto Transform3D::Compose(const Pointer& lhs, const Pointer& rhs)
+    -> std::pair<Pointer, Pointer>
 {
     // Return the inputs if either are not composable
     if (not lhs->composable() or not rhs->composable()) {
@@ -74,13 +73,12 @@ auto Transform3D::Compose(
     return {lhs->compose_(rhs), nullptr};
 }
 
-auto Transform3D::compose_(const Transform3D::Pointer& rhs) const
-    -> Transform3D::Pointer
+auto Transform3D::compose_(const Pointer& rhs) const -> Transform3D::Pointer
 {
     return nullptr;
 }
 
-auto Transform3D::Serialize(const Transform3D::Pointer& transform) -> Metadata
+auto Transform3D::Serialize(const Pointer& transform) -> Metadata
 {
     Metadata meta{
         {"type", "Transform3D"},
@@ -91,7 +89,7 @@ auto Transform3D::Serialize(const Transform3D::Pointer& transform) -> Metadata
     return meta;
 }
 
-auto Transform3D::Deserialize(const Metadata& meta) -> Transform3D::Pointer
+auto Transform3D::Deserialize(const Metadata& meta) -> Pointer
 {
     if (meta["type"].get<std::string>() != "Transform3D") {
         throw std::runtime_error("File not of type: Transform3D");
@@ -102,7 +100,7 @@ auto Transform3D::Deserialize(const Metadata& meta) -> Transform3D::Pointer
     }
 
     auto tfmType = meta["transform-type"].get<std::string>();
-    Transform3D::Pointer result;
+    Pointer result;
     if (tfmType == AffineTransform::TYPE) {
         result = AffineTransform::New();
     } else if (tfmType == IdentityTransform::TYPE) {
@@ -119,13 +117,12 @@ auto Transform3D::Deserialize(const Metadata& meta) -> Transform3D::Pointer
     return result;
 }
 
-void Transform3D::Save(
-    const filesystem::path& path, const Transform3D::Pointer& transform)
+void Transform3D::Save(const filesystem::path& path, const Pointer& transform)
 {
     ::WriteMetadata(path, Serialize(transform));
 }
 
-auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
+auto Transform3D::Load(const filesystem::path& path) -> Pointer
 {
     auto meta = ::LoadMetadata(path);
     return Deserialize(meta);
@@ -133,7 +130,7 @@ auto Transform3D::Load(const filesystem::path& path) -> Transform3D::Pointer
 
 auto Transform3D::invertible() const -> bool { return false; }
 
-auto Transform3D::invert() const -> Transform3D::Pointer
+auto Transform3D::invert() const -> Pointer
 {
     throw std::runtime_error(std::string(this->type()) + " is not invertible");
 }
@@ -144,7 +141,7 @@ auto Transform3D::composable() const -> bool { return false; }
 ///////////// AffineTransform /////////////
 ///////////////////////////////////////////
 
-auto AffineTransform::New() -> AffineTransform::Pointer
+auto AffineTransform::New() -> Pointer
 {
     // Trick to allow classes with protected/private constructors to be
     // constructed with std::make_shared: https://stackoverflow.com/a/25069711
@@ -172,10 +169,7 @@ void AffineTransform::from_meta_(const Metadata& meta)
     params_ = meta["params"].get<Parameters>();
 }
 
-auto AffineTransform::params() const -> AffineTransform::Parameters
-{
-    return params_;
-}
+auto AffineTransform::params() const -> Parameters { return params_; }
 
 void AffineTransform::params(const Parameters& params) { params_ = params; }
 
@@ -298,7 +292,7 @@ auto operator<<(std::ostream& os, const AffineTransform& t) -> std::ostream&
 ///////////// IdentityTransform /////////////
 /////////////////////////////////////////////
 
-auto IdentityTransform::New() -> IdentityTransform::Pointer
+auto IdentityTransform::New() -> Pointer
 {
     struct EnableSharedHelper : public IdentityTransform {
     };
@@ -353,7 +347,7 @@ void IdentityTransform::from_meta_(const Metadata& meta) {}
 ///////////// CompositeTransform /////////////
 //////////////////////////////////////////////
 
-auto CompositeTransform::New() -> CompositeTransform::Pointer
+auto CompositeTransform::New() -> Pointer
 {
     struct EnableSharedHelper : public CompositeTransform {
     };
@@ -367,12 +361,12 @@ auto CompositeTransform::clone() const -> Transform3D::Pointer
     return std::make_shared<CompositeTransform>(*this);
 }
 
-void CompositeTransform::reset() { tfmStack_.clear(); }
+void CompositeTransform::reset() { tfms_.clear(); }
 
 auto CompositeTransform::applyPoint(const cv::Vec3d& point) const -> cv::Vec3d
 {
     auto pt = point;
-    for (const auto& t : tfmStack_) {
+    for (const auto& t : tfms_) {
         pt = t->applyPoint(pt);
     }
     return pt;
@@ -381,7 +375,7 @@ auto CompositeTransform::applyPoint(const cv::Vec3d& point) const -> cv::Vec3d
 auto CompositeTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
 {
     auto vec = vector;
-    for (const auto& t : tfmStack_) {
+    for (const auto& t : tfms_) {
         vec = t->applyVector(vec);
     }
     return vector;
@@ -389,23 +383,69 @@ auto CompositeTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
 
 void CompositeTransform::push_back(const Transform3D::Pointer& t)
 {
-    tfmStack_.push_back(t->clone());
+    // Easy case: Not a composite transform
+    if (t->type() != CompositeTransform::TYPE) {
+        tfms_.push_back(t->clone());
+        return;
+    }
+
+    // Hard case: Composite transforms should be expanded
+    std::list<Transform3D::Pointer> queue{t};
+    while (not queue.empty()) {
+        // Get the next transform
+        auto tfm = queue.front();
+        queue.pop_front();
+
+        // If a composite transform, push its stack to the front of the queue
+        if (t->type() == CompositeTransform::TYPE) {
+            auto cmp = std::dynamic_pointer_cast<CompositeTransform>(t);
+            queue.insert(queue.begin(), cmp->tfms_.begin(), cmp->tfms_.end());
+        }
+        // Otherwise, add this tfm to the queue
+        else {
+            tfms_.push_back(t->clone());
+        }
+    }
 }
 
 auto CompositeTransform::size() const noexcept -> std::size_t
 {
-    return tfmStack_.size();
+    return tfms_.size();
 }
 
-void CompositeTransform::flatten()
+void CompositeTransform::simplify()
 {
-    // TODO: Implement
+    std::vector<Transform3D::Pointer> newTfms;
+    Transform3D::Pointer lhs;
+    Transform3D::Pointer rhs;
+    for (const auto& tfm : tfms_) {
+        // Set our first LHS
+        if (not lhs) {
+            lhs = tfm;
+            continue;
+        }
+
+        // Try compose
+        std::tie(lhs, rhs) = Compose(lhs, tfm);
+
+        // if rhs, then couldn't compose
+        // push lhs onto new list. rhs is new lhs.
+        if (rhs) {
+            newTfms.push_back(lhs);
+            lhs = rhs;
+        }
+    }
+    // push the final lhs
+    newTfms.push_back(lhs);
+
+    // replace the current list
+    tfms_ = newTfms;
 }
 
 void CompositeTransform::to_meta_(Metadata& meta)
 {
     Metadata stack;
-    for (const auto& tfm : tfmStack_) {
+    for (const auto& tfm : tfms_) {
         stack.push_back(Serialize(tfm));
     }
     meta["transform-stack"] = stack;
@@ -413,9 +453,9 @@ void CompositeTransform::to_meta_(Metadata& meta)
 
 void CompositeTransform::from_meta_(const Metadata& meta)
 {
-    tfmStack_.clear();
+    tfms_.clear();
     for (const auto& m : meta["transform-stack"]) {
-        tfmStack_.push_back(Deserialize(m));
+        push_back(Deserialize(m));
     }
 }
 
