@@ -4,7 +4,6 @@
 
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MeshMath.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
 using namespace volcart;

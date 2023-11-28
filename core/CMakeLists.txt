@@ -36,11 +36,13 @@ set(landmark_srcs
 
 set(type_srcs
     src/DiskBasedObjectBaseClass.cpp
+    src/ITKMesh.cpp
     src/Metadata.cpp
     src/PerPixelMap.cpp
     src/Render.cpp
     src/Reslice.cpp
     src/Segmentation.cpp
+    src/Transforms.cpp
     src/UVMap.cpp
     src/Volume.cpp
     src/VolumeMask.cpp
@@ -57,6 +59,7 @@ set(util_srcs
     src/ImageConversion.cpp
     src/ApplyLUT.cpp
     src/ColorMaps.cpp
+    src/Debug.cpp
 )
 
 set(logging_srcs
@@ -172,6 +175,8 @@ set(test_srcs
     test/LoggingTest.cpp
     test/SignalsTest.cpp
     test/IterationTest.cpp
+    test/TIFFIOTest.cpp
+    test/TransformsTest.cpp
 )
 
 # Add a test executable for each src

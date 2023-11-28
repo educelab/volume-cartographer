@@ -129,6 +129,10 @@ volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints()
 
         tempRow.emplace_back(p.x, p.y, p.z);
     }
+    if (tempRow.size() == output.width()) {
+        output.pushRow(tempRow);
+        tempRow.clear();
+    }
     return output;
 }
 
@@ -161,7 +165,7 @@ void ShapePrimitive::addVertex_(double x, double y, double z)
     v.nx = 0;
     v.ny = 0;
     v.nz = 0;
-    v.faceCount = 0;
+    v.faceCount = 1;
     points_.push_back(v);
 }
 
@@ -209,9 +213,9 @@ void ShapePrimitive::updateNormal_(int vertID, double nx, double ny, double nz)
 {
     // recalculate average (unaverage, add new component, recalculate average)
     SimpleMesh::Vertex v = points_[vertID];
-    v.nx = (v.nx * v.faceCount + nx) / (v.faceCount + 1);
-    v.ny = (v.ny * v.faceCount + ny) / (v.faceCount + 1);
-    v.nz = (v.nz * v.faceCount + nz) / (v.faceCount + 1);
+    v.nx = v.nx + (nx - v.nx) / v.faceCount;
+    v.ny = v.ny + (ny - v.ny) / v.faceCount;
+    v.nz = v.nz + (nz - v.nz) / v.faceCount;
     v.faceCount++;
     points_[vertID] = v;
 }

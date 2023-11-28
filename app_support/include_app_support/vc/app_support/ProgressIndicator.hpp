@@ -181,7 +181,7 @@ public:
 
     /** Get a new ProgressIterable::iterator. Instantiates a new progress bar.
      */
-    iterator begin()
+    iterator begin() const
     {
         auto begin = std::begin(container_);
         auto end = std::end(container_);
@@ -194,7 +194,7 @@ public:
      * Get the end-valued ProgressIterable::iterator. Does not instantiate a
      * new progress bar.
      */
-    iterator end() { return iterator{std::end(container_)}; }
+    iterator end() const { return iterator{std::end(container_)}; }
 
     /**
      * Get a new ProgressIterable::const_iterator. Instantiates a new progress
@@ -213,6 +213,9 @@ public:
      * a new progress bar.
      */
     const_iterator cend() const { return const_iterator{std::end(container_)}; }
+
+    /** Get the size of the underlying iterable */
+    auto size() const -> std::size_t { return std::size(container_); }
 
 private:
     Iterable container_;
@@ -292,7 +295,7 @@ inline auto ReportProgress(
         if (useColors) {
             progressBar->set_option(ForegroundColor{indicators::Color::green});
         }
-        progressBar->tick();
+        progressBar->set_progress(iters);
     });
     // Disconnect on completion
     p.progressComplete.connect([&p]() {

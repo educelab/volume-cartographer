@@ -582,5 +582,7 @@ vc::Color GetScaleColorOpt()
             return vc::color::GREEN;
         case ScaleColorOpt::Cyan:
             return vc::color::CYAN;
+        default:
+            throw std::runtime_error("Invalid scale color option");
     }
 }

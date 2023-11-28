@@ -4,10 +4,12 @@
 #include <opencv2/opencv.hpp>
 
 #include "vc/app_support/GetMemorySize.hpp"
+#include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/ImageIO.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -20,9 +22,26 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 using volcart::enumerate;
+
+namespace
+{
+auto GetTransformOpts() -> po::options_description
+{
+    // clang-format off
+    po::options_description opts("Transform Options");
+    opts.add_options()
+        ("transform", po::value<std::string>(), "The ID of a transform in the "
+            "VolumePkg or a path to a Transform3D .json file. If provided, "
+            "perform coordinate transforms with the given transform.")
+        ("invert-transform", "When provided, invert the transform.");
+    // clang-format on
+
+    return opts;
+}
+}  // namespace
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -43,7 +62,9 @@ auto main(int argc, char* argv[]) -> int
             "that maps to the layer subvolume.")
         ("image-format,f", po::value<std::string>()->default_value("png"),
             "Image format for layer images. Default: png")
-        ("compression", po::value<int>(), "Image compression level");
+        ("compression", po::value<int>(), "Image compression level")
+        ("progress", po::value<bool>()->default_value(true),
+            "When enabled, show algorithm progress bars.");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -71,6 +92,7 @@ auto main(int argc, char* argv[]) -> int
 
     po::options_description all("Usage");
     all.add(required)
+        .add(::GetTransformOpts())
         .add(filterOptions)
         .add(ppmOptions)
         .add(performanceOptions);
@@ -99,11 +121,21 @@ auto main(int argc, char* argv[]) -> int
     fs::path inputPPMPath = parsed["ppm"].as<std::string>();
 
     // Check for output file
-    auto outputPath = fs::canonical(parsed["output-dir"].as<std::string>());
-    if (!fs::is_directory(outputPath) || !fs::exists(outputPath)) {
-        std::cerr << "Provided output path is not a directory or does not exist"
-                  << std::endl;
+    auto outDir = fs::weakly_canonical(parsed["output-dir"].as<std::string>());
+    if (outDir.has_extension()) {
+        vc::Logger()->error(
+            "Provided output path is not a directory: {}", outDir.string());
         return EXIT_FAILURE;
+    }
+    if (not fs::exists(outDir)) {
+        auto success = fs::create_directory(outDir);
+        if (not success) {
+            vc::Logger()->error(
+                "Could not create output directory: {}. Check that parent "
+                "exists and is writable.",
+                outDir.string());
+            return EXIT_FAILURE;
+        }
     }
     auto imgFmt = vc::to_lower_copy(parsed["image-format"].as<std::string>());
     vc::WriteImageOpts writeOpts;
@@ -118,12 +150,11 @@ auto main(int argc, char* argv[]) -> int
 
     ///// Load the volume package /////
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::stringstream msg;
-        msg << "Volume package is version " << vpkg.version()
-            << " but this program requires version " << VOLPKG_SUPPORTED_VERSION
-            << ".";
-        vc::Logger()->error(msg.str());
+    if (vpkg.version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg.version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -175,6 +206,31 @@ auto main(int argc, char* argv[]) -> int
     std::cout << "Loading PPM..." << std::endl;
     auto ppm = vc::PerPixelMap::New(vc::PerPixelMap::ReadPPM(inputPPMPath));
 
+    ///// Transform the PPM /////
+    if (parsed.count("transform") > 0) {
+        // load the transform
+        auto tfmId = parsed.at("transform").as<std::string>();
+        vc::Transform3D::Pointer tfm;
+        if (vpkg.hasTransform(tfmId)) {
+            tfm = vpkg.transform(tfmId);
+        } else {
+            tfm = vc::Transform3D::Load(tfmId);
+        }
+
+        if (parsed.count("invert-transform") > 0) {
+            if (tfm->invertible()) {
+                tfm = tfm->invert();
+            } else {
+                std::cerr << "WARNING: ";
+                std::cerr << "Cannot invert transform. Using original.";
+                std::cerr << std::endl;
+            }
+        }
+
+        std::cout << "Applying transform..." << std::endl;
+        ppm = vc::ApplyTransform(ppm, tfm);
+    }
+
     // Setup line generator
     auto line = vc::LineGenerator::New();
     line->setSamplingRadius(radius);
@@ -182,26 +238,34 @@ auto main(int argc, char* argv[]) -> int
     line->setSamplingDirection(direction);
 
     // Layer texture
-    std::cout << "Generating layers..." << std::endl;
     vc::texturing::LayerTexture s;
     s.setVolume(volume);
     s.setPerPixelMap(ppm);
     s.setGenerator(line);
+
+    if (parsed["progress"].as<bool>()) {
+        vc::ReportProgress(s, "Generating layers:");
+        vc::Logger()->debug("Generating layers...");
+    } else {
+        vc::Logger()->info("Generating layers...");
+    }
+
     auto texture = s.compute();
 
-    std::cout << "Writing layers..." << std::endl;
-    const auto numChars =
-        static_cast<int>(std::to_string(texture.size()).size());
-    fs::path filepath;
-    for (const auto [i, image] : enumerate(texture)) {
-        auto fileName = vc::to_padded_string(i, numChars) + "." + imgFmt;
-        filepath = outputPath / fileName;
-        vc::WriteImage(filepath, image, writeOpts);
+    // Write the image sequence
+    const fs::path filepath = outDir / ("{}." + imgFmt);
+    if (parsed["progress"].as<bool>()) {
+        vc::Logger()->debug("Writing layers...");
+        auto progIt = vc::ProgressWrap(texture, "Writing layers:");
+        vc::WriteImageSequence(filepath, progIt, writeOpts);
+    } else {
+        vc::Logger()->info("Writing layers...");
+        vc::WriteImageSequence(filepath, texture, writeOpts);
     }
 
     if (parsed.count("output-ppm") > 0) {
         std::cout << "Generating new PPM..." << std::endl;
-        fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
+        const fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
 
         // Setup new PPM
         auto height = ppm->height();

@@ -195,7 +195,7 @@ public:
             throw std::range_error("copy row, j out of range");
         } else if  (i == j) {
             return OrderedPointSet(width_);
-        }    
+        }
         else if (j < i) {
             throw std::logic_error("i must be less than j");
         }

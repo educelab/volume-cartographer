@@ -4,7 +4,9 @@
 
 using namespace volcart;
 
-static auto RegisterNodesImpl() -> bool
+namespace
+{
+auto RegisterNodesImpl() -> bool
 {
     bool registered{true};
 
@@ -20,15 +22,22 @@ static auto RegisterNodesImpl() -> bool
         MeshPropertiesNode,
         LoadMeshNode,
         WriteMeshNode,
+        AlignUVMapToAxisNode,
         RotateUVMapNode,
         FlipUVMapNode,
         PlotUVMapNode,
         LoadImageNode,
         WriteImageNode,
+        WriteImageSequenceNode,
         LoadPPMNode,
         WritePPMNode,
         PPMPropertiesNode,
-        LoadVolumetricMaskNode
+        LoadVolumetricMaskNode,
+        LoadTransformNode,
+        TransformSelectorNode,
+        InvertTransformNode,
+        TransformMeshNode,
+        TransformPPMNode
     >();
 
     // Meshing
@@ -38,7 +47,8 @@ static auto RegisterNodesImpl() -> bool
         CalculateNumVertsNode,
         LaplacianSmoothMeshNode,
         ResampleMeshNode,
-        UVMapToMeshNode
+        UVMapToMeshNode,
+        OrientNormalsNode
     >();
 
     // Texturing
@@ -53,11 +63,16 @@ static auto RegisterNodesImpl() -> bool
         CompositeTextureNode,
         IntersectionTextureNode,
         IntegralTextureNode,
-        ThicknessTextureNode
+        ThicknessTextureNode,
+        LayerTextureNode
     >();
     // clang-format on
 
     return registered;
 }
+}  // namespace
 
-void volcart::RegisterNodes() { static auto registered = RegisterNodesImpl(); }
+void volcart::RegisterNodes()
+{
+    static auto registered = ::RegisterNodesImpl();
+}

@@ -13,6 +13,8 @@
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 
+namespace fs = volcart::filesystem;
+
 namespace volcart::segmentation
 {
 /**
@@ -21,7 +23,7 @@ namespace volcart::segmentation
  *
  * This algorithm propagates a chain of points forward through a volume from
  * a starting z-index to an ending z-index. Each point is assumed to start
- * within a page layer. 
+ * within a page layer.
  * The ending index is inclusive.
  *
  * Warning: This Algorithm is not deterministic and yields slightly different results each run.
@@ -48,6 +50,15 @@ public:
             std::forward<Args>(args)...);
     }
 
+    /** @brief Set the start z-index */
+    void setStartZIndex(int z) { startIndex_ = z; }
+
+    /** @brief Get the start z-index */
+    int getStartZIndex() { return startIndex_; }
+
+    /** @brief Get the target z-index */
+    int getTargetZIndex() { return endIndex_; }
+
     /** @brief Set the target z-index */
     void setTargetZIndex(int z) { endIndex_ = z; }
 
@@ -64,7 +75,6 @@ public:
      */
     void setOFThreshold(int of_thr) { optical_flow_pixel_threshold_ = of_thr; }
 
-    
     /** @brief Set whether to enable outlier points smoothening
      */
     void setEnableSmoothenOutlier(bool enable_smoothen_outlier) { enable_smoothen_outlier_ = enable_smoothen_outlier; }
@@ -104,29 +114,44 @@ public:
      */
     void setCacheSlices(int cache_slices) { nr_cache_slices_ = cache_slices; }
 
-    /** @brief Set how many slices should be cached
+    /** @brief
      */
     void setLineSmoothenByBrightness(int brightness) { smoothen_by_brightness_ = brightness; }
 
-    /** @brief Set how many slices should be cached
+    /** @brief Set how wide the interpolation window should be
      */
-    void setBackwardsInterpolationWindow(int window) { backwards_smoothnes_interpolation_window_ = window; }
+    void setInterpolationWindow(int window) { smoothness_interpolation_window_ = window; }
 
-    /** @brief Set how many slices should be cached
+    /** @brief Get how wide the interpolation window should be
      */
-    void setBackwardsLength(int len) { backwards_length_ = len; }
+    int getInterpolationWindow() { return smoothness_interpolation_window_; }
+
+    /** @brief Set how many slices the interpolation center is away from the start slice
+     */
+    void setInterpolationDistance(int distance) { smoothness_interpolation_distance_ = distance; }
+
+    /** @brief Get how many slices the interpolation center is away from the start slice
+     */
+    int getInterpolationDistance() { return smoothness_interpolation_distance_; }
 
     /** @brief Set the already computed masterCloud OrderedPointSet
      */
     void setOrderedPointSet(volcart::OrderedPointSet<cv::Vec3d> masterCloud) { masterCloud_ = masterCloud; }
 
-    /** @brief Interpolate the points behind the possibly adjusted new starting line with the already computed masterCloud OrderedPointSet to get a smooth final surface 
+    /** @brief Set the input chain of re-segmentation points */
+    void setReSegmentationChain(Chain c) { reSegStartingChain_ = std::move(c); }
+
+    /** @brief Interpolate the points with the existing masterCloud OrderedPointSet to get a smooth final surface
      */
-    std::vector<std::vector<Voxel>> interpolatePoints(std::vector<std::vector<Voxel>> points, int window_size, bool backwards);
+    std::vector<std::vector<Voxel>> interpolateWithMasterCloud(std::vector<std::vector<Voxel>> points, int window_size, bool backwards);
+
+    /** @brief Interpolate the gaps in the result point set
+     */
+    std::vector<std::vector<Voxel>> interpolateGaps(std::vector<std::vector<Voxel>> points);
 
     /**@{*/
     /** @brief Compute the segmentation 1 Line */
-    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex, bool backwards=false);
+    std::vector<Voxel> computeCurve(FittedCurve currentCurve, Chain& currentVs, int zIndex, int stepSize, int startIndex, bool backwards=false);
     /**@}*/
 
     /**@{*/
@@ -212,6 +237,18 @@ private:
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
+    /**
+     * Compute a sub portion of the algorithm, e.g. the regular "forward" portion or the backwards re-segmentation.
+     * @param startChainIndex index of the starting chain (!= first slice for which we are calculating a curve) that is used as input for the algorithm
+     * @param endChainIndex index of the last chain (used for clamping the valid values in the method)
+     * @param endIndex index until which the algorithm should run
+     * @param initialStepAdjustment is required for the re-segmentation run in case of step sizes that do not directly hit the target anchor
+    */
+    auto computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startChainIndex, int endChainIndex, int endIndex, int initialStepAdjustment, bool backwards, size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
+        -> ChainSegmentationAlgorithm::Status;
+
+    /** Start z-index */
+    int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
     /** Darker pixels are considered outside the sheet */
@@ -239,10 +276,10 @@ private:
     int edge_jump_distance_{6};
     int edge_bounce_distance_{3};
     bool interpolate_master_cloud{true};
-    int backwards_smoothnes_interpolation_window_{5};
-    int backwards_length_{25};
+    int smoothness_interpolation_window_{5}; //  window for interpolation (number if slices from interpolation distance/center in either direction)
+    int smoothness_interpolation_distance_{25}; // distance from start slice where the interpolation center is
+    Chain reSegStartingChain_;
     volcart::OrderedPointSet<cv::Vec3d> masterCloud_;
     mutable std::shared_mutex display_mutex_;
-    
 };
 }  // namespace volcart::segmentation

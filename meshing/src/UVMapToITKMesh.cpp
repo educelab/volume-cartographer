@@ -1,7 +1,5 @@
 #include "vc/meshing/UVMapToITKMesh.hpp"
 
-#include "vc/meshing/DeepCopy.hpp"
-
 using namespace volcart;
 using namespace volcart::meshing;
 

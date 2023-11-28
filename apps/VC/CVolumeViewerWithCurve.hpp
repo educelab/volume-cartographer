@@ -60,7 +60,6 @@ protected:
 
 private slots:
     void OnShowCurveStateChanged(int state);
-    void OnHistEqStateChanged(int state);
     void panAlongCurve(double speed, bool forward);
 
 private:
@@ -71,10 +70,9 @@ private:
     void DrawIntersectionCurve(QGraphicsScene* scene);
     void DrawControlPoints(QGraphicsScene* scene);
 
-private slots:
-
 signals:
-    void SendSignalPathChanged(void);
+    void SendSignalPathChanged(std::string, PathChangePointVector before, PathChangePointVector after);
+    void SendSignalAnnotationChanged(void);
 
 private:
     // for interaction
@@ -86,10 +84,9 @@ private:
     ColorFrame* colorSelector{nullptr};
     ColorFrame* colorSelectorCompute{nullptr};
     ColorFrame* colorSelectorHighlight{nullptr};
+    ColorFrame* colorSelectorManual{nullptr};
     QCheckBox* fShowCurveBox;
-    QCheckBox* fHistEqBox;
     bool showCurve;
-    bool histEq;
     int fwdBackMsJump;
     std::unordered_map<std::string, SegmentationStruct>& fSegStructMapRef;
     CBSpline* fSplineCurveRef;
@@ -99,9 +96,11 @@ private:
     CXCurve* fIntersectionCurveRef;
     int fSelectedPointIndex;
     std::string fSelectedSegID;
+    PathChangePointVector pathChangeBefore;
+    std::set<int> movedPointIndexSet; // set of points that are currently grabbed and have been moved
 
     bool fVertexIsChanged;
-    bool lineGrabbed{false};
+    bool curveGrabbed{false};
     QPointF fLastPos;  // last mouse position on the image
     int fImpactRange;  // how many points a control point movement can affect
 

@@ -468,10 +468,10 @@ public:
     using const_iterator = EnumerateIterator<const IteratorType>;
 
     /** Get a new EnumerateIterable::iterator */
-    iterator begin() { return iterator{0, std::begin(container_)}; }
+    iterator begin() const { return iterator{0, std::begin(container_)}; }
 
     /** Get the end-valued EnumerateIterable::iterator */
-    iterator end() { return iterator{0, std::end(container_)}; }
+    iterator end() const { return iterator{0, std::end(container_)}; }
 
     /** Get a new ProgressIterable::const_iterator */
     const_iterator cbegin() const

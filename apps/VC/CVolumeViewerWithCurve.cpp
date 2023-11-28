@@ -2,11 +2,9 @@
 // Chao Du 2015 April
 #include "CVolumeViewerWithCurve.hpp"
 
-#include <QSettings>
 #include <opencv2/imgproc.hpp>
 
 #include "ColorFrame.hpp"
-#include "UDataManipulateUtils.hpp"
 
 #include <QCoreApplication> // To use QCoreApplication::sendEvent()
 
@@ -15,9 +13,7 @@ using namespace ChaoVis;
 // Constructor
 CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, SegmentationStruct>& nSegStructMapRef)
     : fShowCurveBox(nullptr)
-    , fHistEqBox(nullptr)
     , showCurve(true)
-    , histEq(false)
     , fSplineCurveRef(nullptr)
     , fIntersectionCurveRef(nullptr)
     , fSelectedPointIndex(-1)
@@ -29,6 +25,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
     QSettings settings;
     colorSelector = new ColorFrame(this);
     colorSelector->setFixedSize(16, 16);
+    colorSelector->setToolTip(tr("Curve color"));
     auto color = settings.value("volumeViewer/curveColor", QColor("green"))
                      .value<QColor>();
     colorSelector->setColor(color);
@@ -40,8 +37,10 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
         QSettings settings;
         settings.setValue("volumeViewer/curveColor", c);
     });
+
     colorSelectorCompute = new ColorFrame(this);
     colorSelectorCompute->setFixedSize(16, 16);
+    colorSelectorCompute->setToolTip(tr("Curve color (for \"Compute\" mode)"));
     auto colorCompute = settings.value("volumeViewer/computeColor", QColor("blue"))
                      .value<QColor>();
     colorSelectorCompute->setColor(colorCompute);
@@ -53,8 +52,10 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
         QSettings settings;
         settings.setValue("volumeViewer/computeColor", c);
     });
+
     colorSelectorHighlight = new ColorFrame(this);
     colorSelectorHighlight->setFixedSize(16, 16);
+    colorSelectorHighlight->setToolTip(tr("Highlighted curve color"));
     auto colorHighlight = settings.value("volumeViewer/computeHighlight", QColor("red"))
                      .value<QColor>();
     colorSelectorHighlight->setColor(colorHighlight);
@@ -67,28 +68,32 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
         settings.setValue("volumeViewer/computeHighlight", c);
     });
 
+    colorSelectorManual = new ColorFrame(this);
+    colorSelectorManual->setFixedSize(16, 16);
+    colorSelectorManual->setToolTip(tr("Manually changed points color"));
+    auto colorManual = settings.value("volumeViewer/manualColor", QColor("orange"))
+                     .value<QColor>();
+    colorSelectorManual->setColor(colorManual);
+    fButtonsLayout->addWidget(colorSelectorManual);
+    connect(
+        colorSelectorManual, &ColorFrame::colorChanged, this,
+        &CVolumeViewerWithCurve::UpdateView);
+    connect(colorSelectorManual, &ColorFrame::colorChanged, [](const QColor& c) {
+        QSettings settings;
+        settings.setValue("volumeViewer/manualColor", c);
+    });
+
     // show curve box
     fShowCurveBox = new QCheckBox(this);
     fShowCurveBox->setChecked(true);
     connect(
         fShowCurveBox, SIGNAL(stateChanged(int)), this,
         SLOT(OnShowCurveStateChanged(int)));
-
+    // Separate label (rather than using the one from the checkbox) for a visually tighter fit
     QLabel* ShowCurveLabel = new QLabel(this);
     ShowCurveLabel->setText("Show Curve");
     fButtonsLayout->addWidget(fShowCurveBox);
     fButtonsLayout->addWidget(ShowCurveLabel);
-
-    fHistEqBox = new QCheckBox(this);
-    fHistEqBox->setChecked(false);
-    connect(
-        fHistEqBox, SIGNAL(stateChanged(int)), this,
-        SLOT(OnHistEqStateChanged(int)));
-
-    QLabel* HistEqLabel = new QLabel(this);
-    HistEqLabel->setText("HistEq");
-    fButtonsLayout->addWidget(fHistEqBox);
-    fButtonsLayout->addWidget(HistEqLabel);
 
     QSettings settingsJump("VC.ini", QSettings::IniFormat);
     fwdBackMsJump = settingsJump.value("viewer/fwd_back_step_ms", 25).toInt();
@@ -122,7 +127,7 @@ void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
     QPixmap pixmap = QPixmap::fromImage(*fImgQImage);
 
     // Add the QPixmap to the scene as a QGraphicsPixmapItem
-    if(fBaseImageItem) {
+    if (fBaseImageItem) {
         // If the item already exists, remove it from the scene
         fScene->removeItem(fBaseImageItem);
         delete fBaseImageItem; // Delete the old item
@@ -180,7 +185,7 @@ void CVolumeViewerWithCurve::UpdateView()
     QList<QGraphicsItem*> allItems = fScene->items();
     for(QGraphicsItem *item : allItems)
     {
-        if(dynamic_cast<QGraphicsEllipseItem*>(item) || dynamic_cast<QGraphicsLineItem*>(item))
+        if (dynamic_cast<QGraphicsEllipseItem*>(item) || dynamic_cast<QGraphicsLineItem*>(item))
         {
             fScene->removeItem(item);
             delete item;
@@ -282,7 +287,7 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
         return;
     }
 
-    if((event->button() == Qt::LeftButton)) {
+    if ((event->button() == Qt::LeftButton)) {
         // Get the mouse position in widget coordinates
         cv::Vec2f aWidgetLoc, aImgLoc, res;
         // For some reason the mouse position in the relase event are different and slightly off.
@@ -301,10 +306,8 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
             UpdateView();
 
         } else if (fViewState == EViewState::ViewStateEdit && event->button() == Qt::LeftButton) {
-            lineGrabbed = true;
-
-            if(fImageIndex != sliceIndexToolStart) {
-                SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now.").arg(QString::number(sliceIndexToolStart)), 3000);
+            if (fImageIndex != sliceIndexToolStart) {
+                SendSignalStatusMessageAvailable(tr("Tool was started for slice %1. No other slices can be edited right now. Press \"F\" to return to the active tool slice.").arg(QString::number(sliceIndexToolStart)), 3000);
                 return;
             }
 
@@ -318,15 +321,17 @@ void CVolumeViewerWithCurve::mousePressEvent(QMouseEvent* event)
 
             // Set fLastPos to the position of the selected point
             if (fSelectedPointIndex >= 0) {
+                curveGrabbed = true;
+
                 setCursor(Qt::PointingHandCursor);
+                pathChangeBefore.clear();
+                movedPointIndexSet.clear();
 
                 fLastPos.setX(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[0]);
                 fLastPos.setY(fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex)[1]);
 
                 // Mouse move event to update the line
                 mouseMoveEvent(event);
-
-                // qDebug() << "mousePressEvent: selected point index: " << fSelectedPointIndex;
             }
         }
     } else if (event->button() == Qt::RightButton) {
@@ -346,16 +351,16 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
 {
     // If we have an active last pressed side button from the backwards/forwards move feature,
     // we cannot do any panning at the same time, nor do we want to move any curves.
-    if(lastPressedSideButton) {
+    if (lastPressedSideButton) {
         return;
     }
 
-    if (!wantsPanning && !rightPressed && !lineGrabbed) {
+    if (!wantsPanning && !rightPressed && !curveGrabbed) {
         return;
     }
 
     // Update the curve if we have a selected point
-    if (fSelectedPointIndex != -1 && lineGrabbed) {
+    if (fSelectedPointIndex != -1 && curveGrabbed) {
         // Get the mouse position in widget coordinates
         cv::Vec2f aWidgetLoc, aImgLoc;
         aWidgetLoc[0] = event->position().x();
@@ -367,15 +372,36 @@ void CVolumeViewerWithCurve::mouseMoveEvent(QMouseEvent* event)
         aDelta[0] = aImgLoc[0] - fLastPos.x();
         aDelta[1] = aImgLoc[1] - fLastPos.y();
 
+        // Collect points that were moved. Note: We cannot just grab them during the initial curve drag start,
+        // as additional points might get added if the user is changing the impact range during curve dragging.
+        for (int i = -fImpactRange + 1; i <= fImpactRange - 1; ++i) {
+            // If value is in valid range, so >= 0 and <= number of points on curve
+            if ((fSelectedPointIndex + i) >= 0 && (fSelectedPointIndex + i) < fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPointsNum()) {
+
+                // Check if we already have the point in our set captured
+                auto it = movedPointIndexSet.find(fSelectedPointIndex + i);
+                if (it == movedPointIndexSet.end()) {
+                    movedPointIndexSet.insert(fSelectedPointIndex + i);
+
+                    auto pathChangePoint = PathChangePoint();
+                    pathChangePoint.pointIndex = fSelectedPointIndex + i;
+                    pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(fSelectedPointIndex + i);
+                    pathChangePoint.manuallyChanged = fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.find(fSelectedPointIndex + i) != fSegStructMapRef[fSelectedSegID].fBufferedChangedPoints.end();
+                    pathChangeBefore.push_back(pathChangePoint);
+                }
+            }
+        }
+
         fSegStructMapRef[fSelectedSegID].fIntersectionCurve.SetPointByDifference(
             fSelectedPointIndex, aDelta, CosineImpactFunc, fImpactRange);
+
         fVertexIsChanged = true;
 
         UpdateView();
 
     } else if (wantsPanning && rightPressed){
         // We potentially want to start panning, and now check if the mouse actually moved
-        if(event->position().x() != panStartX || event->position().y() - panStartY)
+        if (event->position().x() != panStartX || event->position().y() - panStartY)
         {
             isPanning = true;
             setCursor(Qt::ClosedHandCursor);
@@ -398,24 +424,46 @@ void CVolumeViewerWithCurve::mouseReleaseEvent(QMouseEvent* event)
         lastPressedSideButton = Qt::NoButton;  // unset the last pressed button
     }
 
-    if (event->button() == Qt::LeftButton) {
-        lineGrabbed = false;
-    }
-
     // end panning
-    if(event->button() == Qt::RightButton) {
+    if (event->button() == Qt::RightButton) {
         isPanning = wantsPanning = rightPressed = false;
         setCursor(Qt::ArrowCursor);
         event->accept();
         return;
     }
 
-    if (fIntersectionCurveRef != nullptr && fVertexIsChanged) {
-        // update the point positions in the path point cloud
-        SendSignalPathChanged();
+    if (fIntersectionCurveRef != nullptr && fVertexIsChanged && curveGrabbed) {
+
+        PathChangePointVector pathChangeAfter;
+        auto annotationIndex = fSegStructMapRef[fSelectedSegID].GetAnnotationIndexForSliceIndex(sliceIndexToolStart);
+
+        // Collect after change point information
+        for (auto index : movedPointIndexSet) {
+            auto pathChangePoint = PathChangePoint();
+            pathChangePoint.pointIndex = index;
+            pathChangePoint.position = fSegStructMapRef[fSelectedSegID].fIntersectionCurve.GetPoint(index);
+            pathChangePoint.manuallyChanged = true;
+            pathChangeAfter.push_back(pathChangePoint);
+        }
+
+        // Mark involved points as manually changed
+        fSegStructMapRef[fSelectedSegID].AddPointsToManualBuffer(movedPointIndexSet);
+
+        // As the user can change the impact range during curve dragging, there might be entries in the before snapshot
+        // that were not actually moved, in the sense that they are not in the moved point index set => remove them.
+        pathChangeBefore.erase(std::remove_if(pathChangeBefore.begin(), pathChangeBefore.end(), [this](auto before) {
+            return find_if(this->movedPointIndexSet.begin(), this->movedPointIndexSet.end(), [before](auto index) { return before.pointIndex == index; }) == this->movedPointIndexSet.end();
+        }), std::end(pathChangeBefore));
+
+        // update the point positions in the path point cloud and store undo command
+        SendSignalPathChanged(fSelectedSegID, pathChangeBefore, pathChangeAfter);
 
         fVertexIsChanged = false;
         fSelectedPointIndex = -1;
+    }
+
+    if (event->button() == Qt::LeftButton) {
+        curveGrabbed = false;
     }
 
     setCursor(Qt::ArrowCursor);
@@ -496,17 +544,6 @@ void CVolumeViewerWithCurve::OnShowCurveStateChanged(int state)
     UpdateView();
 }
 
-void CVolumeViewerWithCurve::OnHistEqStateChanged(int state)
-{
-    if (state > 0) {
-        histEq = true;
-    } else {
-        histEq = false;
-    }
-
-    UpdateView();
-}
-
 void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
     const cv::Vec2f& nWidgetLoc, cv::Vec2f& nImgLoc)
 {
@@ -577,26 +614,40 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         }
         else if (segStruct.display && segStruct.highlighted) {
             // Mix the colors to show Highlight and Display without Compute
-            r = (colorSelectorHighlight->color().red() + colorSelector->color().red()) / 2;
-            g = (colorSelectorHighlight->color().green() + colorSelector->color().green()) / 2;
-            b = (colorSelectorHighlight->color().blue() + colorSelector->color().blue()) / 2;
+            r = 0.65 * colorSelectorHighlight->color().red()    + 0.35 * colorSelector->color().red();
+            g = 0.65 * colorSelectorHighlight->color().green()  + 0.35 * colorSelector->color().green();
+            b = 0.65 * colorSelectorHighlight->color().blue()   + 0.35 * colorSelector->color().blue();
         }
         else {
             colorSelector->color().getRgb(&r, &g, &b);
         }
         if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
-            // qDebug() << "DrawIntersectionCurve: early exit. Scene " << scene << " segStruct.display " << segStruct.display << " segStruct.fIntersectionCurve.GetPointsNum() " << segStruct.fIntersectionCurve.GetPointsNum() << " colorSelector " << colorSelector;
-            // qDebug() << "segStruct id " << segStruct.fSegmentationId.c_str();
             continue;  // Early continue if either object is null or the list is empty
         }
-        // qDebug() << "Drawing segStruct id " << segStruct.fSegmentationId.c_str() << " with num points " << segStruct.fIntersectionCurve.GetPointsNum();
+
         int pointsNum = segStruct.fIntersectionCurve.GetPointsNum();
+
+        // Get annotations for current curve
+        auto hasAnnotations = !segStruct.fAnnotationCloud.empty();
+        auto pointIndex = segStruct.GetAnnotationIndexForSliceIndex(segStruct.fPathOnSliceIndex);
+        auto gray = QColor(180, 180, 180);
 
         for (int i = 0; i < pointsNum; ++i) {
             // Create new ellipse points
             auto p0 = segStruct.fIntersectionCurve.GetPoint(i)[0] - 0.5;
             auto p1 = segStruct.fIntersectionCurve.GetPoint(i)[1] - 0.5;
-            QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(QColor(r, g, b)), QBrush(QColor(r, g, b)));
+            auto manualPoint = (hasAnnotations && (std::get<long>(segStruct.fAnnotationCloud[pointIndex + i][ANO_EL_FLAGS]) & AnnotationBits::ANO_MANUAL))
+                || (segStruct.fPathOnSliceIndex == sliceIndexToolStart && segStruct.fBufferedChangedPoints.find(i) != segStruct.fBufferedChangedPoints.end());
+
+            auto penColor = manualPoint ? colorSelectorManual->color() : QColor(r, g, b);
+            auto brushColor = QColor(r, g, b);
+            if (i % 20 == 0) {
+                brushColor = gray;
+            } else if (i % 10 == 0) {
+                brushColor = brushColor.darker(150);
+            }
+
+            QGraphicsEllipseItem* newEllipse = scene->addEllipse(p0, p1, 2, 2, QPen(penColor), QBrush(brushColor));
             newEllipse->setVisible(true);
         }
     }

@@ -16,7 +16,6 @@ namespace ChaoVis
 
 class CVolumeViewerView : public QGraphicsView
 {
-
     Q_OBJECT
 
     public:
@@ -49,7 +48,6 @@ class CVolumeViewerView : public QGraphicsView
 
 class CVolumeViewer : public QWidget
 {
-
     Q_OBJECT
 
 public:
@@ -124,7 +122,7 @@ protected:
     QImage* fImgQImage;
     double fScaleFactor;
     int fImageIndex;
-    int sliceIndexToolStart;
+    int sliceIndexToolStart{-1};
     int fScanRange;  // how many slices a mouse wheel step will jump
 
     bool fCenterOnZoomEnabled;

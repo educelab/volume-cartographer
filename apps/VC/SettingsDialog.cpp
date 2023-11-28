@@ -20,6 +20,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
     spinFwdBackStepMs->setValue(settings.value("viewer/fwd_back_step_ms", 25).toInt());
     chkCenterOnZoom->setChecked(settings.value("viewer/center_on_zoom", false).toInt() != 0);
     edtImpactRange->setText(settings.value("viewer/impact_range_steps", "1-20").toString());
+    edtScanRange->setText(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100").toString());
+    chkPlaySoundAfterSegRun->setChecked(settings.value("viewer/play_sound_after_seg_run", true).toInt() != 0);
 
     spinPreloadedSlices->setValue(settings.value("perf/preloaded_slices", 200).toInt());
 
@@ -28,6 +30,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
 
 void SettingsDialog::accept()
 {
+    // Store the settings
     QSettings settings("VC.ini", QSettings::IniFormat);
 
     settings.setValue("volpkg/default_path", edtDefaultPathVolpkg->text());
@@ -36,10 +39,41 @@ void SettingsDialog::accept()
     settings.setValue("viewer/fwd_back_step_ms", spinFwdBackStepMs->value());
     settings.setValue("viewer/center_on_zoom", chkCenterOnZoom->isChecked() ? "1" : "0");
     settings.setValue("viewer/impact_range_steps", edtImpactRange->text());
+    settings.setValue("viewer/scan_range_steps", edtScanRange->text());
+    settings.setValue("viewer/play_sound_after_seg_run", chkPlaySoundAfterSegRun->isChecked() ? "1" : "0");
 
     settings.setValue("perf/preloaded_slices", spinPreloadedSlices->value());
 
     QMessageBox::information(this, tr("Restart required"), tr("Note: Some settings only take effect once you restarted the app."));
 
     close();
+}
+
+// Expand string that contains a range definition from the user settings into an integer vector
+std::vector<int> SettingsDialog::expandSettingToIntRange(const QString& setting)
+{
+    std::vector<int> res;
+    if (setting.isEmpty()) {
+        return res;
+    }
+
+    auto value = setting.simplified();
+    value.replace(" ", "");
+    auto commaSplit = value.split(",");
+    for(auto str : commaSplit) {
+        if (str.contains("-")) {
+            // Expand the range to distinct values
+            auto dashSplit = str.split("-");
+            // We need to have two split results (before and after the dash), otherwise skip
+            if (dashSplit.size() == 2) {
+                for(int i = dashSplit.at(0).toInt(); i <= dashSplit.at(1).toInt(); i++) {
+                    res.push_back(i);
+                }
+            }
+        } else {
+            res.push_back(str.toInt());
+        }
+    }
+
+    return res;
 }
