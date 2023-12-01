@@ -131,5 +131,15 @@ auto vcg::ImageScrollArea::event(QEvent* event) -> bool
     if (event->type() == QEvent::Gesture) {
         return gestureEvent(dynamic_cast<QGestureEvent*>(event));
     }
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
+        if (keyEvent->key() == Qt::Key_Plus) {
+            this->zoom_in_();
+            return true;
+        } else if (keyEvent->key() == Qt::Key_Minus) {
+            this->zoom_out_();
+            return true;
+        }
+    }
     return QScrollArea::event(event);
 }
