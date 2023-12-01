@@ -1,6 +1,7 @@
 #include "vc/gui_support/ImageScrollArea.hpp"
 
 #include <QGuiApplication>
+#include <QKeySequence>
 #include <QMouseEvent>
 #include <QScrollBar>
 
@@ -16,6 +17,12 @@ vcg::ImageScrollArea::ImageScrollArea()
     setBackgroundRole(QPalette::Dark);
     setWidget(imageLabel_);
     verticalScrollBar()->installEventFilter(this);
+
+    zoomIn_ = new QShortcut(QKeySequence::ZoomIn, this);
+    zoomOut_ = new QShortcut(QKeySequence::ZoomOut, this);
+
+    connect(zoomIn_, &QShortcut::activated, this, &ImageScrollArea::zoom_in_);
+    connect(zoomOut_, &QShortcut::activated, this, &ImageScrollArea::zoom_out_);
 
     this->grabGesture(Qt::PinchGesture);
 }
@@ -130,16 +137,6 @@ auto vcg::ImageScrollArea::event(QEvent* event) -> bool
 {
     if (event->type() == QEvent::Gesture) {
         return gestureEvent(dynamic_cast<QGestureEvent*>(event));
-    }
-    if (event->type() == QEvent::KeyPress) {
-        QKeyEvent* keyEvent = dynamic_cast<QKeyEvent*>(event);
-        if (keyEvent->key() == Qt::Key_Plus) {
-            this->zoom_in_();
-            return true;
-        } else if (keyEvent->key() == Qt::Key_Minus) {
-            this->zoom_out_();
-            return true;
-        }
     }
     return QScrollArea::event(event);
 }
