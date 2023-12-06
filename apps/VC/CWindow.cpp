@@ -1627,15 +1627,14 @@ void CWindow::startPrefetching(int index) {
 // Open slice
 void CWindow::OpenSlice(void)
 {
+    QImage aImgQImage;
     cv::Mat aImgMat;
     if (fVpkg != nullptr) {
         // Stop prefetching
         prefetchSliceIndex = -1;
         cv.notify_one();
 
-        aImgMat = currentVolume->getSliceDataCopy(fPathOnSliceIndex);
-        aImgMat.convertTo(aImgMat, CV_8UC1, 1.0 / 256.0);
-        //        cvtColor(aImgMat, aImgMat, cv::COLOR_GRAY2BGR);
+        aImgMat = currentVolume->getSliceData(fPathOnSliceIndex);
     } else {
         aImgMat = cv::Mat::zeros(10, 10, CV_8UC1);
     }
@@ -1655,7 +1654,14 @@ void CWindow::OpenSlice(void)
             params.thickness, params.baseline);
     }
 
-    auto aImgQImage = Mat2QImage(aImgMat);
+    if (aImgMat.isContinuous() && aImgMat.type() == CV_16U) {
+        // create QImage directly backed by cv::Mat buffer
+        aImgQImage = QImage(
+            aImgMat.ptr(), aImgMat.cols, aImgMat.rows, aImgMat.step,
+            QImage::Format_Grayscale16);
+    } else
+        aImgQImage = Mat2QImage(aImgMat);
+
     fVolumeViewerWidget->SetImage(aImgQImage);
     fVolumeViewerWidget->SetImageIndex(fPathOnSliceIndex);
 }
