@@ -30,15 +30,10 @@ auto LayerTexture::compute() -> Texture
             return lhs.pos[2] < rhs.pos[2];
         });
 
-    // Reduce the amount of progress reporting
-    auto updateStepSize = std::max(mappings.size() / 10'000UL, 1UL);
-
     // Iterate through the mappings
     progressStarted();
     for (const auto [idx, pixel] : enumerate(mappings)) {
-        if (idx % updateStepSize == 0) {
-            progressUpdated(idx);
-        }
+        progressUpdated(idx);
 
         // Generate the neighborhood
         auto neighborhood = gen_->compute(vol_, pixel.pos, {pixel.normal});
