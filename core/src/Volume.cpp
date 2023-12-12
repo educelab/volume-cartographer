@@ -112,9 +112,8 @@ cv::Mat Volume::getSliceData(int index) const
 {
     if (cacheSlices_) {
         return cache_slice_(index);
-    } else {
-        return load_slice_(index);
     }
+    return load_slice_(index);
 }
 
 cv::Mat Volume::getSliceDataCopy(int index) const
