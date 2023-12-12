@@ -1,13 +1,8 @@
 #include "vc/texturing/CompositeTexture.hpp"
 
 #include <algorithm>
-#include <chrono>
 
-#include <BS_thread_pool.hpp>
-
-#include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/FloatComparison.hpp"
-#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -87,9 +82,9 @@ auto ApplyFilter(const Neighborhood& n, Filter filter) -> uint16_t
 void DoTexture(
     cv::Mat& image,
     const PerPixelMap::PixelMap& pixel,
-    Filter filter,
-    NeighborhoodGenerator::Pointer generator,
-    Volume::Pointer volume)
+    const Filter& filter,
+    const NeighborhoodGenerator::Pointer& generator,
+    Volume::Pointer& volume)
 {
     // Generate the neighborhood
     auto neighborhood = generator->compute(volume, pixel.pos, {pixel.normal});
@@ -138,49 +133,22 @@ auto CompositeTexture::compute() -> Texture
             return lhs.pos[2] < rhs.pos[2];
         });
 
-    // Set up the thread pool
-    bool use_threads = true;
-    std::shared_ptr<BS::thread_pool> pool;
-    std::shared_ptr<BS::multi_future<void>> futures;
-    if (use_threads) {
-        pool = std::make_shared<BS::thread_pool>();
-        Logger()->info("Threads: {}", pool->get_thread_count());
-        futures = std::make_shared<BS::multi_future<void>>(mappings.size());
-    }
     // Iterate through the mappings
+    size_t counter = 0;
     progressStarted();
-    auto numTotal = mappings.size();
-    BS::timer timer;
-    timer.start();
-    size_t idx = 0;
     for (const auto& pixel : mappings) {
-        if (use_threads) {
-            (*futures)[idx++] = pool->submit(
-                DoTexture, std::ref(image), std::cref(pixel), filter_, gen_,
-                vol_);
-        } else {
-            //            progressUpdated(idx++);
-            DoTexture(image, pixel, filter_, gen_, vol_);
-        }
-    }
+        progressUpdated(counter++);
 
-    // Wait for all results
-    if (use_threads) {
-        while (true) {
-            pool->wait_for_tasks_duration(1s);
-            auto numRemaining = pool->get_tasks_total();
-            if (numRemaining > 0) {
-                progressUpdated(numTotal - numRemaining);
-            } else {
-                break;
-            }
-        }
+        // Generate the neighborhood
+        auto neighborhood = gen_->compute(vol_, pixel.pos, {pixel.normal});
+        Neighborhood::Flatten(neighborhood, 1);
+
+        // Assign the intensity value at the UV position
+        auto y = static_cast<int>(pixel.y);
+        auto x = static_cast<int>(pixel.x);
+        image.at<uint16_t>(y, x) = ::ApplyFilter(neighborhood, filter_);
     }
-    timer.stop();
     progressComplete();
-    Logger()->info(
-        "Elapsed time: {}",
-        DurationToDurationString(std::chrono::milliseconds(timer.ms())));
 
     // Set output
     result_.push_back(image);
