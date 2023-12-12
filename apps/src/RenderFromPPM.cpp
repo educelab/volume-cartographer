@@ -1,7 +1,5 @@
-// render.cpp
-// Abigail Coleman Feb. 2015
-
 #include <iostream>
+#include <sstream>
 
 #include <boost/program_options.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -9,9 +7,9 @@
 #include "vc/app_support/GeneralOptions.hpp"
 #include "vc/app_support/GetMemorySize.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
-#include "vc/apps/render/RenderIO.hpp"
 #include "vc/apps/render/RenderTexturing.hpp"
 #include "vc/core/filesystem.hpp"
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
@@ -88,8 +86,8 @@ auto main(int argc, char* argv[]) -> int
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed_);
 
     // Show the help message
-    if (parsed_.count("help") || argc < 5) {
-        std::cout << all << std::endl;
+    if (parsed_.count("help") > 0 || argc < 5) {
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -97,23 +95,23 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed_);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
     // Get the parsed_ options
-    fs::path volpkgPath = parsed_["volpkg"].as<std::string>();
-    fs::path inputPPMPath = parsed_["ppm"].as<std::string>();
-    Method method = static_cast<Method>(parsed_["method"].as<int>());
-    fs::path outputPath = parsed_["output-file"].as<std::string>();
+    const fs::path volpkgPath = parsed_["volpkg"].as<std::string>();
+    const fs::path inputPPMPath = parsed_["ppm"].as<std::string>();
+    const auto method = static_cast<Method>(parsed_["method"].as<int>());
+    const fs::path outputPath = parsed_["output-file"].as<std::string>();
 
     ///// Load the volume package /////
-    vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() < VOLPKG_MIN_VERSION) {
+    auto vpkg = vc::VolumePkg::New(volpkgPath);
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
         vc::Logger()->error(
             "Volume Package is version {} but this program requires version "
             "{}+. ",
-            vpkg.version(), VOLPKG_MIN_VERSION);
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -121,21 +119,21 @@ auto main(int argc, char* argv[]) -> int
     vc::Volume::Pointer volume;
     try {
         if (parsed_.count("volume")) {
-            volume = vpkg.volume(parsed_["volume"].as<std::string>());
+            volume = vpkg->volume(parsed_["volume"].as<std::string>());
         } else {
-            volume = vpkg.volume();
+            volume = vpkg->volume();
         }
     } catch (const std::exception& e) {
-        std::cerr << "Cannot load volume. ";
-        std::cerr << "Please check that the Volume Package has volumes and "
-                     "that the volume ID is correct."
-                  << std::endl;
-        std::cerr << e.what() << std::endl;
+        vc::Logger()->error(
+            "Cannot load volume. Please check that the "
+            "Volume Package has volumes and that the volume ID is correct: "
+            "{}",
+            e.what());
         return EXIT_FAILURE;
     }
 
     // Set the cache size
-    size_t cacheBytes;
+    std::size_t cacheBytes;
     if (parsed_.count("cache-memory-limit")) {
         auto cacheSizeOpt = parsed_["cache-memory-limit"].as<std::string>();
         cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
@@ -143,19 +141,18 @@ auto main(int argc, char* argv[]) -> int
         cacheBytes = SystemMemorySize() / 2;
     }
     volume->setCacheMemoryInBytes(cacheBytes);
-    std::cout << "Volume Cache :: ";
-    std::cout << "Capacity: " << volume->getCacheCapacity() << " || ";
-    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
-    std::cout << std::endl;
+    vc::Logger()->info(
+        "Volume Cache :: Capacity: {} || Size: {}", volume->getCacheCapacity(),
+        vc::BytesToMemorySizeString(cacheBytes));
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
     // defined by the estimated thickness of the layer
     cv::Vec3d radius{0, 0, 0};
-    if (parsed_.count("radius")) {
+    if (parsed_.count("radius") > 0) {
         radius[0] = parsed_["radius"].as<double>();
     } else {
-        radius = vpkg.materialThickness() / 2 / volume->voxelSize();
+        radius = vpkg->materialThickness() / 2 / volume->voxelSize();
     }
     radius[1] = radius[2] = std::abs(std::sqrt(radius[0]));
 
@@ -188,16 +185,17 @@ auto main(int argc, char* argv[]) -> int
     auto normalize = parsed_["normalize-output"].as<bool>();
 
     // Read the ppm
-    std::cout << "Loading PPM..." << std::endl;
-    auto ppm = vc::PerPixelMap::New(vc::PerPixelMap::ReadPPM(inputPPMPath));
+    vc::Logger()->info("Loading PPM...");
+    auto ppm =
+        vc::PerPixelMap::New(std::move(vc::PerPixelMap::ReadPPM(inputPPMPath)));
 
     ///// Transform the PPM /////
     if (parsed_.count("transform") > 0) {
         // load the transform
         auto tfmId = parsed_.at("transform").as<std::string>();
         vc::Transform3D::Pointer tfm;
-        if (vpkg.hasTransform(tfmId)) {
-            tfm = vpkg.transform(tfmId);
+        if (vpkg->hasTransform(tfmId)) {
+            tfm = vpkg->transform(tfmId);
         } else {
             tfm = vc::Transform3D::Load(tfmId);
         }
@@ -206,13 +204,11 @@ auto main(int argc, char* argv[]) -> int
             if (tfm->invertible()) {
                 tfm = tfm->invert();
             } else {
-                std::cerr << "WARNING: ";
-                std::cerr << "Cannot invert transform. Using original.";
-                std::cerr << std::endl;
+                vc::Logger()->warn("Cannot invert transform. Using original.");
             }
         }
 
-        std::cout << "Applying transform..." << std::endl;
+        vc::Logger()->info("Applying transform...");
         ppm = vc::ApplyTransform(ppm, tfm);
     }
 
@@ -230,35 +226,36 @@ auto main(int argc, char* argv[]) -> int
     generator->setSamplingDirection(direction);
 
     ///// Generate texture /////
-    std::cout << "Generating Texture..." << std::endl;
+    vc::Logger()->info("Generating texture...");
 
     // Report selected generic options
-    std::cout << "Neighborhood Parameters :: ";
+    std::ostringstream ss;
+    ss << "Neighborhood Parameters :: ";
     if (method == Method::Intersection) {
-        std::cout << "Intersection";
+        ss << "Intersection";
     } else if (method == Method::Thickness) {
-        std::cout << "Thickness || ";
-        std::cout << "Sampling Interval: " << interval << " || ";
-        std::cout << "Normalize Output: " << std::boolalpha << normalize;
+        ss << "Thickness || ";
+        ss << "Sampling Interval: " << interval << " || ";
+        ss << "Normalize Output: " << std::boolalpha << normalize;
     } else {
-        std::cout << "Shape: ";
+        ss << "Shape: ";
         if (shape == Shape::Line) {
-            std::cout << "Line || ";
+            ss << "Line || ";
         } else {
-            std::cout << "Cuboid || ";
+            ss << "Cuboid || ";
         }
-        std::cout << "Radius: " << radius << " || ";
-        std::cout << "Sampling Interval: " << interval << " || ";
-        std::cout << "Direction: ";
+        ss << "Radius: " << radius << " || ";
+        ss << "Sampling Interval: " << interval << " || ";
+        ss << "Direction: ";
         if (direction == vc::Direction::Positive) {
-            std::cout << "Positive";
+            ss << "Positive";
         } else if (direction == vc::Direction::Negative) {
-            std::cout << "Negative";
+            ss << "Negative";
         } else {
-            std::cout << "Both";
+            ss << "Both";
         }
     }
-    std::cout << std::endl;
+    vc::Logger()->info(ss.str());
 
     vct::TexturingAlgorithm::Pointer textureGen;
     if (method == Method::Intersection) {
@@ -297,12 +294,12 @@ auto main(int argc, char* argv[]) -> int
     else if (method == Method::Thickness) {
         // Load mask
         if (maskPath.empty()) {
-            std::cerr << "ERROR: Selected Thickness texturing, but did not "
-                         "provide volume mask path."
-                      << std::endl;
+            vc::Logger()->error(
+                "Selected Thickness texturing, but did not "
+                "provide volume mask path.");
             std::exit(EXIT_FAILURE);
         }
-        std::cout << "Loading volume mask..." << std::endl;
+        vc::Logger()->info("Loading volume mask...");
         auto pts = vc::PointSetIO<cv::Vec3i>::ReadPointSet(maskPath);
         auto mask = vc::VolumetricMask::New(pts);
 
@@ -314,14 +311,16 @@ auto main(int argc, char* argv[]) -> int
     }
     if (parsed_["progress"].as<bool>()) {
         vc::ReportProgress(*textureGen, "Texturing:");
+        vc::Logger()->debug("Texturing...");
     } else {
-        std::cout << "Texturing..." << std::endl;
+        vc::Logger()->info("Texturing...");
     }
 
     auto texture = textureGen->compute();
 
     // Write the output
-    SaveOutput(outputPath, nullptr, nullptr, texture);
+    vc::WriteImage(outputPath, texture[0]);
 
+    vc::Logger()->info("Done.");
     return EXIT_SUCCESS;
 }  // end main
