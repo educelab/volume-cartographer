@@ -1043,6 +1043,7 @@ auto main(int argc, char* argv[]) -> int
         Logger()->error(e.what());
         return EXIT_FAILURE;
     }
+    Logger()->info("Done.");
 }
 
 ///*** Custom program_options validators ***///
