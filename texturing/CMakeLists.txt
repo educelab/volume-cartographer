@@ -36,6 +36,7 @@ target_include_directories(vc_texturing
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${openabf_SOURCE_DIR}/single_include>
         $<BUILD_INTERFACE:${bvh_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${threadpool_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(vc_texturing
