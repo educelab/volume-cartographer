@@ -79,23 +79,6 @@ auto ApplyFilter(const Neighborhood& n, Filter filter) -> uint16_t
     }
 }
 
-void DoTexture(
-    cv::Mat& image,
-    const PerPixelMap::PixelMap& pixel,
-    const Filter& filter,
-    const NeighborhoodGenerator::Pointer& generator,
-    Volume::Pointer& volume)
-{
-    // Generate the neighborhood
-    auto neighborhood = generator->compute(volume, pixel.pos, {pixel.normal});
-    Neighborhood::Flatten(neighborhood, 1);
-
-    // Assign the intensity value at the UV position
-    auto y = static_cast<int>(pixel.y);
-    auto x = static_cast<int>(pixel.x);
-    image.at<uint16_t>(y, x) = ::ApplyFilter(neighborhood, filter);
-}
-
 }  // namespace
 
 auto CompositeTexture::New() -> CompositeTexture::Pointer

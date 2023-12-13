@@ -7,6 +7,11 @@ using namespace volcart::texturing;
 
 using Texture = IntersectionTexture::Texture;
 
+auto IntersectionTexture::New() -> Pointer
+{
+    return std::make_shared<IntersectionTexture>();
+}
+
 Texture IntersectionTexture::compute()
 {
     // Setup

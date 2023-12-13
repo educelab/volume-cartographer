@@ -30,10 +30,20 @@ public:
     using Pointer = std::shared_ptr<LayerTexture>;
 
     /** Make shared pointer */
-    static auto New() -> Pointer { return std::make_shared<LayerTexture>(); }
+    static auto New() -> Pointer;
 
+    /** Default constructor */
+    LayerTexture() = default;
     /** Default destructor */
     ~LayerTexture() override = default;
+    /** Default copy constructor */
+    LayerTexture(LayerTexture&) = default;
+    /** Default move constructor */
+    LayerTexture(LayerTexture&&) = default;
+    /** Default copy operator */
+    auto operator=(const LayerTexture&) -> LayerTexture& = default;
+    /** Default move operator */
+    auto operator=(LayerTexture&&) -> LayerTexture& = default;
 
     /**
      * @brief Set the Neighborhood generator

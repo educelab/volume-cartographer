@@ -7,6 +7,11 @@ using namespace volcart::texturing;
 
 using Texture = ThicknessTexture::Texture;
 
+auto ThicknessTexture::New() -> Pointer
+{
+    return std::make_shared<ThicknessTexture>();
+}
+
 void ThicknessTexture::setSamplingInterval(double i) { interval_ = i; }
 
 void ThicknessTexture::setNormalizeOutput(bool b) { normalize_ = b; }

@@ -9,6 +9,8 @@ using namespace volcart::texturing;
 
 using Texture = LayerTexture::Texture;
 
+auto LayerTexture::New() -> Pointer { return std::make_shared<LayerTexture>(); }
+
 auto LayerTexture::compute() -> Texture
 {
     // Setup

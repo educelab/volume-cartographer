@@ -30,8 +30,18 @@ public:
     /** Make shared pointer */
     static auto New() -> Pointer;
 
+    /** Default constructor */
+    CompositeTexture() = default;
     /** Default destructor */
     ~CompositeTexture() override = default;
+    /** Default copy constructor */
+    CompositeTexture(CompositeTexture&) = default;
+    /** Default move constructor */
+    CompositeTexture(CompositeTexture&&) = default;
+    /** Default copy operator */
+    auto operator=(const CompositeTexture&) -> CompositeTexture& = default;
+    /** Default move operator */
+    auto operator=(CompositeTexture&&) -> CompositeTexture& = default;
 
     /** Filter list */
     enum class Filter {
