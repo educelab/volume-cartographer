@@ -1,10 +1,13 @@
 #include "vc/core/types/PerPixelMap.hpp"
 
+#include <algorithm>
+
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
@@ -49,25 +52,33 @@ auto PerPixelMap::getAsPixelMap(size_t y, size_t x) -> PPM::PixelMap
 }
 
 // Return only valid mappings
-auto PerPixelMap::getMappings() const -> std::vector<PPM::PixelMap>
+auto PerPixelMap::getMappings() const -> std::vector<PixelMap>
 {
     // Output vector
     std::vector<PixelMap> mappings;
+    mappings.reserve(numMappings());
 
     // For each pixel...
-    for (size_t y = 0; y < height_; ++y) {
-        for (size_t x = 0; x < width_; ++x) {
-            // Skip this pixel if we have no mapping
-            if (!hasMapping(y, x)) {
-                continue;
-            }
-
-            // Put it in the vector if we go have one
-            mappings.emplace_back(x, y, map_(y, x));
+    for (auto [y, x] : range2D(height_, width_)) {
+        // Skip this pixel if we have no mapping
+        if (!hasMapping(y, x)) {
+            continue;
         }
+
+        // Put it in the vector if we go have one
+        mappings.emplace_back(x, y, map_(y, x));
     }
 
     return mappings;
+}
+
+auto PerPixelMap::numMappings() const -> std::size_t
+{
+    if (mask_.empty()) {
+        return width_ * height_;
+    }
+
+    return cv::countNonZero(mask_);
 }
 
 // Initialize map

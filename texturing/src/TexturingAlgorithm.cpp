@@ -16,5 +16,5 @@ auto TexturingAlgorithm::getTexture() -> Texture { return result_; }
 
 auto TexturingAlgorithm::progressIterations() const -> std::size_t
 {
-    return ppm_->getMappings().size();
+    return ppm_->numMappings();
 }

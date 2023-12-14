@@ -127,6 +127,9 @@ public:
      * Uses hasMapping() to determine which pixels in the PPM are valid.
      */
     [[nodiscard]] auto getMappings() const -> std::vector<PixelMap>;
+
+    [[nodiscard]] auto numMappings() const -> std::size_t;
+
     /**@}*/
 
     /**@{*/
