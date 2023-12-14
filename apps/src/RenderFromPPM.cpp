@@ -99,6 +99,11 @@ auto main(int argc, char* argv[]) -> int
         return EXIT_FAILURE;
     }
 
+    // Set logging level
+    auto logLevel = parsed_["log-level"].as<std::string>();
+    vc::to_lower(logLevel);
+    vc::logging::SetLogLevel(logLevel);
+
     // Get the parsed_ options
     const fs::path volpkgPath = parsed_["volpkg"].as<std::string>();
     const fs::path inputPPMPath = parsed_["ppm"].as<std::string>();
