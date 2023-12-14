@@ -55,9 +55,9 @@ test:debian:static:
     extends: .build_and_test
     stage: test
     needs: []
-    image: ghcr.io/educelab/ci-docker:11_v2.static
+    image: ghcr.io/educelab/ci-docker:12_v1.static
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.4.2/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - docker
@@ -66,9 +66,9 @@ test:debian:dynamic:
     extends: .build_and_test
     stage: test
     needs: []
-    image: ghcr.io/educelab/ci-docker:11_v2.dynamic
+    image: ghcr.io/educelab/ci-docker:12_v1.dynamic
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.4.2/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - docker
@@ -118,7 +118,7 @@ lint:clang-format:
 pages:
     stage: docs
     needs: []
-    image: ghcr.io/educelab/ci-docker:11_v2.static
+    image: ghcr.io/educelab/ci-docker:12_v1.static
     before_script:
         - apt-get -y update
         - apt-get install --fix-missing --fix-broken -y doxygen graphviz
