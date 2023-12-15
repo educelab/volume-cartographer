@@ -13,7 +13,7 @@ jobs:
   debian_static:
     name: Debian 12 (static libraries)
     runs-on: ubuntu-latest
-    container: ghcr.io/educelab/ci-docker:12_v1.static
+    container: ghcr.io/educelab/ci-docker:static.12.0
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
     env:
@@ -36,7 +36,7 @@ jobs:
   debian_dynamic:
     name: Debian 12 (shared libraries)
     runs-on: ubuntu-latest
-    container: ghcr.io/educelab/ci-docker:12_v1.dynamic
+    container: ghcr.io/educelab/ci-docker:dynamic.12.0
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
     env:

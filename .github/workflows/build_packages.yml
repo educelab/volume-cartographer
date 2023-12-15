@@ -15,7 +15,7 @@ jobs:
       package_name: ${{ steps.name_pkg.outputs.package_name }}
     timeout-minutes: 240
     env:
-      QT_VERSION: "6.4.2"
+      QT_VERSION: "6.6.1"
       EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
     steps:
       - name: Checkout code
