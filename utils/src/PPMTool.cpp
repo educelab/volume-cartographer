@@ -10,6 +10,7 @@
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/String.hpp"
 
@@ -118,18 +119,16 @@ auto main(int argc, char* argv[]) -> int
 
         // Iterate over the ROI
         Logger()->info("Generating point set...");
-        for (auto y = minY; y < maxY; y++) {
-            for (auto x = minX; x < maxX; x++) {
-                // Skip unmapped pixels
-                if (!ppm.hasMapping(y, x)) {
-                    continue;
-                }
-
-                auto id = mesh->GetNumberOfPoints();
-                auto pt = ppm.getAsPixelMap(y, x);
-                mesh->SetPoint(id, pt.pos.val);
-                mesh->SetPointData(id, pt.normal.val);
+        for (auto [y, x] : range2D(minY, maxY, minX, maxX)) {
+            // Skip unmapped pixels
+            if (!ppm.hasMapping(y, x)) {
+                continue;
             }
+
+            const auto id = mesh->GetNumberOfPoints();
+            const auto pt = ppm.getAsPixelMap(y, x);
+            mesh->SetPoint(id, pt.pos.val);
+            mesh->SetPointData(id, pt.normal.val);
         }
 
         // Write the mesh
