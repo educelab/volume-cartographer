@@ -175,3 +175,45 @@ auto PerPixelMap::mask() const -> cv::Mat { return mask_; }
 void PerPixelMap::setMask(const cv::Mat& m) { mask_ = m.clone(); }
 auto PerPixelMap::cellMap() const -> cv::Mat { return cellMap_; }
 void PerPixelMap::setCellMap(const cv::Mat& m) { cellMap_ = m.clone(); }
+
+auto PerPixelMap::Crop(
+    const PerPixelMap& map,
+    std::size_t originY,
+    std::size_t originX,
+    std::size_t height,
+    std::size_t width) -> PerPixelMap
+{
+    // Check that origin is in bounds
+    if (originY >= map.height_ or originX >= map.width_) {
+        throw std::runtime_error("Crop origin out-of-bounds");
+    }
+
+    // Limit the output dimensions
+    auto maxX = std::min(map.width_, originX + width);
+    auto maxY = std::min(map.height_, originY + height);
+    height = maxY - originY;
+    width = maxX - originX;
+
+    // Create output
+    PerPixelMap out(height, width);
+
+    // Copy mappings
+    for (auto [y, x] : range2D(originY, maxY, originX, maxX)) {
+        auto yy = y - originY;
+        auto xx = x - originX;
+        out(yy, xx) = map(y, x);
+    }
+
+    // Copy mask
+    const cv::Rect roi(originX, originY, width, height);
+    if (not map.mask_.empty()) {
+        map.mask_(roi).copyTo(out.mask_);
+    }
+
+    // Copy cell map
+    if (not map.cellMap_.empty()) {
+        map.cellMap_(roi).copyTo(out.cellMap_);
+    }
+
+    return out;
+}

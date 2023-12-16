@@ -201,6 +201,13 @@ public:
     static auto ReadPPM(const filesystem::path& path) -> PerPixelMap;
     /**@}*/
 
+    static auto Crop(
+        const PerPixelMap& map,
+        std::size_t originY,
+        std::size_t originX,
+        std::size_t height,
+        std::size_t width) -> PerPixelMap;
+
 private:
     /**
      * Initialize the map for value assignment

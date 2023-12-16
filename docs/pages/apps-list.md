@@ -230,7 +230,7 @@ vc_generate_ppm
 vc_image_stats
 vc_invert_cloud
 vc_metaedit
-vc_ppm_to_pointset
+vc_ppm_tool
 vc_project_mesh
 vc_seg_to_pointmask
 vc_uv2mesh
