@@ -67,7 +67,7 @@ jobs:
           ditto -c -k "${{ env.install_dir }}" ${{ env.package_name }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         if: success()
         with:
           name: package-macos-intel
