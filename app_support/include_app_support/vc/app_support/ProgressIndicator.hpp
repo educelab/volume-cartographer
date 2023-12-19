@@ -37,9 +37,27 @@ inline auto NewProgressBar(size_t maxProg, std::string label = "")
     // clang-format on
 }
 
+/**
+ * Configuration options for ReportProgress
+ *
+ * @ingroup Support
+ */
+struct ProgressConfig {
+    /** Descriptive label */
+    std::string label;
+    /** If true, show iterations as postfix (e.g. 25/256) */
+    bool showIters{true};
+    /** If true, use pretty color printing */
+    bool useColors{false};
+    /**
+     * Reporting interval. The logger will only print when the duration between
+     * the last reported update and the current update exceeds this interval.
+     */
+    std::chrono::milliseconds interval{std::chrono::milliseconds{1000}};
+};
+
 template <class Iterable>
-inline auto ProgressWrap(
-    Iterable&& it, std::string label = "", bool useColors = false);
+inline auto ProgressWrap(Iterable&& it, ProgressConfig cfg = {});
 
 /**
  * Iterable wrapper for tracking iteration progress. This class's iterator meets
@@ -104,7 +122,6 @@ private:
             , useColors_{useColors}
             , interval_{interval}
         {
-            lastUpdate_ = std::chrono::steady_clock::now();
             bar_ = NewProgressBar(maxProg_, std::move(label));
             if (useColors_) {
                 using indicators::Color;
@@ -176,15 +193,12 @@ private:
     };
 
     using IteratorType = decltype(std::begin(std::declval<Iterable&>()));
-    ProgressBarIterable(Iterable&& container, std::string label, bool useColors)
-        : container_{std::forward<Iterable>(container)}
-        , label_{std::move(label)}
-        , useColors_{useColors}
+    ProgressBarIterable(Iterable&& container, ProgressConfig cfg)
+        : container_{std::forward<Iterable>(container)}, cfg_{std::move(cfg)}
     {
     }
 
-    friend auto ProgressWrap<Iterable>(
-        Iterable&& it, std::string label, bool useColors);
+    friend auto ProgressWrap<Iterable>(Iterable&& it, ProgressConfig cfg);
 
 public:
     using iterator = ConsoleProgressIterator<IteratorType>;
@@ -193,7 +207,7 @@ public:
     /** Destructor */
     ~ProgressBarIterable()
     {
-        if (useColors_) {
+        if (cfg_.useColors) {
             indicators::show_console_cursor(true);
         }
     }
@@ -205,8 +219,8 @@ public:
         auto begin = std::begin(container_);
         auto end = std::end(container_);
         return iterator{
-            begin, static_cast<size_t>(std::distance(begin, end)), label_,
-            useColors_};
+            begin, static_cast<size_t>(std::distance(begin, end)), cfg_.label,
+            cfg_.useColors};
     }
 
     /**
@@ -224,7 +238,7 @@ public:
         auto begin = std::begin(container_);
         auto end = std::end(container_);
         return const_iterator{
-            begin, std::distance(begin, end), label_, useColors_};
+            begin, std::distance(begin, end), cfg_.label, cfg_.useColors};
     }
 
     /**
@@ -237,14 +251,16 @@ public:
     }
 
     /** Get the size of the underlying iterable */
-    auto size() const -> std::size_t { return std::size(container_); }
+    [[nodiscard]] auto size() const -> std::size_t
+    {
+        return std::size(container_);
+    }
 
 private:
+    /** Wrapped container */
     Iterable container_;
-    /** Progress bar label */
-    std::string label_;
-    /** Use colors */
-    bool useColors_{false};
+    /** Progress bar config */
+    ProgressConfig cfg_;
 };
 
 /**
@@ -268,35 +284,37 @@ private:
  * @tparam Iterable Iterable container class. Iterable::iterator must meet
  * LegacyIterator requirements
  * @param it Object of type Iterable
- * @param label Label for generated progress bar (optional)
+ * @param cfg Progress configuration struct.
  *
  * @ingroup Support
  */
 template <class Iterable>
-inline auto ProgressWrap(Iterable&& it, std::string label, bool useColors)
+inline auto ProgressWrap(Iterable&& it, ProgressConfig cfg)
 {
     return ProgressBarIterable<Iterable>(
-        std::forward<Iterable>(it), std::move(label), useColors);
+        std::forward<Iterable>(it), std::move(cfg));
 }
 
 /**
- * Configuration options for ReportProgress
+ * @copybrief
  *
- * @ingroup Support
+ * @copydoc
+ *
+ * @tparam Iterable Iterable container class. Iterable::iterator must meet
+ * LegacyIterator requirements
+ * @param it Object of type Iterable.
+ * @param label Label for generated progress bar. Overrides the label in the
+ * provided cfg.
+ * @param cfg Progress configuration struct.
+ * @return
  */
-struct ProgressConfig {
-    /** Descriptive label */
-    std::string label;
-    /** If true, show iterations as postfix (e.g. 25/256) */
-    bool showIters{true};
-    /** If true, use pretty color printing */
-    bool useColors{false};
-    /**
-     * Reporting interval. The logger will only print when the duration between
-     * the last reported update and the current update exceeds this interval.
-     */
-    std::chrono::milliseconds interval{std::chrono::milliseconds{500}};
-};
+template <class Iterable>
+inline auto ProgressWrap(
+    Iterable&& it, std::string label, ProgressConfig cfg = {})
+{
+    cfg.label = std::move(label);
+    return ProgressWrap(std::forward<Iterable>(it), std::move(cfg));
+}
 
 /**
  * Create and connect a class which implements volcart::IterationsProgress to a
@@ -324,9 +342,6 @@ inline auto ReportProgress(ProgressEnabled& p, ProgressConfig cfg = {})
     // Connect to progress updates
     auto startTime = std::make_shared<steady_clock::time_point>();
     p.progressUpdated.connect([progressBar, iters, startTime, cfg](auto p) {
-        if (*startTime == steady_clock::time_point()) {
-            *startTime = steady_clock::now();
-        }
         if (steady_clock::now() - *startTime < cfg.interval) {
             return;
         }

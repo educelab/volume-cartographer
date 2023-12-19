@@ -11,6 +11,7 @@
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
@@ -23,8 +24,6 @@ namespace po = boost::program_options;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
-
-using volcart::enumerate;
 
 namespace
 {
@@ -64,7 +63,9 @@ auto main(int argc, char* argv[]) -> int
             "Image format for layer images. Default: png")
         ("compression", po::value<int>(), "Image compression level")
         ("progress", po::value<bool>()->default_value(true),
-            "When enabled, show algorithm progress bars.");
+            "When enabled, show algorithm progress bars.")
+        ("progress-interval", po::value<std::string>(),
+            "Progress reporting interval");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -243,8 +244,16 @@ auto main(int argc, char* argv[]) -> int
     s.setPerPixelMap(ppm);
     s.setGenerator(line);
 
-    if (parsed["progress"].as<bool>()) {
-        vc::ReportProgress(s, "Generating layers:");
+    // Progress reporting
+    auto enableProgress = parsed["progress"].as<bool>();
+    vc::ProgressConfig cfg;
+    if (parsed.count("progress-interval") > 0) {
+        cfg.interval = vc::DurationFromString(
+            parsed["progress-interval"].as<std::string>());
+    }
+
+    if (enableProgress) {
+        vc::ReportProgress(s, "Generating layers:", cfg);
         vc::Logger()->debug("Generating layers...");
     } else {
         vc::Logger()->info("Generating layers...");
@@ -254,9 +263,9 @@ auto main(int argc, char* argv[]) -> int
 
     // Write the image sequence
     const fs::path filepath = outDir / ("{}." + imgFmt);
-    if (parsed["progress"].as<bool>()) {
+    if (enableProgress) {
         vc::Logger()->debug("Writing layers...");
-        auto progIt = vc::ProgressWrap(texture, "Writing layers:");
+        auto progIt = vc::ProgressWrap(texture, "Writing layers:", cfg);
         vc::WriteImageSequence(filepath, progIt, writeOpts);
     } else {
         vc::Logger()->info("Writing layers...");

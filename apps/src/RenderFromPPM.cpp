@@ -16,6 +16,7 @@
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/texturing/CompositeTexture.hpp"
@@ -123,7 +124,7 @@ auto main(int argc, char* argv[]) -> int
     ///// Load the Volume /////
     vc::Volume::Pointer volume;
     try {
-        if (parsed_.count("volume")) {
+        if (parsed_.count("volume") > 0) {
             volume = vpkg->volume(parsed_["volume"].as<std::string>());
         } else {
             volume = vpkg->volume();
@@ -138,12 +139,10 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Set the cache size
-    std::size_t cacheBytes;
-    if (parsed_.count("cache-memory-limit")) {
+    std::size_t cacheBytes{SystemMemorySize() / 2};
+    if (parsed_.count("cache-memory-limit") > 0) {
         auto cacheSizeOpt = parsed_["cache-memory-limit"].as<std::string>();
         cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
-    } else {
-        cacheBytes = SystemMemorySize() / 2;
     }
     volume->setCacheMemoryInBytes(cacheBytes);
     vc::Logger()->info(
@@ -218,6 +217,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     ///// Setup Neighborhood /////
+    vc::Logger()->debug("Setting up generator...");
     vc::NeighborhoodGenerator::Pointer generator;
     if (shape == Shape::Line) {
         auto line = vc::LineGenerator::New();
@@ -262,6 +262,7 @@ auto main(int argc, char* argv[]) -> int
     }
     vc::Logger()->info(ss.str());
 
+    vc::Logger()->debug("Setting up texturing algorithm...");
     vct::TexturingAlgorithm::Pointer textureGen;
     if (method == Method::Intersection) {
         auto intersect = vct::IntersectionTexture::New();
@@ -314,13 +315,20 @@ auto main(int argc, char* argv[]) -> int
         thickness->setNormalizeOutput(normalize);
         textureGen = thickness;
     }
+
     if (parsed_["progress"].as<bool>()) {
-        vc::ReportProgress(*textureGen, "Texturing:");
+        vc::ProgressConfig cfg;
+        if (parsed_.count("progress-interval") > 0) {
+            cfg.interval = vc::DurationFromString(
+                parsed_["progress-interval"].as<std::string>());
+        }
+        vc::ReportProgress(*textureGen, "Texturing:", cfg);
         vc::Logger()->debug("Texturing...");
     } else {
         vc::Logger()->info("Texturing...");
     }
 
+    vc::Logger()->debug("Starting texturing algorithm...");
     auto texture = textureGen->compute();
 
     // Write the output

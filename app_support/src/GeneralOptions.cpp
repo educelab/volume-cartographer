@@ -13,6 +13,8 @@ auto GetGeneralOpts() -> po::options_description
             "Default: 50% of the total system memory.")
         ("progress", po::value<bool>()->default_value(true),
             "When enabled, show algorithm progress bars.")
+        ("progress-interval", po::value<std::string>(),
+            "Progress reporting interval")
         ("log-level", po::value<std::string>()->default_value("info"),
          "Options: off, critical, error, warn, info, debug");
     // clang-format on
