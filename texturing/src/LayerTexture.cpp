@@ -34,7 +34,6 @@ auto LayerTexture::compute() -> Texture
         });
 
     // Iterate through the mappings
-    // TODO: Test enumerate performance
     progressStarted();
     for (const auto [idx, coord] : enumerate(mappings)) {
         progressUpdated(idx);

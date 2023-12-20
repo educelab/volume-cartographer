@@ -6,6 +6,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "vc/core/util/Iteration.hpp"
+
 using namespace volcart;
 using namespace volcart::texturing;
 
@@ -36,12 +38,12 @@ auto IntegralTexture::compute() -> Texture
         });
 
     // Iterate through the mappings
-    size_t counter = 0;
     progressStarted();
-    for (const auto [y, x] : mappings) {
-        progressUpdated(counter++);
+    for (const auto [idx, coord] : enumerate(mappings)) {
+        progressUpdated(idx);
 
         // Generate the neighborhood
+        const auto [y, x] = coord;
         const auto& m = ppm_->getMapping(y, x);
         const cv::Vec3d pos{m[0], m[1], m[2]};
         const cv::Vec3d normal{m[3], m[4], m[5]};
