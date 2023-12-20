@@ -14,9 +14,10 @@ auto GetGeneralOpts() -> po::options_description
         ("progress", po::value<bool>()->default_value(true),
             "When enabled, show algorithm progress bars.")
         ("progress-interval", po::value<std::string>(),
-            "Progress reporting interval")
+            "Progress reporting interval in the format '{H}h{M}m{S}s{MS}ms'. "
+            "Examples: '1m', '30s', '500ms', '1m30s'")
         ("log-level", po::value<std::string>()->default_value("info"),
-         "Options: off, critical, error, warn, info, debug");
+            "Options: off, critical, error, warn, info, debug");
     // clang-format on
 
     return opts;

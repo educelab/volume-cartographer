@@ -24,22 +24,13 @@
 #include "vc/texturing/IntersectionTexture.hpp"
 #include "vc/texturing/ThicknessTexture.hpp"
 
+using namespace volcart;
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
-namespace vc = volcart;
 namespace vct = volcart::texturing;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
-
-// Globals
-po::variables_map parsed_;
-/** Unused globals that need to be here */
-vc::VolumePkg::Pointer vpkg_;
-vc::Segmentation::Pointer seg_;
-vc::Volume::Pointer volume_;
-vc::UVMap parsedUVMap_;
-/** End unused globals */
 
 namespace
 {
@@ -84,37 +75,38 @@ auto main(int argc, char* argv[]) -> int
     // clang-format on
 
     // Parse the cmd line
-    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed_);
+    po::variables_map parsed;
+    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed_.count("help") > 0 || argc < 5) {
+    if (parsed.count("help") > 0 || argc < 5) {
         std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
     // Warn of missing options
     try {
-        po::notify(parsed_);
+        po::notify(parsed);
     } catch (po::error& e) {
         std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
     // Set logging level
-    auto logLevel = parsed_["log-level"].as<std::string>();
-    vc::to_lower(logLevel);
-    vc::logging::SetLogLevel(logLevel);
+    auto logLevel = parsed["log-level"].as<std::string>();
+    to_lower(logLevel);
+    logging::SetLogLevel(logLevel);
 
-    // Get the parsed_ options
-    const fs::path volpkgPath = parsed_["volpkg"].as<std::string>();
-    const fs::path inputPPMPath = parsed_["ppm"].as<std::string>();
-    const auto method = static_cast<Method>(parsed_["method"].as<int>());
-    const fs::path outputPath = parsed_["output-file"].as<std::string>();
+    // Get the parsed options
+    const fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+    const fs::path inputPPMPath = parsed["ppm"].as<std::string>();
+    const auto method = static_cast<Method>(parsed["method"].as<int>());
+    const fs::path outputPath = parsed["output-file"].as<std::string>();
 
     ///// Load the volume package /////
-    auto vpkg = vc::VolumePkg::New(volpkgPath);
+    auto vpkg = VolumePkg::New(volpkgPath);
     if (vpkg->version() < VOLPKG_MIN_VERSION) {
-        vc::Logger()->error(
+        Logger()->error(
             "Volume Package is version {} but this program requires version "
             "{}+. ",
             vpkg->version(), VOLPKG_MIN_VERSION);
@@ -122,15 +114,15 @@ auto main(int argc, char* argv[]) -> int
     }
 
     ///// Load the Volume /////
-    vc::Volume::Pointer volume;
+    Volume::Pointer volume;
     try {
-        if (parsed_.count("volume") > 0) {
-            volume = vpkg->volume(parsed_["volume"].as<std::string>());
+        if (parsed.count("volume") > 0) {
+            volume = vpkg->volume(parsed["volume"].as<std::string>());
         } else {
             volume = vpkg->volume();
         }
     } catch (const std::exception& e) {
-        vc::Logger()->error(
+        Logger()->error(
             "Cannot load volume. Please check that the "
             "Volume Package has volumes and that the volume ID is correct: "
             "{}",
@@ -140,98 +132,97 @@ auto main(int argc, char* argv[]) -> int
 
     // Set the cache size
     std::size_t cacheBytes{SystemMemorySize() / 2};
-    if (parsed_.count("cache-memory-limit") > 0) {
-        auto cacheSizeOpt = parsed_["cache-memory-limit"].as<std::string>();
-        cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
+    if (parsed.count("cache-memory-limit") > 0) {
+        auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
+        cacheBytes = MemorySizeStringParser(cacheSizeOpt);
     }
     volume->setCacheMemoryInBytes(cacheBytes);
-    vc::Logger()->info(
+    Logger()->info(
         "Volume Cache :: Capacity: {} || Size: {}", volume->getCacheCapacity(),
-        vc::BytesToMemorySizeString(cacheBytes));
+        BytesToMemorySizeString(cacheBytes));
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
     // defined by the estimated thickness of the layer
     cv::Vec3d radius{0, 0, 0};
-    if (parsed_.count("radius") > 0) {
-        radius[0] = parsed_["radius"].as<double>();
+    if (parsed.count("radius") > 0) {
+        radius[0] = parsed["radius"].as<double>();
     } else {
         radius = vpkg->materialThickness() / 2 / volume->voxelSize();
     }
     radius[1] = radius[2] = std::abs(std::sqrt(radius[0]));
 
-    auto interval = parsed_["interval"].as<double>();
-    auto direction = static_cast<vc::Direction>(parsed_["direction"].as<int>());
-    auto shape = static_cast<Shape>(parsed_["neighborhood-shape"].as<int>());
+    auto interval = parsed["interval"].as<double>();
+    auto direction = static_cast<Direction>(parsed["direction"].as<int>());
+    auto shape = static_cast<Shape>(parsed["neighborhood-shape"].as<int>());
 
     ///// Composite options /////
     auto filter =
-        static_cast<vct::CompositeTexture::Filter>(parsed_["filter"].as<int>());
+        static_cast<vct::CompositeTexture::Filter>(parsed["filter"].as<int>());
 
     ///// Integral options /////
     auto weightType = static_cast<vct::IntegralTexture::WeightMethod>(
-        parsed_["weight-type"].as<int>());
+        parsed["weight-type"].as<int>());
     auto weightDirection =
         static_cast<vct::IntegralTexture::LinearWeightDirection>(
-            parsed_["linear-weight-direction"].as<int>());
-    auto weightExponent = parsed_["expodiff-exponent"].as<int>();
+            parsed["linear-weight-direction"].as<int>());
+    auto weightExponent = parsed["expodiff-exponent"].as<int>();
     auto expoDiffBaseMethod =
         static_cast<vct::IntegralTexture::ExpoDiffBaseMethod>(
-            parsed_["expodiff-base-method"].as<int>());
-    auto expoDiffBase = parsed_["expodiff-base"].as<double>();
-    auto clampToMax = parsed_.count("clamp-to-max") > 0;
+            parsed["expodiff-base-method"].as<int>());
+    auto expoDiffBase = parsed["expodiff-base"].as<double>();
+    auto clampToMax = parsed.count("clamp-to-max") > 0;
 
     ///// Thickness options /////
     fs::path maskPath;
-    if (parsed_.count("volume-mask") > 0) {
-        maskPath = parsed_["volume-mask"].as<std::string>();
+    if (parsed.count("volume-mask") > 0) {
+        maskPath = parsed["volume-mask"].as<std::string>();
     }
-    auto normalize = parsed_["normalize-output"].as<bool>();
+    auto normalize = parsed["normalize-output"].as<bool>();
 
     // Read the ppm
-    vc::Logger()->info("Loading PPM...");
-    auto ppm =
-        vc::PerPixelMap::New(std::move(vc::PerPixelMap::ReadPPM(inputPPMPath)));
+    Logger()->info("Loading PPM...");
+    auto ppm = PerPixelMap::New(std::move(PerPixelMap::ReadPPM(inputPPMPath)));
 
     ///// Transform the PPM /////
-    if (parsed_.count("transform") > 0) {
+    if (parsed.count("transform") > 0) {
         // load the transform
-        auto tfmId = parsed_.at("transform").as<std::string>();
-        vc::Transform3D::Pointer tfm;
+        auto tfmId = parsed.at("transform").as<std::string>();
+        Transform3D::Pointer tfm;
         if (vpkg->hasTransform(tfmId)) {
             tfm = vpkg->transform(tfmId);
         } else {
-            tfm = vc::Transform3D::Load(tfmId);
+            tfm = Transform3D::Load(tfmId);
         }
 
-        if (parsed_.count("invert-transform") > 0) {
+        if (parsed.count("invert-transform") > 0) {
             if (tfm->invertible()) {
                 tfm = tfm->invert();
             } else {
-                vc::Logger()->warn("Cannot invert transform. Using original.");
+                Logger()->warn("Cannot invert transform. Using original.");
             }
         }
 
-        vc::Logger()->info("Applying transform...");
-        ppm = vc::ApplyTransform(ppm, tfm);
+        Logger()->info("Applying transform...");
+        ppm = ApplyTransform(ppm, tfm);
     }
 
     ///// Setup Neighborhood /////
-    vc::Logger()->debug("Setting up generator...");
-    vc::NeighborhoodGenerator::Pointer generator;
+    Logger()->debug("Setting up generator...");
+    NeighborhoodGenerator::Pointer generator;
     if (shape == Shape::Line) {
-        auto line = vc::LineGenerator::New();
-        generator = std::static_pointer_cast<vc::NeighborhoodGenerator>(line);
+        auto line = LineGenerator::New();
+        generator = std::static_pointer_cast<NeighborhoodGenerator>(line);
     } else {
-        auto cube = vc::CuboidGenerator::New();
-        generator = std::static_pointer_cast<vc::NeighborhoodGenerator>(cube);
+        auto cube = CuboidGenerator::New();
+        generator = std::static_pointer_cast<NeighborhoodGenerator>(cube);
     }
     generator->setSamplingRadius(radius);
     generator->setSamplingInterval(interval);
     generator->setSamplingDirection(direction);
 
     ///// Generate texture /////
-    vc::Logger()->info("Generating texture...");
+    Logger()->info("Generating texture...");
 
     // Report selected generic options
     std::ostringstream ss;
@@ -252,17 +243,17 @@ auto main(int argc, char* argv[]) -> int
         ss << "Radius: " << radius << " || ";
         ss << "Sampling Interval: " << interval << " || ";
         ss << "Direction: ";
-        if (direction == vc::Direction::Positive) {
+        if (direction == Direction::Positive) {
             ss << "Positive";
-        } else if (direction == vc::Direction::Negative) {
+        } else if (direction == Direction::Negative) {
             ss << "Negative";
         } else {
             ss << "Both";
         }
     }
-    vc::Logger()->info(ss.str());
+    Logger()->info(ss.str());
 
-    vc::Logger()->debug("Setting up texturing algorithm...");
+    Logger()->debug("Setting up texturing algorithm...");
     vct::TexturingAlgorithm::Pointer textureGen;
     if (method == Method::Intersection) {
         auto intersect = vct::IntersectionTexture::New();
@@ -292,7 +283,7 @@ auto main(int argc, char* argv[]) -> int
         integral->setExponentialDiffBaseValue(expoDiffBase);
         integral->setClampValuesToMax(clampToMax);
         if (clampToMax) {
-            integral->setClampMax(parsed_["clamp-to-max"].as<uint16_t>());
+            integral->setClampMax(parsed["clamp-to-max"].as<uint16_t>());
         }
         textureGen = integral;
     }
@@ -300,14 +291,14 @@ auto main(int argc, char* argv[]) -> int
     else if (method == Method::Thickness) {
         // Load mask
         if (maskPath.empty()) {
-            vc::Logger()->error(
+            Logger()->error(
                 "Selected Thickness texturing, but did not "
                 "provide volume mask path.");
             std::exit(EXIT_FAILURE);
         }
-        vc::Logger()->info("Loading volume mask...");
-        auto pts = vc::PointSetIO<cv::Vec3i>::ReadPointSet(maskPath);
-        auto mask = vc::VolumetricMask::New(pts);
+        Logger()->info("Loading volume mask...");
+        auto pts = PointSetIO<cv::Vec3i>::ReadPointSet(maskPath);
+        auto mask = VolumetricMask::New(pts);
 
         auto thickness = vct::ThicknessTexture::New();
         thickness->setPerPixelMap(ppm);
@@ -316,24 +307,23 @@ auto main(int argc, char* argv[]) -> int
         textureGen = thickness;
     }
 
-    if (parsed_["progress"].as<bool>()) {
-        vc::ProgressConfig cfg;
-        if (parsed_.count("progress-interval") > 0) {
-            cfg.interval = vc::DurationFromString(
-                parsed_["progress-interval"].as<std::string>());
+    if (parsed["progress"].as<bool>()) {
+        ProgressConfig cfg;
+        if (parsed.count("progress-interval") > 0) {
+            cfg.interval = DurationFromString(
+                parsed["progress-interval"].as<std::string>());
         }
-        vc::ReportProgress(*textureGen, "Texturing:", cfg);
-        vc::Logger()->debug("Texturing...");
+        ReportProgress(*textureGen, "Texturing:", cfg);
+        Logger()->debug("Texturing...");
     } else {
-        vc::Logger()->info("Texturing...");
+        Logger()->info("Texturing...");
     }
 
-    vc::Logger()->debug("Starting texturing algorithm...");
+    Logger()->debug("Starting texturing algorithm...");
     auto texture = textureGen->compute();
 
     // Write the output
-    vc::WriteImage(outputPath, texture[0]);
+    WriteImage(outputPath, texture[0]);
 
-    vc::Logger()->info("Done.");
-    return EXIT_SUCCESS;
+    Logger()->info("Done.");
 }  // end main
