@@ -35,6 +35,7 @@ list(APPEND utils_install_list vc_retexture_mesh)
 # vc_ppm_tool
 add_executable(vc_ppm_tool src/PPMTool.cpp)
 target_link_libraries(vc_ppm_tool VC::core ${VC_FS_LIB} Boost::program_options)
+list(APPEND utils_install_list vc_ppm_tool)
 
 # vc_uv2mesh
 add_executable(vc_uv2mesh src/UVMaptoFlatMesh.cpp)
