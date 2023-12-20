@@ -62,8 +62,7 @@ auto main(int argc, char* argv[]) -> int
     required.add_options()
         ("help,h", "Show this message")
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
-        ("output-file,o", po::value<std::string>()->required(),
-             "Output PPM or mesh file")
+        ("output-file,o", po::value<std::string>(), "Output PPM or mesh file")
         ("roi", po::value<std::string>(), "String describing origin, width, "
              "and height of region-of-interest. Format: WxH+X+Y");
 
@@ -89,14 +88,55 @@ auto main(int argc, char* argv[]) -> int
         return EXIT_FAILURE;
     }
 
-    // Parse output file
-
     // Get input file
     const fs::path ppmPath = parsed["ppm"].as<std::string>();
     Logger()->info("Reading PPM...");
     auto ppm = PerPixelMap::ReadPPM(ppmPath);
 
-    const fs::path outPath = parsed["output-mesh"].as<std::string>();
+    // Get min/max bound
+    std::array<double, 3> min;
+    std::fill(min.begin(), min.end(), std::numeric_limits<double>::max());
+    std::array<double, 3> max;
+    std::fill(max.begin(), max.end(), std::numeric_limits<double>::min());
+    for (const auto [y, x] : ppm.getMappingCoords()) {
+        const auto& m = ppm.getMapping(y, x);
+        min[0] = std::min(min[0], m[0]);
+        min[1] = std::min(min[1], m[1]);
+        min[2] = std::min(min[2], m[2]);
+        max[0] = std::max(max[0], m[0]);
+        max[1] = std::max(max[1], m[1]);
+        max[2] = std::max(max[2], m[2]);
+    }
+
+    // Set user-preferred locale for temporary text formatting
+    auto startLocale = std::locale();
+    std::locale::global(std::locale(""));
+
+    // Report PPM stats
+    auto h = ppm.height();
+    auto w = ppm.width();
+    auto ms = ppm.numMappings();
+    auto p = 100. * static_cast<double>(ms) / static_cast<double>(h * w);
+    Logger()->info(
+        "Loaded PPM:\n"
+        " - File: {}\n"
+        " - Shape: ({}, {})\n"
+        " - Number of mappings: {:L} ({:.3g}%)\n"
+        " - Volume bounding box:\n"
+        "   - Min: [{:.3f}, {:.3f}, {:.3f}]\n"
+        "   - Max: [{:.3f}, {:.3f}, {:.3f}]",
+        ppmPath.filename().string(), h, w, ms, p, min[0], min[1], min[2],
+        max[0], max[1], max[2]);
+
+    // Restore original locale so file writing doesn't break
+    std::locale::global(startLocale);
+
+    // If we're not saving a PPM, exit
+    if (parsed.count("output-file") == 0) {
+        return EXIT_SUCCESS;
+    }
+
+    const fs::path outPath = parsed["output-file"].as<std::string>();
     const auto writeMesh = IsFileType(outPath, {"obj", "ply"});
 
     // Setup ROI
@@ -140,7 +180,7 @@ auto main(int argc, char* argv[]) -> int
         }
 
         // Write the mesh
-        Logger()->info("Write OBJ file...");
+        Logger()->info("Writing mesh file...");
         WriteMesh(outPath, mesh);
     } else {
         Logger()->info("Cropping PPM...");

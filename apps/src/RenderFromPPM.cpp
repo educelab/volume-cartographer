@@ -61,6 +61,8 @@ auto main(int argc, char* argv[]) -> int
             "Volume to use for texturing. Default: First volume.")
         ("output-file,o", po::value<std::string>()->required(),
             "Output image file path.")
+        ("output-ppm", po::value<std::string>(), "Save a new PPM to the given "
+            "path.")
         ("tiff-floating-point", "When outputting to the TIFF format, save a "
             "floating-point image.");
 
@@ -145,7 +147,15 @@ auto main(int argc, char* argv[]) -> int
     // defined by the estimated thickness of the layer
     cv::Vec3d radius{0, 0, 0};
     if (parsed.count("radius") > 0) {
-        radius[0] = parsed["radius"].as<double>();
+        auto parsedRadius = parsed["radius"].as<std::vector<double>>();
+        radius[0] = parsedRadius[0];
+        radius[1] = radius[2] = std::sqrt(std::abs(radius[0]));
+        if (parsedRadius.size() >= 2) {
+            radius[1] = parsedRadius[1];
+        }
+        if (parsedRadius.size() >= 3) {
+            radius[2] = parsedRadius[2];
+        }
     } else {
         radius = vpkg->materialThickness() / 2 / volume->voxelSize();
     }
@@ -322,7 +332,14 @@ auto main(int argc, char* argv[]) -> int
     auto texture = textureGen->compute();
 
     // Write the output
+    Logger()->info("Writing output image...");
     WriteImage(outputPath, texture[0]);
+
+    if (parsed.count("output-ppm") > 0) {
+        Logger()->info("Writing output PPM...");
+        const fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
+        PerPixelMap::WritePPM(outputPPMPath, *ppm);
+    }
 
     Logger()->info("Done.");
 }  // end main
