@@ -98,7 +98,7 @@ private:
         std::chrono::steady_clock::time_point lastUpdate_;
         /** Update interval */
         std::chrono::steady_clock::duration interval_{
-            std::chrono::milliseconds(500)};
+            std::chrono::milliseconds(1000)};
 
     public:
         /** @{ Iterator type traits */
@@ -330,7 +330,6 @@ inline auto ReportProgress(ProgressEnabled& p, ProgressConfig cfg = {})
     using namespace indicators;
     using namespace indicators::option;
     using namespace std::chrono;
-    using namespace std::chrono_literals;
 
     // Setup progress bar
     auto iters = p.progressIterations();

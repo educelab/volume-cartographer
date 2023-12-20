@@ -79,7 +79,7 @@ auto main(int argc, char* argv[]) -> int
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed.count("help") > 0 || argc < 5) {
+    if (parsed.count("help") > 0 || argc < 2) {
         std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
@@ -88,13 +88,12 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << '\n';
+        Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
     // Set logging level
     auto logLevel = parsed["log-level"].as<std::string>();
-    to_lower(logLevel);
     logging::SetLogLevel(logLevel);
 
     // Get the parsed options

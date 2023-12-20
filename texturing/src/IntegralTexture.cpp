@@ -161,10 +161,11 @@ void IntegralTexture::setup_expodiff_weights_()
 
 auto IntegralTexture::expodiff_intersection_pts_() -> std::vector<uint16_t>
 {
-    // Get all of the intensity values
+    // Get all the intensity values
     std::vector<uint16_t> values;
-    for (const auto& m : ppm_->getMappings()) {
-        values.emplace_back(vol_->interpolateAt(m.pos));
+    for (const auto [y, x] : ppm_->getMappingCoords()) {
+        const auto& m = ppm_->getMapping(y, x);
+        values.emplace_back(vol_->interpolateAt({m[0], m[1], m[2]}));
     }
 
     return values;

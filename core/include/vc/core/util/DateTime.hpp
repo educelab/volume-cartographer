@@ -83,6 +83,15 @@ auto DurationToString(std::chrono::duration<Rep, Period> input) -> std::string
     return ss.str();
 }
 
+/**
+ * @brief Convert a duration string to a a std::chrono duration.
+ *
+ * Accepts strings with ordered combinations of `#h`, `#m`, `#s`, and `#ms`.
+ * Examples: `10s`, `500ms`, `1m30s`.
+ *
+ * @tparam Duration Output duration type
+ * @param str Input string
+ */
 template <typename Duration = std::chrono::milliseconds>
 auto DurationFromString(const std::string& str) -> Duration
 {

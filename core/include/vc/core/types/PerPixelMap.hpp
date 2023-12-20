@@ -47,39 +47,38 @@ namespace volcart
  */
 class PerPixelMap
 {
-private:
+    /** Convenience structure for a 2D coordinate */
     struct Coord2D {
+        /** Default constructor */
         Coord2D() = default;
+        /** Construct and initialize */
         Coord2D(std::size_t y, std::size_t x) : y{y}, x{x} {}
+        /** Y component */
         std::size_t y;
+        /** X component */
         std::size_t x;
     };
 
-public:
     /** Convenience structure for a single pixel's mapping information */
-    struct PixelMap {
+    struct PixelMap : public Coord2D {
         /** Default constructor */
         PixelMap() = default;
 
         /** Construct and initialize */
-        PixelMap(size_t x, size_t y, cv::Vec6d value)
-            : x{x}
-            , y{y}
+        PixelMap(std::size_t y, std::size_t x, cv::Vec6d value)
+            : Coord2D{y, x}
             , pos{value[0], value[1], value[2]}
             , normal{value[3], value[4], value[5]}
         {
         }
 
-        /** PPM Pixel position X */
-        size_t x{0};
-        /** PPM Pixel position Y */
-        size_t y{0};
         /** Mapped Volume position */
         cv::Vec3d pos;
         /** Surface normal at mapped Volume position */
         cv::Vec3d normal;
     };
 
+public:
     /** Pointer type */
     using Pointer = std::shared_ptr<PerPixelMap>;
 
@@ -88,7 +87,7 @@ public:
     PerPixelMap() = default;
 
     /** @brief Constructor with width and height parameters */
-    PerPixelMap(size_t height, size_t width);
+    PerPixelMap(std::size_t height, std::size_t width);
 
     /** Static New function for all constructors of T */
     template <typename... Args>
@@ -107,10 +106,10 @@ public:
 
     /**@{*/
     /** @brief Get the mapping for a pixel by x, y coordinate */
-    auto operator()(size_t y, size_t x) const -> const cv::Vec6d&;
+    auto operator()(std::size_t y, std::size_t x) const -> const cv::Vec6d&;
 
     /** @copydoc operator()() */
-    auto operator()(size_t y, size_t x) -> cv::Vec6d&;
+    auto operator()(std::size_t y, std::size_t x) -> cv::Vec6d&;
 
     /** @copydoc operator()() */
     [[nodiscard]] auto getMapping(std::size_t y, std::size_t x) const
@@ -124,22 +123,51 @@ public:
      *
      * Returns `true` is the pixel mask has not been set or is empty
      */
-    [[nodiscard]] auto hasMapping(size_t y, size_t x) const -> bool;
+    [[nodiscard]] auto hasMapping(std::size_t y, std::size_t x) const -> bool;
 
     /** @brief Get the mapping for a pixel as a PixelMap */
-    auto getAsPixelMap(size_t y, size_t x) -> PixelMap;
+    auto getAsPixelMap(std::size_t y, std::size_t x) -> PixelMap;
 
     /**
-     * @brief Get all valid pixel mappings as a list of PixelMap
+     * @brief Get a list of valid pixel mappings
      *
-     * Uses hasMapping() to determine which pixels in the PPM are valid.
+     * Convenience function for accessing PPM data as logical pixels with
+     * position and normal values. Valid mappings are determined by the PPM's
+     * mask.
+     *
+     * @warning This function returns a copy of the valid PPM mappings which
+     * can lead to high-memory usage for large PPMs. When memory and
+     * performance are important, prefer using getMappingCoords() with
+     * getMapping() or getAsPixelMap().
      */
     [[nodiscard]] auto getMappings() const -> std::vector<PixelMap>;
 
+    /**
+     * @brief Get a list of pixel coordinates with valid mappings
+     *
+     * Convenience function for accessing PPM data as pixel coordinates.
+     *
+     * Unlike getMappings(), this function only returns the pixel coordinates
+     * which have mappings. Use this function with getMapping() or
+     * getAsPixelMap() in high-performance loops:
+     *
+     * @code{.cpp}
+     * for(auto [y, x] : ppm.getMappingCoords()) {
+     *     const auto& m = ppm.getMapping(y, x);
+     *     cv::Vec3d pos{m[0], m[1], m[2]};
+     *     cv::Vec3d normal{m[3], m[4], m[5]};
+     * }
+     * @endcode
+     */
     [[nodiscard]] auto getMappingCoords() const -> std::vector<Coord2D>;
 
+    /**
+     * @brief Get the number of valid mappings
+     *
+     * Valid mappings are determined by the number of non-zero pixels in the
+     * PPM's mask. If the mask is not set, all pixels are valid.
+     */
     [[nodiscard]] auto numMappings() const -> std::size_t;
-
     /**@}*/
 
     /**@{*/
@@ -149,25 +177,25 @@ public:
      * @warning Changing the size of the PerPixelMap will clear it of data.
      * Setting either dimension to 0 will result in undefined behavior.
      */
-    void setDimensions(size_t h, size_t w);
+    void setDimensions(std::size_t h, std::size_t w);
 
     /**
      * @brief Set the width of the map
      * @copydetails setDimensions()
      */
-    void setWidth(size_t w);
+    void setWidth(std::size_t w);
 
     /**
      * @brief Set the height of the map
      * @copydetails setDimensions()
      */
-    void setHeight(size_t h);
+    void setHeight(std::size_t h);
 
     /** @brief Get the width of the map */
-    [[nodiscard]] auto width() const -> size_t;
+    [[nodiscard]] auto width() const -> std::size_t;
 
     /** @brief Get the height of the map */
-    [[nodiscard]] auto height() const -> size_t;
+    [[nodiscard]] auto height() const -> std::size_t;
     /**@}*/
 
     /**@{*/
@@ -211,6 +239,7 @@ public:
     static auto ReadPPM(const filesystem::path& path) -> PerPixelMap;
     /**@}*/
 
+    /** @brief Create a cropped PPM */
     static auto Crop(
         const PerPixelMap& map,
         std::size_t originY,
@@ -227,9 +256,9 @@ private:
     void initialize_map_();
 
     /** Height of the map */
-    size_t height_{0};
+    std::size_t height_{0};
     /** Width of the map */
-    size_t width_{0};
+    std::size_t width_{0};
     /** Map data storage */
     OrderedPointSet<cv::Vec6d> map_;
 

@@ -1,7 +1,5 @@
 #include "vc/core/types/PerPixelMap.hpp"
 
-#include <algorithm>
-
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/io/PointSetIO.hpp"
@@ -26,29 +24,29 @@ inline auto CellMapPath(const fs::path& p) -> fs::path
 }
 
 ///// Metadata /////
-void PerPixelMap::setDimensions(size_t h, size_t w)
+void PerPixelMap::setDimensions(std::size_t h, std::size_t w)
 {
     height_ = h;
     width_ = w;
     initialize_map_();
 }
 
-void PerPixelMap::setWidth(size_t w)
+void PerPixelMap::setWidth(std::size_t w)
 {
     width_ = w;
     initialize_map_();
 }
 
-void PerPixelMap::setHeight(size_t h)
+void PerPixelMap::setHeight(std::size_t h)
 {
     height_ = h;
     initialize_map_();
 }
 
 // Get individual mappings
-auto PerPixelMap::getAsPixelMap(size_t y, size_t x) -> PPM::PixelMap
+auto PerPixelMap::getAsPixelMap(std::size_t y, std::size_t x) -> PPM::PixelMap
 {
-    return {x, y, map_(y, x)};
+    return {y, x, map_(y, x)};
 }
 
 // Return only valid mappings
@@ -66,7 +64,7 @@ auto PerPixelMap::getMappings() const -> std::vector<PixelMap>
         }
 
         // Put it in the vector if we go have one
-        mappings.emplace_back(x, y, map_(y, x));
+        mappings.emplace_back(y, x, map_(y, x));
     }
 
     return mappings;
@@ -145,7 +143,7 @@ auto PerPixelMap::ReadPPM(const fs::path& path) -> PerPixelMap
     return ppm;
 }
 
-PerPixelMap::PerPixelMap(size_t height, size_t width)
+PerPixelMap::PerPixelMap(std::size_t height, std::size_t width)
     : height_{height}, width_{width}
 {
     initialize_map_();
@@ -155,11 +153,12 @@ auto PerPixelMap::initialized() const -> bool
     return width_ == map_.width() && height_ == map_.height() && width_ > 0 &&
            height_ > 0;
 }
-auto PerPixelMap::operator()(size_t y, size_t x) const -> const cv::Vec6d&
+auto PerPixelMap::operator()(std::size_t y, std::size_t x) const
+    -> const cv::Vec6d&
 {
     return map_(y, x);
 }
-auto PerPixelMap::operator()(size_t y, size_t x) -> cv::Vec6d&
+auto PerPixelMap::operator()(std::size_t y, std::size_t x) -> cv::Vec6d&
 {
     return map_(y, x);
 }
@@ -175,7 +174,7 @@ auto PerPixelMap::getMapping(std::size_t y, std::size_t x) -> cv::Vec6d&
     return map_(y, x);
 }
 
-auto PerPixelMap::hasMapping(size_t y, size_t x) const -> bool
+auto PerPixelMap::hasMapping(std::size_t y, std::size_t x) const -> bool
 {
     if (mask_.empty()) {
         return true;
@@ -183,8 +182,8 @@ auto PerPixelMap::hasMapping(size_t y, size_t x) const -> bool
 
     return mask_.at<uint8_t>(y, x) == 255;
 }
-auto PerPixelMap::width() const -> size_t { return width_; }
-auto PerPixelMap::height() const -> size_t { return height_; }
+auto PerPixelMap::width() const -> std::size_t { return width_; }
+auto PerPixelMap::height() const -> std::size_t { return height_; }
 auto PerPixelMap::mask() const -> cv::Mat { return mask_; }
 void PerPixelMap::setMask(const cv::Mat& m) { mask_ = m.clone(); }
 auto PerPixelMap::cellMap() const -> cv::Mat { return cellMap_; }

@@ -316,7 +316,6 @@ auto main(int argc, char* argv[]) -> int
 
     // Set logging level
     auto logLevel = parsed["log-level"].as<std::string>();
-    to_lower(logLevel);
     logging::SetLogLevel(logLevel);
     smgl::SetLogLevel(logLevel);
 

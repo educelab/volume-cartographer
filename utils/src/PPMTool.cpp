@@ -119,6 +119,8 @@ auto main(int argc, char* argv[]) -> int
 
         // Iterate over the ROI
         Logger()->info("Generating point set...");
+        ITKPoint pt;
+        ITKPixel normal;
         for (auto [y, x] : range2D(minY, maxY, minX, maxX)) {
             // Skip unmapped pixels
             if (!ppm.hasMapping(y, x)) {
@@ -126,9 +128,15 @@ auto main(int argc, char* argv[]) -> int
             }
 
             const auto id = mesh->GetNumberOfPoints();
-            const auto pt = ppm.getAsPixelMap(y, x);
-            mesh->SetPoint(id, pt.pos.val);
-            mesh->SetPointData(id, pt.normal.val);
+            const auto& m = ppm.getMapping(y, x);
+            pt[0] = m[0];
+            pt[1] = m[1];
+            pt[2] = m[2];
+            normal[0] = m[3];
+            normal[1] = m[4];
+            normal[2] = m[5];
+            mesh->SetPoint(id, pt);
+            mesh->SetPointData(id, normal);
         }
 
         // Write the mesh

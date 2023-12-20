@@ -96,7 +96,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 2) {
-        std::cout << all << "\n";
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -107,6 +107,10 @@ auto main(int argc, char* argv[]) -> int
         Logger()->error(e.what());
         return EXIT_FAILURE;
     }
+
+    // Set logging level
+    auto logLevel = parsed["log-level"].as<std::string>();
+    logging::SetLogLevel(logLevel);
 
     // Get the parsed options
     const fs::path volpkgPath = parsed["volpkg"].as<std::string>();
@@ -181,7 +185,7 @@ auto main(int argc, char* argv[]) -> int
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
     // defined by the estimated thickness of the layer
-    double radius;
+    double radius{0};
     if (parsed.count("radius") > 0) {
         radius = parsed["radius"].as<double>();
     } else {
@@ -225,10 +229,10 @@ auto main(int argc, char* argv[]) -> int
     line->setSamplingDirection(direction);
 
     // Layer texture
-    texturing::LayerTexture s;
-    s.setVolume(volume);
-    s.setPerPixelMap(ppm);
-    s.setGenerator(line);
+    texturing::LayerTexture layerGen;
+    layerGen.setVolume(volume);
+    layerGen.setPerPixelMap(ppm);
+    layerGen.setGenerator(line);
 
     // Progress reporting
     auto enableProgress = parsed["progress"].as<bool>();
@@ -239,13 +243,13 @@ auto main(int argc, char* argv[]) -> int
     }
 
     if (enableProgress) {
-        ReportProgress(s, "Generating layers:", cfg);
+        ReportProgress(layerGen, "Generating layers:", cfg);
         Logger()->debug("Generating layers...");
     } else {
         Logger()->info("Generating layers...");
     }
 
-    auto texture = s.compute();
+    auto texture = layerGen.compute();
 
     // Write the image sequence
     const fs::path filepath = outDir / ("{}." + imgFmt);
