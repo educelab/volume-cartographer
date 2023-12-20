@@ -72,6 +72,20 @@ auto PerPixelMap::getMappings() const -> std::vector<PixelMap>
     return mappings;
 }
 
+auto PerPixelMap::getMappingCoords() const -> std::vector<Coord2D>
+{
+    // Get the list of valid coordinates
+    std::vector<Coord2D> idxs;
+    idxs.reserve(numMappings());
+    for (auto [y, x] : range2D(height_, width_)) {
+        if (hasMapping(y, x)) {
+            idxs.emplace_back(y, x);
+        }
+    }
+
+    return idxs;
+}
+
 auto PerPixelMap::numMappings() const -> std::size_t
 {
     if (mask_.empty()) {

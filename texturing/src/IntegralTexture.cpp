@@ -19,29 +19,33 @@ auto IntegralTexture::compute() -> Texture
     auto height = static_cast<int>(ppm_->height());
     auto width = static_cast<int>(ppm_->width());
 
-    // Setup the weights
+    // Set up the weights
     setup_weights_();
 
     // Output image
     cv::Mat image = cv::Mat::zeros(height, width, CV_32FC1);
 
     // Get the mappings
-    auto mappings = ppm_->getMappings();
+    auto mappings = ppm_->getMappingCoords();
 
     // Sort the mappings by Z-value
     std::sort(
-        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs.pos[2] < rhs.pos[2];
+        mappings.begin(), mappings.end(),
+        [&](const auto& lhs, const auto& rhs) {
+            return (*ppm_)(lhs.y, lhs.x)[2] < (*ppm_)(rhs.y, rhs.x)[2];
         });
 
     // Iterate through the mappings
     size_t counter = 0;
     progressStarted();
-    for (const auto& pixel : mappings) {
+    for (const auto [y, x] : mappings) {
         progressUpdated(counter++);
 
         // Generate the neighborhood
-        auto n = gen_->compute(vol_, pixel.pos, {pixel.normal});
+        const auto& m = ppm_->getMapping(y, x);
+        const cv::Vec3d pos{m[0], m[1], m[2]};
+        const cv::Vec3d normal{m[3], m[4], m[5]};
+        auto n = gen_->compute(vol_, pos, {normal});
 
         // Clamp values
         if (clampToMax_) {
@@ -59,9 +63,9 @@ auto IntegralTexture::compute() -> Texture
         auto value = std::accumulate(weighted.begin(), weighted.end(), 0.0);
 
         // Assign the intensity value at the UV position
-        auto x = static_cast<int>(pixel.x);
-        auto y = static_cast<int>(pixel.y);
-        image.at<float>(y, x) = static_cast<float>(value);
+        const auto v = static_cast<int>(y);
+        const auto u = static_cast<int>(x);
+        image.at<float>(v, u) = static_cast<float>(value);
     }
     progressComplete();
 

@@ -47,6 +47,14 @@ namespace volcart
  */
 class PerPixelMap
 {
+private:
+    struct Coord2D {
+        Coord2D() = default;
+        Coord2D(std::size_t y, std::size_t x) : y{y}, x{x} {}
+        std::size_t y;
+        std::size_t x;
+    };
+
 public:
     /** Convenience structure for a single pixel's mapping information */
     struct PixelMap {
@@ -127,6 +135,8 @@ public:
      * Uses hasMapping() to determine which pixels in the PPM are valid.
      */
     [[nodiscard]] auto getMappings() const -> std::vector<PixelMap>;
+
+    [[nodiscard]] auto getMappingCoords() const -> std::vector<Coord2D>;
 
     [[nodiscard]] auto numMappings() const -> std::size_t;
 

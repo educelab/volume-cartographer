@@ -32,61 +32,67 @@ auto ThicknessTexture::compute() -> Texture
     cv::Mat image = cv::Mat::zeros(height, width, CV_32FC1);
 
     // Get the mappings
-    auto mappings = ppm_->getMappings();
+    auto mappings = ppm_->getMappingCoords();
 
     // Sort the mappings by Z-value
     std::sort(
-        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs.pos[2] < rhs.pos[2];
+        mappings.begin(), mappings.end(),
+        [&](const auto& lhs, const auto& rhs) {
+            return (*ppm_)(lhs.y, lhs.x)[2] < (*ppm_)(rhs.y, rhs.x)[2];
         });
 
     // Iterate through the mappings
     progressStarted();
-    for (const auto it : enumerate(mappings)) {
-        progressUpdated(it.first);
-        const auto& pixel = it.second;
+    for (const auto [idx, coord] : enumerate(mappings)) {
+        progressUpdated(idx);
+
+        // Generate the neighborhood
+        const auto [y, x] = coord;
+        const auto& m = ppm_->getMapping(y, x);
+        const cv::Vec3d pos{m[0], m[1], m[2]};
+        const cv::Vec3d normal{m[3], m[4], m[5]};
 
         // Starting voxel must be in mask
-        if (mask_->isIn(pixel.pos)) {
+        if (mask_->isIn(pos)) {
             // Setup bidirectional search
             bool foundMin{false};
             bool foundMax{false};
-            cv::Vec3d min{pixel.pos};
-            cv::Vec3d max{pixel.pos};
+            cv::Vec3d min{pos};
+            cv::Vec3d max{pos};
             double offset{0};
 
             // Find the edges of the layer from this point
-            while (!foundMin || !foundMax) {
+            while (not foundMin or not foundMax) {
                 // Calculate offset
                 offset += interval_;
-                auto delta = offset * pixel.normal;
+                auto delta = offset * normal;
 
                 // Check the negative direction
-                if (!foundMin) {
-                    auto neg = pixel.pos - delta;
+                if (not foundMin) {
+                    auto neg = pos - delta;
                     foundMin = mask_->isOut(neg);
                     min = (foundMin) ? min : neg;
                 }
 
                 // Check the positive direction
-                if (!foundMax) {
-                    auto pos = pixel.pos + delta;
-                    foundMax = mask_->isOut(pos);
-                    max = (foundMax) ? max : pos;
+                if (not foundMax) {
+                    auto newPos = pos + delta;
+                    foundMax = mask_->isOut(newPos);
+                    max = (foundMax) ? max : newPos;
                 }
             }
 
             // Assign the intensity value at the UV position
-            auto x = static_cast<int>(pixel.x);
-            auto y = static_cast<int>(pixel.y);
+            const auto u = static_cast<int>(x);
+            const auto v = static_cast<int>(y);
 
             // If max = min, then thickness 1
             // Otherwise, thickness == distance
             if (max == min) {
-                image.at<float>(y, x) = 1;
+                image.at<float>(v, u) = 1;
             } else {
                 auto dist = cv::norm(max, min, cv::NORM_L2);
-                image.at<float>(y, x) = static_cast<float>(dist);
+                image.at<float>(v, u) = static_cast<float>(dist);
             }
         }
     }

@@ -108,28 +108,32 @@ auto CompositeTexture::compute() -> Texture
     cv::Mat image = cv::Mat::zeros(height, width, CV_16UC1);
 
     // Get the mappings
-    auto mappings = ppm_->getMappings();
+    auto mappings = ppm_->getMappingCoords();
 
     // Sort the mappings by Z-value
     std::sort(
-        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs.pos[2] < rhs.pos[2];
+        mappings.begin(), mappings.end(),
+        [&](const auto& lhs, const auto& rhs) {
+            return (*ppm_)(lhs.y, lhs.x)[2] < (*ppm_)(rhs.y, rhs.x)[2];
         });
 
     // Iterate through the mappings
-    size_t counter = 0;
+    std::size_t counter = 0;
     progressStarted();
-    for (const auto& pixel : mappings) {
+    for (const auto [y, x] : mappings) {
         progressUpdated(counter++);
 
         // Generate the neighborhood
-        auto neighborhood = gen_->compute(vol_, pixel.pos, {pixel.normal});
+        const auto& m = ppm_->getMapping(y, x);
+        const cv::Vec3d pos{m[0], m[1], m[2]};
+        const cv::Vec3d normal{m[3], m[4], m[5]};
+        auto neighborhood = gen_->compute(vol_, pos, {normal});
         Neighborhood::Flatten(neighborhood, 1);
 
         // Assign the intensity value at the UV position
-        auto y = static_cast<int>(pixel.y);
-        auto x = static_cast<int>(pixel.x);
-        image.at<uint16_t>(y, x) = ::ApplyFilter(neighborhood, filter_);
+        const auto v = static_cast<int>(y);
+        const auto u = static_cast<int>(x);
+        image.at<std::uint16_t>(v, u) = ::ApplyFilter(neighborhood, filter_);
     }
     progressComplete();
 
