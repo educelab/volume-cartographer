@@ -535,15 +535,9 @@ auto vc::ApplyTransform(
 {
     PerPixelMap output(ppm);
 
-    for (auto m : output.getMappings()) {
-        auto p = transform->applyPoint(m.pos);
-        cv::Vec3d n;
-        if (normalize) {
-            n = transform->applyUnitVector(m.normal);
-        } else {
-            n = transform->applyVector(m.normal);
-        }
-        output(m.y, m.x) = {p[0], p[1], p[2], n[0], n[1], n[2]};
+    for (auto [y, x] : output.getMappingCoords()) {
+        const auto& m = output.getMapping(y, x);
+        output(y, x) = transform->applyPointAndNormal(m, normalize);
     }
 
     return output;

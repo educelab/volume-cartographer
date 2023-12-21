@@ -60,8 +60,18 @@ public:
     /** Make shared pointer */
     static auto New() -> Pointer;
 
+    /** Default constructor */
+    IntegralTexture() = default;
     /** Default destructor */
     ~IntegralTexture() override = default;
+    /** Default copy constructor */
+    IntegralTexture(IntegralTexture&) = default;
+    /** Default move constructor */
+    IntegralTexture(IntegralTexture&&) = default;
+    /** Default copy operator */
+    auto operator=(const IntegralTexture&) -> IntegralTexture& = default;
+    /** Default move operator */
+    auto operator=(IntegralTexture&&) -> IntegralTexture& = default;
     /**@}*/
 
     /**@{*/

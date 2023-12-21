@@ -25,32 +25,36 @@ public:
     virtual ~TexturingAlgorithm() = default;
 
     /** @brief Set the input PerPixelMap */
-    void setPerPixelMap(PerPixelMap::Pointer ppm) { ppm_ = std::move(ppm); }
+    void setPerPixelMap(PerPixelMap::Pointer ppm);
 
     /** @brief Set the input Volume */
-    void setVolume(Volume::Pointer vol) { vol_ = std::move(vol); }
+    void setVolume(Volume::Pointer vol);
 
     /** @brief Compute the Texture */
     virtual auto compute() -> Texture = 0;
 
     /** @brief Get the generated Texture */
-    auto getTexture() -> Texture { return result_; }
+    auto getTexture() -> Texture;
 
     /** @brief Returns the maximum progress value */
-    [[nodiscard]] auto progressIterations() const -> std::size_t override
-    {
-        return ppm_->getMappings().size();
-    }
+    [[nodiscard]] auto progressIterations() const -> std::size_t override;
 
 protected:
     /** Default constructor */
     TexturingAlgorithm() = default;
+    /** Default copy constructor */
+    TexturingAlgorithm(TexturingAlgorithm&) = default;
+    /** Default move constructor */
+    TexturingAlgorithm(TexturingAlgorithm&&) = default;
+    /** Default copy operator */
+    auto operator=(const TexturingAlgorithm&) -> TexturingAlgorithm& = default;
+    /** Default move operator */
+    auto operator=(TexturingAlgorithm&&) -> TexturingAlgorithm& = default;
 
     /** PPM */
     PerPixelMap::Pointer ppm_;
     /** Volume */
     Volume::Pointer vol_;
-
     /** Result */
     Texture result_;
 };

@@ -9,6 +9,8 @@ using namespace volcart::texturing;
 
 using Texture = LayerTexture::Texture;
 
+auto LayerTexture::New() -> Pointer { return std::make_shared<LayerTexture>(); }
+
 auto LayerTexture::compute() -> Texture
 {
     // Setup
@@ -22,31 +24,31 @@ auto LayerTexture::compute() -> Texture
     }
 
     // Get the mappings
-    auto mappings = ppm_->getMappings();
+    auto mappings = ppm_->getMappingCoords();
 
     // Sort the mappings by Z-value
     std::sort(
-        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs.pos[2] < rhs.pos[2];
+        mappings.begin(), mappings.end(),
+        [&](const auto& lhs, const auto& rhs) {
+            return (*ppm_)(lhs.y, lhs.x)[2] < (*ppm_)(rhs.y, rhs.x)[2];
         });
-
-    // Reduce the amount of progress reporting
-    auto updateStepSize = std::max(mappings.size() / 10'000UL, 1UL);
 
     // Iterate through the mappings
     progressStarted();
-    for (const auto [idx, pixel] : enumerate(mappings)) {
-        if (idx % updateStepSize == 0) {
-            progressUpdated(idx);
-        }
+    for (const auto [idx, coord] : enumerate(mappings)) {
+        progressUpdated(idx);
 
         // Generate the neighborhood
-        auto neighborhood = gen_->compute(vol_, pixel.pos, {pixel.normal});
+        const auto [y, x] = coord;
+        const auto& m = ppm_->getMapping(y, x);
+        const cv::Vec3d pos{m[0], m[1], m[2]};
+        const cv::Vec3d normal{m[3], m[4], m[5]};
+        auto neighborhood = gen_->compute(vol_, pos, {normal});
 
         // Assign to the output images
         for (const auto [it, v] : enumerate(neighborhood)) {
-            const auto yy = static_cast<int>(pixel.y);
-            const auto xx = static_cast<int>(pixel.x);
+            const auto yy = static_cast<int>(y);
+            const auto xx = static_cast<int>(x);
             result_.at(it).at<std::uint16_t>(yy, xx) = v;
         }
     }

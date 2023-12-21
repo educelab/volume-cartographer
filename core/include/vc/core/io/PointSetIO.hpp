@@ -375,9 +375,9 @@ private:
         auto header = PointSetIO<T>::ParseHeader(infile, true);
         OrderedPointSet<T> ps{header.width};
 
+        std::vector<T> points;
+        points.reserve(header.width);
         for (size_t h = 0; h < header.height; ++h) {
-            std::vector<T> points;
-            points.reserve(header.width);
             for (size_t w = 0; w < header.width; ++w) {
                 std::array<typename T::value_type, T::channels> values;
                 for (size_t d = 0; d < header.dim; ++d) {
@@ -386,6 +386,7 @@ private:
                 points.emplace_back(values.data());
             }
             ps.pushRow(points);
+            points.clear();
         }
 
         return ps;

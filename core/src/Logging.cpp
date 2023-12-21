@@ -6,6 +6,8 @@
 #include <spdlog/sinks/dist_sink.h>
 #include <spdlog/sinks/stdout_sinks.h>
 
+#include "vc/core/util/String.hpp"
+
 namespace fs = volcart::filesystem;
 namespace vcl = volcart::logging;
 
@@ -32,7 +34,7 @@ void vcl::AddLogFile(const fs::path& path)
 
 void vcl::SetLogLevel(const std::string& s)
 {
-    auto level = spdlog::level::from_str(s);
+    auto level = spdlog::level::from_str(to_lower_copy(s));
     Logger()->set_level(level);
 }
 

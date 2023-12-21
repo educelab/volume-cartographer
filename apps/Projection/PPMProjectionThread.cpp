@@ -17,10 +17,10 @@ PPMProjectionThread::PPMProjectionThread(
         zChannelImage_ = cv::Mat::zeros(
             static_cast<int>(ppm.height()), static_cast<int>(ppm.width()),
             CV_64FC1);
-        for (const auto& mapping : ppm.getMappings()) {
-            zChannelImage_.at<double>(
-                static_cast<int>(mapping.y), static_cast<int>(mapping.x)) =
-                mapping.pos[2];
+        for (auto [y, x] : ppm.getMappingCoords()) {
+            const auto yy = static_cast<int>(y);
+            const auto xx = static_cast<int>(x);
+            zChannelImage_.at<double>(yy, xx) = ppm.getMapping(y, x)[2];
         }
 
         originalPPMImage_ = cv::imread(ppmImageOverlay);
