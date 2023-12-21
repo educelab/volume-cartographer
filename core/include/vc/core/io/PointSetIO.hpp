@@ -69,6 +69,8 @@ public:
                 return ReadOrderedPointSetBinary(path);
             case IOMode::ASCII:
                 return ReadOrderedPointSetAscii(path);
+            default:
+                throw IOException("unsupported IOMode");
         }
     }
 
@@ -84,6 +86,8 @@ public:
                 return ReadPointSetBinary(path);
             case IOMode::ASCII:
                 return ReadPointSetAscii(path);
+            default:
+                throw IOException("unsupported IOMode");
         }
     }
     /**@}*/
@@ -260,12 +264,11 @@ public:
 
                 // type validation
                 std::string readerType;
-                if (std::is_same<typename T::value_type, int>::value) {
+                if (std::is_same_v<typename T::value_type, int>) {
                     readerType = "int";
-                } else if (std::is_same<typename T::value_type, float>::value) {
+                } else if (std::is_same_v<typename T::value_type, float>) {
                     readerType = "float";
-                } else if (std::is_same<
-                               typename T::value_type, double>::value) {
+                } else if (std::is_same_v<typename T::value_type, double>) {
                     readerType = "double";
                 } else {
                     throw IOException("unsupported reader type");
@@ -310,19 +313,20 @@ public:
 
         // Sanity check. Do we have a valid pointset header?
         if (h.type.empty()) {
-            auto msg = "Must provide type";
+            const auto* msg = "Must provide type";
             throw IOException(msg);
         } else if (h.dim == 0) {
-            auto msg = "Must provide dim";
+            const auto* msg = "Must provide dim";
             throw IOException(msg);
         } else if (!ordered && h.size == 0) {
-            auto msg = "Unordered pointsets must have a size";
+            const auto* msg = "Unordered pointsets must have a size";
             throw IOException(msg);
         } else if (ordered && (h.width == 0 || h.height == 0)) {
-            auto msg = "Ordered pointsets must have a nonzero width and height";
+            const auto* msg =
+                "Ordered pointsets must have a nonzero width and height";
             throw IOException(msg);
         } else if (ordered && !h.ordered) {
-            auto msg =
+            const auto* msg =
                 "Tried to read unordered pointset with ordered PointSetIO";
             throw IOException(msg);
         }
@@ -371,9 +375,9 @@ private:
         auto header = PointSetIO<T>::ParseHeader(infile, true);
         OrderedPointSet<T> ps{header.width};
 
+        std::vector<T> points;
+        points.reserve(header.width);
         for (size_t h = 0; h < header.height; ++h) {
-            std::vector<T> points;
-            points.reserve(header.width);
             for (size_t w = 0; w < header.width; ++w) {
                 std::array<typename T::value_type, T::channels> values;
                 for (size_t d = 0; d < header.dim; ++d) {
@@ -382,6 +386,7 @@ private:
                 points.emplace_back(values.data());
             }
             ps.pushRow(points);
+            points.clear();
         }
 
         return ps;
@@ -446,14 +451,11 @@ private:
 
         // Read data
         T t;
-        auto nbytes = header.dim * typeBytes;
+        std::size_t nbytes = header.width * header.dim * typeBytes;
+        std::vector<T> points(header.width, 0);
+        points.reserve(header.width);
         for (size_t h = 0; h < header.height; ++h) {
-            std::vector<T> points;
-            points.reserve(header.width);
-            for (size_t w = 0; w < header.width; ++w) {
-                infile.read(reinterpret_cast<char*>(t.val), nbytes);
-                points.push_back(t);
-            }
+            infile.read(reinterpret_cast<char*>(points.data()), nbytes);
             ps.pushRow(points);
         }
 
@@ -480,6 +482,13 @@ private:
             }
             outfile << std::endl;
         }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
+        }
     }
 
     /** @brief Write a binary PointSet */
@@ -498,6 +507,13 @@ private:
         for (const auto& p : ps) {
             auto nbytes = T::channels * sizeof(typename T::value_type);
             outfile.write(reinterpret_cast<const char*>(p.val), nbytes);
+        }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
         }
     }
 
@@ -519,6 +535,13 @@ private:
             }
             outfile << std::endl;
         }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
+        }
     }
 
     /** @brief Write a binary OrderedPointSet */
@@ -537,6 +560,13 @@ private:
         for (const auto& p : ps) {
             auto nbytes = T::channels * sizeof(typename T::value_type);
             outfile.write(reinterpret_cast<const char*>(p.val), nbytes);
+        }
+
+        outfile.flush();
+        outfile.close();
+        if (outfile.fail()) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
         }
     }
     /**@}*/

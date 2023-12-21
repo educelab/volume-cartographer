@@ -14,7 +14,6 @@
 #include "vc/core/util/BarycentricCoordinates.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 
 using namespace volcart;
 using namespace texturing;
@@ -31,12 +30,6 @@ using Ray = bvh::Ray<Scalar>;
 using Bvh = bvh::Bvh<Scalar>;
 using Intersector = bvh::ClosestPrimitiveIntersector<Bvh, Triangle>;
 using Traverser = bvh::SingleRayTraverser<Bvh>;
-
-static auto PhongNormal(
-    const cv::Vec3d& nUVW,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC) -> cv::Vec3d;
 
 PPMGenerator::PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
 
@@ -171,7 +164,7 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
                 throw std::runtime_error(
                     "Performing smooth shading but missing vertex normal");
             }
-            xyzNorm = PhongNormal(
+            xyzNorm = BarycentricNormalInterpolation(
                 baryCoord, {nA[0], nA[1], nA[2]}, {nB[0], nB[1], nB[2]},
                 {nC[0], nC[1], nC[2]});
         }
@@ -195,17 +188,6 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
     ppm_->setCellMap(cellMap);
 
     return ppm_;
-}
-
-// Convert from Barycentric coordinates to a smoothly interpolated normal
-auto PhongNormal(
-    const cv::Vec3d& nUVW,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC) -> cv::Vec3d
-{
-    return cv::normalize(
-        (1 - nUVW[0] - nUVW[1]) * nA + nUVW[1] * nB + nUVW[2] * nC);
 }
 
 auto vct::GenerateCellMap(

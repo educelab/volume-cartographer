@@ -7,13 +7,14 @@
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 int main(int argc, char** argv)
 {
@@ -63,10 +64,11 @@ int main(int argc, char** argv)
 
     ///// Load the volume package /////
     auto vpkg = vc::VolumePkg::New(volpkgPath);
-    if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume Package is version " << vpkg->version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 

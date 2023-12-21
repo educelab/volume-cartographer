@@ -23,14 +23,25 @@ public:
     using Pointer = std::shared_ptr<IntersectionTexture>;
 
     /** Make shared pointer */
-    static Pointer New() { return std::make_shared<IntersectionTexture>(); }
+    static auto New() -> Pointer;
 
+    /** Default constructor */
+    IntersectionTexture() = default;
     /** Default destructor */
     ~IntersectionTexture() override = default;
+    /** Default copy constructor */
+    IntersectionTexture(IntersectionTexture&) = default;
+    /** Default move constructor */
+    IntersectionTexture(IntersectionTexture&&) = default;
+    /** Default copy operator */
+    auto operator=(const IntersectionTexture&)
+        -> IntersectionTexture& = default;
+    /** Default move operator */
+    auto operator=(IntersectionTexture&&) -> IntersectionTexture& = default;
 
     /**@{*/
     /** @brief Compute the Texture */
-    Texture compute() override;
+    auto compute() -> Texture override;
     /**@}*/
 };
 }  // namespace volcart::texturing

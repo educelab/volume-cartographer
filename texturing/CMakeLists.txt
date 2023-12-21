@@ -1,6 +1,7 @@
 project(libvc_texturing VERSION ${VC_VERSION} LANGUAGES CXX)
 
 set(srcs
+    src/TexturingAlgorithm.cpp
     src/CompositeTexture.cpp
     src/AngleBasedFlattening.cpp
     src/PPMGenerator.cpp

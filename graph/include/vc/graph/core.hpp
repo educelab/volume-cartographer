@@ -6,10 +6,12 @@
 #include <smgl/Node.hpp>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Segmentation.hpp"
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/UVMap.hpp"
 #include "vc/core/types/Volume.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -41,11 +43,11 @@ public:
     LoadVolumePkgNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -103,11 +105,11 @@ public:
     VolumeSelectorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -148,11 +150,11 @@ public:
     VolumePropertiesNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -185,11 +187,11 @@ public:
     SegmentationSelectorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -271,11 +273,11 @@ public:
     LoadMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -317,11 +319,11 @@ public:
     WriteMeshNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -358,11 +360,11 @@ public:
     RotateUVMapNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -398,11 +400,54 @@ public:
     FlipUVMapNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
+ * @copybrief UVMap::AlignToAxis()
+ *
+ * The input UVMap is not modified by this operation.
+ *
+ * @see UVMap::AlignToAxis()
+ * @ingroup Graph
+ */
+class AlignUVMapToAxisNode : public smgl::Node
+{
+private:
+    /** Input UVMap */
+    UVMap::Pointer uvMapIn_;
+    /** Input mesh, used to orient in volume space */
+    ITKMesh::Pointer mesh_;
+    /** Volume axis target */
+    UVMap::AlignmentAxis axis_{UVMap::AlignmentAxis::ZPos};
+    /** Output UVMap */
+    UVMap::Pointer uvMapOut_;
+
+public:
+    /** @brief Input UVMap */
+    smgl::InputPort<UVMap::Pointer> uvMapIn;
+    /** @brief Input mesh, used to orient in volume space */
+    smgl::InputPort<ITKMesh::Pointer> mesh;
+    /** @brief Volume axis to use for alignment */
+    smgl::InputPort<UVMap::AlignmentAxis> axis;
+    /** @brief Output UVMap */
+    smgl::OutputPort<UVMap::Pointer> uvMapOut;
+
+    /** Constructor */
+    AlignUVMapToAxisNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -435,11 +480,11 @@ public:
     PlotUVMapNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -472,11 +517,11 @@ public:
     LoadImageNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -495,6 +540,8 @@ private:
     filesystem::path path_{};
     /** Image */
     cv::Mat image_{};
+    /** Image writer options */
+    WriteImageOpts opts_;
     /** Include the saved file in the graph cache */
     bool cacheArgs_{false};
 
@@ -503,6 +550,8 @@ public:
     smgl::InputPort<filesystem::path> path;
     /** @brief Output image */
     smgl::InputPort<cv::Mat> image;
+    /** @brief Image writer options */
+    smgl::InputPort<WriteImageOpts> options;
     /** @brief Include the saved file in the graph cache */
     smgl::InputPort<bool> cacheArgs;
 
@@ -510,11 +559,55 @@ public:
     WriteImageNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta,
+        const filesystem::path& /*cacheDir*/) override;
+};
+
+/**
+ * @copybrief WriteImageSequence()
+ *
+ * @see WriteImageSequence()
+ * @ingroup Graph
+ */
+class WriteImageSequenceNode : public smgl::Node
+{
+private:
+    /** Image sequence type */
+    using ImageSequence = std::vector<cv::Mat>;
+    /** File path */
+    filesystem::path path_{};
+    /** Image sequence */
+    ImageSequence images_;
+    /** Image writer options */
+    WriteImageOpts opts_;
+    /** Include the saved file in the graph cache */
+    bool cacheArgs_{false};
+
+public:
+    /** @brief Output file */
+    smgl::InputPort<filesystem::path> path;
+    /** @brief Output image sequence */
+    smgl::InputPort<ImageSequence> images;
+    /** @brief Image writer options */
+    smgl::InputPort<WriteImageOpts> options;
+    /** @brief Include the saved file in the graph cache */
+    smgl::InputPort<bool> cacheArgs;
+
+    /** Constructor */
+    WriteImageSequenceNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -548,11 +641,11 @@ public:
     LoadPPMNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -586,11 +679,11 @@ public:
     WritePPMNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -651,14 +744,226 @@ public:
     LoadVolumetricMaskNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
+};
+
+/**
+ * @copybrief Transform3D::Load()
+ *
+ * @see Transform3D::Load()
+ * @ingroup Graph
+ */
+class LoadTransformNode : public smgl::Node
+{
+private:
+    /** File path */
+    filesystem::path path_{};
+    /** Include the loaded file in the graph cache */
+    bool cacheArgs_{false};
+    /** Loaded image */
+    Transform3D::Pointer tfm_;
+
+public:
+    /** @brief Input path */
+    smgl::InputPort<filesystem::path> path;
+    /** @brief Include the loaded file in the graph cache */
+    smgl::InputPort<bool> cacheArgs;
+    /** @brief Loaded transform */
+    smgl::OutputPort<Transform3D::Pointer> transform;
+
+    /** Constructor */
+    LoadTransformNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta,
+        const filesystem::path& /*cacheDir*/) override;
+};
+
+/**
+ * @copybrief VolumePkg::transform(Transform3D::Identifier)
+ *
+ * @see VolumePkg::transform(Transform3D::Identifier)
+ * @ingroup Graph
+ */
+class TransformSelectorNode : public smgl::Node
+{
+private:
+    /** VolumePkg */
+    VolumePkg::Pointer vpkg_{nullptr};
+    /** Transform ID */
+    Transform3D::Identifier id_{};
+    /** Transform */
+    Transform3D::Pointer tfm_{nullptr};
+
+public:
+    /** @brief Input VolumePkg */
+    smgl::InputPort<VolumePkg::Pointer> volpkg;
+    /** @brief Transform ID */
+    smgl::InputPort<Transform3D::Identifier> id;
+    /** @brief Transform */
+    smgl::OutputPort<Transform3D::Pointer> transform;
+
+    /** Constructor */
+    TransformSelectorNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta,
+        const filesystem::path& /*cacheDir*/) override;
+};
+
+/**
+ * @copybrief Transform3D::invert()
+ *
+ * If the transform is not invertible, returns the input transform.
+ *
+ * @see Transform3D::invert()
+ * @ingroup Graph
+ */
+class InvertTransformNode : public smgl::Node
+{
+private:
+    /** Input transform */
+    Transform3D::Pointer input_;
+    /** Output transform */
+    Transform3D::Pointer output_;
+
+public:
+    /** @brief Input transform */
+    smgl::InputPort<Transform3D::Pointer> input;
+    /** @brief Output transform */
+    smgl::OutputPort<Transform3D::Pointer> output;
+
+    /** Constructor */
+    InvertTransformNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
+ * @brief Template node for applying 3D transforms to objects
+ *
+ * To specialize for a new type, make sure there is an apply function with the
+ * following signature: ApplyTransform(const T&, const Transform3D::Pointer&)
+ */
+template <class T>
+class ApplyTransformNode : public smgl::Node
+{
+protected:
+    /** Input object */
+    T input_;
+    /** Input transform */
+    Transform3D::Pointer tfm_;
+    /** Output object */
+    T output_;
+
+public:
+    /** @brief Input path */
+    smgl::InputPort<T> input{&input_};
+    smgl::InputPort<Transform3D::Pointer> transform{&tfm_};
+    smgl::OutputPort<T> output{&output_};
+
+    /** Constructor */
+    ApplyTransformNode() : Node{true}
+    {
+        registerInputPort("input", input);
+        registerInputPort("transform", transform);
+        registerOutputPort("output", output);
+
+        compute = [&]() {
+            if (tfm_) {
+                output_ = ApplyTransform(input_, tfm_);
+            }
+        };
+    }
+
+protected:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override
+    {
+        smgl::Metadata meta;
+        if (useCache and tfm_) {
+            Transform3D::Save(cacheDir / "transform.json", tfm_);
+            meta["transform"] = "transform.json";
+        }
+        return meta;
+    }
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override
+    {
+        if (meta.contains("transform")) {
+            auto tfmFile = meta["transform"].get<std::string>();
+            tfm_ = Transform3D::Load(cacheDir / tfmFile);
+        }
+    }
+};
+
+/**
+ * @brief Apply a transform to an ITKMesh
+ *
+ * @ingroup Graph
+ */
+class TransformMeshNode : public ApplyTransformNode<ITKMesh::Pointer>
+{
+private:
+    /** Base type */
+    using BaseT = ApplyTransformNode<ITKMesh::Pointer>;
+
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
+ * @brief Apply a transform to a PerPixelMap
+ *
+ * @ingroup Graph
+ */
+class TransformPPMNode : public ApplyTransformNode<PerPixelMap::Pointer>
+{
+private:
+    /** Base type */
+    using BaseT = ApplyTransformNode<PerPixelMap::Pointer>;
+
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
 
 }  // namespace volcart

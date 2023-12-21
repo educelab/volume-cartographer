@@ -150,6 +150,9 @@ public:
     /** Flipping axis enumeration */
     enum class FlipAxis { Vertical = 0, Horizontal, Both };
 
+    /** Align to axis enumeration */
+    enum class AlignmentAxis { None = 0, ZPos, ZNeg, YPos, YNeg, XPos, XNeg };
+
     /**
      * @brief Plot the UV points on an image
      *
@@ -169,6 +172,31 @@ public:
         int width = -1,
         int height = -1,
         const Color& color = color::LIGHT_GRAY) -> cv::Mat;
+
+    /**
+     * @brief Rotate a UVMap to align a specified volume axis to the -V
+     * direction of UV space
+     *
+     * We want to rotate the virtually unwrapped image so that the bottom of
+     * the content page is at the bottom of the virtually unwrapped image
+     * (\f( v ~= 1.\f)) and the top of the page is at the top of the image
+     * (\f( v ~= 0.\f)). As a consequence, this function aligns the given
+     * 3D axis to the -V direction of UV space rather than the +V direction.
+     *
+     * Usually, we want the alignment axis to be the volume's +Z axis. It is a
+     * convention in CT data for the +Z axis to travel the length of the
+     * sample, from the bottom to the top. Without _a priori_ knowledge, we
+     * assume that the bottom of the sample corresponds to the bottom of the
+     * content page, thus the +Z axis should align to the -V direction of UV
+     * space.
+     *
+     * @param uv The UVMap to be rotated.
+     * @param mesh Original 3D mesh for the given UVMap. Used as reference for
+     * the vertices' 3D positions.
+     * @param axis Volume axis to align to the -V axis.
+     */
+    static void AlignToAxis(
+        UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis);
 
     /** @brief Rotate a UVMap by a multiple of 90 degrees */
     static void Rotate(UVMap& uv, Rotation rotation);

@@ -409,8 +409,7 @@ private:
     public:
         /** @{ Iterator type traits */
         using difference_type = size_t;
-        using value_type =
-            std::pair<const size_t&, decltype(*std::declval<T&>())&>;
+        using value_type = std::pair<size_t, decltype(*std::declval<T&>())&>;
         using pointer = value_type*;
         using reference = value_type;
         using iterator_category = std::input_iterator_tag;
@@ -447,6 +446,7 @@ private:
     };
 
     using IteratorType = decltype(std::begin(std::declval<Iterable>()));
+
     EnumerateIterable(Iterable&& container)
         : container_{std::forward<Iterable>(container)}
     {
@@ -468,10 +468,10 @@ public:
     using const_iterator = EnumerateIterator<const IteratorType>;
 
     /** Get a new EnumerateIterable::iterator */
-    iterator begin() { return iterator{0, std::begin(container_)}; }
+    iterator begin() const { return iterator{0, std::begin(container_)}; }
 
     /** Get the end-valued EnumerateIterable::iterator */
-    iterator end() { return iterator{0, std::end(container_)}; }
+    iterator end() const { return iterator{0, std::end(container_)}; }
 
     /** Get a new ProgressIterable::const_iterator */
     const_iterator cbegin() const

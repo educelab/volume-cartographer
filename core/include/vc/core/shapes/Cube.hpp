@@ -41,18 +41,17 @@ public:
 
         // generate the 12 cells for faces
         addCell_(0, 1, 2);
-        addCell_(0, 1, 5);
         addCell_(0, 2, 3);
-        addCell_(0, 3, 4);
-        addCell_(0, 4, 5);
-        addCell_(1, 2, 6);
-        addCell_(1, 5, 6);
-        addCell_(2, 3, 7);
-        addCell_(2, 6, 7);
-        addCell_(3, 4, 7);
-        addCell_(4, 5, 7);
-        addCell_(5, 6, 7);
-
+        addCell_(3, 2, 6);
+        addCell_(3, 6, 7);
+        addCell_(7, 6, 5);
+        addCell_(7, 5, 4);
+        addCell_(4, 5, 1);
+        addCell_(4, 1, 0);
+        addCell_(0, 3, 7);
+        addCell_(0, 7, 4);
+        addCell_(5, 6, 2);
+        addCell_(5, 2, 1);
     }  // Constructor
 
 };  // Cube

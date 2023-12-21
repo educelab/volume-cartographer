@@ -78,9 +78,8 @@ public:
         if (capacity <= 0) {
             throw std::invalid_argument(
                 "Cannot create cache with capacity <= 0");
-        } else {
-            capacity_ = capacity;
         }
+        capacity_ = capacity;
 
         // Cleanup elements that exceed the capacity
         while (lookup_.size() > capacity_) {

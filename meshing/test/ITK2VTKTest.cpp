@@ -15,8 +15,8 @@ using namespace volcart;
 /*
  * The following five fixture build test inputs for the ITK2VTK tests
  *
- * Comments are included in the Plane Fixture only...the remainder of the fixure
- * copy the same ideas
+ * Comments are included in the Plane Fixture only...the remainder of the
+ * fixture copy the same ideas
  */
 
 class ITK2VTKPlaneFixture : public ::testing::Test

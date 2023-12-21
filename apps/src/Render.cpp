@@ -22,7 +22,7 @@ namespace po = boost::program_options;
 using namespace volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 // When to smooth the mesh
 enum class SmoothOpt { Off = 0, Before, After, Both };
@@ -31,9 +31,15 @@ enum class SmoothOpt { Off = 0, Before, After, Both };
 enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
 
 // Available texturing algorithms
-enum class Method { Composite = 0, Intersection, Integral, Thickness };
+enum class Method { Composite = 0, Intersection, Integral, Thickness, Layers };
 
-static auto GetGeneralOpts() -> po::options_description
+// What to transform to the target volume
+enum class TransformInput { Raw = 0, Resampled, PerPixelMap };
+
+namespace
+{
+
+auto GetGeneralOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("General Options");
@@ -48,7 +54,7 @@ static auto GetGeneralOpts() -> po::options_description
     return opts;
 }
 
-static auto GetIOOpts() -> po::options_description
+auto GetIOOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Input/Output Options");
@@ -64,6 +70,7 @@ static auto GetIOOpts() -> po::options_description
         "will be placed in the current working directory.")
     ("output-ppm", po::value<std::string>(),
         "Output file path for the generated PPM.")
+    ("compression", po::value<int>(), "Image compression level")
     ("save-graph", po::value<bool>()->default_value(true),
         "Save the generated render graph into the volume package.");
     // clang-format on
@@ -71,7 +78,27 @@ static auto GetIOOpts() -> po::options_description
     return opts;
 }
 
-static auto GetMeshingOpts() -> po::options_description
+auto GetTransformOpts() -> po::options_description
+{
+    // clang-format off
+    po::options_description opts("Transform Options");
+    opts.add_options()
+        ("transform", po::value<std::string>(), "The ID of a transform in the "
+            "VolumePkg or a path to a Transform3D .json file. If provided, "
+            "perform coordinate transforms with the given transform. "
+            "Otherwise, uses the default volume-to-volume transform only if "
+            "required.")
+        ("apply-transform-to", po::value<TransformInput>()->default_value(TransformInput::Raw, "raw"),
+            "Selects the input to which the coordinate transform will be "
+            "applied. Options: raw (default), resampled, PPM.")
+        ("invert-transform", "When provided, invert the transform.")
+        ("disable-transform", "When provided, disable all transforms.");
+    // clang-format on
+
+    return opts;
+}
+
+auto GetMeshingOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Meshing Options");
@@ -103,13 +130,14 @@ static auto GetMeshingOpts() -> po::options_description
             "  3 = Both before and after mesh resampling")
         ("intermediate-mesh", po::value<std::string>(),"Output file path for the "
             "intermediate (i.e. scale + resampled) mesh. File is saved prior "
-            "to flattening. Useful for testing meshing parameters.");
+            "to flattening. Useful for testing meshing parameters.")
+        ("orient-normals", "Auto-orient surface normals towards the mesh centroid");
     // clang-format on
 
     return opts;
 }
 
-static auto GetUVOpts() -> po::options_description
+auto GetUVOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Flattening & UV Options");
@@ -121,11 +149,17 @@ static auto GetUVOpts() -> po::options_description
                 "  2 = Orthographic Projection")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
+        ("uv-align-to-axis", po::value<UVMap::AlignmentAxis>()->default_value(UVMap::AlignmentAxis::ZPos, "+Z"),
+            "Rotate the UV map so that the specified volume direction is aligned "
+            "as well as possible to \'up\' in the texture image (-Y). "
+            "Performed before uv-rotate and uv-flip. Options: None, +Z, -Z, "
+            "+Y, -Y, +X, -X")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
-            "angle in degrees (counterclockwise).")
+            "angle in degrees (counterclockwise). Performed after "
+            "uv-align-to-axis and before uv-flip.")
         ("uv-flip", po::value<int>(),
-            "Flip the UV map along an axis. If uv-rotate is specified, flip is "
-            "performed after rotation.\n"
+            "Flip the UV map along an axis. Performed after uv-align-to-axis "
+            "and uv-rotate.\n"
             "Axis along which to flip:\n"
                 "  0 = Vertical\n"
                 "  1 = Horizontal\n"
@@ -144,7 +178,7 @@ static auto GetUVOpts() -> po::options_description
     return opts;
 }
 
-static auto GetFilteringOpts() -> po::options_description
+auto GetFilteringOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Generic Texture Filtering Options");
@@ -154,7 +188,8 @@ static auto GetFilteringOpts() -> po::options_description
                  "  0 = Composite\n"
                  "  1 = Intersection\n"
                  "  2 = Integral\n"
-                 "  3 = Thickness")
+                 "  3 = Thickness\n"
+                 "  4 = Layers")
         ("neighborhood-shape,n", po::value<int>()->default_value(0),
              "Neighborhood shape:\n"
                  "  0 = Linear\n"
@@ -178,7 +213,7 @@ static auto GetFilteringOpts() -> po::options_description
     return opts;
 }
 
-static auto GetCompositeOpts() -> po::options_description
+auto GetCompositeOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Composite Texture Options");
@@ -195,7 +230,7 @@ static auto GetCompositeOpts() -> po::options_description
     return opts;
 }
 
-static auto GetIntegralOpts() -> po::options_description
+auto GetIntegralOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Integral Texture Options");
@@ -226,7 +261,7 @@ static auto GetIntegralOpts() -> po::options_description
     return opts;
 }
 
-static auto GetThicknessOpts() -> po::options_description
+auto GetThicknessOpts() -> po::options_description
 {
     // clang-format off
     po::options_description opts("Thickness Texture Options");
@@ -239,19 +274,21 @@ static auto GetThicknessOpts() -> po::options_description
 
     return opts;
 }
+}  // namespace
 
 auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     po::options_description all("Usage");
-    all.add(GetGeneralOpts())
-        .add(GetIOOpts())
-        .add(GetMeshingOpts())
-        .add(GetUVOpts())
-        .add(GetFilteringOpts())
-        .add(GetCompositeOpts())
-        .add(GetIntegralOpts())
-        .add(GetThicknessOpts());
+    all.add(::GetGeneralOpts())
+        .add(::GetIOOpts())
+        .add(::GetTransformOpts())
+        .add(::GetMeshingOpts())
+        .add(::GetUVOpts())
+        .add(::GetFilteringOpts())
+        .add(::GetCompositeOpts())
+        .add(::GetIntegralOpts())
+        .add(::GetThicknessOpts());
 
     // Parse the cmd line
     po::variables_map parsed;
@@ -265,7 +302,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 5) {
-        std::cout << all << std::endl;
+        std::cout << all << "\n";
         return EXIT_SUCCESS;
     }
 
@@ -279,8 +316,8 @@ auto main(int argc, char* argv[]) -> int
 
     // Set logging level
     auto logLevel = parsed["log-level"].as<std::string>();
-    to_lower(logLevel);
     logging::SetLogLevel(logLevel);
+    smgl::SetLogLevel(logLevel);
 
     // Register VC graph nodes
     vc::RegisterNodes();
@@ -298,10 +335,11 @@ auto main(int argc, char* argv[]) -> int
         return EXIT_FAILURE;
     }
 
-    if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        Logger()->error(
-            "Volume Package is version {} but this program requires version {}",
-            vpkg->version(), VOLPKG_SUPPORTED_VERSION);
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -318,7 +356,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Add the project metadata
     // clang-format off
-    smgl::Metadata projectInfo{{
+    const smgl::Metadata projectInfo{{
         vc::ProjectInfo::Name(), {
             {"version", ProjectInfo::VersionString()},
             {"git-url", ProjectInfo::RepositoryURL()},
@@ -331,24 +369,26 @@ auto main(int argc, char* argv[]) -> int
     };
     // clang-format on
     graph->setProjectMetadata(projectInfo);
-    // Setup a map to keep a reference to important output ports
+    // Set up a map to keep a reference to important output ports
     std::unordered_map<std::string, smgl::Output*> results;
 
     //// Load the segmentation/mesh ////
-    bool loadSeg = parsed.count("seg") > 0;
-    bool loadMesh = parsed.count("input-mesh") > 0;
-    if (loadSeg && loadMesh) {
+    const bool loadSeg = parsed.count("seg") > 0;
+    const bool loadMesh = parsed.count("input-mesh") > 0;
+    if (loadSeg and loadMesh) {
         Logger()->error(
             "Specified mutually exclusive flags: --seg and --input-mesh");
         return EXIT_FAILURE;
-    } else if (not loadSeg and not loadMesh) {
+    }
+    if (not loadSeg and not loadMesh) {
         Logger()->error("Missing required flag: --seg or --input-mesh");
         return EXIT_FAILURE;
     }
 
     std::string outStem;
     if (loadSeg) {
-        auto id = parsed["seg"].as<std::string>();
+        Logger()->debug("Loading segmentation");
+        const auto id = parsed["seg"].as<std::string>();
         outStem = id;
 
         auto seg = graph->insertNode<SegmentationSelectorNode>();
@@ -362,7 +402,8 @@ auto main(int argc, char* argv[]) -> int
         mesher->points = getPts->pointSet;
         results["mesh"] = &mesher->mesh;
     } else {
-        fs::path inputPath = parsed["input-mesh"].as<std::string>();
+        Logger()->debug("Loading mesh");
+        const fs::path inputPath = parsed["input-mesh"].as<std::string>();
         outStem = inputPath.stem().string();
 
         auto reader = graph->insertNode<LoadMeshNode>();
@@ -375,54 +416,162 @@ auto main(int argc, char* argv[]) -> int
     }
 
     //// Setup the output file path ////
+    fs::path outDir;
     fs::path outputPath;
+    bool userOutFile{false};
     if (parsed.count("output-file") > 0) {
-        outputPath = parsed["output-file"].as<std::string>();
-    } else {
-        outputPath = outStem + "_render.obj";
+        auto p = parsed["output-file"].as<std::string>();
+        if (fs::is_directory(fs::weakly_canonical(p))) {
+            outDir = p;
+        } else {
+            Logger()->debug("Saving to user-provided output file");
+            outputPath = p;
+            userOutFile = true;
+        }
+    }
+    if (not userOutFile) {
+        Logger()->debug("Saving to default output file");
+        outputPath = outDir / (outStem + "_render.obj");
     }
 
-    //// Load the Volume ////
+    //// Load the Volume(s) ////
     if (not vpkg->hasVolumes()) {
         Logger()->error("Volume package does not contain any volumes");
         return EXIT_FAILURE;
     }
-    auto volumeSelector = graph->insertNode<VolumeSelectorNode>();
-    volumeSelector->volpkg = vpkg;
-    Volume::Identifier volId;
-    if (parsed.count("volume") > 0) {
-        volId = parsed["volume"].as<std::string>();
-    } else if (loadSeg) {
+
+    // Load the source volume from the segmentation
+    Volume::Identifier srcVolId;
+    if (loadSeg) {
         auto segId = parsed["seg"].as<std::string>();
         auto seg = vpkg->segmentation(segId);
         if (seg->hasVolumeID()) {
-            volId = seg->getVolumeID();
-            Logger()->debug(
-                "Selecting segmentation associated volume: {}", volId);
+            srcVolId = seg->getVolumeID();
+            Logger()->debug("Segmentation associated volume: {}", srcVolId);
         }
     }
-    if (not volId.empty() and not vpkg->hasVolume(volId)) {
+
+    // Get the target volume from options
+    Volume::Identifier tgtVolId;
+    if (parsed.count("volume") > 0) {
+        tgtVolId = parsed["volume"].as<std::string>();
+    }
+
+    // helpful booleans
+    const bool hasSrc = not srcVolId.empty();
+    bool hasTgt = not tgtVolId.empty();
+    bool volsDontMatch = srcVolId != tgtVolId;
+
+    // If source is empty and target is empty: default volume, no auto useTfm
+    // If source is empty and target is set: tgtVol = tgtVol, no auto useTfm
+    // If source is set and target is empty: tgtVol = srcVol, no auto useTfm
+    if (hasSrc and not hasTgt) {
+        tgtVolId = srcVolId;
+        hasTgt = true;
+        volsDontMatch = false;
+    }
+
+    // Report selected volume
+    Logger()->debug("Target volume: {}", (hasTgt) ? tgtVolId : "auto");
+
+    // Verify the target volume is in the vpkg
+    Logger()->debug("Adding target volume selector node");
+    auto tgtVolSelector = graph->insertNode<VolumeSelectorNode>();
+    tgtVolSelector->volpkg = vpkg;
+    if (not tgtVolId.empty() and not vpkg->hasVolume(tgtVolId)) {
         Logger()->error(
-            "Volume package does not contain volume with ID: {}", volId);
+            "Volume package does not contain volume with ID: {}", tgtVolId);
         return EXIT_FAILURE;
     }
-    volumeSelector->id = volId;
+    tgtVolSelector->id = tgtVolId;
 
     // Set the cache size
     std::size_t cacheBytes{2'000'000'000};
     if (parsed.count("cache-memory-limit") > 0) {
+        Logger()->debug("Using user-provided cache size");
         auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
         cacheBytes = MemorySizeStringParser(cacheSizeOpt);
     } else {
+        Logger()->debug("Using automatic cache size");
         cacheBytes = SystemMemorySize() / 2;
     }
-    auto volumeProps = graph->insertNode<VolumePropertiesNode>();
-    volumeProps->volumeIn = volumeSelector->volume;
-    volumeProps->cacheMemory = cacheBytes;
-    results["volume"] = &volumeProps->volumeOut;
+    auto tgtVolProps = graph->insertNode<VolumePropertiesNode>();
+    tgtVolProps->volumeIn = tgtVolSelector->volume;
+    tgtVolProps->cacheMemory = cacheBytes;
+    results["voxelsize"] = &tgtVolProps->voxelSize;
+    results["volume"] = &tgtVolProps->volumeOut;
+
+    //// Setup transform ////
+    Transform3D::Identifier tfmId;
+    const bool disableTfm = parsed.count("disable-transform") > 0;
+    bool useTfm{false};
+    bool tfmIdInVpkg{false};
+
+    // Prioritize transform flag
+    if (not disableTfm and parsed.count("transform") > 0) {
+        tfmId = parsed["transform"].as<std::string>();
+        useTfm = true;
+        tfmIdInVpkg = vpkg->hasTransform(tfmId);
+    }
+
+    // Source is set and target is set and srcVol != tgtVol: auto useTfm
+    else if (not disableTfm and hasSrc and hasTgt and volsDontMatch) {
+        // Ask the volume package for transforms
+        auto tfms = vpkg->transform(srcVolId, tgtVolId);
+        useTfm = tfmIdInVpkg = not tfms.empty();
+        tfmId = (tfmIdInVpkg) ? tfms[0].first : "";
+
+        // Report no and multiple transforms
+        if (tfms.empty()) {
+            Logger()->warn(
+                "Could not find transform from {} to {}. No transform will be "
+                "applied.",
+                srcVolId, tgtVolId);
+        } else if (tfms.size() > 1) {
+            Logger()->warn(
+                "Found {} transforms from {} to {}. Using transform \"{}\"",
+                tfms.size(), srcVolId, tgtVolId, tfmId);
+        }
+    }
+
+    // When to apply transform
+    auto tfmInputType = parsed["apply-transform-to"].as<TransformInput>();
+
+    //// Load transform ////
+    if (useTfm and tfmIdInVpkg) {
+        Logger()->debug("Loading transform from volpkg: {}", tfmId);
+        auto loadTfm = graph->insertNode<TransformSelectorNode>();
+        loadTfm->volpkg = vpkg;
+        loadTfm->id = tfmId;
+        results["transform"] = &loadTfm->transform;
+    } else if (useTfm) {
+        Logger()->debug("Loading transform from path/ID: {}", tfmId);
+        auto loadTfm = graph->insertNode<LoadTransformNode>();
+        loadTfm->path = tfmId;
+        loadTfm->cacheArgs = true;
+        results["transform"] = &loadTfm->transform;
+    }
+
+    //// Invert the transform ////
+    if (useTfm and parsed.count("invert-transform") > 0) {
+        Logger()->debug("Adding invert transform node");
+        auto invTfm = graph->insertNode<InvertTransformNode>();
+        invTfm->input = *results["transform"];
+        results["transform"] = &invTfm->output;
+    }
+
+    //// Transform raw input ////
+    if (useTfm and tfmInputType == TransformInput::Raw) {
+        Logger()->debug("Adding transform raw mesh node");
+        auto tfmNode = graph->insertNode<TransformMeshNode>();
+        tfmNode->input = *results["mesh"];
+        tfmNode->transform = *results["transform"];
+        results["mesh"] = &tfmNode->output;
+    }
 
     //// Scale the mesh /////
     if (parsed.count("scale-mesh") > 0) {
+        Logger()->debug("Adding scale mesh node");
         auto scaleMesh = graph->insertNode<ScaleMeshNode>();
         scaleMesh->input = *results["mesh"];
         scaleMesh->scaleFactor = parsed["scale-mesh"].as<double>();
@@ -436,12 +585,14 @@ auto main(int argc, char* argv[]) -> int
         auto smoothType =
             static_cast<SmoothOpt>(parsed["mesh-resample-smoothing"].as<int>());
         if (smoothType == SmoothOpt::Both || smoothType == SmoothOpt::Before) {
+            Logger()->debug("Adding mesh smoothing node (pre-resample)");
             auto smooth = graph->insertNode<LaplacianSmoothMeshNode>();
             smooth->input = *results["mesh"];
             results["mesh"] = &smooth->output;
         }
 
         // Setup resampling
+        Logger()->debug("Adding mesh resample node");
         auto resample = graph->insertNode<ResampleMeshNode>();
         resample->input = *results["mesh"];
         if (parsed.count("mesh-resample-anisotropic") > 0) {
@@ -465,9 +616,27 @@ auto main(int argc, char* argv[]) -> int
         }
 
         else {
+            // Load source volume properties if needed
+            if (volsDontMatch and tfmInputType > TransformInput::Raw) {
+                Logger()->debug("Adding source volume selector node");
+                auto srcVolSelector = graph->insertNode<VolumeSelectorNode>();
+                srcVolSelector->volpkg = vpkg;
+                if (not srcVolId.empty() and not vpkg->hasVolume(srcVolId)) {
+                    Logger()->error(
+                        "Volume package does not contain volume with ID: {}",
+                        tgtVolId);
+                    return EXIT_FAILURE;
+                }
+                srcVolSelector->id = srcVolId;
+                auto srcVolProps = graph->insertNode<VolumePropertiesNode>();
+                srcVolProps->volumeIn = srcVolSelector->volume;
+                results["voxelsize"] = &srcVolProps->voxelSize;
+            }
+
+            Logger()->debug("Using automatic resample factor");
             auto calcVerts = graph->insertNode<CalculateNumVertsNode>();
             calcVerts->mesh = *results["mesh"];
-            calcVerts->voxelSize = volumeProps->voxelSize;
+            calcVerts->voxelSize = *results["voxelsize"];
             calcVerts->density = parsed["mesh-resample-factor"].as<double>();
             resample->numVertices = calcVerts->numVerts;
         }
@@ -475,18 +644,38 @@ auto main(int argc, char* argv[]) -> int
 
         // Post-smooth
         if (smoothType == SmoothOpt::Both || smoothType == SmoothOpt::After) {
+            Logger()->debug("Adding mesh smoothing node (post-resample)");
             auto smooth = graph->insertNode<LaplacianSmoothMeshNode>();
             smooth->input = *results["mesh"];
             results["mesh"] = &smooth->output;
         }
+    }
 
-        // Save the intermediate mesh
-        if (parsed.count("intermediate-mesh") > 0) {
-            fs::path meshPath = parsed["intermediate-mesh"].as<std::string>();
-            auto writer = graph->insertNode<WriteMeshNode>();
-            writer->path = meshPath;
-            writer->mesh = *results["mesh"];
-        }
+    ///// Reorient the mesh normals /////
+    if (parsed.count("orient-normals") > 0) {
+        Logger()->debug("Adding normal reorientation node");
+        auto orient = graph->insertNode<OrientNormalsNode>();
+        orient->input = *results["mesh"];
+        orient->referenceMode = OrientNormalsNode::ReferenceMode::Centroid;
+        results["mesh"] = &orient->output;
+    }
+
+    //// Transform resampled input ////
+    if (useTfm and tfmInputType == TransformInput::Resampled) {
+        Logger()->debug("Adding transform resampled mesh node");
+        auto tfmNode = graph->insertNode<TransformMeshNode>();
+        tfmNode->input = *results["mesh"];
+        tfmNode->transform = *results["transform"];
+        results["mesh"] = &tfmNode->output;
+    }
+
+    ///// Save the intermediate mesh /////
+    if (parsed.count("intermediate-mesh") > 0) {
+        Logger()->debug("Adding node to save intermediate mesh");
+        const fs::path meshPath = parsed["intermediate-mesh"].as<std::string>();
+        auto writer = graph->insertNode<WriteMeshNode>();
+        writer->path = meshPath;
+        writer->mesh = *results["mesh"];
     }
 
     ///// Flattening /////
@@ -499,6 +688,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Compute a UV map if we're not using a loaded one
     if (results.count("uvMap") == 0) {
+        Logger()->debug("Adding UV computation node");
         auto method =
             static_cast<FlatteningAlgorithm>(parsed["uv-algorithm"].as<int>());
         if (method == FlatteningAlgorithm::ABF ||
@@ -532,8 +722,23 @@ auto main(int argc, char* argv[]) -> int
         }
     }
 
+    // Align to axis
+    auto uvAlignAxis = parsed["uv-align-to-axis"].as<UVMap::AlignmentAxis>();
+    if (uvAlignAxis != UVMap::AlignmentAxis::None) {
+        Logger()->debug("Adding UV align to axis node");
+        auto align = graph->insertNode<AlignUVMapToAxisNode>();
+        align->uvMapIn = *results["uvMap"];
+        align->mesh = *results["mesh"];
+        align->axis = uvAlignAxis;
+        results["uvMap"] = &align->uvMapOut;
+
+        // UV Mesh needs to be recalculated after transform
+        results.erase("uvMesh");
+    }
+
     // Rotate
     if (parsed.count("uv-rotate") > 0) {
+        Logger()->debug("Adding UV rotation node");
         auto rotate = graph->insertNode<RotateUVMapNode>();
         rotate->uvMapIn = *results["uvMap"];
         rotate->theta = parsed["uv-rotate"].as<double>();
@@ -545,6 +750,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Flip
     if (parsed.count("uv-flip") > 0) {
+        Logger()->debug("Adding UV flip node");
         auto axis = static_cast<UVMap::FlipAxis>(parsed["uv-flip"].as<int>());
         auto flip = graph->insertNode<FlipUVMapNode>();
         flip->uvMapIn = *results["uvMap"];
@@ -561,6 +767,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Make a UV Mesh if we don't have one yet
     if ((plotUV or plotUVError) and results.count("uvMesh") == 0) {
+        Logger()->debug("Adding UV meshing node");
         auto mesher = graph->insertNode<UVMapToMeshNode>();
         mesher->inputMesh = *results["mesh"];
         mesher->uvMap = *results["uvMap"];
@@ -570,6 +777,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Plot the UV Map
     if (plotUV) {
+        Logger()->debug("Adding UV plotting node");
         auto plot = graph->insertNode<PlotUVMapNode>();
         plot->uvMap = *results["uvMap"];
         plot->uvMesh = *results["uvMesh"];
@@ -580,23 +788,36 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Generate the PPM
+    Logger()->debug("Adding PPM generator node");
     using Shading = PPMGeneratorNode::Shading;
     auto ppmGen = graph->insertNode<PPMGeneratorNode>();
     ppmGen->mesh = *results["mesh"];
     ppmGen->uvMap = *results["uvMap"];
     ppmGen->shading = static_cast<Shading>(parsed["shading"].as<int>());
+    results["ppm"] = &ppmGen->ppm;
+
+    //// Transform resampled input ////
+    if (useTfm and tfmInputType == TransformInput::PerPixelMap) {
+        Logger()->debug("Adding transform PPM node");
+        auto tfmNode = graph->insertNode<TransformPPMNode>();
+        tfmNode->input = *results["ppm"];
+        tfmNode->transform = *results["transform"];
+        results["ppm"] = &tfmNode->output;
+    }
 
     // Save the PPM
     if (parsed.count("output-ppm") > 0) {
+        Logger()->debug("Adding PPM writer node");
         auto writer = graph->insertNode<WritePPMNode>();
         writer->path = parsed["output-ppm"].as<std::string>();
-        writer->ppm = ppmGen->ppm;
+        writer->ppm = *results["ppm"];
     }
 
     // Plot the UV error maps
     // Needs PPM to compute
     if (plotUVError) {
         if (results.count("flatteningError") == 0) {
+            Logger()->debug("Adding UV error node");
             auto calcError = graph->insertNode<FlatteningErrorNode>();
             calcError->mesh3D = *results["mesh"];
             calcError->mesh2D = *results["uvMesh"];
@@ -604,17 +825,20 @@ auto main(int argc, char* argv[]) -> int
         }
 
         // PPM properties
+        Logger()->debug("Adding PPM properties node");
         auto ppmProps = graph->insertNode<PPMPropertiesNode>();
         ppmProps->ppm = ppmGen->ppm;
 
         // Generate the error plots
+        Logger()->debug("Adding UV error plotting node");
         auto plotErr = graph->insertNode<PlotLStretchErrorNode>();
         plotErr->error = *results["flatteningError"];
         plotErr->cellMap = ppmProps->cellMap;
         plotErr->drawLegend = parsed["uv-plot-error-legend"].as<bool>();
 
         // Save the images
-        fs::path baseName = parsed["uv-plot-error"].as<std::string>();
+        Logger()->debug("Adding UV error writer nodes");
+        const fs::path baseName = parsed["uv-plot-error"].as<std::string>();
         auto l2File =
             baseName.stem().string() + "_l2" + baseName.extension().string();
         auto writerL2 = graph->insertNode<WriteImageNode>();
@@ -629,12 +853,22 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Neighborhood generator
-    Method method = static_cast<Method>(parsed["method"].as<int>());
+    const Method method = static_cast<Method>(parsed["method"].as<int>());
     if (method != Method::Intersection and method != Method::Thickness) {
-        using Shape = NeighborhoodGeneratorNode::Shape;
+        Logger()->debug("Adding neighborhood generator node");
         auto neighborGen = graph->insertNode<NeighborhoodGeneratorNode>();
-        neighborGen->shape =
-            static_cast<Shape>(parsed["neighborhood-shape"].as<int>());
+
+        // Get shape
+        using Shape = NeighborhoodGeneratorNode::Shape;
+        auto shape = static_cast<Shape>(parsed["neighborhood-shape"].as<int>());
+        if (method == Method::Layers and shape != Shape::Line) {
+            Logger()->warn("Forcing linear neighborhood for layer texturing.");
+            neighborGen->shape = Shape::Line;
+        } else {
+            neighborGen->shape = shape;
+        }
+
+        // Simple parameters
         neighborGen->interval = parsed["interval"].as<double>();
         neighborGen->direction =
             static_cast<Direction>(parsed["direction"].as<int>());
@@ -656,7 +890,7 @@ auto main(int argc, char* argv[]) -> int
             auto radiusCalc =
                 graph->insertNode<CalculateNeighborhoodRadiusNode>();
             radiusCalc->thickness = vpkg->materialThickness();
-            radiusCalc->voxelSize = volumeProps->voxelSize;
+            radiusCalc->voxelSize = tgtVolProps->voxelSize;
             neighborGen->radius = radiusCalc->radius;
         }
 
@@ -665,12 +899,15 @@ auto main(int argc, char* argv[]) -> int
 
     // Setup texturing method
     smgl::Node::Pointer texturing;
+    bool textureIsSeq = false;
     if (method == Method::Intersection) {
+        Logger()->debug("Adding intersection texture node");
         auto t = graph->insertNode<IntersectionTextureNode>();
         texturing = t;
     }
 
     else if (method == Method::Composite) {
+        Logger()->debug("Adding composite texture node");
         using Filter = CompositeTextureNode::Filter;
         auto filter = static_cast<Filter>(parsed["filter"].as<int>());
         auto t = graph->insertNode<CompositeTextureNode>();
@@ -680,6 +917,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     else if (method == Method::Integral) {
+        Logger()->debug("Adding integral texture node");
         using WeightMethod = IntegralTextureNode::WeightMethod;
         using WeightDirection = IntegralTextureNode::WeightDirection;
         using ExpoDiffBaseMethod = IntegralTextureNode::ExpoDiffBaseMethod;
@@ -715,10 +953,12 @@ auto main(int argc, char* argv[]) -> int
                 "path.");
             std::exit(EXIT_FAILURE);
         }
+        Logger()->debug("Adding volume mask reader node");
         auto reader = graph->insertNode<LoadVolumetricMaskNode>();
         reader->cacheArgs = true;
         reader->path = parsed["volume-mask"].as<std::string>();
 
+        Logger()->debug("Adding thickness texture node");
         auto t = graph->insertNode<ThicknessTextureNode>();
         t->volumetricMask = reader->volumetricMask;
         t->normalizeOutput = parsed["normalize-output"].as<bool>();
@@ -726,17 +966,57 @@ auto main(int argc, char* argv[]) -> int
         texturing = t;
     }
 
+    else if (method == Method::Layers) {
+        Logger()->debug("Adding layer texture node");
+        auto t = graph->insertNode<LayerTextureNode>();
+        t->generator = *results["generator"];
+        texturing = t;
+        textureIsSeq = true;
+    }
+
     // Set/get generic parameters
-    texturing->getInputPort("ppm") = ppmGen->ppm;
+    texturing->getInputPort("ppm") = *results["ppm"];
     texturing->getInputPort("volume") = *results["volume"];
     results["texture"] = &texturing->getOutputPort("texture");
 
+    // If we're generating an image sequence and using the default output file
+    // change the name to a sequence
+    if (not userOutFile and textureIsSeq) {
+        outputPath = outputPath.replace_filename(outStem + "_{}.tif");
+    }
+
+    // Set image writer options
+    vc::WriteImageOpts writeOpts;
+    if (parsed.count("compression") > 0) {
+        writeOpts.compression = parsed["compression"].as<int>();
+    } else if (vc::IsFileType(outputPath, {"tiff", "tif"})) {
+        // Default for tiff in this app: No compression
+        writeOpts.compression = 1;
+    }
+
     // Save final outputs
     if (vc::IsFileType(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
-        auto writer = graph->insertNode<WriteImageNode>();
-        writer->path = outputPath;
-        writer->image = *results["texture"];
+        if (textureIsSeq) {
+            Logger()->debug("Adding result image sequence writer node");
+            auto writer = graph->insertNode<WriteImageSequenceNode>();
+            writer->path = outputPath;
+            writer->images = *results["texture"];
+            writer->options = writeOpts;
+        } else {
+            Logger()->debug("Adding result image writer node");
+            auto writer = graph->insertNode<WriteImageNode>();
+            writer->path = outputPath;
+            writer->image = *results["texture"];
+            writer->options = writeOpts;
+        }
     } else if (vc::IsFileType(outputPath, {"obj", "ply"})) {
+        if (textureIsSeq) {
+            auto ext = outputPath.extension().string();
+            Logger()->error(
+                "Image sequences cannot be saved with mesh format: {}", ext);
+            return EXIT_FAILURE;
+        }
+        Logger()->debug("Adding result mesh writer node");
         auto writer = graph->insertNode<WriteMeshNode>();
         writer->path = outputPath;
         writer->mesh = *results["mesh"];
@@ -749,9 +1029,119 @@ auto main(int argc, char* argv[]) -> int
 
     // Update the graph
     try {
-        graph->update();
+        Logger()->debug("Starting graph update");
+        auto status = graph->update();
+        if (status == smgl::Graph::State::Updating) {
+            Logger()->error("Graph already updating");
+        } else if (status == smgl::Graph::State::Error) {
+            Logger()->error("Graph pipeline failed to update");
+        } else {
+            Logger()->debug("Graph is idle");
+        }
     } catch (const std::exception& e) {
         Logger()->error(e.what());
         return EXIT_FAILURE;
     }
+    Logger()->info("Done.");
+}
+
+///*** Custom program_options validators ***///
+
+// UVAlignmentAxis
+// NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
+void validate(
+    boost::any& v,
+    const std::vector<std::string>& values,
+    UVMap::AlignmentAxis* /* target type */,
+    int /* unused */)
+{
+    using namespace boost::program_options;
+    // argument only passed once
+    validators::check_first_occurrence(v);
+    // get a single string, error ir more than one
+    const auto& s = validators::get_single_string(values);
+    // cast to type
+    v = boost::any(boost::lexical_cast<UVMap::AlignmentAxis>(s));
+}
+
+namespace volcart
+{
+auto operator>>(std::istream& is, UVMap::AlignmentAxis& v) -> std::istream&
+{
+    // get the first token
+    std::string s;
+    if (not(is >> s)) {
+        return is;
+    };
+
+    // find a match
+    vc::to_lower(s);
+    if (s == "none") {
+        v = UVMap::AlignmentAxis::None;
+        is.clear();
+    } else if (s == "+z") {
+        v = UVMap::AlignmentAxis::ZPos;
+        is.clear();
+    } else if (s == "-z") {
+        v = UVMap::AlignmentAxis::ZNeg;
+        is.clear();
+    } else if (s == "+y") {
+        v = UVMap::AlignmentAxis::YPos;
+        is.clear();
+    } else if (s == "-y") {
+        v = UVMap::AlignmentAxis::YNeg;
+        is.clear();
+    } else if (s == "+x") {
+        v = UVMap::AlignmentAxis::XPos;
+        is.clear();
+    } else if (s == "-x") {
+        v = UVMap::AlignmentAxis::XNeg;
+        is.clear();
+    } else {
+        is.setstate(std::ios_base::failbit);
+    }
+    return is;
+}
+}  // namespace volcart
+
+// TransformInput
+// NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
+void validate(
+    boost::any& v,
+    const std::vector<std::string>& values,
+    TransformInput* /* target type */,
+    int /* unused */)
+{
+    using namespace boost::program_options;
+    // argument only passed once
+    validators::check_first_occurrence(v);
+    // get a single string, error ir more than one
+    const auto& s = validators::get_single_string(values);
+    // cast to type
+    v = boost::any(boost::lexical_cast<TransformInput>(s));
+}
+
+auto operator>>(std::istream& is, TransformInput& v) -> std::istream&
+{
+    // get the first token
+    std::string s;
+    if (not(is >> s)) {
+        return is;
+    };
+
+    // find a match
+    vc::to_lower(s);
+    if (s == "raw") {
+        v = TransformInput::Raw;
+        is.clear();
+    } else if (s == "resampled") {
+        v = TransformInput::Resampled;
+        is.clear();
+    } else if (s == "flattened" or s == "perpixelmap" or s == "ppm") {
+        v = TransformInput::PerPixelMap;
+        is.clear();
+    } else {
+        is.setstate(std::ios_base::failbit);
+    }
+    return is;
 }

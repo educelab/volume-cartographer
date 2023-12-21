@@ -9,6 +9,7 @@
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
@@ -21,7 +22,7 @@ namespace vc = volcart;
 namespace vs = vc::segmentation;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 // Default values for global options
 static const double kDefaultStep = 1;
@@ -176,10 +177,11 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     vc::VolumePkg vpkg(volpkgPath);
-    if (vpkg.version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << vpkg.version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+    if (vpkg.version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg.version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -318,6 +320,14 @@ int main(int argc, char* argv[])
         std::exit(1);
     }
 
+    // Progress reporting
+    auto enableProgress = parsed["progress"].as<bool>();
+    vc::ProgressConfig cfg;
+    if (parsed.count("progress-interval") > 0) {
+        cfg.interval = vc::DurationFromString(
+            parsed["progress-interval"].as<std::string>());
+    }
+
     // Run the algorithms
     vc::OrderedPointSet<cv::Vec3d> mutableCloud;
     if (alg == Algorithm::LRPS) {
@@ -339,7 +349,9 @@ int main(int argc, char* argv[])
         segmenter.setConsiderPrevious(parsed["consider-previous"].as<bool>());
         segmenter.setVisualize(parsed.count("visualize") > 0);
         segmenter.setDumpVis(parsed.count("dump-vis") > 0);
-        vc::ReportProgress(segmenter, "Segmenting");
+        if (enableProgress) {
+            vc::ReportProgress(segmenter, "Segmenting", cfg);
+        }
         mutableCloud = segmenter.compute();
     }
 
@@ -372,7 +384,9 @@ int main(int argc, char* argv[])
         if (parsed.count("save-mask") > 0) {
             segmenter.maskUpdated.connect(WriteMaskPointset);
         }
-        vc::ReportProgress(segmenter, "Segmenting");
+        if (enableProgress) {
+            vc::ReportProgress(segmenter, "Segmenting", cfg);
+        }
         auto skeleton = segmenter.compute();
 
         // Regular pointsets aren't fully supported in the main logic yet
