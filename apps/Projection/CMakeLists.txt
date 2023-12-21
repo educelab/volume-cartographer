@@ -82,7 +82,7 @@ if (${VC_INSTALL_APPS})
 
     qt_generate_deploy_app_script(
         TARGET ${target}
-        FILENAME_VARIABLE projection_gui_deploy_script
+        OUTPUT_SCRIPT projection_gui_deploy_script
         NO_UNSUPPORTED_PLATFORM_ERROR
     )
     install(SCRIPT ${projection_gui_deploy_script} COMPONENT Programs)

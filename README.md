@@ -89,7 +89,7 @@ explicitly support other platforms.
 * Eigen3 3.2+
 * spdlog 1.4.2+
 * Boost Program Options 1.58+: Required if building applications or utilities.
-* Qt 6.3+: Required if building GUI applications or utilities.
+* Qt 6.5+: Required if building GUI applications or utilities.
 
 **Optional**
 * Boost Filesystem 1.58+
@@ -177,7 +177,7 @@ cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt/lib/cmake/
 cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake/
 
 # Ubuntu, Qt6 installed from source
-cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.4.2/lib/cmake/
+cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.5.0/lib/cmake/
 ```
 
 #### Unit tests
