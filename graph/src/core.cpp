@@ -130,7 +130,7 @@ auto VolumePropertiesNode::serialize_(
 void VolumePropertiesNode::deserialize_(
     const smgl::Metadata& meta, const filesystem::path& /*cacheDir*/)
 {
-    cacheMem_ = meta["cacheMemory"].get<size_t>();
+    cacheMem_ = meta["cacheMemory"].get<std::size_t>();
 }
 
 SegmentationSelectorNode::SegmentationSelectorNode()

@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <cstdint>
 #include <unordered_map>
 
 #include <boost/program_options.hpp>
@@ -254,7 +256,7 @@ auto GetIntegralOpts() -> po::options_description
         ("expodiff-base", po::value<double>()->default_value(0.0), "If the "
             "base calculation method is set to Manual, the value from which "
             "voxel values are differenced.")
-        ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
+        ("clamp-to-max", po::value<std::uint16_t>(), "Clamp values to the specified "
             "maximum.");
     // clang-format on
 
@@ -940,7 +942,7 @@ auto main(int argc, char* argv[]) -> int
         t->exponentialDiffBaseValue = expoDiffBase;
         t->clampValuesToMax = clampToMax;
         if (clampToMax) {
-            t->clampMax = parsed["clamp-to-max"].as<uint16_t>();
+            t->clampMax = parsed["clamp-to-max"].as<std::uint16_t>();
         }
         texturing = t;
     }

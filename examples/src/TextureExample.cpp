@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/neighborhood/LineGenerator.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -17,8 +19,8 @@ int main(int /*argc*/, char* argv[])
     mesher.setPointSet(seg->getPointSet());
     auto inputMesh = mesher.compute();
 
-    size_t width = 608 * 2;
-    size_t height = 370 * 2;
+    std::size_t width = 608 * 2;
+    std::size_t height = 370 * 2;
 
     auto uvMap = vc::UVMap::New();
     uvMap->set(0, cv::Vec2d(0, 0));

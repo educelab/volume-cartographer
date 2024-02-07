@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QMessageBox>
@@ -236,7 +239,7 @@ private:
     QThread worker_thread_;
     BlockingDialog worker_progress_;
     QTimer worker_progress_updater_;
-    size_t progress_{0};
+    std::size_t progress_{0};
     QLabel* progressLabel_;
     QProgressBar* progressBar_;
 };  // class CWindow
@@ -250,16 +253,16 @@ public:
     explicit VolPkgBackend(QObject* parent = nullptr) : QObject(parent) {}
 
 signals:
-    void segmentationStarted(size_t);
+    void segmentationStarted(std::size_t);
     void segmentationFinished(Segmenter::PointSet ps);
     void segmentationFailed(std::string);
-    void progressUpdated(size_t);
+    void progressUpdated(std::size_t);
 
 public slots:
     void startSegmentation(Segmenter::Pointer segmenter)
     {
         segmenter->progressUpdated.connect(
-            [=](size_t p) { progressUpdated(p); });
+            [=](std::size_t p) { progressUpdated(p); });
         segmentationStarted(segmenter->progressIterations());
         try {
             auto result = segmenter->compute();

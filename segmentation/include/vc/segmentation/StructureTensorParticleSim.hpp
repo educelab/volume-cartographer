@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include <opencv2/core.hpp>
 
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
@@ -56,7 +58,7 @@ public:
     /**@}*/
 
     /** Sends when the segmentation is updated with intermediate results */
-    size_t progressIterations() const override;
+    std::size_t progressIterations() const override;
 
 private:
     /** Scale factor for propagation force */

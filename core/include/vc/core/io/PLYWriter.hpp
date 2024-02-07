@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstdint>
 #include <fstream>
 
 #include <opencv2/core.hpp>
@@ -60,7 +61,7 @@ public:
     void setTexture(cv::Mat texture);
 
     /** @brief Set per-vertex color information */
-    void setVertexColors(const std::vector<uint16_t>& c);
+    void setVertexColors(const std::vector<std::uint16_t>& c);
     /**@}*/
 
     /**@{*/
@@ -85,7 +86,7 @@ private:
     /** Input texture image */
     cv::Mat texture_;
     /** Vertex colors */
-    std::vector<uint16_t> vcolors_;
+    std::vector<std::uint16_t> vcolors_;
 
     /** @brief Write the PLY header */
     auto write_header_() -> int;

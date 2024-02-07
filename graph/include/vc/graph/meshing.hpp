@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include <smgl/Node.hpp>
 
 #include "vc/core/filesystem.hpp"

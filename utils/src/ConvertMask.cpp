@@ -1,6 +1,8 @@
 // vc_convert_mask: Bidirectional conversion between Point Mask (.vcps) and
 // Volume Mask (Image sequence)
 
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <regex>
 #include <sstream>
@@ -27,9 +29,9 @@ void PointMaskToVolumeMask(
     const fs::path& outDir,
     const vc::Volume::Pointer& volume);
 void WriteMaskImage(
-    int idx, size_t pad, const fs::path& dir, const cv::Mat& img);
+    int idx, std::size_t pad, const fs::path& dir, const cv::Mat& img);
 
-using SliceList = std::map<size_t, fs::path>;
+using SliceList = std::map<std::size_t, fs::path>;
 void VolumeMaskToPointMask(const fs::path& inPath, const fs::path& outPath);
 SliceList CollectVolumeFiles(const fs::path& fmtPath);
 
@@ -135,7 +137,7 @@ void PointMaskToVolumeMask(
 
     // Mask the images
     vc::Logger()->info("Converting mask");
-    size_t pad = std::to_string(volume->numSlices()).size();
+    std::size_t pad = std::to_string(volume->numSlices()).size();
     int sliceNum{pts[0][2]};
     cv::Size sliceSize(volume->sliceWidth(), volume->sliceHeight());
     cv::Mat slice = cv::Mat::zeros(sliceSize, CV_8UC1);
@@ -150,13 +152,13 @@ void PointMaskToVolumeMask(
             slice = cv::Mat::zeros(sliceSize, CV_8UC1);
         }
 
-        slice.at<uint8_t>(p[1], p[0]) = 255;
+        slice.at<std::uint8_t>(p[1], p[0]) = 255;
     }
     WriteMaskImage(sliceNum, pad, outDir, slice);
 }
 
 void WriteMaskImage(
-    int idx, size_t pad, const fs::path& dir, const cv::Mat& img)
+    int idx, std::size_t pad, const fs::path& dir, const cv::Mat& img)
 {
     // Construct the file name
     std::ostringstream file;
@@ -188,7 +190,7 @@ void VolumeMaskToPointMask(const fs::path& inPath, const fs::path& outPath)
         for (const auto px : vc::range2D(img.rows, img.cols)) {
             const auto& x = px.second;
             const auto& y = px.first;
-            if (img.at<uint8_t>(y, x) > 0) {
+            if (img.at<std::uint8_t>(y, x) > 0) {
                 pts.emplace_back(x, y, z);
             }
         }
@@ -219,7 +221,7 @@ SliceList CollectVolumeFiles(const fs::path& fmtPath)
         auto filename = subfile->path().filename().string();
         std::smatch matches;
         if (std::regex_match(filename, matches, filter)) {
-            size_t idx = std::stoull(matches[1].str());
+            std::size_t idx = std::stoull(matches[1].str());
             paths[idx] = subfile->path();
         }
     }

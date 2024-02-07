@@ -1,6 +1,8 @@
 #include "vc/texturing/IntersectionTexture.hpp"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -40,7 +42,7 @@ Texture IntersectionTexture::compute()
 
         // Assign the intensity value at the XY position
         const auto& m = ppm_->getMapping(y, x);
-        image.at<uint16_t>(static_cast<int>(y), static_cast<int>(x)) =
+        image.at<std::uint16_t>(static_cast<int>(y), static_cast<int>(x)) =
             vol_->interpolateAt({m[0], m[1], m[2]});
     }
     progressComplete();

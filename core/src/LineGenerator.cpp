@@ -1,5 +1,7 @@
 #include "vc/core/neighborhood/LineGenerator.hpp"
 
+#include <cstddef>
+
 #include "vc/core/util/FloatComparison.hpp"
 
 using namespace volcart;
@@ -45,9 +47,10 @@ Neighborhood LineGenerator::compute(
     }
 
     // Iterate through range
-    auto count = static_cast<size_t>(std::floor((max - min) / interval_) + 1);
+    auto count =
+        static_cast<std::size_t>(std::floor((max - min) / interval_) + 1);
     Neighborhood n(1, count);
-    for (size_t it = 0; it < count; it++) {
+    for (std::size_t it = 0; it < count; it++) {
         auto offset = min + (it * interval_);
         n(it) = v->interpolateAt(pt + (axes[0] * offset));
     }
@@ -59,5 +62,5 @@ Neighborhood::Extent LineGenerator::extents() const
 {
     auto radius =
         (direction_ != Direction::Bidirectional) ? radius_[0] / 2 : radius_[0];
-    return {static_cast<size_t>(std::floor(2.0 * radius / interval_) + 1)};
+    return {static_cast<std::size_t>(std::floor(2.0 * radius / interval_) + 1)};
 }

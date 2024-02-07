@@ -1,5 +1,8 @@
 // UDataManipulateUtils.cpp
 // Chao Du 2014 Dec
+#include <cstddef>
+#include <cstdint>
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -40,13 +43,13 @@ bool SplitVertexAndElementBuffer(
 
     // iterate through every face (triangle), which is composed of 3 vertices,
     // and distribute to different arrays
-    size_t aSurfaceBase = 0;
-    size_t aArrayIndex = 0;
+    std::size_t aSurfaceBase = 0;
+    std::size_t aArrayIndex = 0;
 
     while (static_cast<int>(aSurfaceBase) < nFaceNum) {
 
-        size_t aSurfaceCntRemained = nFaceNum - aSurfaceBase;
-        size_t aSurfaceCntToProcess =
+        std::size_t aSurfaceCntRemained = nFaceNum - aSurfaceBase;
+        std::size_t aSurfaceCntToProcess =
             MAX_NUM_FACE_IN_ARRAY < aSurfaceCntRemained ? MAX_NUM_FACE_IN_ARRAY
                                                         : aSurfaceCntRemained;
 
@@ -65,13 +68,13 @@ bool SplitVertexAndElementBuffer(
         // REVISIT - *4 for padding, give w = 1
         (*nUVBufferSize)[aArrayIndex] = aSurfaceCntToProcess * 3 * 2;
 
-        for (size_t i = 0; i < aSurfaceCntToProcess; ++i) {
-            for (size_t j = 0; j < 3; ++j) {
+        for (std::size_t i = 0; i < aSurfaceCntToProcess; ++i) {
+            for (std::size_t j = 0; j < 3; ++j) {
 
                 // element array (vertex index)
                 int aVertexIndexNew = i * 3 + j;
                 (*nElementBufferData)[aArrayIndex][aVertexIndexNew] =
-                    static_cast<uint16_t>(aVertexIndexNew);
+                    static_cast<std::uint16_t>(aVertexIndexNew);
 
                 // REVISIT - IMPROVE - notice we don't deal with duplication of
                 // vertices, which is a big waste of memory space
@@ -123,8 +126,8 @@ QImage Mat2QImage(const cv::Mat& nSrc)
     cv::Mat tmp;
     cvtColor(nSrc, tmp, cv::COLOR_BGR2RGB);  // copy and convert color space
     QImage result(
-        static_cast<const uint8_t*>(tmp.data), tmp.cols, tmp.rows, tmp.step,
-        QImage::Format_RGB888);
+        static_cast<const std::uint8_t*>(tmp.data), tmp.cols, tmp.rows,
+        tmp.step, QImage::Format_RGB888);
     result.bits();  // enforce depp copy, see documentation of
     // QImage::QImage( const uchar *dta, int width, int height, Format format )
     return result;

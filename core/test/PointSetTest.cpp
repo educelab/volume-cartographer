@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/PointSet.hpp"
@@ -38,7 +40,7 @@ TEST_F(Vec3iPointSet, OneRowPointSetIteratorTest)
     EXPECT_EQ(ps.back(), cv::Vec3i(3, 3, 3));
     EXPECT_EQ(*std::begin(ps), cv::Vec3i(1, 1, 1));
     EXPECT_EQ(*(std::end(ps) - 1), cv::Vec3i(3, 3, 3));
-    size_t i = 1;
+    std::size_t i = 1;
     for (auto p : ps) {
         EXPECT_EQ(p, cv::Vec3i(i, i, i));
         ++i;

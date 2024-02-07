@@ -18,7 +18,7 @@ volcart::ITKMesh::Pointer OrderedPointSetMesher::compute()
 
     // Transfer the vertex info
     ITKPoint tmpPt;
-    size_t cnt = 0;
+    std::size_t cnt = 0;
     for (auto& i : input_) {
         tmpPt[0] = i[0];
         tmpPt[1] = i[1];
@@ -34,9 +34,9 @@ volcart::ITKMesh::Pointer OrderedPointSetMesher::compute()
     }
 
     // Creates 2 cells per iteration and adds them to the mesh
-    size_t p0, p1, p2, p3;
-    for (size_t i = 0; i < input_.height() - 1; i++) {
-        for (size_t j = 0; j < input_.width() - 1; j++) {
+    std::size_t p0, p1, p2, p3;
+    for (std::size_t i = 0; i < input_.height() - 1; i++) {
+        for (std::size_t j = 0; j < input_.width() - 1; j++) {
 
             // Get the indices for the faces adjacent along the "hypotenuse"
             p0 = i * input_.width() + j;
@@ -67,7 +67,8 @@ volcart::ITKMesh::Pointer OrderedPointSetMesher::compute()
     return output_;
 }
 
-void OrderedPointSetMesher::add_cell_(size_t a, size_t b, size_t c)
+void OrderedPointSetMesher::add_cell_(
+    std::size_t a, std::size_t b, std::size_t c)
 {
     ITKCell::CellAutoPointer currentC;
 

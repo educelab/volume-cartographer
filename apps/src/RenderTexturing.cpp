@@ -1,5 +1,7 @@
 #include "vc/apps/render/RenderTexturing.hpp"
 
+#include <cstdint>
+
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
@@ -114,7 +116,7 @@ auto GetIntegralOpts() -> po::options_description
         ("expodiff-base", po::value<double>()->default_value(0.0), "If the "
             "base calculation method is set to Manual, the value from which "
             "voxel values are differenced.")
-        ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
+        ("clamp-to-max", po::value<std::uint16_t>(), "Clamp values to the specified "
             "maximum.");
     // clang-format on
 

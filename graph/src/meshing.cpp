@@ -116,7 +116,7 @@ CalculateNumVertsNode::CalculateNumVertsNode()
         static constexpr std::size_t MIN_NUM{100};
         auto sqVoxel = voxelSize_ * voxelSize_;
         auto a = SurfaceArea(mesh_) * sqVoxel * UM_TO_MM;
-        numVerts_ = std::max(static_cast<size_t>(density_ * a), MIN_NUM);
+        numVerts_ = std::max(static_cast<std::size_t>(density_ * a), MIN_NUM);
     };
 }
 
@@ -134,7 +134,7 @@ void CalculateNumVertsNode::deserialize_(
 {
     density_ = meta["density"].get<double>();
     voxelSize_ = meta["voxelSize"].get<double>();
-    numVerts_ = meta["numVerts"].get<size_t>();
+    numVerts_ = meta["numVerts"].get<std::size_t>();
 }
 
 LaplacianSmoothMeshNode::LaplacianSmoothMeshNode()

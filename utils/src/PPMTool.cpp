@@ -47,9 +47,11 @@ auto ParseROI(const std::string& opt) -> ROI
         std::exit(EXIT_FAILURE);
     }
 
-    return {
-        std::stoull(strs[2]), std::stoull(strs[3]), std::stoull(strs[0]),
-        std::stoull(strs[1])};
+    const auto x = static_cast<std::size_t>(std::stoull(strs[2]));
+    const auto y = static_cast<std::size_t>(std::stoull(strs[3]));
+    const auto w = static_cast<std::size_t>(std::stoull(strs[0]));
+    const auto h = static_cast<std::size_t>(std::stoull(strs[1]));
+    return {x, y, w, h};
 }
 }  // namespace
 
@@ -140,10 +142,10 @@ auto main(int argc, char* argv[]) -> int
     const auto writeMesh = IsFileType(outPath, {"obj", "ply"});
 
     // Setup ROI
-    size_t minX = 0;
-    size_t minY = 0;
-    size_t maxX = ppm.width();
-    size_t maxY = ppm.height();
+    std::size_t minX = 0;
+    std::size_t minY = 0;
+    std::size_t maxX = ppm.width();
+    std::size_t maxY = ppm.height();
     if (parsed.count("roi") > 0) {
         auto roi = ::ParseROI(parsed["roi"].as<std::string>());
         minX = std::max(minX, roi.x);

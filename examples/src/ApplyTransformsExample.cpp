@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/shapes/Cube.hpp"

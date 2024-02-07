@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <pybind11/pybind11.h>
 
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
@@ -89,10 +92,10 @@ void init_Volume(py::module& m)
             auto s = subvolume.compute(
                 v.shared_from_this(), center, {xvec, yvec, zvec});
             auto buf = s.as_vector();
-            size_t size = sizeof(uint16_t);
-            std::string format = py::format_descriptor<uint16_t>::format();
+            std::size_t size = sizeof(std::uint16_t);
+            std::string format = py::format_descriptor<std::uint16_t>::format();
             auto extents = s.extents();
-            std::vector<size_t> strides{
+            std::vector<std::size_t> strides{
                 size * extents[1] * extents[0], size * extents[0], size};
             return py::array(py::buffer_info{
                                  buf.data(), static_cast<ssize_t>(size), format,

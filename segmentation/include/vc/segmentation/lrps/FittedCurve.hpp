@@ -3,7 +3,9 @@
 /** @file */
 
 #include <cassert>
+#include <cstddef>
 #include <vector>
+
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Spline.hpp"
 
@@ -18,7 +20,7 @@ class FittedCurve
 {
 private:
     /** Number of points in the curve*/
-    size_t npoints_{0};
+    std::size_t npoints_{0};
     /** z-position of the curve */
     int zIndex_{0};
     /** Parameterized nodes */
@@ -45,7 +47,7 @@ public:
     /**@}*/
 
     /** @brief Return the current number of resampled points in the spline */
-    size_t size() const { return npoints_; }
+    std::size_t size() const { return npoints_; }
 
     /** @brief Return the current list of resampled points */
     const std::vector<Voxel>& points() const { return points_; }
@@ -67,7 +69,7 @@ public:
     std::vector<Voxel> resample(double resamplePerc = 1.0);
 
     /** @brief Resample the curve to have numPoints of evenly spaced points */
-    std::vector<Voxel> sample(size_t numPoints) const;
+    std::vector<Voxel> sample(std::size_t numPoints) const;
 
     /** @brief Returns the voxel located at index */
     Voxel operator()(int index) const;

@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <limits>
 
 #include <opencv2/core.hpp>
@@ -8,7 +9,7 @@
 #include "vc/core/io/FileExtensionFilter.hpp"
 #include "vc/core/util/String.hpp"
 
-static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+static const double MAX_16BPC = std::numeric_limits<std::uint16_t>::max();
 
 namespace volcart
 {

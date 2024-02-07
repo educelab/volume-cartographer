@@ -1,6 +1,7 @@
 // invertcloud.cpp
 // Seth Parker, Aug 2015
 
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 
@@ -40,8 +41,8 @@ int main(int argc, char** argv)
 
     // Flip the rows
     vc::OrderedPointSet<cv::Vec3d> output(input.width());
-    for (size_t r = 0; r < input.height(); r++) {
-        size_t index = input.height() - 1 - r;
+    for (std::size_t r = 0; r < input.height(); r++) {
+        std::size_t index = input.height() - 1 - r;
         output.pushRow(input.getRow(index));
     }
 

@@ -1,5 +1,6 @@
 #include "vc/texturing/ProjectMesh.hpp"
 
+#include <cstdint>
 #include <utility>
 
 #include <bvh/bvh.hpp>
@@ -16,7 +17,7 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
-static constexpr uint8_t MASK_TRUE{255};
+static constexpr std::uint8_t MASK_TRUE{255};
 
 using Scalar = double;
 using Vector3 = bvh::Vector3<Scalar>;
@@ -219,12 +220,12 @@ auto vct::ProjectMesh::compute() -> vc::PerPixelMap
         // Assign the cell index to the cell map
         auto intU = static_cast<int>(u);
         auto intV = static_cast<int>(v);
-        cellMap.at<int32_t>(intV, intU) = static_cast<int>(cellId);
+        cellMap.at<std::int32_t>(intV, intU) = static_cast<int>(cellId);
 
         // Assign 3D position to the lookup map and update the mask
         outputPPM_(v, u) = cv::Vec6d{xyz(0),     xyz(1),     xyz(2),
                                      xyzNorm(0), xyzNorm(1), xyzNorm(2)};
-        mask.at<uint8_t>(v, u) = MASK_TRUE;
+        mask.at<std::uint8_t>(v, u) = MASK_TRUE;
     }
 
     outputPPM_.setMask(mask);

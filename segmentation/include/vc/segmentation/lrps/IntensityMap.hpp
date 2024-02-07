@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstdint>
 #include <deque>
 #include <iostream>
 #include <utility>
@@ -77,7 +78,7 @@ private:
     cv::Mat_<double> intensities_;
 
     /** Input matrix */
-    cv::Mat_<uint8_t> resliceData_;
+    cv::Mat_<std::uint8_t> resliceData_;
 
     /** Width of the image returned by draw() */
     int displayWidth_;

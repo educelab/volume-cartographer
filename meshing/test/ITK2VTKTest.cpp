@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"
 #include "vc/core/shapes/Cube.hpp"
@@ -585,7 +587,8 @@ TEST_F(
     EXPECT_EQ(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     // Check equivalency of points
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (std::size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -649,7 +652,8 @@ TEST_F(
     EXPECT_EQ(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     // Check equivalency of points
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (std::size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -704,7 +708,8 @@ TEST_F(
     EXPECT_EQ(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     // Check equivalency of points
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (std::size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -759,7 +764,8 @@ TEST_F(
     EXPECT_EQ(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     // Check equivalency of points
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (std::size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -814,7 +820,8 @@ TEST_F(
     EXPECT_EQ(_SavedPoints.size(), _out_Mesh->GetNumberOfPoints());
 
     // Check equivalency of points
-    for (size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints(); ++pnt_id) {
+    for (std::size_t pnt_id = 0; pnt_id < _out_Mesh->GetNumberOfPoints();
+         ++pnt_id) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(

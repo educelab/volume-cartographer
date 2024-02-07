@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+#include <cstdint>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -24,13 +26,13 @@ int EuclideanDistance(const cv::Vec3i& start, const cv::Vec3i& end);
  * `[low, high]` or until `maxRadius` is reached. If `measureVert` is true,
  * projects vertically from seed. Otherwise, projects horizontally.
  */
-size_t MeasureThickness(
+std::size_t MeasureThickness(
     const cv::Vec3i& seed,
     const cv::Mat& slice,
-    uint16_t low,
-    uint16_t high,
+    std::uint16_t low,
+    std::uint16_t high,
     bool measureVert,
-    size_t maxRadius);
+    std::size_t maxRadius);
 
 /** Find the median element in a container */
 template <class Container>
@@ -50,7 +52,7 @@ std::vector<cv::Vec3i> DoFloodFill(
     const std::vector<cv::Vec3i>& pts,
     int bound,
     cv::Mat img,
-    uint16_t low,
-    uint16_t high);
+    std::uint16_t low,
+    std::uint16_t high);
 
 }  // namespace volcart::segmentation

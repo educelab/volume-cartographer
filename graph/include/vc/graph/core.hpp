@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include <opencv2/core.hpp>
 #include <smgl/Node.hpp>
 

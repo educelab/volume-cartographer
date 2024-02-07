@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include <boost/program_options.hpp>
 
 #include "vc/core/filesystem.hpp"

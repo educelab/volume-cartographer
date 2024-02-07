@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 
 #include <gtest/gtest.h>
@@ -9,7 +10,7 @@
 class LRUCache_Empty : public ::testing::Test
 {
 public:
-    volcart::LRUCache<size_t, int> cache;
+    volcart::LRUCache<std::size_t, int> cache;
 };
 
 class LRUCache_Filled : public LRUCache_Empty
@@ -23,7 +24,7 @@ public:
         // fill cache with key ordered from 0-99 and values equaling to key^2
         // cache will push new pairs to front when adding, so final list order
         // will be 99,98,...,0
-        for (size_t idx = 0; idx < cache.capacity(); idx++) {
+        for (std::size_t idx = 0; idx < cache.capacity(); idx++) {
 
             // set the cache item pairs
             cache.put(idx, (idx * idx));
@@ -53,7 +54,7 @@ TEST_F(LRUCache_Empty, ResizeCapacity)
 TEST_F(LRUCache_Filled, CheckReferenceToOutOfBoundsKey)
 {
     EXPECT_EQ(cache.capacity(), cache.size());
-    for (size_t key = 0; key < cache.capacity(); key++) {
+    for (std::size_t key = 0; key < cache.capacity(); key++) {
         EXPECT_EQ(cache.get(key), key * key);
     }
 
@@ -100,7 +101,7 @@ TEST_F(LRUCache_Empty, CheckCacheWithDifferingCapacityAndSize)
     EXPECT_EQ(cache.capacity(), 200);
     EXPECT_EQ(cache.size(), 0);
 
-    for (size_t key = 0; key < cache.capacity(); key += 2) {
+    for (std::size_t key = 0; key < cache.capacity(); key += 2) {
         // add even numbers, zero inclusive, and double their key as the value
         // will add items in descending key value order --> 198,196...,2,0
         cache.put(key, key + key);
@@ -111,7 +112,7 @@ TEST_F(LRUCache_Empty, CheckCacheWithDifferingCapacityAndSize)
 
     // test to see what happens when referencing an odd-number key
     // also, checking if oddKey exists --> redundant
-    for (size_t oddKey = 1; oddKey < cache.capacity(); oddKey += 2) {
+    for (std::size_t oddKey = 1; oddKey < cache.capacity(); oddKey += 2) {
         try {
             EXPECT_EQ(cache.contains(oddKey), false);
             EXPECT_ANY_THROW(cache.get(oddKey));
@@ -123,7 +124,7 @@ TEST_F(LRUCache_Empty, CheckCacheWithDifferingCapacityAndSize)
     // of the cache, thus, we'll check item key 98,96,...,2,0
     cache.setCapacity(50);
 
-    for (size_t k = 0; k < cache.capacity() * 2; k += 2) {
+    for (std::size_t k = 0; k < cache.capacity() * 2; k += 2) {
         try {
             EXPECT_EQ(cache.contains(k), false);
             EXPECT_ANY_THROW(cache.get(k));
@@ -146,7 +147,7 @@ TEST_F(LRUCache_Empty, TryToInsertMorePairsThanCurrentCapacity)
     EXPECT_EQ(cache.capacity(), 200);
     EXPECT_EQ(cache.size(), 0);
 
-    for (size_t key = 0; key <= cache.capacity(); key++) {
+    for (std::size_t key = 0; key <= cache.capacity(); key++) {
         cache.put(key, key + key);
     }
 

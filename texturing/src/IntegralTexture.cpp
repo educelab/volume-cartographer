@@ -1,6 +1,7 @@
 #include "vc/texturing/IntegralTexture.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <set>
 
@@ -53,7 +54,7 @@ auto IntegralTexture::compute() -> Texture
         if (clampToMax_) {
             std::replace_if(
                 n.begin(), n.end(),
-                [this](uint16_t v) { return v > clampMax_; }, clampMax_);
+                [this](std::uint16_t v) { return v > clampMax_; }, clampMax_);
         }
 
         // Convert to double and weight the neighborhood
@@ -159,10 +160,10 @@ void IntegralTexture::setup_expodiff_weights_()
     }
 }
 
-auto IntegralTexture::expodiff_intersection_pts_() -> std::vector<uint16_t>
+auto IntegralTexture::expodiff_intersection_pts_() -> std::vector<std::uint16_t>
 {
     // Get all the intensity values
-    std::vector<uint16_t> values;
+    std::vector<std::uint16_t> values;
     for (const auto [y, x] : ppm_->getMappingCoords()) {
         const auto& m = ppm_->getMapping(y, x);
         values.emplace_back(vol_->interpolateAt({m[0], m[1], m[2]}));
@@ -177,7 +178,7 @@ auto IntegralTexture::expodiff_mean_base_() -> double
     auto values = expodiff_intersection_pts_();
 
     // Calculate the mean
-    size_t n = 0;
+    std::size_t n = 0;
     double mean = 0.0;
     for (const auto& v : values) {
         double delta = v - mean;
@@ -193,7 +194,7 @@ auto IntegralTexture::expodiff_mode_base_() -> double
     auto values = expodiff_intersection_pts_();
 
     // Generate a histogram
-    std::map<uint16_t, int> histogram;
+    std::map<std::uint16_t, int> histogram;
     for (const auto& v : values) {
         try {
             histogram.at(v) += 1;
@@ -203,7 +204,7 @@ auto IntegralTexture::expodiff_mode_base_() -> double
     }
 
     // Sort by frequency high to low
-    using KVPair = std::pair<uint16_t, int>;
+    using KVPair = std::pair<std::uint16_t, int>;
     using Comparator = std::function<bool(KVPair, KVPair)>;
     Comparator compare = [](KVPair a, KVPair b) { return a.second > b.second; };
     std::set<KVPair, Comparator> sorter(
@@ -243,9 +244,9 @@ void IntegralTexture::setClampValuesToMax(bool b) { clampToMax_ = b; }
 
 auto IntegralTexture::clampValuesToMax() const -> bool { return clampToMax_; }
 
-void IntegralTexture::setClampMax(uint16_t m) { clampMax_ = m; }
+void IntegralTexture::setClampMax(std::uint16_t m) { clampMax_ = m; }
 
-auto IntegralTexture::clampMax() const -> uint16_t { return clampMax_; }
+auto IntegralTexture::clampMax() const -> std::uint16_t { return clampMax_; }
 
 void IntegralTexture::setWeightMethod(IntegralTexture::WeightMethod w)
 {

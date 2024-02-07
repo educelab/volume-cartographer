@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
@@ -139,7 +141,7 @@ TEST_F(CreatePlaneABFUVFixture, PlaneABFUVTest)
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // check uvmap against original mesh input pointIDs
-    for (size_t point = 0; point < _SavedPoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedPoints.size(); ++point) {
 
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x);
@@ -158,7 +160,7 @@ TEST_F(CreatePlaneABFLSCMOnlyUVFixture, PlaneABFLSCMOnlyUVTest)
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // check uvmap against original mesh input pointIDs
-    for (size_t point = 0; point < _SavedPoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedPoints.size(); ++point) {
 
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x);
@@ -177,7 +179,7 @@ TEST_F(CreateArchABFUVFixture, ArchABFUVTest)
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // check uvmap against original mesh input pointIDs
-    for (size_t point = 0; point < _SavedPoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedPoints.size(); ++point) {
 
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x);
@@ -196,7 +198,7 @@ TEST_F(CreateArchABFLSCMOnlyUVFixture, ArchABFLSCMOnlyUVTest)
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
 
     // check uvmap against original mesh input pointIDs
-    for (size_t point = 0; point < _SavedPoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedPoints.size(); ++point) {
 
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(point)[0], _SavedPoints[point].x);

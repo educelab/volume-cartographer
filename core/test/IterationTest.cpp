@@ -1,6 +1,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "vc/core/util/Iteration.hpp"
 
 using namespace volcart;
@@ -12,7 +14,7 @@ TEST(Iteration, RangeEndOnly)
     auto it = r.begin();
 
     // Do standard loop
-    for (size_t i = 0; i < 5; i++) {
+    for (std::size_t i = 0; i < 5; i++) {
 
         // Compare to loop indices
         EXPECT_EQ(*it, i);
@@ -29,7 +31,7 @@ TEST(Iteration, RangeStartEnd)
     auto it = r.begin();
 
     // Do standard loop
-    for (size_t i = 1; i < 5; i++) {
+    for (std::size_t i = 1; i < 5; i++) {
 
         // Compare to loop indices
         EXPECT_EQ(*it, i);
@@ -46,7 +48,7 @@ TEST(Iteration, RangeStartEndStep)
     auto it = r.begin();
 
     // Do standard loop
-    for (size_t i = 1; i < 5; i += 2) {
+    for (std::size_t i = 1; i < 5; i += 2) {
 
         // Compare to loop indices
         EXPECT_EQ(*it, i);
@@ -83,8 +85,8 @@ TEST(Iteration, Range2DEndOnly)
     auto it = r.begin();
 
     // Do standard 2D loop
-    for (size_t y = 0; y < 5; y++) {
-        for (size_t x = 0; x < 5; x++) {
+    for (std::size_t y = 0; y < 5; y++) {
+        for (std::size_t x = 0; x < 5; x++) {
 
             // Get iterator value
             auto pair = *it;
@@ -108,8 +110,8 @@ TEST(Iteration, Range2DStartEnd)
     auto it = r.begin();
 
     // Do standard 2D loop
-    for (size_t y = 1; y < 5; y++) {
-        for (size_t x = 1; x < 5; x++) {
+    for (std::size_t y = 1; y < 5; y++) {
+        for (std::size_t x = 1; x < 5; x++) {
 
             // Get iterator value
             auto pair = *it;
@@ -133,8 +135,8 @@ TEST(Iteration, Range2DStartEndStep)
     auto it = r.begin();
 
     // Do standard 2D loop
-    for (size_t y = 1; y < 6; y += 2) {
-        for (size_t x = 1; x < 6; x += 2) {
+    for (std::size_t y = 1; y < 6; y += 2) {
+        for (std::size_t x = 1; x < 6; x += 2) {
 
             // Get iterator value
             auto pair = *it;
@@ -203,7 +205,7 @@ TEST(Iteration, Range2DIteratorEquality)
 TEST(Iteration, EnumerateLVal)
 {
     std::vector<int> values{0, 1, 2, 3, 4};
-    size_t idx{0};
+    std::size_t idx{0};
     for (auto [index, value] : enumerate(values)) {
         EXPECT_EQ(index, idx);
         EXPECT_EQ(value, values[idx]);
@@ -224,7 +226,7 @@ TEST(Iteration, EnumerateLVal)
 TEST(Iteration, EnumerateRVal)
 {
     std::vector<int> truth{0, 1, 2, 3, 4};
-    size_t idx{0};
+    std::size_t idx{0};
     for (const auto [index, value] :
          enumerate(std::vector<int>{0, 1, 2, 3, 4})) {
         EXPECT_EQ(index, idx);
@@ -236,7 +238,7 @@ TEST(Iteration, EnumerateRVal)
 TEST(Iteration, EnumerateParamPack)
 {
     std::vector<int> truth{0, 1, 2, 3, 4};
-    size_t idx{0};
+    std::size_t idx{0};
     for (const auto [index, value] : enumerate(0, 1, 2, 3, 4)) {
         EXPECT_EQ(index, idx);
         EXPECT_EQ(value, truth[idx]);
@@ -247,7 +249,7 @@ TEST(Iteration, EnumerateParamPack)
 TEST(Iteration, EnumerateRange)
 {
     std::vector<int> truth{0, 1, 2, 3, 4};
-    size_t idx{0};
+    std::size_t idx{0};
     for (auto pair : enumerate(range(5))) {
         const auto index = pair.first;
         const auto& value = pair.second;

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdint>
 
 #include <boost/program_options.hpp>
 
@@ -82,7 +83,7 @@ void PointSetToMesh(const fs::path& inputPath, const fs::path& outputPath)
     vc::Logger()->info("Loaded PointSet with {} points", inputCloud.size());
 
     // Add vertex intensity
-    std::vector<uint16_t> intensities;
+    std::vector<std::uint16_t> intensities;
     if (PARSED.count("volpkg")) {
         // Load the volume package
         auto volpkgPath = PARSED["volpkg"].as<std::string>();

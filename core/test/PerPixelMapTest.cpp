@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+
 #include "vc/core/types/PerPixelMap.hpp"
 
 using namespace volcart;

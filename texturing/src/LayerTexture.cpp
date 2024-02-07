@@ -1,5 +1,7 @@
 #include "vc/texturing/LayerTexture.hpp"
 
+#include <cstddef>
+
 #include <opencv2/core.hpp>
 
 #include "vc/core/util/Iteration.hpp"
@@ -19,7 +21,7 @@ auto LayerTexture::compute() -> Texture
     auto width = static_cast<int>(ppm_->width());
 
     // Setup output images
-    for (size_t i = 0; i < gen_->extents()[0]; i++) {
+    for (std::size_t i = 0; i < gen_->extents()[0]; i++) {
         result_.emplace_back(cv::Mat::zeros(height, width, CV_16UC1));
     }
 

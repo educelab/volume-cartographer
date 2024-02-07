@@ -33,13 +33,13 @@ int vcs::EuclideanDistance(const cv::Vec3i& start, const cv::Vec3i& end)
     return static_cast<int>(cv::norm(end - start));
 }
 
-size_t vcs::MeasureThickness(
+std::size_t vcs::MeasureThickness(
     const cv::Vec3i& seed,
     const cv::Mat& slice,
-    uint16_t low,
-    uint16_t high,
+    std::uint16_t low,
+    std::uint16_t high,
     bool measureVert,
-    size_t maxRadius)
+    std::size_t maxRadius)
 {
     int xPos{seed[0]};
     int xNeg{seed[0]};
@@ -47,7 +47,7 @@ size_t vcs::MeasureThickness(
     int yNeg{seed[1]};
     bool foundMin{false};
     bool foundMax{false};
-    size_t length{1};
+    std::size_t length{1};
 
     while (!foundMin || !foundMax) {
         if (measureVert) {
@@ -64,7 +64,7 @@ size_t vcs::MeasureThickness(
 
         // Check the negative direction
         if (!foundMin) {
-            auto val = slice.at<uint16_t>(yNeg, xNeg);
+            auto val = slice.at<std::uint16_t>(yNeg, xNeg);
             if (val < low or val > high) {
                 foundMin = true;
             }
@@ -72,7 +72,7 @@ size_t vcs::MeasureThickness(
 
         // Check the positive direction
         if (!foundMax) {
-            auto val = slice.at<uint16_t>(yPos, xPos);
+            auto val = slice.at<std::uint16_t>(yPos, xPos);
             if (val < low or val > high) {
                 foundMax = true;
             }
@@ -91,7 +91,11 @@ size_t vcs::MeasureThickness(
 }
 
 VoxelList vcs::DoFloodFill(
-    const VoxelList& pts, int bound, cv::Mat img, uint16_t low, uint16_t high)
+    const VoxelList& pts,
+    int bound,
+    cv::Mat img,
+    std::uint16_t low,
+    std::uint16_t high)
 {
     std::queue<VoxelPair> q;
     VoxelList mask;
@@ -100,7 +104,7 @@ VoxelList vcs::DoFloodFill(
     // Push all the initial points onto the queue.
     // Initial points are their own 'parents'.
     for (const auto& pt : pts) {
-        auto greyVal = img.at<uint16_t>(pt[1], pt[0]);
+        auto greyVal = img.at<std::uint16_t>(pt[1], pt[0]);
         if (greyVal >= low && greyVal <= high) {
             q.emplace(pt, pt);
             visited.insert(pt);
@@ -133,7 +137,7 @@ VoxelList vcs::DoFloodFill(
             }
 
             // Add the valid neighbor to the queue and mark it as visited.
-            auto val = img.at<uint16_t>(neighbor[1], neighbor[0]);
+            auto val = img.at<std::uint16_t>(neighbor[1], neighbor[0]);
             auto dist = EuclideanDistance(neighbor, pair.parent);
             if (val >= low && val <= high && dist <= bound) {
                 q.emplace(neighbor, pair.parent);

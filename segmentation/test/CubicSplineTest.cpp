@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <numeric>
 #include <vector>
@@ -13,16 +14,16 @@ using namespace volcart::segmentation;
 // Global float comparison percent tolerance
 static const double floatComparePercentTolerance = 0.01;  // %
 
-std::vector<double> generateTVals(size_t count);
+std::vector<double> generateTVals(std::size_t count);
 
 // Fixture for a spline parameterizing y = 1
 struct ConstantCubicSpline {
 
-    size_t _knotCount;
+    std::size_t _knotCount;
     double _yConstant;
     CubicSpline<double> _spline;
 
-    ConstantCubicSpline(size_t knotCount, double yConstant)
+    ConstantCubicSpline(std::size_t knotCount, double yConstant)
         : _knotCount(knotCount), _yConstant(yConstant), _spline(makeSpline())
     {
         std::vector<double> xs(knotCount), ys(knotCount);
@@ -43,11 +44,11 @@ struct ConstantCubicSpline {
 // Fixture for a spline parameterizing y = x^2
 struct ParabolicCubicSpline {
 
-    size_t _knotCount;
+    std::size_t _knotCount;
     double _splineStart;
     CubicSpline<double> _spline;
 
-    ParabolicCubicSpline(size_t knotCount, double splineStart)
+    ParabolicCubicSpline(std::size_t knotCount, double splineStart)
         : _knotCount(knotCount)
         , _splineStart(splineStart)
         , _spline(makeSpline())
@@ -82,7 +83,7 @@ TEST(CubicSplineTest, CanGenerateCorrectTValues)
     // 1. Check neighbor differences - should be equal
     // Start at 2 so we skip the first pair
     double firstDiff = ts[1] - ts[0];
-    for (size_t i = 2; i < ts.size(); ++i) {
+    for (std::size_t i = 2; i < ts.size(); ++i) {
         volcart::testing::AssertNear(
             firstDiff, ts[i] - ts[i - 1], floatComparePercentTolerance);
     }
@@ -95,14 +96,14 @@ TEST(CubicSplineTest, CanGenerateCorrectTValues)
 // Test constant spline
 TEST(CubicSplineTest, YEqualsOne)
 {
-    size_t count = 10;
+    std::size_t count = 10;
     ConstantCubicSpline s(count, 1.0);
 
     // auto tol = btt::percent_tolerance(floatComparePercentTolerance);
     // auto eps = std::numeric_limits<double>::epsilon();
 
     auto ts = generateTVals(count);
-    for (size_t i = 1; i < ts.size(); ++i) {
+    for (std::size_t i = 1; i < ts.size(); ++i) {
         auto p0 = s._spline(ts[i - 1]);
         auto p1 = s._spline(ts[i]);
 
@@ -131,7 +132,7 @@ TEST(CubicSplineTest, YEqualsOne)
 // Test parabolic spline
 TEST(CubicSplineTest, YEqualsXSquaredValues)
 {
-    size_t count = 20;
+    std::size_t count = 20;
     ParabolicCubicSpline s(count, -10);
     auto ts = generateTVals(count * 2);
     for (auto t : ts) {
@@ -140,7 +141,7 @@ TEST(CubicSplineTest, YEqualsXSquaredValues)
     }
 }
 
-std::vector<double> generateTVals(size_t count)
+std::vector<double> generateTVals(std::size_t count)
 {
     std::vector<double> ts(count);
     ts.front() = 0;

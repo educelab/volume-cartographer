@@ -9,26 +9,26 @@ namespace volcart::protocol
  * Magic value that identifies this protocol on the wire. Generated with:
  * `echo -n Volume Protocol | md5sum | cut -c 1-8`
  */
-constexpr uint32_t MAGIC = 0xf6fcdac0;
+constexpr std::uint32_t MAGIC = 0xf6fcdac0;
 
 /** Size of a volpkg identifier. */
-constexpr uint32_t VOLPKG_SZ = 64;
+constexpr std::uint32_t VOLPKG_SZ = 64;
 
 /** Size of a volume identifier. */
-constexpr uint32_t VOLUME_SZ = 64;
+constexpr std::uint32_t VOLUME_SZ = 64;
 
 /** Enumeration of protocol versions. */
-enum Version : uint8_t { V1 = 1 };
+enum Version : std::uint8_t { V1 = 1 };
 
 // TODO: Add a request/response flag so that we can share a uniform prefix
 // header for all packets.
 
 /** Packet header for requests. */
 struct RequestHdr {
-    uint32_t magic{MAGIC};
+    std::uint32_t magic{MAGIC};
     Version version{Version::V1};
-    uint8_t pad[3];
-    uint32_t numRequests{0};
+    std::uint8_t pad[3];
+    std::uint32_t numRequests{0};
 };
 
 /** Packet structure for arguments to a given request. */
@@ -59,10 +59,10 @@ struct RequestArgs {
 struct ResponseArgs {
     char volpkg[VOLPKG_SZ];
     char volume[VOLUME_SZ];
-    uint32_t extentX;
-    uint32_t extentY;
-    uint32_t extentZ;
-    uint32_t size;
+    std::uint32_t extentX;
+    std::uint32_t extentY;
+    std::uint32_t extentZ;
+    std::uint32_t size;
 };
 
 }  // namespace volcart::protocol

@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -93,7 +95,7 @@ int main(int argc, char* argv[])
         const auto& y = pixel.first;
 
         // Skip if we have a mask and this pixel isn't in it
-        if (not mask.empty() and mask.at<uint8_t>(y, x) == 0) {
+        if (not mask.empty() and mask.at<std::uint8_t>(y, x) == 0) {
             continue;
         }
 
@@ -108,7 +110,7 @@ int main(int argc, char* argv[])
         for (const auto it : enumerate(classMasks)) {
             const auto& idx = it.first;
             const auto& cmask = it.second;
-            if (cmask.at<uint8_t>(y, x) > 0) {
+            if (cmask.at<std::uint8_t>(y, x) > 0) {
                 classVals[idx].push_back(val);
             }
         }
@@ -158,7 +160,7 @@ int main(int argc, char* argv[])
     file << "class,count,mean,var,std_dev,median" << std::endl;
     for (const auto it : vc::enumerate(metrics)) {
         file << classNames[it.first] << ",";
-        file << static_cast<size_t>(it.second.at("count")) << ",";
+        file << static_cast<std::size_t>(it.second.at("count")) << ",";
         file << it.second.at("mean") << ",";
         file << it.second.at("var") << ",";
         file << it.second.at("std_dev") << ",";
@@ -171,15 +173,15 @@ float GetValue(int x, int y, const cv::Mat& m)
 {
     switch (m.depth()) {
         case CV_8U:
-            return m.at<uint8_t>(y, x);
+            return m.at<std::uint8_t>(y, x);
         case CV_8S:
-            return m.at<int8_t>(y, x);
+            return m.at<std::int8_t>(y, x);
         case CV_16U:
-            return m.at<uint16_t>(y, x);
+            return m.at<std::uint16_t>(y, x);
         case CV_16S:
-            return m.at<int16_t>(y, x);
+            return m.at<std::int16_t>(y, x);
         case CV_32S:
-            return m.at<int32_t>(y, x);
+            return m.at<std::int32_t>(y, x);
         case CV_32F:
             return m.at<float>(y, x);
         case CV_64F:

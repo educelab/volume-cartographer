@@ -32,7 +32,7 @@ void CBSpline::SetControlPoints(const std::vector<Vec2<double>>& nControlPoints)
         fCurveSegments.clear();
     }
 
-    for (size_t i = 0; i < nControlPoints.size(); ++i) {
+    for (std::size_t i = 0; i < nControlPoints.size(); ++i) {
         fControlPoints.push_back(nControlPoints[i]);
     }
 
@@ -54,7 +54,7 @@ void CBSpline::SetControlPoints(const std::vector<cv::Vec2f>& nControlPoints)
         fCurveSegments.clear();
     }
 
-    for (size_t i = 0; i < nControlPoints.size(); ++i) {
+    for (std::size_t i = 0; i < nControlPoints.size(); ++i) {
         fControlPoints.push_back(
             Vec2<double>(nControlPoints[i][0], nControlPoints[i][1]));
     }
@@ -67,7 +67,7 @@ void CBSpline::SetControlPoints(const std::vector<cv::Vec2f>& nControlPoints)
 // Get sample points
 void CBSpline::GetSamplePoints(std::vector<Vec2<double>>& nSamplePoints)
 {
-    for (size_t i = 0; i < fCurveSegments.size(); ++i) {
+    for (std::size_t i = 0; i < fCurveSegments.size(); ++i) {
         fCurveSegments[i].GetSamplePoints(nSamplePoints);
     }
 }
@@ -75,7 +75,7 @@ void CBSpline::GetSamplePoints(std::vector<Vec2<double>>& nSamplePoints)
 // Get sample points
 void CBSpline::GetSamplePoints(std::vector<cv::Vec2f>& nSamplePoints)
 {
-    for (size_t i = 0; i < fCurveSegments.size(); ++i) {
+    for (std::size_t i = 0; i < fCurveSegments.size(); ++i) {
         fCurveSegments[i].GetSamplePoints(nSamplePoints);
     }
 }
@@ -202,7 +202,7 @@ void CBSpline::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
         return;
     }
 
-    for (size_t i = 0; i < fCurveSegments.size(); ++i) {
+    for (std::size_t i = 0; i < fCurveSegments.size(); ++i) {
         fCurveSegments[i].DrawOnImage(nImg, nColor);
     }
 }

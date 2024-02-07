@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <limits>
 #include <regex>
@@ -27,8 +28,8 @@ enum class Flip { None, Horizontal, Vertical, ZFlip, Both, All };
 static const vci::ExtensionList ImageExts{"tif", "tiff", "png",
                                           "jpg", "jpeg", "bmp"};
 
-static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
-static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+static const double MIN_16BPC = std::numeric_limits<std::uint16_t>::min();
+static const double MAX_16BPC = std::numeric_limits<std::uint16_t>::max();
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;

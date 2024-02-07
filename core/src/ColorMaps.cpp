@@ -1,6 +1,7 @@
 #include "vc/core/util/ColorMaps.hpp"
 
 #include <array>
+#include <cstdint>
 #include <limits>
 #include <unordered_map>
 
@@ -57,7 +58,7 @@ cv::Mat vc::GetColorMapLUT(ColorMap cm, std::size_t bins)
     }
 
     // Convert to 8bpc
-    lut.convertTo(lut, CV_8U, std::numeric_limits<uint8_t>::max());
+    lut.convertTo(lut, CV_8U, std::numeric_limits<std::uint8_t>::max());
     return lut;
 }
 

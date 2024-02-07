@@ -1,5 +1,6 @@
 #include "vc/core/io/UVMapIO.hpp"
 
+#include <cstddef>
 #include <fstream>
 #include <regex>
 #include <sstream>
@@ -58,7 +59,7 @@ auto vio::ReadUVMap(const fs::path& path) -> UVMap
         std::string fileType;
         int version;
         std::string type;
-        size_t size;
+        std::size_t size;
         double width{0};
         double height{0};
         int origin{-1};
@@ -169,7 +170,7 @@ auto vio::ReadUVMap(const fs::path& path) -> UVMap
     // Read all of the points
     for (const auto& i : range(h.size)) {
         std::ignore = i;
-        size_t id{0};
+        std::size_t id{0};
         cv::Vec2d uv;
         infile.read(reinterpret_cast<char*>(&id), sizeof(id));
         infile.read(reinterpret_cast<char*>(uv.val), 2 * sizeof(double));

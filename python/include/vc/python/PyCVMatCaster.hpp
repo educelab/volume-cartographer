@@ -2,6 +2,9 @@
 
 /** @file */
 
+#include <cstddef>
+#include <cstdint>
+
 #include <opencv2/core.hpp>
 #include <pybind11/numpy.h>
 
@@ -21,26 +24,26 @@ public:
 
     static handle cast(cv::Mat src, return_value_policy, handle)
     {
-        size_t size;
+        std::size_t size;
         std::string format;
         auto dims = src.dims;
 
         switch (src.type()) {
             case CV_8U:
-                size = sizeof(uint8_t);
-                format = format_descriptor<uint8_t>::format();
+                size = sizeof(std::uint8_t);
+                format = format_descriptor<std::uint8_t>::format();
                 break;
             case CV_8S:
-                size = sizeof(int8_t);
-                format = format_descriptor<int8_t>::format();
+                size = sizeof(std::int8_t);
+                format = format_descriptor<std::int8_t>::format();
                 break;
             case CV_16U:
-                size = sizeof(uint16_t);
-                format = format_descriptor<uint16_t>::format();
+                size = sizeof(std::uint16_t);
+                format = format_descriptor<std::uint16_t>::format();
                 break;
             case CV_16S:
-                size = sizeof(int16_t);
-                format = format_descriptor<int16_t>::format();
+                size = sizeof(std::int16_t);
+                format = format_descriptor<std::int16_t>::format();
                 break;
             case CV_32F:
                 size = sizeof(float);
@@ -50,8 +53,8 @@ public:
                 throw std::runtime_error("unsupported image type");
         }
 
-        std::vector<size_t> extents;
-        std::vector<size_t> strides;
+        std::vector<std::size_t> extents;
+        std::vector<std::size_t> strides;
 
         if (dims == 2) {
             extents = {
@@ -70,8 +73,8 @@ public:
         }
 
         return array(buffer_info{
-                         src.data, static_cast<ssize_t>(size), format, dims,
-                         extents, strides})
+                         src.data, static_cast<std::ssize_t>(size), format,
+                         dims, extents, strides})
             .release();
     }
 };

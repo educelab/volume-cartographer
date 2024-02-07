@@ -1,5 +1,6 @@
 #include "vc/core/io/OBJWriter.hpp"
 
+#include <cstdint>
 #include <string>
 
 #include "vc/core/io/ImageIO.hpp"
@@ -158,8 +159,8 @@ auto OBJWriter::write_vertices_() -> int
     outputMesh_ << "# Vertices: " << mesh_->GetNumberOfPoints() << "\n";
 
     // Iterate over all of the points
-    uint32_t vIndex = 1;
-    uint32_t vnIndex = 1;
+    std::uint32_t vIndex = 1;
+    std::uint32_t vnIndex = 1;
     for (auto pt = mesh_->GetPoints()->Begin(); pt != mesh_->GetPoints()->End();
          pt++) {
         // Make a new point link for this point
@@ -206,8 +207,8 @@ auto OBJWriter::write_texture_coordinates_() -> int
     outputMesh_ << "usemtl default\n";
 
     // Iterate over all of the saved coordinates in our coordinate map
-    uint32_t vtIndex = 1;
-    for (uint32_t pId = 0; pId < uvMap_->size(); ++pId) {
+    std::uint32_t vtIndex = 1;
+    for (std::uint32_t pId = 0; pId < uvMap_->size(); ++pId) {
         cv::Vec2d uv = uvMap_->get(pId);
         outputMesh_ << "vt " << uv[0] << " " << uv[1] << "\n";
 

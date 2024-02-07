@@ -1,5 +1,6 @@
 #include "vc/texturing/PPMGenerator.hpp"
 
+#include <cstdint>
 #include <exception>
 
 #include <bvh/bvh.hpp>
@@ -21,7 +22,7 @@ using namespace texturing;
 namespace vcm = volcart::meshing;
 namespace vct = volcart::texturing;
 
-static constexpr uint8_t MASK_TRUE{255};
+static constexpr std::uint8_t MASK_TRUE{255};
 
 using Scalar = double;
 using Vector3 = bvh::Vector3<Scalar>;
@@ -31,14 +32,16 @@ using Bvh = bvh::Bvh<Scalar>;
 using Intersector = bvh::ClosestPrimitiveIntersector<Bvh, Triangle>;
 using Traverser = bvh::SingleRayTraverser<Bvh>;
 
-PPMGenerator::PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
+PPMGenerator::PPMGenerator(std::size_t h, std::size_t w) : width_{w}, height_{h}
+{
+}
 
 void PPMGenerator::setMesh(const ITKMesh::Pointer& m) { inputMesh_ = m; }
 
 void PPMGenerator::setUVMap(const UVMap::Pointer& u) { uvMap_ = u; }
 
 // Parameters
-void PPMGenerator::setDimensions(size_t h, size_t w)
+void PPMGenerator::setDimensions(std::size_t h, std::size_t w)
 {
     height_ = h;
     width_ = w;
@@ -48,7 +51,7 @@ void PPMGenerator::setShading(PPMGenerator::Shading s) { shading_ = s; }
 
 auto PPMGenerator::getPPM() const -> PerPixelMap::Pointer { return ppm_; }
 
-auto PPMGenerator::progressIterations() const -> size_t
+auto PPMGenerator::progressIterations() const -> std::size_t
 {
     return width_ * height_;
 }
@@ -172,10 +175,10 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
         // Assign the cell index to the cell map
         auto intX = static_cast<int>(x);
         auto intY = static_cast<int>(y);
-        cellMap.at<int32_t>(intY, intX) = cellId;
+        cellMap.at<std::int32_t>(intY, intX) = cellId;
 
         // Assign the intensity value at the UV position
-        mask.at<uint8_t>(intY, intX) = MASK_TRUE;
+        mask.at<std::uint8_t>(intY, intX) = MASK_TRUE;
 
         // Assign 3D position to the lookup map
         ppm_->getMapping(y, x) = cv::Vec6d(
@@ -245,7 +248,7 @@ auto vct::GenerateCellMap(
         // Assign the cell index to the cell map
         auto intX = static_cast<int>(x);
         auto intY = static_cast<int>(y);
-        cellMap.at<int32_t>(intY, intX) =
+        cellMap.at<std::int32_t>(intY, intX) =
             static_cast<int>(hit->primitive_index);
     }
 

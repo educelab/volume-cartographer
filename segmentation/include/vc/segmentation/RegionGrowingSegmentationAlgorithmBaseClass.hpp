@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include "vc/core/types/Mixins.hpp"
 #include "vc/core/types/PointSet.hpp"
 #include "vc/core/types/Volume.hpp"
@@ -44,7 +46,7 @@ public:
     void setSeedPoints(SeedPoints p) { startingPoints_ = std::move(p); }
 
     /** @brief Set the number of iterations */
-    void setIterations(size_t i) { iterations_ = i; }
+    void setIterations(std::size_t i) { iterations_ = i; }
 
     /** @brief Compute the segmentation */
     virtual PointSet compute() = 0;
@@ -59,7 +61,7 @@ public:
     PointSet& getPointSet() { return result_; }
 
     /** @brief Returns the maximum progress value */
-    size_t progressIterations() const override { return iterations_; }
+    std::size_t progressIterations() const override { return iterations_; }
 
 protected:
     /** Default constructor */
@@ -71,7 +73,7 @@ protected:
     SeedPoints startingPoints_;
     /** Result */
     PointSet result_;
-    size_t iterations_{0};
+    std::size_t iterations_{0};
     /** Computation status */
     Status status_{Status::Success};
 };

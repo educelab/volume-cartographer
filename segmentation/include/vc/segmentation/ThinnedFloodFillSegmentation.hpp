@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 
 #include "vc/core/types/PointSet.hpp"
@@ -62,10 +64,10 @@ public:
         default;
 
     /** @brief Set the low threshold for the bounded flood-fill operation. */
-    void setFFLowThreshold(uint16_t t);
+    void setFFLowThreshold(std::uint16_t t);
 
     /** @brief Set the high threshold for the bounded flood-fill operation. */
-    void setFFHighThreshold(uint16_t t);
+    void setFFHighThreshold(std::uint16_t t);
 
     /**
      * @brief Set the threshold for the distance transform pre-processing
@@ -93,7 +95,7 @@ public:
      * @brief Set the max radius that a single point can hav when measuring the
      * width of the page.
      */
-    void setMaxRadius(size_t radius);
+    void setMaxRadius(std::size_t radius);
 
     /** @brief Computes the segmentation. */
     PointSet compute() override;
@@ -112,9 +114,9 @@ public:
 
 private:
     /** Low flood-fill threshold parameter */
-    uint16_t low_{14135};
+    std::uint16_t low_{14135};
     /** High flood-fill threshold parameter */
-    uint16_t high_{65535};
+    std::uint16_t high_{65535};
     /** Distance transform threshold parameter */
     float dtt_{0};
     /** (Square) Kernel size parameter for the closing operation */
@@ -122,14 +124,14 @@ private:
     /** Dump visualization to disk flag */
     bool dumpVis_{false};
     /** Prune spurs of this length or shorter */
-    size_t spurLength_{6};
+    std::size_t spurLength_{6};
     /**
      * Indicate which direction thickness should be measured in.
      * Horizontal by default
      */
     bool measureVertically_{false};
     /** Maximum layer thickness to consider for a single seed point */
-    size_t maxRadius_{std::numeric_limits<size_t>::max()};
+    std::size_t maxRadius_{std::numeric_limits<std::size_t>::max()};
     /** Mask */
     VoxelMask volMask_;
 };

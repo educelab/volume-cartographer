@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include <opencv2/core.hpp>
 
 namespace volcart
@@ -16,10 +18,10 @@ namespace volcart
  */
 template <class Vector>
 struct Vec3Hash {
-    size_t operator()(const Vector& v) const
+    std::size_t operator()(const Vector& v) const
     {
         auto max = std::max({v[0], v[1], v[2]});
-        size_t hash = (max * max * max) + (2 * max * v[2]) + v[2];
+        std::size_t hash = (max * max * max) + (2 * max * v[2]) + v[2];
         if (max == v[2]) {
             auto val = std::max({v[0], v[1]});
             hash += val * val;

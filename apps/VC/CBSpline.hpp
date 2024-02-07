@@ -2,6 +2,7 @@
 // Chao Du 2015 April
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -22,7 +23,10 @@ public:
     CBSpline(void);
     ~CBSpline(void);
 
-    size_t GetNumOfControlPoints(void) const { return fControlPoints.size(); }
+    std::size_t GetNumOfControlPoints(void) const
+    {
+        return fControlPoints.size();
+    }
     Vec2<double> GetPoint(int nIndex) const { return fControlPoints[nIndex]; }
 
     void SetControlPoints(const std::vector<Vec2<double>>& nControlPoints);

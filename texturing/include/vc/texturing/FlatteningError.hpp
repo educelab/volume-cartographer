@@ -1,6 +1,7 @@
 #pragma once
 
 /** @file */
+#include <cstdint>
 
 #include <opencv2/core.hpp>
 
@@ -31,7 +32,7 @@ cv::Mat PlotPerFaceError(
     cv::Mat output(cellMap.rows, cellMap.cols, CV_32FC1);
     output = cv::Scalar::all(defaultValue);
     for (const auto& [y, x] : range2D(cellMap.rows, cellMap.cols)) {
-        auto cell = cellMap.at<int32_t>(y, x);
+        auto cell = cellMap.at<std::int32_t>(y, x);
         if (cell >= 0) {
             auto error = errorMap.at(cell);
             output.at<float>(y, x) = static_cast<float>(error);

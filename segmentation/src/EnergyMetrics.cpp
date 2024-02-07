@@ -1,7 +1,9 @@
+#include "vc/segmentation/lrps/EnergyMetrics.hpp"
+
+#include <cstddef>
 #include <iostream>
 
 #include "vc/segmentation/lrps/Derivative.hpp"
-#include "vc/segmentation/lrps/EnergyMetrics.hpp"
 
 using namespace volcart::segmentation;
 
@@ -108,7 +110,7 @@ double EnergyMetrics::WindowedArcLength(
     }
 
     double sum = 0;
-    for (size_t i = 0; i < curve.size(); ++i) {
+    for (std::size_t i = 0; i < curve.size(); ++i) {
         sum += EnergyMetrics::LocalWindowedArcLength(curve, i, windowSize);
     }
     return sum / curve.size();
