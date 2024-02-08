@@ -14,7 +14,7 @@ using namespace volcart::segmentation;
 // Global float comparison percent tolerance
 static const double tol = 0.01;  // %
 
-std::vector<double> makeTVals(std::size_t count);
+auto makeTVals(std::size_t count) -> std::vector<double>;
 
 // Fixture for a constant line y = 1
 struct ConstantFittedCurve {
@@ -189,7 +189,7 @@ TEST(CircleFittedCurve, EvenlySampledCircleCurveHasEvenlySpacedPoints)
     }
 }
 
-std::vector<double> makeTVals(std::size_t count)
+auto makeTVals(std::size_t count) -> std::vector<double>
 {
     std::vector<double> ts(count);
     ts.front() = 0;

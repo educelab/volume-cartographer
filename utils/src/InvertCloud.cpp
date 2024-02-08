@@ -14,7 +14,7 @@
 namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
     if (argc < 5) {
         std::cout << "Usage: vc_invert_cloud [volpkg] [volume-id] [input].vcps "

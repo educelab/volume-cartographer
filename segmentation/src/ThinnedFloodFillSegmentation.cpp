@@ -27,7 +27,7 @@ using Voxel = cv::Vec3i;
 using VoxelList = std::vector<cv::Vec3i>;
 using VoxelSet = std::unordered_set<Voxel, Vec3iHash>;
 
-static VoxelSet FindIntersections(const VoxelSet& pts)
+static auto FindIntersections(const VoxelSet& pts) -> VoxelSet
 {
     VoxelSet intersections;
     for (const auto& v : pts) {
@@ -50,7 +50,7 @@ static VoxelSet FindIntersections(const VoxelSet& pts)
  * Search the skeleton for spurs.
  * An 'intersection' where more than two paths are available contains a spur.
  * */
-static VoxelSet PruneSpurs(VoxelSet skeleton, std::size_t spurLength)
+static auto PruneSpurs(VoxelSet skeleton, std::size_t spurLength) -> VoxelSet
 {
     auto intersections = FindIntersections(skeleton);
 
@@ -123,7 +123,7 @@ static VoxelSet PruneSpurs(VoxelSet skeleton, std::size_t spurLength)
     return skeleton;
 }
 
-static bool ThinPts(int dir, VoxelSet& pts)
+static auto ThinPts(int dir, VoxelSet& pts) -> bool
 {
     std::vector<Voxel> ptsToRemove;
     for (const Voxel& v : pts) {
@@ -204,7 +204,7 @@ static bool ThinPts(int dir, VoxelSet& pts)
  * Edition, by E.R. Davies. This thinning algorithm produces a centered,
  * continuous skeleton. (So long as the mask it is thinning is continuous.)
  * */
-static VoxelSet ThinMask(VoxelSet& pts)
+static auto ThinMask(VoxelSet& pts) -> VoxelSet
 {
     bool nThinned{true};
     bool sThinned{true};
@@ -219,8 +219,8 @@ static VoxelSet ThinMask(VoxelSet& pts)
     return pts;
 }
 
-static TFF::PointSet AppendVoxelSetToPointSet(
-    const VoxelSet& points, TFF::PointSet result)
+static auto AppendVoxelSetToPointSet(
+    const VoxelSet& points, TFF::PointSet result) -> TFF::PointSet
 {
     for (const auto& v : points) {
         result.emplace_back(v[0], v[1], v[2]);
@@ -235,10 +235,10 @@ void TFF::setClosingKernelSize(int s) { kernel_ = s; }
 void TFF::setMeasureVertical(bool b) { measureVertically_ = b; }
 void TFF::setSpurLengthThreshold(int length) { spurLength_ = length; }
 void TFF::setMaxRadius(std::size_t radius) { maxRadius_ = radius; }
-TFF::VoxelMask TFF::getMask() const { return volMask_; }
+auto TFF::getMask() const -> TFF::VoxelMask { return volMask_; }
 void TFF::setDumpVis(bool b) { dumpVis_ = b; }
 
-TFF::PointSet TFF::compute()
+auto TFF::compute() -> TFF::PointSet
 {
     // Setup debug vis directories
     const fs::path outputDir("debugvis");

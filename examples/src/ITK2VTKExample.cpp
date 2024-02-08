@@ -18,7 +18,7 @@
 
 void writePLYHeaderAndPoints(std::ostream& out, vtkPolyData* mesh);
 
-int main()
+auto main() -> int
 {
     // init shapes --> used by both conversion directions
     volcart::shapes::Plane Plane;

@@ -12,7 +12,7 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
     ///// Parse the command line options /////
     // All command line options

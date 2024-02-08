@@ -10,7 +10,7 @@
 #include "vc/core/shapes/Spiral.hpp"
 #include "vc/texturing/AngleBasedFlattening.hpp"
 
-int main()
+auto main() -> int
 {
     // Create the mesh writer
     volcart::io::OBJWriter mesh_writer;

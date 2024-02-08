@@ -28,7 +28,7 @@ void MeshToPointSet(const fs::path& inputPath, const fs::path& outputPath);
 
 po::variables_map PARSED;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options

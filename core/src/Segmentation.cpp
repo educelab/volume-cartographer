@@ -28,14 +28,14 @@ Segmentation::Segmentation(fs::path path, Identifier uuid, std::string name)
 }
 
 // Load a Segmentation from disk, return a pointer
-Segmentation::Pointer Segmentation::New(fs::path path)
+auto Segmentation::New(fs::path path) -> Segmentation::Pointer
 {
     return std::make_shared<Segmentation>(path);
 }
 
 // Make a new segmentation on disk, return a pointer
-Segmentation::Pointer Segmentation::New(
-    fs::path path, std::string uuid, std::string name)
+auto Segmentation::New(fs::path path, std::string uuid, std::string name)
+    -> Segmentation::Pointer
 {
     return std::make_shared<Segmentation>(path, uuid, name);
 }
@@ -55,7 +55,7 @@ void Segmentation::setPointSet(const PointSet& ps)
 }
 
 // Load the PointSet from disk
-Segmentation::PointSet Segmentation::getPointSet() const
+auto Segmentation::getPointSet() const -> Segmentation::PointSet
 {
     // Make sure there's an associated pointset file
     if (metadata_.get<std::string>("vcps").empty()) {

@@ -14,7 +14,7 @@ using namespace volcart::segmentation;
 // Global float comparison percent tolerance
 static const double floatComparePercentTolerance = 0.01;  // %
 
-std::vector<double> generateTVals(std::size_t count);
+auto generateTVals(std::size_t count) -> std::vector<double>;
 
 // Fixture for a spline parameterizing y = 1
 struct ConstantCubicSpline {
@@ -32,7 +32,7 @@ struct ConstantCubicSpline {
         _spline = CubicSpline<double>(xs, ys);
     }
 
-    decltype(_spline) makeSpline()
+    auto makeSpline() -> decltype(_spline)
     {
         std::vector<double> xs(_knotCount), ys(_knotCount);
         std::iota(std::begin(xs), std::end(xs), 0.0);
@@ -55,7 +55,7 @@ struct ParabolicCubicSpline {
     {
     }
 
-    decltype(_spline) makeSpline()
+    auto makeSpline() -> decltype(_spline)
     {
         // Fill x values
         std::vector<double> xs(_knotCount), ys(_knotCount);
@@ -141,7 +141,7 @@ TEST(CubicSplineTest, YEqualsXSquaredValues)
     }
 }
 
-std::vector<double> generateTVals(std::size_t count)
+auto generateTVals(std::size_t count) -> std::vector<double>
 {
     std::vector<double> ts(count);
     ts.front() = 0;

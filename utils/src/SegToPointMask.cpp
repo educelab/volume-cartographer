@@ -20,7 +20,7 @@ namespace vcs = volcart::segmentation;
 void WriteMaskImage(
     int idx, std::size_t pad, const fs::path& dir, const cv::Mat& img);
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options

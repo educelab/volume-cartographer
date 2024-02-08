@@ -8,10 +8,10 @@ static const std::vector<cv::Vec3d> BASIS_VECTORS = {
 
 using namespace volcart;
 
-Neighborhood CuboidGenerator::compute(
+auto CuboidGenerator::compute(
     const Volume::Pointer& v,
     const cv::Vec3d& pt,
-    const std::vector<cv::Vec3d>& axes)
+    const std::vector<cv::Vec3d>& axes) -> Neighborhood
 {
     // Auto-generate missing axes
     auto bases = axes;
@@ -79,7 +79,7 @@ Neighborhood CuboidGenerator::compute(
     return output;
 }
 
-Neighborhood::Extent CuboidGenerator::extents() const
+auto CuboidGenerator::extents() const -> Neighborhood::Extent
 {
     auto radius =
         (direction_ != Direction::Bidirectional) ? radius_[0] / 2 : radius_[0];

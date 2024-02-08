@@ -171,7 +171,7 @@ auto main(int argc, char* argv[]) -> int
     AddVolume(volpkg, info);
 }
 
-VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
+auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
 {
     VolumeInfo info;
 

@@ -18,7 +18,7 @@ namespace po = boost::program_options;
 
 namespace
 {
-float ValueMax(int cvDepth)
+auto ValueMax(int cvDepth) -> float
 {
     switch (cvDepth) {
         case CV_8U:
@@ -33,7 +33,7 @@ float ValueMax(int cvDepth)
 }
 }  // namespace
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options

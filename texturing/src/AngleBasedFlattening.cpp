@@ -28,7 +28,7 @@ void AngleBasedFlattening::setABFMaxIterations(std::size_t i)
 }
 
 ///// Process //////
-ITKMesh::Pointer AngleBasedFlattening::compute()
+auto AngleBasedFlattening::compute() -> ITKMesh::Pointer
 {
     // Construct HEM
     auto hem = HalfEdgeMesh::New();

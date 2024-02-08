@@ -16,7 +16,7 @@ inline void MultiParameter(int i, float f, const std::string& s)
 
 using namespace volcart;
 
-int main()
+auto main() -> int
 {
     // No parameter
     Signal<> event;

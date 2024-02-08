@@ -6,10 +6,10 @@
 
 using namespace volcart;
 
-Neighborhood LineGenerator::compute(
+auto LineGenerator::compute(
     const Volume::Pointer& v,
     const cv::Vec3d& pt,
-    const std::vector<cv::Vec3d>& axes)
+    const std::vector<cv::Vec3d>& axes) -> Neighborhood
 {
     // If we don't have enough axes by this point, we're doing it wrong
     if (axes.empty()) {
@@ -58,7 +58,7 @@ Neighborhood LineGenerator::compute(
     return n;
 }
 
-Neighborhood::Extent LineGenerator::extents() const
+auto LineGenerator::extents() const -> Neighborhood::Extent
 {
     auto radius =
         (direction_ != Direction::Bidirectional) ? radius_[0] / 2 : radius_[0];

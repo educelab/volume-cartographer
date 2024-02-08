@@ -17,7 +17,7 @@
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 
-int main()
+auto main() -> int
 {
 
     // smoothing factor

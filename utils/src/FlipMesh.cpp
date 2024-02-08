@@ -16,7 +16,7 @@ namespace vc = volcart;
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
     ///// Parse the command line options /////
     // All command line options

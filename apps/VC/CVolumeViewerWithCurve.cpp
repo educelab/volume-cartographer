@@ -300,8 +300,8 @@ void CVolumeViewerWithCurve::WidgetLoc2ImgLoc(
 }
 
 // Select point on curve
-int CVolumeViewerWithCurve::SelectPointOnCurve(
-    const CXCurve* nCurve, const cv::Vec2f& nPt)
+auto CVolumeViewerWithCurve::SelectPointOnCurve(
+    const CXCurve* nCurve, const cv::Vec2f& nPt) -> int
 {
     const double DIST_THRESHOLD = 1.5 * fScaleFactor;
 

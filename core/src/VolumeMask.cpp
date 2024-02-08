@@ -34,14 +34,14 @@ void VolumeMask::setSubvolumeState(
     }
 }
 
-VolumeMask::State VolumeMask::getVoxelState(const cv::Vec3i& xyz)
+auto VolumeMask::getVoxelState(const cv::Vec3i& xyz) -> VolumeMask::State
 {
     return static_cast<State>(
         states_.coeffRef(xyz[2] * sliceHeight_ + xyz[1], xyz[0]));
 }
 
-VolumeMask::Subvolume VolumeMask::getSubvolumeState(
-    const cv::Vec3i& origin, const cv::Vec3i& dims)
+auto VolumeMask::getSubvolumeState(
+    const cv::Vec3i& origin, const cv::Vec3i& dims) -> VolumeMask::Subvolume
 {
     Subvolume result(3, dims[2], dims[1], dims[0]);
     int u, v;

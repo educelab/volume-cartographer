@@ -12,7 +12,7 @@
 
 namespace vc = volcart;
 
-std::string vc::VolumeServer::socketStr_(QTcpSocket* socket)
+auto vc::VolumeServer::socketStr_(QTcpSocket* socket) -> std::string
 {
     return "[" + socket->peerAddress().toString().toStdString() + ":" +
            std::to_string(socket->peerPort()) + "]: ";

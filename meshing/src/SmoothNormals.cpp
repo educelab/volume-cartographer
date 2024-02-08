@@ -13,7 +13,8 @@
 namespace volcart::meshing
 {
 
-ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
+auto SmoothNormals(const ITKMesh::Pointer& input, double radius)
+    -> ITKMesh::Pointer
 {
     // declare pointer to new Mesh object to be returned
     auto outputMesh = ITKMesh::New();

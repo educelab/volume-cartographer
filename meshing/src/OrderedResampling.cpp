@@ -18,7 +18,7 @@ void OrderedResampling::setMesh(
     inHeight_ = inHeight;
 }
 
-volcart::ITKMesh::Pointer OrderedResampling::getOutputMesh() const
+auto OrderedResampling::getOutputMesh() const -> volcart::ITKMesh::Pointer
 {
     if (output_.IsNull()) {
         Logger()->error("Output mesh is null");

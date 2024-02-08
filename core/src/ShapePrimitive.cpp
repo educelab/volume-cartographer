@@ -12,7 +12,7 @@ ShapePrimitive::ShapePrimitive()
 
 ///// Type Conversions /////
 // return an itk mesh
-ITKMesh::Pointer ShapePrimitive::itkMesh()
+auto ShapePrimitive::itkMesh() -> ITKMesh::Pointer
 {
     auto output = ITKMesh::New();
 
@@ -46,7 +46,7 @@ ITKMesh::Pointer ShapePrimitive::itkMesh()
 
 // initialize a vtk mesh //
 
-vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
+auto ShapePrimitive::vtkMesh() -> vtkSmartPointer<vtkPolyData>
 {
 
     // construct new pointer to output mesh
@@ -89,7 +89,7 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
 }
 
 // Return point set (unordered)
-volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints()
+auto ShapePrimitive::unorderedPoints() -> volcart::PointSet<cv::Vec3d>
 {
     volcart::PointSet<cv::Vec3d> output;
 
@@ -101,7 +101,7 @@ volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints()
 }
 
 // Return point set + normals (unordered)
-volcart::PointSet<cv::Vec6d> ShapePrimitive::unorderedPointNormal()
+auto ShapePrimitive::unorderedPointNormal() -> volcart::PointSet<cv::Vec6d>
 {
     volcart::PointSet<cv::Vec6d> output;
     for (auto p : points_) {
@@ -111,7 +111,7 @@ volcart::PointSet<cv::Vec6d> ShapePrimitive::unorderedPointNormal()
 }
 
 // Return point set (ordered)
-volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints()
+auto ShapePrimitive::orderedPoints() -> volcart::OrderedPointSet<cv::Vec3d>
 {
     if (!ordered_) {
         throw std::runtime_error("Shape vertices not ordered");
@@ -137,7 +137,7 @@ volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints()
 }
 
 // Return point set + normals (ordered)
-volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
+auto ShapePrimitive::orderedPointNormal() -> volcart::OrderedPointSet<cv::Vec6d>
 {
     if (!ordered_) {
         throw std::runtime_error("Shape vertices not ordered");

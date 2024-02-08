@@ -19,7 +19,7 @@ using namespace volcart::texturing;
 namespace vcm = volcart::meshing;
 
 // Convert HSV values to RGB
-cv::Scalar HSVtoRGB(float h, float s, float v);
+auto HSVtoRGB(float h, float s, float v) -> cv::Scalar;
 
 AlignmentMarkerGenerator::LineSegment::LineSegment(
     const cv::Vec3d& a, const cv::Vec3d& b, cv::Scalar c)
@@ -45,12 +45,12 @@ void AlignmentMarkerGenerator::setMarkerUseRandomColor(bool b)
     markerRandomColor_ = b;
 }
 
-std::vector<cv::Mat> AlignmentMarkerGenerator::getMarkedImages() const
+auto AlignmentMarkerGenerator::getMarkedImages() const -> std::vector<cv::Mat>
 {
     return output_;
 }
 
-std::vector<cv::Mat> AlignmentMarkerGenerator::compute()
+auto AlignmentMarkerGenerator::compute() -> std::vector<cv::Mat>
 {
     // Setup output
     output_.clear();
@@ -146,7 +146,7 @@ std::vector<cv::Mat> AlignmentMarkerGenerator::compute()
     return output_;
 }
 
-cv::Scalar HSVtoRGB(float h, float s, float v)
+auto HSVtoRGB(float h, float s, float v) -> cv::Scalar
 {
     cv::Mat hsv(1, 1, CV_32FC3, cv::Scalar(h, s, v));
     cv::Mat rgb;

@@ -7,12 +7,13 @@ using namespace vc::segmentation;
 
 static constexpr double RK_STEP_SCALE = 1.0 / 6.0;
 
-std::size_t StructureTensorParticleSim::progressIterations() const
+auto StructureTensorParticleSim::progressIterations() const -> std::size_t
 {
     return static_cast<std::size_t>(std::ceil(numSteps_ / stepSize_));
 }
 
-StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
+auto StructureTensorParticleSim::compute()
+    -> StructureTensorParticleSim::PointSet
 {
 
     progressStarted();
@@ -90,7 +91,7 @@ StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
     return result_;
 }
 
-bool StructureTensorParticleSim::chain_stopped_()
+auto StructureTensorParticleSim::chain_stopped_() -> bool
 {
     return std::any_of(
         std::begin(currentChain_), std::end(currentChain_), [this](auto v) {
@@ -108,7 +109,8 @@ void StructureTensorParticleSim::add_chain_to_result_()
     result_.pushRow(row);
 }
 
-ForceChain StructureTensorParticleSim::calc_prop_forces_(ParticleChain c)
+auto StructureTensorParticleSim::calc_prop_forces_(ParticleChain c)
+    -> ForceChain
 {
     ForceChain res;
     Force zDir{0, 0, 1};
@@ -124,7 +126,8 @@ ForceChain StructureTensorParticleSim::calc_prop_forces_(ParticleChain c)
     return res;
 }
 
-ForceChain StructureTensorParticleSim::calc_spring_forces_(ParticleChain c)
+auto StructureTensorParticleSim::calc_spring_forces_(ParticleChain c)
+    -> ForceChain
 {
     ForceChain res;
     for (auto it = c.begin(); it != c.end(); it++) {

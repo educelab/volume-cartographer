@@ -13,7 +13,7 @@ namespace ChaoVis
 {
 
 // Split vertex and face to memory chunk that can fit into OpenGL
-bool SplitVertexAndElementBuffer(
+auto SplitVertexAndElementBuffer(
     int /*nVertexNum*/,
     int nFaceNum,
     const int* nElementBufferTmp,  // constant data, not constant pointer
@@ -25,7 +25,7 @@ bool SplitVertexAndElementBuffer(
     int** nElementBufferSize,
     int** nVertexBufferSize,
     int** nUVBufferSize,
-    int* nElementArrayNum)
+    int* nElementArrayNum) -> bool
 {
     const unsigned short MAX_NUM_FACE_IN_ARRAY = USHORT_SIZE / 3;
 
@@ -110,7 +110,7 @@ bool SplitVertexAndElementBuffer(
 }
 
 // Convert from QImage to cv::Mat
-cv::Mat QImage2Mat(const QImage& nSrc)
+auto QImage2Mat(const QImage& nSrc) -> cv::Mat
 {
     cv::Mat tmp(
         nSrc.height(), nSrc.width(), CV_8UC3, const_cast<uchar*>(nSrc.bits()),
@@ -121,7 +121,7 @@ cv::Mat QImage2Mat(const QImage& nSrc)
 }
 
 // Convert from cv::Mat to QImage
-QImage Mat2QImage(const cv::Mat& nSrc)
+auto Mat2QImage(const cv::Mat& nSrc) -> QImage
 {
     cv::Mat tmp;
     cvtColor(nSrc, tmp, cv::COLOR_BGR2RGB);  // copy and convert color space

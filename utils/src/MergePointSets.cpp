@@ -25,7 +25,7 @@ using psio = vc::PointSetIO<Voxel>;
  * the vcps file is named: LAST_SLICE_NUM.vcps. Otherwise
  * pruning will fail. TODO: a regex approach would be better
  * */
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options

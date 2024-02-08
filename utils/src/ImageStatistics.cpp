@@ -20,9 +20,9 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
-float GetValue(int x, int y, const cv::Mat& m);
+auto GetValue(int x, int y, const cv::Mat& m) -> float;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -159,17 +159,17 @@ int main(int argc, char* argv[])
     }
     file << "class,count,mean,var,std_dev,median" << std::endl;
     for (const auto it : vc::enumerate(metrics)) {
-        file << classNames[it.first] << ",";
-        file << static_cast<std::size_t>(it.second.at("count")) << ",";
-        file << it.second.at("mean") << ",";
-        file << it.second.at("var") << ",";
-        file << it.second.at("std_dev") << ",";
+        file << classNames[it.first] << ',';
+        file << static_cast<std::size_t>(it.second.at("count")) << ',';
+        file << it.second.at("mean") << ',';
+        file << it.second.at("var") << ',';
+        file << it.second.at("std_dev") << ',';
         file << it.second.at("median") << std::endl;
     }
     file.close();
 }
 
-float GetValue(int x, int y, const cv::Mat& m)
+auto GetValue(int x, int y, const cv::Mat& m) -> float
 {
     switch (m.depth()) {
         case CV_8U:

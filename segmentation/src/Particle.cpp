@@ -3,21 +3,24 @@
 using namespace volcart::segmentation;
 namespace vcs = volcart::segmentation;
 
-Particle& Particle::operator+=(const cv::Vec3d& rhs)
+auto Particle::operator+=(const cv::Vec3d& rhs) -> Particle&
 {
     pos_ += rhs;
     return *this;
 }
 
-Particle& Particle::operator*=(const double& rhs)
+auto Particle::operator*=(const double& rhs) -> Particle&
 {
     pos_ *= rhs;
     return *this;
 }
 
-Particle vcs::operator+(Particle lhs, const cv::Vec3d& rhs)
+auto vcs::operator+(Particle lhs, const cv::Vec3d& rhs) -> Particle
 {
     return lhs += rhs;
 }
 
-Particle vcs::operator*(Particle lhs, const double& rhs) { return lhs *= rhs; }
+auto vcs::operator*(Particle lhs, const double& rhs) -> Particle
+{
+    return lhs *= rhs;
+}

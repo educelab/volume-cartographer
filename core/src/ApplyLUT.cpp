@@ -11,7 +11,7 @@ using namespace volcart;
 namespace vc = volcart;
 
 // Calculate the LUT bin a value belongs in
-static int ValueToBin(float value, float min, float max, int bins)
+static auto ValueToBin(float value, float min, float max, int bins) -> int
 {
     // End points are easy
     if (value == max) {
@@ -33,8 +33,9 @@ static int ValueToBin(float value, float min, float max, int bins)
     return static_cast<int>(bin);
 }
 
-cv::Mat vc::ApplyLUT(
+auto vc::ApplyLUT(
     const cv::Mat& img, const cv::Mat& lut, float min, float max, bool invert)
+    -> cv::Mat
 {
     // Validate the LUT
     if (lut.depth() != CV_8U) {
@@ -80,13 +81,13 @@ cv::Mat vc::ApplyLUT(
     return output;
 }
 
-cv::Mat vc::ApplyLUT(
+auto vc::ApplyLUT(
     const cv::Mat& img,
     const cv::Mat& lut,
     float min,
     float mid,
     float max,
-    bool invert)
+    bool invert) -> cv::Mat
 {
     // Validate the LUT
     if (lut.depth() != CV_8U) {
@@ -142,8 +143,9 @@ cv::Mat vc::ApplyLUT(
     return output;
 }
 
-cv::Mat vc::ApplyLUT(
+auto vc::ApplyLUT(
     const cv::Mat& img, const cv::Mat& lut, bool invert, const cv::Mat& mask)
+    -> cv::Mat
 {
     // Default min/max
     double min{0};
@@ -157,8 +159,9 @@ cv::Mat vc::ApplyLUT(
         img, lut, static_cast<float>(min), static_cast<float>(max), invert);
 }
 
-cv::Mat vc::GenerateLUTScaleBar(
+auto vc::GenerateLUTScaleBar(
     const cv::Mat& lut, bool invert, std::size_t height, std::size_t width)
+    -> cv::Mat
 {
     // Construct a single row
     auto maxDim = static_cast<int>(std::max(width, height));

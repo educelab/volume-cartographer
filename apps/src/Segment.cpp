@@ -52,7 +52,7 @@ static void WritePointset(const PointSet& pointset);
 static void WriteIntermediatePointset(const PointSet& pointset);
 static void WriteMaskPointset(const VoxelMask& pointset);
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     // Set up options
     // clang-format off

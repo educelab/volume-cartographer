@@ -120,8 +120,8 @@ CalculateNumVertsNode::CalculateNumVertsNode()
     };
 }
 
-smgl::Metadata CalculateNumVertsNode::serialize_(
-    bool /*useCache*/, const fs::path& /*cacheDir*/)
+auto CalculateNumVertsNode::serialize_(
+    bool /*useCache*/, const fs::path& /*cacheDir*/) -> smgl::Metadata
 {
     return {
         {"density", density_},

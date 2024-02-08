@@ -65,7 +65,7 @@ TEST(FlatteningError, MetricsScale)
     EXPECT_THAT(metrics.faceLInf, Each(DoubleNear(expected, 1e-7)));
 }
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
     ::testing::InitGoogleTest(&argc, argv);
     volcart::logging::SetLogLevel("off");

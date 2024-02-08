@@ -23,7 +23,7 @@ using MeshTransformer =
 using TransformWriter = itk::TransformFileWriterTemplate<double>;
 using TransformReader = itk::TransformFileReaderTemplate<double>;
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
     ///// Parse the command line options /////
     // All command line options

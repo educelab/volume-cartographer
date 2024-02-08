@@ -30,7 +30,7 @@ void ComputeVolumetricMask::setMaxRadius(std::size_t radius)
     maxRadius_ = radius;
 }
 
-VolumetricMask::Pointer ComputeVolumetricMask::compute()
+auto ComputeVolumetricMask::compute() -> VolumetricMask::Pointer
 {
     // Setup the output
     mask_ = VolumetricMask::New();
@@ -114,9 +114,12 @@ void ComputeVolumetricMask::setPointSet(const PointSet& ps) { input_ = ps; }
 
 void ComputeVolumetricMask::setVolume(const Volume::Pointer& v) { vol_ = v; }
 
-VolumetricMask::Pointer ComputeVolumetricMask::getMask() const { return mask_; }
+auto ComputeVolumetricMask::getMask() const -> VolumetricMask::Pointer
+{
+    return mask_;
+}
 
-std::size_t ComputeVolumetricMask::progressIterations() const
+auto ComputeVolumetricMask::progressIterations() const -> std::size_t
 {
     if (input_.empty()) {
         return 0;

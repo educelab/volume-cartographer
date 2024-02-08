@@ -484,7 +484,7 @@ void CWindow::setWidgetsEnabled(bool state)
     fVolumeViewerWidget->setButtonsEnabled(state);
 }
 
-bool CWindow::InitializeVolumePkg(const std::string& nVpkgPath)
+auto CWindow::InitializeVolumePkg(const std::string& nVpkgPath) -> bool
 {
     fVpkg = nullptr;
 
@@ -513,7 +513,7 @@ void CWindow::setDefaultWindowWidth(vc::Volume::Pointer volume)
     fEdtWindowWidth->setValue(static_cast<int>(winWidth));
 }
 
-CWindow::SaveResponse CWindow::SaveDialog(void)
+auto CWindow::SaveDialog(void) -> CWindow::SaveResponse
 {
     // Return if nothing has changed
     if (not fVpkgChanged) {
@@ -771,7 +771,7 @@ void CWindow::CleanupSegmentation(void)
 }
 
 // Set up the parameters for doing segmentation
-bool CWindow::SetUpSegParams(void)
+auto CWindow::SetUpSegParams(void) -> bool
 {
     bool aIsOk;
 
@@ -1394,7 +1394,7 @@ void CWindow::OnPathChanged(void)
     }
 }
 
-bool CWindow::can_change_volume_()
+auto CWindow::can_change_volume_() -> bool
 {
     return fVpkg != nullptr && fVpkg->numberOfVolumes() > 1 &&
            (fSegmentation == nullptr || !fSegmentation->hasPointSet() ||

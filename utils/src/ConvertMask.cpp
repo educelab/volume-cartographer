@@ -33,9 +33,9 @@ void WriteMaskImage(
 
 using SliceList = std::map<std::size_t, fs::path>;
 void VolumeMaskToPointMask(const fs::path& inPath, const fs::path& outPath);
-SliceList CollectVolumeFiles(const fs::path& fmtPath);
+auto CollectVolumeFiles(const fs::path& fmtPath) -> SliceList;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -201,7 +201,7 @@ void VolumeMaskToPointMask(const fs::path& inPath, const fs::path& outPath)
     vc::PointSetIO<cv::Vec3i>::WritePointSet(outPath, pts);
 }
 
-SliceList CollectVolumeFiles(const fs::path& fmtPath)
+auto CollectVolumeFiles(const fs::path& fmtPath) -> SliceList
 {
     SliceList paths;
 

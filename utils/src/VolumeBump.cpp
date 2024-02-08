@@ -31,7 +31,7 @@ std::size_t g_numSliceChars;
 
 void WriteBumpedSlice(const cv::Mat& slice, int index);
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // clang-format off

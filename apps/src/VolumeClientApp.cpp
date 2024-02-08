@@ -13,7 +13,7 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     // clang-format off
     po::options_description required("General Options");
