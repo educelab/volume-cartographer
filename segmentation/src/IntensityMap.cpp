@@ -30,7 +30,7 @@ IntensityMap::IntensityMap(
     binWidth_ = cvRound(float(displayWidth_) / mapWidth_);
 }
 
-cv::Mat IntensityMap::draw()
+auto IntensityMap::draw() -> cv::Mat
 {
     // Repaint the drawTarget_ so we don't draw over others
     drawTarget_ = BGR_BLACK;
@@ -83,7 +83,7 @@ cv::Mat IntensityMap::draw()
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::deque<std::pair<int, double>> IntensityMap::sortedMaxima()
+auto IntensityMap::sortedMaxima() -> std::deque<std::pair<int, double>>
 {
     bool includesMiddle = false;
     std::deque<std::pair<int, double>> crossings;

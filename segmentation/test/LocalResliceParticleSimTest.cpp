@@ -15,9 +15,9 @@ struct PointXYZ {
     explicit PointXYZ(const cv::Vec3d& p) : x(p[0]), y(p[1]), z(p[2]) {}
 };
 
-std::ostream& operator<<(std::ostream& s, PointXYZ p);
+auto operator<<(std::ostream& s, PointXYZ p) -> std::ostream&;
 
-inline double NormL2(const PointXYZ p1, const PointXYZ p2)
+inline auto NormL2(const PointXYZ p1, const PointXYZ p2) -> double
 {
     return std::sqrt(
         (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) +
@@ -113,11 +113,11 @@ TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
     auto maxAllowedDiffCount =
         std::size_t(std::round(0.1 * groundTruthCloud.size()));
     std::cout << "# different points: " << diffCount
-              << " (max allowed: " << maxAllowedDiffCount << ")" << std::endl;
+              << " (max allowed: " << maxAllowedDiffCount << ")" << '\n';
     EXPECT_TRUE(diffCount < maxAllowedDiffCount);
 }
 
-std::ostream& operator<<(std::ostream& s, PointXYZ p)
+auto operator<<(std::ostream& s, PointXYZ p) -> std::ostream&
 {
     return s << "[" << p.x << ", " << p.y << ", " << p.z << "]";
 }

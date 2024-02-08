@@ -7,7 +7,7 @@
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
 
-int main()
+auto main() -> int
 {
     // init shapes
     volcart::shapes::Plane Plane;

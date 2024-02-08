@@ -24,7 +24,7 @@ namespace fs = volcart::filesystem;
 using std::begin;
 using std::end;
 
-std::size_t LocalResliceSegmentation::progressIterations() const
+auto LocalResliceSegmentation::progressIterations() const -> std::size_t
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
@@ -33,7 +33,7 @@ std::size_t LocalResliceSegmentation::progressIterations() const
     return static_cast<std::size_t>((endIndex_ - startIndex) / stepSize_);
 }
 
-LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
+auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
 {
     // reset progress
     progressStarted();
@@ -332,8 +332,8 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     return create_final_pointset_(points);
 }
 
-cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
-    const FittedCurve& currentCurve, int index)
+auto LocalResliceSegmentation::estimate_normal_at_index_(
+    const FittedCurve& currentCurve, int index) -> cv::Vec3d
 {
     auto currentVoxel = currentCurve(index);
     auto radius = static_cast<int>(
@@ -348,9 +348,9 @@ cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
-LocalResliceSegmentation::PointSet
-LocalResliceSegmentation::create_final_pointset_(
+auto LocalResliceSegmentation::create_final_pointset_(
     const std::vector<std::vector<Voxel>>& points)
+    -> LocalResliceSegmentation::PointSet
 {
     auto rows = points.size();
     auto cols = points[0].size();
@@ -369,11 +369,11 @@ LocalResliceSegmentation::create_final_pointset_(
     return result_;
 }
 
-cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
+auto LocalResliceSegmentation::draw_particle_on_slice_(
     const FittedCurve& curve,
     int sliceIndex,
     int particleIndex,
-    bool showSpline) const
+    bool showSpline) const -> cv::Mat
 {
     auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(

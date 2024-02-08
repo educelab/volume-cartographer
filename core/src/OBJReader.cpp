@@ -197,7 +197,7 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
     ifs.close();
 }
 
-OBJReader::RefType OBJReader::classify_vertref_(const std::string& ref)
+auto OBJReader::classify_vertref_(const std::string& ref) -> OBJReader::RefType
 {
     const char delimiter = '/';
     auto slashCount = std::count(ref.begin(), ref.end(), delimiter);

@@ -38,10 +38,10 @@ public:
      * Throws `std::domain_error` if ForceChain size doesn't match the size of
      * the ParticleChain.
      */
-    ParticleChain& operator+=(const ForceChain& rhs);
+    auto operator+=(const ForceChain& rhs) -> ParticleChain&;
 
     /** @brief Multiply each element of chain by a constant scale factor */
-    ParticleChain& operator*=(const double& rhs);
+    auto operator*=(const double& rhs) -> ParticleChain&;
 
     /** @brief Element access operator */
     auto operator[](std::size_t i) { return data_[i]; }
@@ -72,10 +72,10 @@ public:
     void push_back(const Particle& val) { data_.push_back(val); }
 
     /** @brief Returns the number of elements in the chain */
-    std::size_t size() { return data_.size(); }
+    auto size() -> std::size_t { return data_.size(); }
 
     /** @copydoc size() */
-    std::size_t size() const { return data_.size(); }
+    auto size() const -> std::size_t { return data_.size(); }
 
     /** @brief Empties and resets the chain */
     void clear() { data_.clear(); }
@@ -86,11 +86,11 @@ private:
 };
 
 /** Free function operator for ParticleChain and ForceChain addition */
-ParticleChain operator+(ParticleChain lhs, const ForceChain& rhs);
+auto operator+(ParticleChain lhs, const ForceChain& rhs) -> ParticleChain;
 /** @copydoc operator+(ParticleChain, const ForceChain&) */
-ParticleChain operator+(const ForceChain& rhs, ParticleChain lhs);
+auto operator+(const ForceChain& rhs, ParticleChain lhs) -> ParticleChain;
 /** Free function operator for multiplying a ParticleChain by a scalar */
-ParticleChain operator*(ParticleChain lhs, const double& rhs);
+auto operator*(ParticleChain lhs, const double& rhs) -> ParticleChain;
 /** @copydoc operator*(ParticleChain, const double&) */
-ParticleChain operator*(const double& rhs, ParticleChain lhs);
+auto operator*(const double& rhs, ParticleChain lhs) -> ParticleChain;
 }  // namespace volcart::segmentation

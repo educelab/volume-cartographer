@@ -14,7 +14,7 @@ using namespace volcart;
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 3) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 

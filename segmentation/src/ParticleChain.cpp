@@ -5,7 +5,7 @@
 using namespace volcart::segmentation;
 namespace vcs = volcart::segmentation;
 
-ParticleChain& ParticleChain::operator+=(const ForceChain& rhs)
+auto ParticleChain::operator+=(const ForceChain& rhs) -> ParticleChain&
 {
     if (data_.size() != rhs.size()) {
         throw std::domain_error("Vector sizes don't match");
@@ -18,7 +18,7 @@ ParticleChain& ParticleChain::operator+=(const ForceChain& rhs)
     return *this;
 }
 
-ParticleChain& ParticleChain::operator*=(const double& rhs)
+auto ParticleChain::operator*=(const double& rhs) -> ParticleChain&
 {
     std::for_each(
         std::begin(data_), std::end(data_), [rhs](Particle& p) { p *= rhs; });
@@ -26,22 +26,22 @@ ParticleChain& ParticleChain::operator*=(const double& rhs)
     return *this;
 }
 
-ParticleChain vcs::operator+(ParticleChain lhs, const ForceChain& rhs)
+auto vcs::operator+(ParticleChain lhs, const ForceChain& rhs) -> ParticleChain
 {
     return lhs += rhs;
 }
 
-ParticleChain vcs::operator+(const ForceChain& rhs, ParticleChain lhs)
+auto vcs::operator+(const ForceChain& rhs, ParticleChain lhs) -> ParticleChain
 {
     return lhs += rhs;
 }
 
-ParticleChain vcs::operator*(ParticleChain lhs, const double& rhs)
+auto vcs::operator*(ParticleChain lhs, const double& rhs) -> ParticleChain
 {
     return lhs *= rhs;
 }
 
-ParticleChain vcs::operator*(const double& rhs, ParticleChain lhs)
+auto vcs::operator*(const double& rhs, ParticleChain lhs) -> ParticleChain
 {
     return lhs *= rhs;
 }

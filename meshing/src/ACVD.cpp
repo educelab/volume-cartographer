@@ -33,9 +33,9 @@ void ACVD::setQuadricsOptimizationLevel(std::size_t l)
     quadricsOptLevel_ = l;
 }
 
-ITKMesh::Pointer ACVD::getOutputMesh() const { return outputMesh_; }
+auto ACVD::getOutputMesh() const -> ITKMesh::Pointer { return outputMesh_; }
 
-ITKMesh::Pointer ACVD::compute()
+auto ACVD::compute() -> ITKMesh::Pointer
 {
     Logger()->info(
         "ACVD: Input: {} verts, {} faces", inputMesh_->GetNumberOfPoints(),

@@ -98,7 +98,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << helpOpts << std::endl;
+        std::cout << helpOpts << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -106,7 +106,7 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -129,7 +129,7 @@ auto main(int argc, char* argv[]) -> int
         if (parsed.count("material-thickness") == 0) {
             std::cerr << "ERROR: Making a new volume package but did not "
                          "provide the material thickness."
-                      << std::endl;
+                      << '\n';
             return EXIT_FAILURE;
         }
         volpkg = vc::VolumePkg::New(volpkgPath, vc::VOLPKG_VERSION_LATEST);
@@ -171,7 +171,7 @@ auto main(int argc, char* argv[]) -> int
     AddVolume(volpkg, info);
 }
 
-VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
+auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
 {
     VolumeInfo info;
 
@@ -217,7 +217,8 @@ VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
 
     // Volume Name
     if (parsed.count("volume-name") == 0) {
-        std::cerr << "ERROR: --volume-name required when creating a new volume." << std::endl;
+        std::cerr << "ERROR: --volume-name required when creating a new volume."
+                  << '\n';
         exit(EXIT_FAILURE);
     }
     info.name = parsed["volume-name"].as<std::string>();
@@ -225,7 +226,9 @@ VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
     // Get voxel size
     if (!voxelFound) {
         if (parsed.count("voxel-size-um") == 0) {
-            std::cerr << "ERROR: --voxel-size-um required when creating a new volume." << std::endl;
+            std::cerr
+                << "ERROR: --voxel-size-um required when creating a new volume."
+                << '\n';
             exit(EXIT_FAILURE);
         }
         info.voxelsize = parsed["voxel-size-um"].as<double>();

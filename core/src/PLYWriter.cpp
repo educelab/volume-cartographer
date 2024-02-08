@@ -63,36 +63,35 @@ auto PLYWriter::write_header_() -> int
         return EXIT_FAILURE;
     }
 
-    outputMesh_ << "ply" << std::endl;
-    outputMesh_ << "format ascii 1.0" << std::endl;
-    outputMesh_ << "comment VC PLY Exporter v1.0" << std::endl;
+    outputMesh_ << "ply" << '\n';
+    outputMesh_ << "format ascii 1.0" << '\n';
+    outputMesh_ << "comment VC PLY Exporter v1.0" << '\n';
 
     // Vertex Info for Header
-    outputMesh_ << "element vertex " << mesh_->GetNumberOfPoints() << std::endl;
-    outputMesh_ << "property float x" << std::endl;
-    outputMesh_ << "property float y" << std::endl;
-    outputMesh_ << "property float z" << std::endl;
-    outputMesh_ << "property float nx" << std::endl;
-    outputMesh_ << "property float ny" << std::endl;
-    outputMesh_ << "property float nz" << std::endl;
+    outputMesh_ << "element vertex " << mesh_->GetNumberOfPoints() << '\n';
+    outputMesh_ << "property float x" << '\n';
+    outputMesh_ << "property float y" << '\n';
+    outputMesh_ << "property float z" << '\n';
+    outputMesh_ << "property float nx" << '\n';
+    outputMesh_ << "property float ny" << '\n';
+    outputMesh_ << "property float nz" << '\n';
 
     // Color info for vertices
     if ((not texture_.empty() and uvMap_ and not uvMap_->empty()) or
         not vcolors_.empty()) {
-        outputMesh_ << "property uchar red" << std::endl;
-        outputMesh_ << "property uchar green" << std::endl;
-        outputMesh_ << "property uchar blue" << std::endl;
+        outputMesh_ << "property uchar red" << '\n';
+        outputMesh_ << "property uchar green" << '\n';
+        outputMesh_ << "property uchar blue" << '\n';
     }
 
     // Face Info for Header
     if (mesh_->GetNumberOfCells() != 0) {
-        outputMesh_ << "element face " << mesh_->GetNumberOfCells()
-                    << std::endl;
-        outputMesh_ << "property list uchar int vertex_indices" << std::endl;
+        outputMesh_ << "element face " << mesh_->GetNumberOfCells() << '\n';
+        outputMesh_ << "property list uchar int vertex_indices" << '\n';
     }
 
     // End header
-    outputMesh_ << "end_header" << std::endl;
+    outputMesh_ << "end_header" << '\n';
 
     return EXIT_SUCCESS;
 }
@@ -136,7 +135,7 @@ auto PLYWriter::write_vertices_() -> int
             outputMesh_ << " " << i << " " << i << " " << i;
         }
 
-        outputMesh_ << std::endl;
+        outputMesh_ << '\n';
     }
 
     return EXIT_SUCCESS;
@@ -161,7 +160,7 @@ auto PLYWriter::write_faces_() -> int
              point != cell.Value()->PointIdsEnd(); ++point) {
             outputMesh_ << " " << *point;
         }
-        outputMesh_ << std::endl;
+        outputMesh_ << '\n';
     }
 
     return EXIT_SUCCESS;

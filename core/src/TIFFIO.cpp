@@ -107,7 +107,7 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
             std::memcpy(img.ptr(row), &buffer[0], bufferSize);
         }
     } else if (config == PLANARCONFIG_SEPARATE) {
-        std::runtime_error(
+        throw std::runtime_error(
             "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
     }
 

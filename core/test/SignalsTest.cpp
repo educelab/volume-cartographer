@@ -24,7 +24,7 @@ static void freeFnIntPtrSlot(int* i) { freeFnIntRefSlot(*i); }
 
 [[noreturn]] static void freeFnExit()
 {
-    std::cerr << "Success" << std::endl;
+    std::cerr << "Success" << '\n';
     std::exit(0);
 }
 
@@ -36,7 +36,7 @@ struct Receiver {
     void floatSlot(float f) { floatVal = f; }
     [[noreturn]] void exitSlot()
     {
-        std::cerr << "Success" << std::endl;
+        std::cerr << "Success" << '\n';
         std::exit(intVal);
     }
 

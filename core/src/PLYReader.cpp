@@ -10,7 +10,7 @@ using namespace volcart;
 using namespace volcart::io;
 namespace fs = volcart::filesystem;
 
-ITKMesh::Pointer PLYReader::read()
+auto PLYReader::read() -> ITKMesh::Pointer
 {
     if (inputPath_.empty() || !fs::exists(inputPath_)) {
         auto msg = "File not provided or does not exist.";

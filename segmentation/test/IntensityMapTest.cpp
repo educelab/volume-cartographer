@@ -20,8 +20,9 @@ static const double perc = 0.01;  // %
 static const std::size_t WIDTH = 32;
 static const std::size_t HEIGHT = 32;
 
-cv::Mat_<std::uint16_t> makeLinearIntensityProfile(
-    const std::vector<std::pair<std::size_t, std::uint16_t>> maxima);
+auto makeLinearIntensityProfile(
+    const std::vector<std::pair<std::size_t, std::uint16_t>> maxima)
+    -> cv::Mat_<std::uint16_t>;
 
 // Fixture to generate a reslice
 class ResliceFixture : public ::testing::Test

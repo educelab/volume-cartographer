@@ -32,7 +32,7 @@ void Metadata::save(const fs::path& path)
     std::ofstream jsonFile(path.string(), std::ofstream::out);
 
     // try to push into the json file
-    jsonFile << json_ << std::endl;
+    jsonFile << json_ << '\n';
     if (jsonFile.fail()) {
         auto msg = "could not write json file '" + path.string() + "'";
         throw std::ifstream::failure(msg);

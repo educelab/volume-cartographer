@@ -20,7 +20,7 @@ namespace vc = volcart;
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     // Add CLI arguments
     // clang-format off
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 

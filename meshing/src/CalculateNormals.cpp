@@ -15,7 +15,7 @@ CalculateNormals::CalculateNormals(const ITKMesh::Pointer& mesh)
 void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh) { input_ = mesh; }
 
 ///// Processing /////
-ITKMesh::Pointer CalculateNormals::compute()
+auto CalculateNormals::compute() -> ITKMesh::Pointer
 {
     output_ = ITKMesh::New();
     DeepCopy(input_, output_);

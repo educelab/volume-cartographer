@@ -8,7 +8,7 @@ using namespace volcart::texturing;
 
 namespace mm = volcart::meshmath;
 
-UVMap::Pointer FlatteningAlgorithm::getUVMap()
+auto FlatteningAlgorithm::getUVMap() -> UVMap::Pointer
 {
     // Setup uvMap
     auto uvMap = UVMap::New();

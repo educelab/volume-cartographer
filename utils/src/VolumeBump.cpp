@@ -31,7 +31,7 @@ std::size_t g_numSliceChars;
 
 void WriteBumpedSlice(const cv::Mat& slice, int index);
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // clang-format off
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 11) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 

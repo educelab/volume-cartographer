@@ -9,18 +9,20 @@ using namespace volcart;
 /** @enum Axis labels */
 enum class Axis { X, Y };
 
-StructureTensor Tensorize(cv::Vec3d gradient);
-Tensor3D<cv::Vec3d> VolumeGradient(const Tensor3D<double>& v, int kernelSize);
-cv::Mat_<double> Gradient(const cv::Mat_<double>& input, Axis axis, int ksize);
-std::unique_ptr<double[]> MakeUniformGaussianField(int radius);
+auto Tensorize(cv::Vec3d gradient) -> StructureTensor;
+auto VolumeGradient(const Tensor3D<double>& v, int kernelSize)
+    -> Tensor3D<cv::Vec3d>;
+auto Gradient(const cv::Mat_<double>& input, Axis axis, int ksize)
+    -> cv::Mat_<double>;
+auto MakeUniformGaussianField(int radius) -> std::unique_ptr<double[]>;
 
-StructureTensor volcart::ComputeVoxelStructureTensor(
+auto volcart::ComputeVoxelStructureTensor(
     const Volume::Pointer& volume,
     int vx,
     int vy,
     int vz,
     int radius,
-    int kernelSize)
+    int kernelSize) -> StructureTensor
 {
     if (kernelSize < 3) {
         throw std::invalid_argument("gradient kernel size must be at least 3");
@@ -55,23 +57,23 @@ StructureTensor volcart::ComputeVoxelStructureTensor(
     return StructureTensor{matSum};
 }
 
-StructureTensor volcart::ComputeVoxelStructureTensor(
+auto volcart::ComputeVoxelStructureTensor(
     const Volume::Pointer& volume,
     const cv::Vec3i& index,
     int radius,
-    int kernelSize)
+    int kernelSize) -> StructureTensor
 {
     return ComputeVoxelStructureTensor(
         volume, index(0), index(1), index(2), radius, kernelSize);
 }
 
-StructureTensor volcart::ComputeSubvoxelStructureTensor(
+auto volcart::ComputeSubvoxelStructureTensor(
     const Volume::Pointer& volume,
     double vx,
     double vy,
     double vz,
     int radius,
-    int kernelSize)
+    int kernelSize) -> StructureTensor
 {
     if (kernelSize < 3) {
         throw std::invalid_argument("gradient kernel size must be at least 3");
@@ -101,23 +103,23 @@ StructureTensor volcart::ComputeSubvoxelStructureTensor(
     return StructureTensor{matSum};
 }
 
-StructureTensor volcart::ComputeSubvoxelStructureTensor(
+auto volcart::ComputeSubvoxelStructureTensor(
     const Volume::Pointer& volume,
     const cv::Vec3d& index,
     int radius,
-    int kernelSize)
+    int kernelSize) -> StructureTensor
 {
     return ComputeSubvoxelStructureTensor(
         volume, index(0), index(1), index(2), radius, kernelSize);
 }
 
-EigenPairs volcart::ComputeVoxelEigenPairs(
+auto volcart::ComputeVoxelEigenPairs(
     const Volume::Pointer& volume,
     int x,
     int y,
     int z,
     int radius,
-    int kernelSize)
+    int kernelSize) -> EigenPairs
 {
     auto st = ComputeVoxelStructureTensor(volume, x, y, z, radius, kernelSize);
     cv::Vec3d eigenValues;
@@ -136,23 +138,23 @@ EigenPairs volcart::ComputeVoxelEigenPairs(
     };
 }
 
-EigenPairs volcart::ComputeVoxelEigenPairs(
+auto volcart::ComputeVoxelEigenPairs(
     const Volume::Pointer& volume,
     const cv::Vec3i& index,
     int radius,
-    int kernelSize)
+    int kernelSize) -> EigenPairs
 {
     return ComputeVoxelEigenPairs(
         volume, index(0), index(1), index(2), radius, kernelSize);
 }
 
-EigenPairs volcart::ComputeSubvoxelEigenPairs(
+auto volcart::ComputeSubvoxelEigenPairs(
     const Volume::Pointer& volume,
     double x,
     double y,
     double z,
     int radius,
-    int kernelSize)
+    int kernelSize) -> EigenPairs
 {
     auto st =
         ComputeSubvoxelStructureTensor(volume, x, y, z, radius, kernelSize);
@@ -172,17 +174,17 @@ EigenPairs volcart::ComputeSubvoxelEigenPairs(
     };
 }
 
-EigenPairs volcart::ComputeSubvoxelEigenPairs(
+auto volcart::ComputeSubvoxelEigenPairs(
     const Volume::Pointer& volume,
     const cv::Vec3d& index,
     int radius,
-    int kernelSize)
+    int kernelSize) -> EigenPairs
 {
     return ComputeSubvoxelEigenPairs(
         volume, index(0), index(1), index(2), radius, kernelSize);
 }
 
-StructureTensor Tensorize(cv::Vec3d gradient)
+auto Tensorize(cv::Vec3d gradient) -> StructureTensor
 {
     double ix = gradient(0);
     double iy = gradient(1);
@@ -194,7 +196,8 @@ StructureTensor Tensorize(cv::Vec3d gradient)
     // clang-format on
 }
 
-Tensor3D<cv::Vec3d> VolumeGradient(const Tensor3D<double>& v, int kernelSize)
+auto VolumeGradient(const Tensor3D<double>& v, int kernelSize)
+    -> Tensor3D<cv::Vec3d>
 {
     // Limitation of OpenCV: Kernel size must be 1, 3, 5, or 7
     assert(
@@ -232,7 +235,8 @@ Tensor3D<cv::Vec3d> VolumeGradient(const Tensor3D<double>& v, int kernelSize)
 // Helper function to calculate gradient using best choice for given kernel
 // size. If the kernel size is 3, uses the Scharr() operator to calculate the
 // gradient which is more accurate than 3x3 Sobel operator
-cv::Mat_<double> Gradient(const cv::Mat_<double>& input, Axis axis, int ksize)
+auto Gradient(const cv::Mat_<double>& input, Axis axis, int ksize)
+    -> cv::Mat_<double>
 {
     // OpenCV params for gradients
     // XXX Revisit this and see if changing these makes a big difference
@@ -268,7 +272,7 @@ cv::Mat_<double> Gradient(const cv::Mat_<double>& input, Axis axis, int ksize)
     return grad;
 }
 
-std::unique_ptr<double[]> MakeUniformGaussianField(int radius)
+auto MakeUniformGaussianField(int radius) -> std::unique_ptr<double[]>
 {
     auto sideLength = 2 * static_cast<std::size_t>(radius) + 1;
     auto fieldSize = sideLength * sideLength * sideLength;

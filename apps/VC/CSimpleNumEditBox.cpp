@@ -32,7 +32,7 @@ CSimpleNumEditBox::CSimpleNumEditBox(QWidget* parent)
 CSimpleNumEditBox::~CSimpleNumEditBox(void) {}
 
 // Get slice index from text
-int CSimpleNumEditBox::GetImageIndexFromText(void)
+auto CSimpleNumEditBox::GetImageIndexFromText(void) -> int
 {
     int aResult;
     bool aIsOk = false;  // invalid
@@ -45,7 +45,7 @@ int CSimpleNumEditBox::GetImageIndexFromText(void)
 }
 
 // Get slice index
-int CSimpleNumEditBox::GetImageIndex(void) { return fImageIndex; }
+auto CSimpleNumEditBox::GetImageIndex(void) -> int { return fImageIndex; }
 
 // Set slice index
 void CSimpleNumEditBox::SetImageIndex(int nImageIndex)

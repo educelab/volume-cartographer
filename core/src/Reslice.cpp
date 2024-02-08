@@ -6,7 +6,7 @@
 
 using namespace volcart;
 
-cv::Mat Reslice::draw() const
+auto Reslice::draw() const -> cv::Mat
 {
     auto debug = sliceData_.clone();
 

@@ -14,12 +14,12 @@
 namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
     if (argc < 5) {
         std::cout << "Usage: vc_invert_cloud [volpkg] [volume-id] [input].vcps "
                      "[output].vcps"
-                  << std::endl;
+                  << '\n';
         std::exit(-1);
     }
 
@@ -30,11 +30,11 @@ int main(int argc, char** argv)
 
     if (vpkg.version() != 5) {
         std::cerr << "ERROR: Volume package is version " << vpkg.version()
-                  << " but this program requires a version >= 5" << std::endl;
+                  << " but this program requires a version >= 5" << '\n';
         std::exit(EXIT_FAILURE);
     }
 
-    std::cout << inputPath << std::endl;
+    std::cout << inputPath << '\n';
 
     // Load the cloud
     auto input = vc::PointSetIO<cv::Vec3d>::ReadOrderedPointSet(inputPath);

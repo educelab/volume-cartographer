@@ -110,18 +110,18 @@ public:
     }
 
     /** @brief Get the number of dimensions of the array */
-    std::size_t dims() const { return dim_; }
+    auto dims() const -> std::size_t { return dim_; }
 
     /** @brief Get the extent (size) of the array's dimensions */
-    Extent extents() const { return extents_; }
+    auto extents() const -> Extent { return extents_; }
 
     /** @brief Get the total number of elements in the array */
-    std::size_t size() const { return data_.size(); }
+    auto size() const -> std::size_t { return data_.size(); }
     /**@}*/
 
     /**@{*/
     /** @brief Per-element access */
-    T& operator()(Index index)
+    auto operator()(Index index) -> T&
     {
 
         if (index.size() != dim_) {
@@ -131,7 +131,7 @@ public:
     }
 
     /** @overload T& operator()(Index index) */
-    const T& operator()(Index index) const
+    auto operator()(Index index) const -> const T&
     {
         if (index.size() != dim_) {
             throw std::invalid_argument("Index of wrong dimension");
@@ -141,20 +141,20 @@ public:
 
     /** @overload T& operator()(Index index) */
     template <typename... Is>
-    T& operator()(Is... indices)
+    auto operator()(Is... indices) -> T&
     {
         return operator()(Index{static_cast<IndexType>(indices)...});
     }
 
     /** @overload T& operator()(Index index) */
     template <typename... Is>
-    const T& operator()(Is... indices) const
+    auto operator()(Is... indices) const -> const T&
     {
         return operator()(Index{static_cast<IndexType>(indices)...});
     }
 
     /** @brief Get slice of array by dropping highest dimension */
-    NDArray slice(IndexType index)
+    auto slice(IndexType index) -> NDArray
     {
         auto offset = std::accumulate(
             std::next(extents_.begin(), 1), extents_.end(), IndexType(1),
@@ -171,45 +171,48 @@ public:
 
     /**@{*/
     /** @brief Return copy of raw data */
-    Container as_vector() { return data_; }
+    auto as_vector() -> Container { return data_; }
 
     /** @overload as_vector() */
-    Container as_vector() const { return data_; }
+    auto as_vector() const -> Container { return data_; }
 
     /** @brief Get a pointer to the start of the underlying data */
-    typename Container::value_type* data() { return data_.data(); }
+    auto data() -> typename Container::value_type* { return data_.data(); }
 
     /** @overload data() */
-    typename Container::value_type* data() const { return data_.data(); }
+    auto data() const -> typename Container::value_type*
+    {
+        return data_.data();
+    }
 
     /**
      * @brief Return an iterator that points to the first element in the array
      */
-    iterator begin() { return std::begin(data_); }
+    auto begin() -> iterator { return std::begin(data_); }
 
     /** @copydoc begin() */
-    const_iterator begin() const { return std::begin(data_); }
+    auto begin() const -> const_iterator { return std::begin(data_); }
 
     /**
      * @brief Return an iterator that points to the \em past-the-end element
      * in the array
      */
-    iterator end() { return std::end(data_); }
+    auto end() -> iterator { return std::end(data_); }
 
     /** @copydoc end() */
-    const_iterator end() const { return std::end(data_); }
+    auto end() const -> const_iterator { return std::end(data_); }
 
     /** @brief Return a reference to the first element in the array */
-    T& front() { return data_.front(); }
+    auto front() -> T& { return data_.front(); }
 
     /** @copydoc front() */
-    const T& front() const { return data_.front(); }
+    auto front() const -> const T& { return data_.front(); }
 
     /** @brief Return a reference to the last element in the array */
-    T& back() { return data_.back(); }
+    auto back() -> T& { return data_.back(); }
 
     /** @copydoc back() */
-    const T& back() const { return data_.back(); }
+    auto back() const -> const T& { return data_.back(); }
     /**@}*/
 
     /**
@@ -262,7 +265,7 @@ private:
     }
 
     /** Convert item index to data index */
-    inline IndexType index_to_data_index_(Index i) const
+    inline auto index_to_data_index_(Index i) const -> IndexType
     {
         IndexType idx{0};
         for (std::size_t it = 0; it < extents_.size(); it++) {

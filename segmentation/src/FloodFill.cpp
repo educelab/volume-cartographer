@@ -20,7 +20,7 @@ struct VoxelPair {
     Voxel parent;
 };
 
-std::vector<cv::Vec3i> vcs::GetNeighbors(const cv::Vec3i& v)
+auto vcs::GetNeighbors(const cv::Vec3i& v) -> std::vector<cv::Vec3i>
 {
     return {{v[0] - 1, v[1] - 1, v[2]}, {v[0], v[1] - 1, v[2]},
             {v[0] + 1, v[1] - 1, v[2]}, {v[0] - 1, v[1], v[2]},
@@ -28,18 +28,18 @@ std::vector<cv::Vec3i> vcs::GetNeighbors(const cv::Vec3i& v)
             {v[0], v[1] + 1, v[2]},     {v[0] + 1, v[1] + 1, v[2]}};
 }
 
-int vcs::EuclideanDistance(const cv::Vec3i& start, const cv::Vec3i& end)
+auto vcs::EuclideanDistance(const cv::Vec3i& start, const cv::Vec3i& end) -> int
 {
     return static_cast<int>(cv::norm(end - start));
 }
 
-std::size_t vcs::MeasureThickness(
+auto vcs::MeasureThickness(
     const cv::Vec3i& seed,
     const cv::Mat& slice,
     std::uint16_t low,
     std::uint16_t high,
     bool measureVert,
-    std::size_t maxRadius)
+    std::size_t maxRadius) -> std::size_t
 {
     int xPos{seed[0]};
     int xNeg{seed[0]};
@@ -90,12 +90,12 @@ std::size_t vcs::MeasureThickness(
     return length;
 }
 
-VoxelList vcs::DoFloodFill(
+auto vcs::DoFloodFill(
     const VoxelList& pts,
     int bound,
     cv::Mat img,
     std::uint16_t low,
-    std::uint16_t high)
+    std::uint16_t high) -> VoxelList
 {
     std::queue<VoxelPair> q;
     VoxelList mask;

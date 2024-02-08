@@ -22,7 +22,8 @@ void ScaleMesh(
     }
 }
 
-ITKMesh::Pointer ScaleMesh(const ITKMesh::Pointer& input, double scaleFactor)
+auto ScaleMesh(const ITKMesh::Pointer& input, double scaleFactor)
+    -> ITKMesh::Pointer
 {
     auto output = ITKMesh::New();
     ScaleMesh(input, output, scaleFactor);

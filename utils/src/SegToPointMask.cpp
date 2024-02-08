@@ -20,7 +20,7 @@ namespace vcs = volcart::segmentation;
 void WriteMaskImage(
     int idx, std::size_t pad, const fs::path& dir, const cv::Mat& img);
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
         std::cerr << "Cannot load volume. ";
         std::cerr << "Please check that the Volume Package has volumes and "
                      "that the volume ID is correct."
-                  << std::endl;
-        std::cerr << e.what() << std::endl;
+                  << '\n';
+        std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
 

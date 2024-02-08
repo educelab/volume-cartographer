@@ -14,7 +14,7 @@ auto IntersectionTexture::New() -> Pointer
     return std::make_shared<IntersectionTexture>();
 }
 
-Texture IntersectionTexture::compute()
+auto IntersectionTexture::compute() -> Texture
 {
     // Setup
     result_.clear();

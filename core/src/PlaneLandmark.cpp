@@ -19,17 +19,17 @@ PlaneLandmark::PlaneLandmark(
     update_meta_();
 }
 
-PlaneLandmark::Pointer PlaneLandmark::New(
-    const Identifier& uuid, const std::string& name)
+auto PlaneLandmark::New(const Identifier& uuid, const std::string& name)
+    -> PlaneLandmark::Pointer
 {
     return std::make_shared<PlaneLandmark>(uuid, name);
 }
 
-PlaneLandmark::Pointer PlaneLandmark::New(
+auto PlaneLandmark::New(
     const Identifier& uuid,
     const std::string& name,
     const Point& center,
-    const Point& normal)
+    const Point& normal) -> PlaneLandmark::Pointer
 {
     return std::make_shared<PlaneLandmark>(uuid, name, center, normal);
 }
@@ -62,9 +62,15 @@ void PlaneLandmark::setNormal(const Point& values)
     update_meta_();
 }
 
-PlaneLandmark::Point PlaneLandmark::getCenter() const { return center_; }
+auto PlaneLandmark::getCenter() const -> PlaneLandmark::Point
+{
+    return center_;
+}
 
-PlaneLandmark::Point PlaneLandmark::getNormal() const { return normal_; }
+auto PlaneLandmark::getNormal() const -> PlaneLandmark::Point
+{
+    return normal_;
+}
 
 void PlaneLandmark::update_meta_()
 {

@@ -6,7 +6,7 @@
 
 using namespace volcart::meshing;
 
-volcart::ITKMesh::Pointer OrderedPointSetMesher::compute()
+auto OrderedPointSetMesher::compute() -> volcart::ITKMesh::Pointer
 {
     // Verify before computation
     if (input_.empty()) {

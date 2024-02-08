@@ -12,13 +12,13 @@ using namespace volcart;
 using namespace texturing;
 namespace vcm = volcart::meshing;
 
-OrthographicProjectionFlattening::Pointer
-OrthographicProjectionFlattening::New()
+auto OrthographicProjectionFlattening::New()
+    -> OrthographicProjectionFlattening::Pointer
 {
     return std::make_shared<OrthographicProjectionFlattening>();
 }
 
-ITKMesh::Pointer OrthographicProjectionFlattening::compute()
+auto OrthographicProjectionFlattening::compute() -> ITKMesh::Pointer
 {
     // Setup output
     output_ = ITKMesh::New();
