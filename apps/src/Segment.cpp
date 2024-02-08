@@ -133,7 +133,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Display help
     if (argc == 1 || parsed.count("help")) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         std::exit(1);
     }
 
@@ -145,7 +145,7 @@ auto main(int argc, char* argv[]) -> int
     // Check mutually exclusive arguments
     if (parsed.count("end-index") && parsed.count("stride")) {
         std::cerr << "[error]: 'end-index' and 'stride' are mutually exclusive"
-                  << std::endl;
+                  << '\n';
         std::exit(1);
     }
 
@@ -153,7 +153,7 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "[error]: " << e.what() << std::endl;
+        std::cerr << "[error]: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -168,7 +168,7 @@ auto main(int argc, char* argv[]) -> int
     } else {
         std::cerr
             << "[error]: Unknown algorithm type. Must be one of ['LRPS', 'TFF']"
-            << std::endl;
+            << '\n';
         std::exit(1);
     }
 
@@ -194,8 +194,8 @@ auto main(int argc, char* argv[]) -> int
         seg = vpkg.segmentation(segID);
     } catch (const std::exception& e) {
         std::cerr << "Cannot load segmentation. ";
-        std::cerr << "Please check the provided ID: " << segID << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cerr << "Please check the provided ID: " << segID << '\n';
+        std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -219,8 +219,8 @@ auto main(int argc, char* argv[]) -> int
         std::cerr << "Cannot load volume. ";
         std::cerr << "Please check that the Volume Package has volumes and "
                      "that the volume ID is correct. "
-                  << volID << std::endl;
-        std::cerr << e.what() << std::endl;
+                  << volID << '\n';
+        std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
 

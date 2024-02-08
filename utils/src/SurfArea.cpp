@@ -16,7 +16,7 @@
 auto main(int argc, char** argv) -> int
 {
     if (argc < 3) {
-        std::cout << "Usage: vc_area volpkg seg-id" << std::endl;
+        std::cout << "Usage: vc_area volpkg seg-id" << '\n';
         exit(-1);
     }
 

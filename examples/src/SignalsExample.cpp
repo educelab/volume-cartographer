@@ -3,15 +3,15 @@
 
 #include "vc/core/util/Signals.hpp"
 
-inline void NoParameter() { std::cout << "Hello, World!" << std::endl; }
+inline void NoParameter() { std::cout << "Hello, World!" << '\n'; }
 
-inline void SingleParameter(int i) { std::cout << i << std::endl; }
+inline void SingleParameter(int i) { std::cout << i << '\n'; }
 
-inline void FloatParameter(float f) { std::cout << f << std::endl; }
+inline void FloatParameter(float f) { std::cout << f << '\n'; }
 
 inline void MultiParameter(int i, float f, const std::string& s)
 {
-    std::cout << i << " " << f << " " << s << std::endl;
+    std::cout << i << " " << f << " " << s << '\n';
 }
 
 using namespace volcart;

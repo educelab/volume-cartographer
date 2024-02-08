@@ -37,7 +37,7 @@ auto main(int argc, char** argv) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -45,7 +45,7 @@ auto main(int argc, char** argv) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -56,7 +56,7 @@ auto main(int argc, char** argv) -> int
         useABF = false;
     } else if (method != "abf") {
         std::cerr << "ERROR: Unknown flattening method: " << method;
-        std::cerr << std::endl;
+        std::cerr << '\n';
         return EXIT_FAILURE;
     }
 

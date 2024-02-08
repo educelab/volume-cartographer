@@ -25,14 +25,14 @@ void vio::WriteUVMap(const fs::path& path, const UVMap& uvMap)
 
     // Header
     std::stringstream ss;
-    ss << "filetype: uvmap" << std::endl;
-    ss << "version: 1" << std::endl;
-    ss << "type: per-vertex" << std::endl;
-    ss << "size: " << uvMap.size() << std::endl;
-    ss << "width: " << uvMap.ratio().width << std::endl;
-    ss << "height: " << uvMap.ratio().height << std::endl;
-    ss << "origin: " << static_cast<int>(uvMap.origin()) << std::endl;
-    ss << "<>" << std::endl;
+    ss << "filetype: uvmap" << '\n';
+    ss << "version: 1" << '\n';
+    ss << "type: per-vertex" << '\n';
+    ss << "size: " << uvMap.size() << '\n';
+    ss << "width: " << uvMap.ratio().width << '\n';
+    ss << "height: " << uvMap.ratio().height << '\n';
+    ss << "origin: " << static_cast<int>(uvMap.origin()) << '\n';
+    ss << "<>" << '\n';
     outfile << ss.rdbuf();
 
     // Write the mappings

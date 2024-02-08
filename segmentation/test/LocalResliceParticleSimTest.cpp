@@ -113,7 +113,7 @@ TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
     auto maxAllowedDiffCount =
         std::size_t(std::round(0.1 * groundTruthCloud.size()));
     std::cout << "# different points: " << diffCount
-              << " (max allowed: " << maxAllowedDiffCount << ")" << std::endl;
+              << " (max allowed: " << maxAllowedDiffCount << ")" << '\n';
     EXPECT_TRUE(diffCount < maxAllowedDiffCount);
 }
 

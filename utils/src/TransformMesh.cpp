@@ -56,7 +56,7 @@ auto main(int argc, char** argv) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -64,7 +64,7 @@ auto main(int argc, char** argv) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 

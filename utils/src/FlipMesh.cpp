@@ -47,7 +47,7 @@ auto main(int argc, char** argv) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -55,7 +55,7 @@ auto main(int argc, char** argv) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -84,8 +84,8 @@ auto main(int argc, char** argv) -> int
         std::cerr << "Cannot load volume. ";
         std::cerr << "Please check that the Volume Package has volumes and "
                      "that the volume ID is correct."
-                  << std::endl;
-        std::cerr << e.what() << std::endl;
+                  << '\n';
+        std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
 

@@ -45,7 +45,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -157,14 +157,14 @@ auto main(int argc, char* argv[]) -> int
     if (not file.is_open()) {
         throw std::runtime_error("Couldn't open output file");
     }
-    file << "class,count,mean,var,std_dev,median" << std::endl;
+    file << "class,count,mean,var,std_dev,median" << '\n';
     for (const auto it : vc::enumerate(metrics)) {
         file << classNames[it.first] << ',';
         file << static_cast<std::size_t>(it.second.at("count")) << ',';
         file << it.second.at("mean") << ',';
         file << it.second.at("var") << ',';
         file << it.second.at("std_dev") << ',';
-        file << it.second.at("median") << std::endl;
+        file << it.second.at("median") << '\n';
     }
     file.close();
 }
