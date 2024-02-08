@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 
 #include "vc/core/util/FloatComparison.hpp"
 #include "vc/core/util/Iteration.hpp"
@@ -52,9 +53,10 @@ auto FilterMedianMean(Neighborhood n, double range) -> std::uint16_t
     std::sort(n.begin(), n.end());
 
     // The number of things we're going to sum
-    auto count = static_cast<size_t>(std::ceil(n.size() * range));
+    auto count = static_cast<std::size_t>(std::ceil(n.size() * range));
     // The number of things before we start summing
-    auto offset = static_cast<size_t>(std::floor((n.size() - count) / 2.0));
+    auto offset =
+        static_cast<std::size_t>(std::floor((n.size() - count) / 2.0));
 
     // Sum
     auto sum = std::accumulate(

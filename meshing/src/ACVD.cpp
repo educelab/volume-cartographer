@@ -22,13 +22,16 @@ void ACVD::setInputMesh(ITKMesh::Pointer input)
 
 void ACVD::setMode(Mode m) { mode_ = m; }
 
-void ACVD::setNumberOfClusters(size_t n) { clusters_ = n; }
+void ACVD::setNumberOfClusters(std::size_t n) { clusters_ = n; }
 
 void ACVD::setGradation(double g) { gradation_ = g; }
 
-void ACVD::setSubsampleThreshold(size_t t) { subsampleThreshold_ = t; }
+void ACVD::setSubsampleThreshold(std::size_t t) { subsampleThreshold_ = t; }
 
-void ACVD::setQuadricsOptimizationLevel(size_t l) { quadricsOptLevel_ = l; }
+void ACVD::setQuadricsOptimizationLevel(std::size_t l)
+{
+    quadricsOptLevel_ = l;
+}
 
 ITKMesh::Pointer ACVD::getOutputMesh() const { return outputMesh_; }
 

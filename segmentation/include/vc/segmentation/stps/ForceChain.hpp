@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -44,10 +45,10 @@ public:
     ForceChain& operator*=(const double& rhs);
 
     /** @brief Element access operator */
-    auto operator[](size_t i) { return data_[i]; }
+    auto operator[](std::size_t i) { return data_[i]; }
 
-    /** @copydoc operator[](size_t) */
-    auto operator[](size_t i) const { return data_[i]; }
+    /** @copydoc operator[](std::size_t) */
+    auto operator[](std::size_t i) const { return data_[i]; }
 
     /** @brief Returns an iterator to the beginning of the chain */
     auto begin() { return data_.begin(); }
@@ -72,10 +73,10 @@ public:
     void push_back(const Force& val) { data_.push_back(val); }
 
     /** @brief Returns the number of elements in the chain */
-    size_t size() { return data_.size(); }
+    std::size_t size() { return data_.size(); }
 
     /** @copydoc size() */
-    size_t size() const { return data_.size(); }
+    std::size_t size() const { return data_.size(); }
 
     /** @brief Empties and resets the chain */
     void clear() { data_.clear(); }

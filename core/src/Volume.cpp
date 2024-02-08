@@ -70,7 +70,7 @@ void Volume::setSliceHeight(int h)
     metadata_.set("height", h);
 }
 
-void Volume::setNumberOfSlices(size_t numSlices)
+void Volume::setNumberOfSlices(std::size_t numSlices)
 {
     slices_ = numSlices;
     numSliceCharacters_ = std::to_string(numSlices).size();
@@ -129,7 +129,7 @@ void Volume::setSliceData(int index, const cv::Mat& slice, bool compress)
         (compress) ? tiffio::Compression::LZW : tiffio::Compression::NONE);
 }
 
-uint16_t Volume::intensityAt(int x, int y, int z) const
+std::uint16_t Volume::intensityAt(int x, int y, int z) const
 {
     // clang-format off
     if (x < 0 || x >= sliceWidth() ||
@@ -138,12 +138,12 @@ uint16_t Volume::intensityAt(int x, int y, int z) const
         return 0;
     }
     // clang-format on
-    return getSliceData(z).at<uint16_t>(y, x);
+    return getSliceData(z).at<std::uint16_t>(y, x);
 }
 
 // Trilinear Interpolation
 // From: https://en.wikipedia.org/wiki/Trilinear_interpolation
-uint16_t Volume::interpolateAt(double x, double y, double z) const
+std::uint16_t Volume::interpolateAt(double x, double y, double z) const
 {
     // insert safety net
     if (!isInBounds(x, y, z)) {
@@ -174,7 +174,7 @@ uint16_t Volume::interpolateAt(double x, double y, double z) const
     auto c1 = c01 * (1 - dy) + c11 * dy;
 
     auto c = c0 * (1 - dz) + c1 * dz;
-    return static_cast<uint16_t>(cvRound(c));
+    return static_cast<std::uint16_t>(cvRound(c));
 }
 
 Reslice Volume::reslice(
@@ -191,7 +191,7 @@ Reslice Volume::reslice(
     cv::Mat m(height, width, CV_16UC1);
     for (int h = 0; h < height; ++h) {
         for (int w = 0; w < width; ++w) {
-            m.at<uint16_t>(h, w) =
+            m.at<std::uint16_t>(h, w) =
                 interpolateAt(origin + (h * ynorm) + (w * xnorm));
         }
     }

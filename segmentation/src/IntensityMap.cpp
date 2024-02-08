@@ -19,7 +19,7 @@ IntensityMap::IntensityMap(
 {
     assert(r.rows > 2);
     // DEBUG - need to convert to 8 bit before we can do anything
-    r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<uint8_t>::max());
+    r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<std::uint8_t>::max());
     cv::equalizeHist(r, r);
     resliceData_ = r;
 

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <opencv2/core.hpp>
 
 #include "vc/core/math/Tensor3D.hpp"
@@ -140,14 +142,16 @@ template <typename DType>
 Tensor3D<DType> ComputeVoxelNeighbors(
     const Volume::Pointer& volume,
     const cv::Vec3i& center,
-    int32_t rx,
-    int32_t ry,
-    int32_t rz)
+    std::int32_t rx,
+    std::int32_t ry,
+    std::int32_t rz)
 {
     Tensor3D<DType> v(2 * rx + 1, 2 * ry + 1, 2 * rz + 1);
-    for (int32_t k = center(2) - rz, c = 0; k <= center(2) + rz; ++k, ++c) {
-        for (int32_t j = center(1) - ry, b = 0; j <= center(1) + ry; ++j, ++b) {
-            for (int32_t i = center(0) - rx, a = 0; i <= center(0) + rx;
+    for (std::int32_t k = center(2) - rz, c = 0; k <= center(2) + rz;
+         ++k, ++c) {
+        for (std::int32_t j = center(1) - ry, b = 0; j <= center(1) + ry;
+             ++j, ++b) {
+            for (std::int32_t i = center(0) - rx, a = 0; i <= center(0) + rx;
                  ++i, ++a) {
                 v(a, b, c) = DType(volume->intensityAt(i, j, k));
             }

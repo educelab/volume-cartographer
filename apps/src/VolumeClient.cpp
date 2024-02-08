@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 
@@ -41,7 +42,7 @@ void vc::VolumeClient::newConnection()
     client_->write(
         reinterpret_cast<char*>(&requestHdr), sizeof(protocol::RequestHdr));
     client_->flush();
-    for (uint32_t i = 0; i < requestHdr.numRequests; i++) {
+    for (std::uint32_t i = 0; i < requestHdr.numRequests; i++) {
         // Neighborhood should be 27 with these settings
         protocol::RequestArgs requestArgs;
         std::memset(&requestArgs, 0, sizeof(requestArgs));
@@ -68,7 +69,7 @@ void vc::VolumeClient::newConnection()
     while (client_->waitForReadyRead()) {
         dataStream->startTransaction();
         bool abort = false;
-        for (uint32_t i = 0; i < requestHdr.numRequests; i++) {
+        for (std::uint32_t i = 0; i < requestHdr.numRequests; i++) {
             int bytesArgs = dataStream->readRawData(
                 reinterpret_cast<char*>(&responseArgs[i]),
                 sizeof(protocol::ResponseArgs));
@@ -89,7 +90,7 @@ void vc::VolumeClient::newConnection()
             break;
         }
     }
-    for (uint32_t i = 0; i < requestHdr.numRequests; i++) {
+    for (std::uint32_t i = 0; i < requestHdr.numRequests; i++) {
         vc::Logger()->info("=== Response: #{} ===", i);
         vc::Logger()->info("Volume Package: {}", responseArgs[i].volpkg);
         vc::Logger()->info("Volume: {}", responseArgs[i].volume);

@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <vector>
 
 #include <Eigen/SparseCore>
@@ -32,7 +33,7 @@ public:
     using Subvolume = NDArray<State>;
 
     /** @brief Construct from Volume dimensions */
-    VolumeMask(size_t width, size_t height, size_t numSlices);
+    VolumeMask(std::size_t width, std::size_t height, std::size_t numSlices);
 
     /** @brief Set the segmentation state for a voxel */
     void setVoxelState(const cv::Vec3i& xyz, State state);
@@ -67,10 +68,10 @@ private:
     Eigen::SparseMatrix<int, Eigen::RowMajor> states_;
 
     /** Slice width */
-    size_t sliceWidth_;
+    std::size_t sliceWidth_;
 
     /** Slice height */
-    size_t sliceHeight_;
+    std::size_t sliceHeight_;
 };
 
 }  // namespace volcart

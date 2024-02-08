@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <numeric>
 #include <vector>
@@ -15,18 +17,18 @@ using namespace volcart::segmentation;
 static const double perc = 0.01;  // %
 
 // Width/height of reslice window
-static const size_t WIDTH = 32;
-static const size_t HEIGHT = 32;
+static const std::size_t WIDTH = 32;
+static const std::size_t HEIGHT = 32;
 
-cv::Mat_<uint16_t> makeLinearIntensityProfile(
-    const std::vector<std::pair<size_t, uint16_t>> maxima);
+cv::Mat_<std::uint16_t> makeLinearIntensityProfile(
+    const std::vector<std::pair<std::size_t, std::uint16_t>> maxima);
 
 // Fixture to generate a reslice
 class ResliceFixture : public ::testing::Test
 {
 public:
-    cv::Mat_<uint16_t> _reslice;
-    ResliceFixture() : _reslice(HEIGHT, WIDTH, uint16_t(0)) {}
+    cv::Mat_<std::uint16_t> _reslice;
+    ResliceFixture() : _reslice(HEIGHT, WIDTH, std::uint16_t(0)) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -34,10 +36,10 @@ public:
 
 TEST_F(ResliceFixture, AllMaxima)
 {
-    std::vector<uint16_t> rowVec{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
+    std::vector<std::uint16_t> rowVec{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    cv::Mat_<std::uint16_t> row = cv::Mat_<std::uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 2));
 
@@ -52,10 +54,10 @@ TEST_F(ResliceFixture, AllMaxima)
 TEST_F(ResliceFixture, OneMaximaInTheMiddle)
 {
     // Make a triangle-shaped row with maxima in the center
-    std::vector<uint16_t> rowVec{0,  0,  0,  0,  0,  0,  0,  2,  4,  8,  10,
-                                 12, 14, 16, 18, 20, 32, 20, 18, 16, 14, 12,
-                                 10, 8,  4,  2,  0,  0,  0,  0,  0,  0};
-    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
+    std::vector<std::uint16_t> rowVec{
+        0,  0,  0,  0,  0,  0,  0,  2, 4, 8, 10, 12, 14, 16, 18, 20,
+        32, 20, 18, 16, 14, 12, 10, 8, 4, 2, 0,  0,  0,  0,  0,  0};
+    cv::Mat_<std::uint16_t> row = cv::Mat_<std::uint16_t>(rowVec).t();
 
     // Scale it a bit so normalization/histo equalization doesn't flatten
     // values
@@ -73,10 +75,10 @@ TEST_F(ResliceFixture, OneMaximaInTheMiddle)
 TEST_F(ResliceFixture, OneMaximaShifted)
 {
     // Make a triangle-shaped row with maxima in at center + 5
-    std::vector<uint16_t> rowVec{0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                                 0,  2,  4,  8,  10, 12, 14, 16, 18, 20, 32,
-                                 20, 18, 16, 14, 12, 10, 8,  4,  2,  0};
-    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
+    std::vector<std::uint16_t> rowVec{
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, 4, 8, 10,
+        12, 14, 16, 18, 20, 32, 20, 18, 16, 14, 12, 10, 8, 4, 2, 0};
+    cv::Mat_<std::uint16_t> row = cv::Mat_<std::uint16_t>(rowVec).t();
 
     // Scale it a bit so normalization/histo equalization doesn't flatten values
     row *= 1000;
@@ -95,10 +97,10 @@ TEST_F(ResliceFixture, OneMaximaShifted)
 
 TEST_F(ResliceFixture, TwoMaximaEquallySpacedInPeakRadius)
 {
-    std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
-                                 18, 20, 32, 20, 10, 0, 10, 20, 32, 20, 18,
-                                 16, 14, 12, 10, 8,  4, 2,  0,  0,  0};
-    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
+    std::vector<std::uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
+                                      18, 20, 32, 20, 10, 0, 10, 20, 32, 20, 18,
+                                      16, 14, 12, 10, 8,  4, 2,  0,  0,  0};
+    cv::Mat_<std::uint16_t> row = cv::Mat_<std::uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 
@@ -112,10 +114,10 @@ TEST_F(ResliceFixture, TwoMaximaEquallySpacedInPeakRadius)
 
 TEST_F(ResliceFixture, TwoMaximaOneInsidePeakRadius)
 {
-    std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
-                                 18, 20, 32, 20, 14, 8, 2, 0,  2,  8,  14,
-                                 20, 24, 32, 16, 8,  4, 2, 1,  0,  0};
-    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
+    std::vector<std::uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
+                                      18, 20, 32, 20, 14, 8, 2, 0,  2,  8,  14,
+                                      20, 24, 32, 16, 8,  4, 2, 1,  0,  0};
+    cv::Mat_<std::uint16_t> row = cv::Mat_<std::uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 
@@ -128,10 +130,10 @@ TEST_F(ResliceFixture, TwoMaximaOneInsidePeakRadius)
 
 TEST_F(ResliceFixture, TwoMaximaOneCloserToMiddle)
 {
-    std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
-                                 18, 20, 32, 20, 10, 0, 32, 28, 24, 20, 18,
-                                 16, 14, 12, 10, 8,  4, 2,  0,  0,  0};
-    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
+    std::vector<std::uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8,  10, 12, 14, 16,
+                                      18, 20, 32, 20, 10, 0, 32, 28, 24, 20, 18,
+                                      16, 14, 12, 10, 8,  4, 2,  0,  0,  0};
+    cv::Mat_<std::uint16_t> row = cv::Mat_<std::uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 
@@ -145,10 +147,10 @@ TEST_F(ResliceFixture, TwoMaximaOneCloserToMiddle)
 
 TEST_F(ResliceFixture, TwoMaximaOneCloserToMiddleButShorter)
 {
-    std::vector<uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
-                                 18, 20, 32, 20, 10, 0, 5, 14, 12, 10, 8,
-                                 4,  2,  0,  0,  0,  0, 0, 0,  0,  0};
-    cv::Mat_<uint16_t> row = cv::Mat_<uint16_t>(rowVec).t();
+    std::vector<std::uint16_t> rowVec{0,  0,  0,  0,  2,  4, 8, 10, 12, 14, 16,
+                                      18, 20, 32, 20, 10, 0, 5, 14, 12, 10, 8,
+                                      4,  2,  0,  0,  0,  0, 0, 0,  0,  0};
+    cv::Mat_<std::uint16_t> row = cv::Mat_<std::uint16_t>(rowVec).t();
     row *= 1000;
     row.copyTo(_reslice.row(HEIGHT / 2 + 1));
 

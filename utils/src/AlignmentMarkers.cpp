@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <exception>
 #include <iostream>
 #include <regex>
@@ -126,7 +127,7 @@ int main(int argc, char* argv[])
 
     // Save all of the images
     vc::Logger()->info("Saving alignment marked outputs...");
-    for (size_t idx = 0; idx < imgs.size(); idx++) {
+    for (std::size_t idx = 0; idx < imgs.size(); idx++) {
         // Get the file name
         auto path = fs::path(meshPaths[idx]).filename();
 

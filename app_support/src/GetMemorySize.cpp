@@ -8,6 +8,9 @@
 
 #include "vc/app_support/GetMemorySize.hpp"
 
+#include <cstdint>
+#include <cstddef>
+
 #if defined(_WIN32)
 #include <Windows.h>
 
@@ -25,7 +28,7 @@
 #endif
 
 /* Returns the size of physical memory (RAM) in bytes. */
-size_t SystemMemorySize()
+std::size_t SystemMemorySize()
 {
 
 #if defined(_WIN32) && (defined(__CYGWIN__) || defined(__CYGWIN32__))
@@ -34,7 +37,7 @@ size_t SystemMemorySize()
     MEMORYSTATUS status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
-    return static_cast<size_t>(status.dwTotalPhys);
+    return static_cast<std::size_t>(status.dwTotalPhys);
 
 #elif defined(_WIN32)
     /* Windows. ------------------------------------------------- */
@@ -42,7 +45,7 @@ size_t SystemMemorySize()
     MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
-    return static_cast<size_t>(status.ullTotalPhys);
+    return static_cast<std::size_t>(status.ullTotalPhys);
 
 #elif defined(__unix__) || defined(__unix) || defined(unix) || \
     (defined(__APPLE__) && defined(__MACH__))
@@ -57,27 +60,27 @@ size_t SystemMemorySize()
 #elif defined(HW_PHYSMEM64)
     mib[1] = HW_PHYSMEM64; /* NetBSD, OpenBSD. --------- */
 #endif
-    int64_t size = 0;    /* 64-bit */
-    size_t len = sizeof(size);
+    std::int64_t size = 0;    /* 64-bit */
+    std::size_t len = sizeof(size);
     if (sysctl(mib, 2, &size, &len, nullptr, 0) == 0) {
-        return static_cast<size_t>(size);
+        return static_cast<std::size_t>(size);
     }
     return 0L; /* Failed? */
 
 #elif defined(_SC_AIX_REALMEM)
     /* AIX. ----------------------------------------------------- */
-    return static_cast<size_t>(sysconf(_SC_AIX_REALMEM)) *
-           static_cast<size_t>(1024L);
+    return static_cast<std::size_t>(sysconf(_SC_AIX_REALMEM)) *
+           static_cast<std::size_t>(1024L);
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
     /* FreeBSD, Linux, OpenBSD, and Solaris. -------------------- */
-    return static_cast<size_t>(sysconf(_SC_PHYS_PAGES)) *
-           static_cast<size_t>(sysconf(_SC_PAGESIZE));
+    return static_cast<std::size_t>(sysconf(_SC_PHYS_PAGES)) *
+           static_cast<std::size_t>(sysconf(_SC_PAGESIZE));
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGE_SIZE)
     /* Legacy. -------------------------------------------------- */
-    return static_cast<size_t>(sysconf(_SC_PHYS_PAGES)) *
-           static_cast<size_t>(sysconf(_SC_PAGE_SIZE));
+    return static_cast<std::size_t>(sysconf(_SC_PHYS_PAGES)) *
+           static_cast<std::size_t>(sysconf(_SC_PAGE_SIZE));
 
 #elif defined(CTL_HW) && (defined(HW_PHYSMEM) || defined(HW_REALMEM))
     /* DragonFly BSD, FreeBSD, NetBSD, OpenBSD, and OSX. -------- */
@@ -89,9 +92,9 @@ size_t SystemMemorySize()
     mib[1] = HW_PHYSMEM; /* Others. ------------------ */
 #endif
     unsigned int size = 0; /* 32-bit */
-    size_t len = sizeof(size);
+    std::size_t len = sizeof(size);
     if (sysctl(mib, 2, &size, &len, NULL, 0) == 0)
-        return static_cast<size_t>(size);
+        return static_cast<std::size_t>(size);
     return 0L; /* Failed? */
 #endif /* sysctl and sysconf variants */
 

@@ -2,6 +2,8 @@
 // Chao Du 2015 April
 #include "CVolumeViewerWithCurve.hpp"
 
+#include <cstddef>
+
 #include <QSettings>
 #include <opencv2/imgproc.hpp>
 
@@ -137,7 +139,7 @@ void CVolumeViewerWithCurve::UpdateView(void)
 
         // get primary color
         colorSelector->color().getRgb(&r, &g, &b);
-        for (size_t i = 0; i < fControlPoints.size(); ++i) {
+        for (std::size_t i = 0; i < fControlPoints.size(); ++i) {
             auto p = fControlPoints[i] - cv::Vec2f{0.5, 0.5};
             cv::circle(fImgMat, cv::Point2f(p), 1, cv::Scalar(b, g, r));
         }
@@ -303,7 +305,7 @@ int CVolumeViewerWithCurve::SelectPointOnCurve(
 {
     const double DIST_THRESHOLD = 1.5 * fScaleFactor;
 
-    for (size_t i = 0; i < nCurve->GetPointsNum(); ++i) {
+    for (std::size_t i = 0; i < nCurve->GetPointsNum(); ++i) {
         if (Norm<double>(Vec2<double>(
                 nCurve->GetPoint(i)[0] - nPt[0],
                 nCurve->GetPoint(i)[1] - nPt[1])) < DIST_THRESHOLD) {
@@ -321,7 +323,8 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(void)
         int g{0};
         int b{0};
         colorSelector->color().getRgb(&r, &g, &b);
-        for (size_t i = 0; i < fIntersectionCurveRef->GetPointsNum(); ++i) {
+        for (std::size_t i = 0; i < fIntersectionCurveRef->GetPointsNum();
+             ++i) {
             auto p0 = fIntersectionCurveRef->GetPoint(i)[0] - 0.5;
             auto p1 = fIntersectionCurveRef->GetPoint(i)[1] - 0.5;
             cv::circle(fImgMat, cv::Point2d(p0, p1), 1, cv::Scalar(b, g, r));

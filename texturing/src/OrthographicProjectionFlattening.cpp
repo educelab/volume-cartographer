@@ -43,7 +43,7 @@ ITKMesh::Pointer OrthographicProjectionFlattening::compute()
     auto vVec = yAxis / vLen;
     ITKPoint oldPt;
     ITKPoint newPt;
-    for (size_t i = 0; i < mesh_->GetNumberOfPoints(); ++i) {
+    for (std::size_t i = 0; i < mesh_->GetNumberOfPoints(); ++i) {
         // Get the original point
         mesh_->GetPoint(i, &oldPt);
         cv::Vec3d pt(oldPt.GetDataPointer());

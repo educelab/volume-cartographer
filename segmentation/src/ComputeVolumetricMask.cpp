@@ -12,9 +12,9 @@ using namespace volcart::segmentation;
 using Voxel = cv::Vec3i;
 using VoxelList = std::vector<Voxel>;
 
-void ComputeVolumetricMask::setLowThreshold(uint16_t t) { low_ = t; }
+void ComputeVolumetricMask::setLowThreshold(std::uint16_t t) { low_ = t; }
 
-void ComputeVolumetricMask::setHighThreshold(uint16_t t) { high_ = t; }
+void ComputeVolumetricMask::setHighThreshold(std::uint16_t t) { high_ = t; }
 
 void ComputeVolumetricMask::setEnableClosing(bool b) { enableClosing_ = b; }
 
@@ -25,7 +25,10 @@ void ComputeVolumetricMask::setMeasureVertical(bool b)
     measureVertically_ = b;
 }
 
-void ComputeVolumetricMask::setMaxRadius(size_t radius) { maxRadius_ = radius; }
+void ComputeVolumetricMask::setMaxRadius(std::size_t radius)
+{
+    maxRadius_ = radius;
+}
 
 VolumetricMask::Pointer ComputeVolumetricMask::compute()
 {
@@ -34,11 +37,11 @@ VolumetricMask::Pointer ComputeVolumetricMask::compute()
 
     // Initialize running points with the provided starting seeds
     // Converts double-to-int by truncation
-    auto startSlice = std::numeric_limits<size_t>::max();
-    size_t endSlice{0};
-    std::map<size_t, VoxelList> seedsBySlice;
+    auto startSlice = std::numeric_limits<std::size_t>::max();
+    std::size_t endSlice{0};
+    std::map<std::size_t, VoxelList> seedsBySlice;
     for (const auto& pt : input_) {
-        auto sliceIdx = static_cast<size_t>(pt[2]);
+        auto sliceIdx = static_cast<std::size_t>(pt[2]);
         startSlice = std::min(startSlice, sliceIdx);
         endSlice = std::max(endSlice, sliceIdx);
         seedsBySlice[sliceIdx].emplace_back(pt[0], pt[1], pt[2]);
@@ -65,7 +68,7 @@ VolumetricMask::Pointer ComputeVolumetricMask::compute()
         auto slice = vol_->getSliceDataCopy(zIndex);
 
         // Estimate thickness of page from every seed point.
-        std::vector<size_t> estimates;
+        std::vector<std::size_t> estimates;
         for (const auto& v : seedPoints) {
             estimates.emplace_back(MeasureThickness(
                 v, slice, low_, high_, measureVertically_, maxRadius_));
@@ -84,7 +87,7 @@ VolumetricMask::Pointer ComputeVolumetricMask::compute()
             // Convert mask to a binary image so we can apply closing
             cv::Mat binaryImg = cv::Mat::zeros(slice.size(), CV_8UC1);
             for (const Voxel& v : sliceMask) {
-                binaryImg.at<uint8_t>(v[1], v[0]) = 255;
+                binaryImg.at<std::uint8_t>(v[1], v[0]) = 255;
             }
 
             cv::Mat kernel = cv::Mat::ones(kernel_, kernel_, CV_8U);
@@ -95,7 +98,7 @@ VolumetricMask::Pointer ComputeVolumetricMask::compute()
             for (const auto p : range2D(closedImg.rows, closedImg.cols)) {
                 const auto& x = p.second;
                 const auto& y = p.first;
-                if (closedImg.at<uint8_t>(y, x) > 0) {
+                if (closedImg.at<std::uint8_t>(y, x) > 0) {
                     mask_->setIn({x, y, zIndex});
                 }
             }
@@ -113,7 +116,7 @@ void ComputeVolumetricMask::setVolume(const Volume::Pointer& v) { vol_ = v; }
 
 VolumetricMask::Pointer ComputeVolumetricMask::getMask() const { return mask_; }
 
-size_t ComputeVolumetricMask::progressIterations() const
+std::size_t ComputeVolumetricMask::progressIterations() const
 {
     if (input_.empty()) {
         return 0;
@@ -121,7 +124,7 @@ size_t ComputeVolumetricMask::progressIterations() const
     auto minmax = std::minmax_element(
         input_.begin(), input_.end(),
         [](const auto& a, const auto& b) { return a[2] < b[2]; });
-    auto startSlice = static_cast<size_t>((*minmax.first)[2]);
-    auto endSlice = static_cast<size_t>((*minmax.second)[2]);
+    auto startSlice = static_cast<std::size_t>((*minmax.first)[2]);
+    auto endSlice = static_cast<std::size_t>((*minmax.second)[2]);
     return endSlice + 1 - startSlice;
 }

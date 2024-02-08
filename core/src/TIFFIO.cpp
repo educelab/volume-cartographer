@@ -1,5 +1,7 @@
 #include "vc/core/io/TIFFIO.hpp"
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 
 #include <opencv2/imgproc.hpp>
@@ -23,8 +25,9 @@ namespace
 // Return a CV Mat type using TIF type (signed, unsigned, float),
 // bit-depth, and number of channels
 auto GetCVMatType(
-    const uint16_t tifType, const uint16_t depth, const uint16_t channels)
-    -> int
+    const std::uint16_t tifType,
+    const std::uint16_t depth,
+    const std::uint16_t channels) -> int
 {
     switch (depth) {
         case 8:
@@ -76,12 +79,12 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     }
 
     // Get metadata
-    uint32_t width = 0;
-    uint32_t height = 0;
-    uint16_t type = 1;
-    uint16_t depth = 1;
-    uint16_t channels = 1;
-    uint16_t config = 0;
+    std::uint32_t width = 0;
+    std::uint32_t height = 0;
+    std::uint16_t type = 1;
+    std::uint16_t depth = 1;
+    std::uint16_t channels = 1;
+    std::uint16_t config = 0;
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &type);
@@ -96,7 +99,7 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     cv::Mat img = cv::Mat::zeros(h, w, cvType);
 
     // Read the rows
-    auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(tif));
+    auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(tif));
     std::vector<char> buffer(bufferSize + 4);
     if (config == PLANARCONFIG_CONTIG) {
         for (auto row = 0; row < height; row++) {
@@ -253,7 +256,7 @@ void tio::WriteTIFF(
     // TODO: Let user decide associated/unassociated tag
     // See TIFF 6.0 spec, section 18
     if (channels == 2 or channels == 4) {
-        std::array<uint16_t, 1> tag{EXTRASAMPLE_UNASSALPHA};
+        std::array<std::uint16_t, 1> tag{EXTRASAMPLE_UNASSALPHA};
         lt::TIFFSetField(out, TIFFTAG_EXTRASAMPLES, 1, tag.data());
     }
 
@@ -263,7 +266,7 @@ void tio::WriteTIFF(
 
     // Row buffer. OpenCV documentation mentions that TIFFWriteScanline
     // modifies its read buffer, so we can't use the cv::Mat directly
-    auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(out));
+    auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(out));
     std::vector<char> buffer(bufferSize + 32);
 
     // For each row

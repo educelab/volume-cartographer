@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstdint>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -106,6 +107,6 @@ private:
      * @param b ID for the second vertex in the face
      * @param c ID for the third vertex in the face
      */
-    void add_cell_(uint32_t a, uint32_t b, uint32_t c);
+    void add_cell_(std::uint32_t a, std::uint32_t b, std::uint32_t c);
 };
 }  // namespace volcart::meshing

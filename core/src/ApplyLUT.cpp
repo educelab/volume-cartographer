@@ -1,5 +1,7 @@
 #include "vc/core/util/ApplyLUT.hpp"
 
+#include <cstdint>
+
 #include <opencv2/imgproc.hpp>
 
 #include "vc/core/util/ImageConversion.hpp"
@@ -69,7 +71,7 @@ cv::Mat vc::ApplyLUT(
 
         // Assign to image
         if (lut.channels() == 1) {
-            output.at<uint8_t>(y, x) = lut.at<uint8_t>(0, bin);
+            output.at<std::uint8_t>(y, x) = lut.at<std::uint8_t>(0, bin);
         } else if (lut.channels() == 3) {
             output.at<cv::Vec3b>(y, x) = lut.at<cv::Vec3b>(0, bin);
         }
@@ -131,7 +133,7 @@ cv::Mat vc::ApplyLUT(
 
         // Assign to image
         if (lut.channels() == 1) {
-            output.at<uint8_t>(y, x) = lut.at<uint8_t>(0, bin);
+            output.at<std::uint8_t>(y, x) = lut.at<std::uint8_t>(0, bin);
         } else if (lut.channels() == 3) {
             output.at<cv::Vec3b>(y, x) = lut.at<cv::Vec3b>(0, bin);
         }
@@ -156,7 +158,7 @@ cv::Mat vc::ApplyLUT(
 }
 
 cv::Mat vc::GenerateLUTScaleBar(
-    const cv::Mat& lut, bool invert, size_t height, size_t width)
+    const cv::Mat& lut, bool invert, std::size_t height, std::size_t width)
 {
     // Construct a single row
     auto maxDim = static_cast<int>(std::max(width, height));

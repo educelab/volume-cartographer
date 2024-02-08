@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
@@ -41,7 +43,7 @@ TEST_F(OBJWriter, UntexturedMesh)
     EXPECT_EQ(mesh->GetNumberOfCells(), saved.faces.size());
 
     // Check vertex values
-    size_t idx = 0;
+    std::size_t idx = 0;
     vc::ITKPixel origN;
     for (const auto& v : saved.verts) {
         // Check 3D Position

@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 
@@ -98,7 +99,7 @@ private:
      * vt = UV coordinate index number \n
      * vn = vertex normal index number \n
      */
-    std::map<uint32_t, cv::Vec3i> pointLinks_;
+    std::map<std::uint32_t, cv::Vec3i> pointLinks_;
 
     /** Input mesh */
     ITKMesh::Pointer mesh_;

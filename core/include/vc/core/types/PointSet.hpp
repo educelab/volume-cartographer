@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -57,10 +58,10 @@ public:
     explicit PointSet() = default;
 
     /** @brief Construct and preallocate a number of Point elements */
-    explicit PointSet(size_t initSize) { data_.reserve(initSize); }
+    explicit PointSet(std::size_t initSize) { data_.reserve(initSize); }
 
     /** @brief Construct and fill a number of elements with an initial value */
-    explicit PointSet(size_t initSize, T initVal)
+    explicit PointSet(std::size_t initSize, T initVal)
     {
         data_.assign(initSize, initVal);
     }
@@ -68,14 +69,14 @@ public:
 
     /**@{*/
     /** @brief Get a Point by index */
-    const T& operator[](size_t idx) const
+    const T& operator[](std::size_t idx) const
     {
         assert(idx < data_.size() && "idx out of range");
         return data_[idx];
     }
 
     /** @copydoc operator[]() */
-    T& operator[](size_t idx)
+    T& operator[](std::size_t idx)
     {
         assert(idx < data_.size() && "idx out of range");
         return data_[idx];
@@ -84,7 +85,7 @@ public:
 
     /**@{*/
     /** @brief Get the size of the PointSet */
-    size_t size() const { return data_.size(); }
+    std::size_t size() const { return data_.size(); }
 
     /** @brief Return whether the PointSet is empty */
     bool empty() const { return data_.empty(); }
@@ -195,7 +196,7 @@ public:
     /**@{*/
     /** @brief Create a PointSet of a specific size, filled with an initial
      * value */
-    static PointSet Fill(size_t initSize, T initVal)
+    static PointSet Fill(std::size_t initSize, T initVal)
     {
         return PointSet(initSize, initVal);
     }

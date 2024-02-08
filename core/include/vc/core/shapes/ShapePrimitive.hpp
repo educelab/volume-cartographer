@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include <opencv2/core.hpp>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -90,10 +92,10 @@ public:
     bool isOrdered() const { return ordered_; }
 
     /** @brief Return the width of the ordered vertex set */
-    size_t orderedWidth() const { return orderedWidth_; }
+    std::size_t orderedWidth() const { return orderedWidth_; }
 
     /** @brief Return the height of the ordered vertex set */
-    size_t orderedHeight() const { return orderedHeight_; }
+    std::size_t orderedHeight() const { return orderedHeight_; }
     /**@}*/
 
 protected:
@@ -126,9 +128,9 @@ protected:
     /** Is the generated vertex set ordered? */
     bool ordered_{false};
     /** Width of the ordered vertex set */
-    size_t orderedWidth_{0};
+    std::size_t orderedWidth_{0};
     /** Height of the ordered vertex set */
-    size_t orderedHeight_{0};
+    std::size_t orderedHeight_{0};
     /**@}*/
 };
 }  // namespace volcart::shapes

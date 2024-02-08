@@ -4,6 +4,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <string>
 #include <vector>
 

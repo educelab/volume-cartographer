@@ -3,6 +3,7 @@
 /** @file */
 
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -52,13 +53,13 @@ public:
     explicit OrderedPointSet() = default;
 
     /** @brief Constructor with width parameter */
-    explicit OrderedPointSet(size_t width) : BaseClass(), width_(width)
+    explicit OrderedPointSet(std::size_t width) : BaseClass(), width_(width)
     {
         data_.reserve(width_ * CAPACITY_MULTIPLIER);
     }
 
     /** @brief Constructor with width parameter and initialization value */
-    explicit OrderedPointSet(size_t width, T initVal)
+    explicit OrderedPointSet(std::size_t width, T initVal)
         : BaseClass(), width_(width)
     {
         data_.assign(width_ * CAPACITY_MULTIPLIER, initVal);
@@ -67,7 +68,7 @@ public:
 
     /**@{*/
     /** @brief Get a point from the OrderedPointSet at row y, column x */
-    const T& operator()(size_t y, size_t x) const
+    const T& operator()(std::size_t y, std::size_t x) const
     {
         assert(x < width_ && "x out of range");
         assert(y * width_ + x < data_.size() && "(x, y) out of range");
@@ -75,7 +76,7 @@ public:
     }
 
     /** @copybrief OrderedPointSet::operator()() */
-    T& operator()(size_t y, size_t x)
+    T& operator()(std::size_t y, std::size_t x)
     {
         assert(x < width_ && "x out of range");
         assert(y * width_ + x < data_.size() && "(x, y) out of range");
@@ -85,12 +86,15 @@ public:
 
     /**@{*/
     /** @brief Return the number of columns in the OrderedPointSet */
-    size_t width() const { return width_; }
+    std::size_t width() const { return width_; }
 
     /** @brief Return the number of rows in the OrderedPointSet */
     // data_.size() should be a perfect multiple of width_, so this should
     // return a whole integer
-    size_t height() const { return (width_ == 0 ? 0 : this->size() / width_); }
+    std::size_t height() const
+    {
+        return (width_ == 0 ? 0 : this->size() / width_);
+    }
 
     /** @brief Set the ordering width
      *
@@ -101,7 +105,7 @@ public:
      * This function throws a std::logic_error if the width has already been
      * set.
      */
-    void setWidth(size_t width)
+    void setWidth(std::size_t width)
     {
         if (width_ != 0) {
             auto msg = "Cannot change width if already set";
@@ -166,7 +170,7 @@ public:
      *
      * Throws a std::range_error if `i` is outside the range of row indices.
      */
-    std::vector<T> getRow(size_t i) const
+    std::vector<T> getRow(std::size_t i) const
     {
         if (i >= this->height()) {
             throw std::range_error("out of range");
@@ -186,7 +190,7 @@ public:
      * Throws a std::range_error if `i` is outside the range of row
      * indices. Throws std::logic_error if `j <= i`.
      */
-    OrderedPointSet copyRows(size_t i, size_t j) const
+    OrderedPointSet copyRows(std::size_t i, std::size_t j) const
     {
         if (i >= this->height() || j > this->height()) {
             throw std::range_error("out of range");
@@ -204,12 +208,13 @@ public:
     /**@{*/
     /** @brief Create an OrderedPointSet of a specific size, filled with an
      * initial value */
-    static OrderedPointSet Fill(size_t width, size_t height, T initVal)
+    static OrderedPointSet Fill(
+        std::size_t width, std::size_t height, T initVal)
     {
         OrderedPointSet ps(width);
         std::vector<T> v;
         v.assign(width, initVal);
-        for (size_t _ = 0; _ < height; ++_) {
+        for (std::size_t _ = 0; _ < height; ++_) {
             ps.pushRow(v);
         }
         return ps;
@@ -218,8 +223,8 @@ public:
 
 private:
     /** Number of columns */
-    size_t width_{0};
+    std::size_t width_{0};
     /** Number of rows preallocated */
-    constexpr static size_t CAPACITY_MULTIPLIER = 20;
+    constexpr static std::size_t CAPACITY_MULTIPLIER = 20;
 };
 }  // namespace volcart

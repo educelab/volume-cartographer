@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 
@@ -292,7 +294,7 @@ auto main(int argc, char* argv[]) -> int
         integral->setExponentialDiffBaseValue(expoDiffBase);
         integral->setClampValuesToMax(clampToMax);
         if (clampToMax) {
-            integral->setClampMax(parsed["clamp-to-max"].as<uint16_t>());
+            integral->setClampMax(parsed["clamp-to-max"].as<std::uint16_t>());
         }
         textureGen = integral;
     }

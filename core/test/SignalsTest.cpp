@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <iostream>
 
 #include "vc/core/util/Signals.hpp"
@@ -172,11 +173,11 @@ TEST(Signals, PointerParameterFn)
 
 TEST(Signals, Sendlval)
 {
-    size_t val{0};
-    Signal<size_t> signal;
-    signal.connect([&val](size_t v) { val = v; });
+    std::size_t val{0};
+    Signal<std::size_t> signal;
+    signal.connect([&val](std::size_t v) { val = v; });
 
-    size_t i{1};
+    std::size_t i{1};
     signal(i);
 
     EXPECT_EQ(val, 1);

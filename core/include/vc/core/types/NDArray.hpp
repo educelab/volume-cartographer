@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <exception>
 #include <functional>
 #include <iostream>
@@ -42,10 +43,10 @@ public:
 
     /**@{*/
     /** @brief Default constructor */
-    explicit NDArray(size_t n) : dim_(n) {}
+    explicit NDArray(std::size_t n) : dim_(n) {}
 
     /** @brief Constructor with dimensions */
-    explicit NDArray(size_t n, Extent e) : dim_(n), extents_(std::move(e))
+    explicit NDArray(std::size_t n, Extent e) : dim_(n), extents_(std::move(e))
     {
         if (extents_.size() != dim_) {
             throw std::invalid_argument("Extents of wrong dimension");
@@ -54,9 +55,9 @@ public:
         resize_container_();
     }
 
-    /** @overload NDArray(size_t n, Extent e) */
+    /** @overload NDArray(std::size_t n, Extent e) */
     template <typename... Es>
-    explicit NDArray(size_t n, Es... extents)
+    explicit NDArray(std::size_t n, Es... extents)
         : dim_(n), extents_{static_cast<IndexType>(extents)...}
     {
         if (sizeof...(extents) != dim_) {
@@ -67,7 +68,7 @@ public:
 
     /** @brief Constructor with range initialization */
     template <typename InputIt>
-    explicit NDArray(size_t n, Extent e, InputIt first, InputIt last)
+    explicit NDArray(std::size_t n, Extent e, InputIt first, InputIt last)
         : dim_(n), extents_(std::move(e)), data_{first, last}
     {
         if (extents_.size() != dim_) {
@@ -109,13 +110,13 @@ public:
     }
 
     /** @brief Get the number of dimensions of the array */
-    size_t dims() const { return dim_; }
+    std::size_t dims() const { return dim_; }
 
     /** @brief Get the extent (size) of the array's dimensions */
     Extent extents() const { return extents_; }
 
     /** @brief Get the total number of elements in the array */
-    size_t size() const { return data_.size(); }
+    std::size_t size() const { return data_.size(); }
     /**@}*/
 
     /**@{*/
@@ -215,7 +216,7 @@ public:
      * @brief Flatten an array by dropping a dimension and appending the
      * data to the next highest dimension
      */
-    static void Flatten(NDArray& a, size_t dim)
+    static void Flatten(NDArray& a, std::size_t dim)
     {
         if (dim == a.dim_) {
             return;
@@ -240,7 +241,7 @@ public:
 
 private:
     /** Number of dimensions */
-    size_t dim_{1};
+    std::size_t dim_{1};
     /** Dimension extents */
     Extent extents_;
     /** Data storage */
@@ -264,7 +265,7 @@ private:
     inline IndexType index_to_data_index_(Index i) const
     {
         IndexType idx{0};
-        for (size_t it = 0; it < extents_.size(); it++) {
+        for (std::size_t it = 0; it < extents_.size(); it++) {
             auto begin = std::next(extents_.begin(), it + 1);
             auto offset = std::accumulate(
                 begin, extents_.end(), IndexType(1),

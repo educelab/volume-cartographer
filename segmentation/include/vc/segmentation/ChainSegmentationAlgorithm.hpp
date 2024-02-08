@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include "vc/core/types/BoundingBox.hpp"
 #include "vc/core/types/Mixins.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
@@ -59,7 +61,7 @@ public:
      * Typically, the expected number of output iterations. Derived algorithms
      * may produce intermediate iterations that are not included in the output.
      */
-    void setNumberOfSteps(size_t n) { numSteps_ = n; }
+    void setNumberOfSteps(std::size_t n) { numSteps_ = n; }
 
     /** @brief Set the propagation step size
      *
@@ -89,7 +91,10 @@ public:
     /**@}*/
 
     /** @brief Returns the maximum progress value */
-    auto progressIterations() const -> size_t override { return numSteps_; }
+    auto progressIterations() const -> std::size_t override
+    {
+        return numSteps_;
+    }
 
 protected:
     /** Default constructor */
@@ -101,7 +106,7 @@ protected:
     /** Bounding box */
     Bounds bb_;
     /** Number of propagation steps */
-    size_t numSteps_{0};
+    std::size_t numSteps_{0};
     /** Propagation step size */
     double stepSize_{1.0};
     /** Result */

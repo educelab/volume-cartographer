@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <cstddef>
 #include <map>
 
 #include "vc/apps/server/VolumeProtocol.hpp"

@@ -1,5 +1,6 @@
 #include "vc/graph/texturing.hpp"
 
+#include <cstddef>
 #include <memory>
 
 #include <nlohmann/json.hpp>
@@ -274,8 +275,8 @@ PPMGeneratorNode::PPMGeneratorNode()
     : Node{true}
     , mesh{&ppmGen_, &PPMGen::setMesh}
     , uvMap{[&](const auto& uv) {
-        auto width = static_cast<size_t>(std::ceil(uv->ratio().width));
-        auto height = static_cast<size_t>(std::ceil(uv->ratio().height));
+        auto width = static_cast<std::size_t>(std::ceil(uv->ratio().width));
+        auto height = static_cast<std::size_t>(std::ceil(uv->ratio().height));
         ppmGen_.setUVMap(uv);
         ppmGen_.setDimensions(height, width);
     }}
@@ -539,7 +540,7 @@ void IntegralTextureNode::deserialize_(
     const smgl::Metadata& meta, const fs::path& cacheDir)
 {
     textureGen_.setClampValuesToMax(meta["clampToMax"].get<bool>());
-    textureGen_.setClampMax(meta["clampMax"].get<uint16_t>());
+    textureGen_.setClampMax(meta["clampMax"].get<std::uint16_t>());
     textureGen_.setWeightMethod(meta["weightMethod"].get<WeightMethod>());
     textureGen_.setLinearWeightDirection(
         meta["linearWeightDirection"].get<WeightDirection>());

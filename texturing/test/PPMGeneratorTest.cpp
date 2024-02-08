@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/util/Iteration.hpp"
@@ -48,8 +50,8 @@ TEST(PPMGeneratorTest, RegressionTest)
 
         EXPECT_EQ(ppm->getMapping(y, x), expected(y, x));
         EXPECT_EQ(
-            ppm->cellMap().at<int32_t>(y, x),
-            expected.cellMap().at<int32_t>(y, x));
+            ppm->cellMap().at<std::int32_t>(y, x),
+            expected.cellMap().at<std::int32_t>(y, x));
     }
 }
 
@@ -63,7 +65,7 @@ TEST_P(PPMGeneratorTest, PerformanceTest)
 
     // Generate UV map
     auto uvMap = vc::UVMap::New();
-    size_t pID = 0;
+    std::size_t pID = 0;
     for (int y = 0; y < GetParam(); y++) {
         auto v = double(y) / (GetParam() - 1);
         for (int x = 0; x < GetParam(); x++) {

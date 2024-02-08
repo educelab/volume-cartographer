@@ -1,5 +1,7 @@
 #include "vc/core/types/ITKMesh.hpp"
 
+#include <cstdint>
+
 using namespace volcart;
 namespace vc = volcart;
 
@@ -30,7 +32,7 @@ void vc::DeepCopy(
              cell != input->GetCells()->End(); ++cell) {
 
             c.TakeOwnership(new ITKTriangle);
-            for (uint32_t pointId = 0;
+            for (std::uint32_t pointId = 0;
                  pointId < cell.Value()->GetNumberOfPoints(); ++pointId) {
                 c->SetPointId(
                     pointId, cell.Value()->GetPointIdsContainer()[pointId]);

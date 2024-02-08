@@ -180,7 +180,7 @@ auto PerPixelMap::hasMapping(std::size_t y, std::size_t x) const -> bool
         return true;
     }
 
-    return mask_.at<uint8_t>(y, x) == 255;
+    return mask_.at<std::uint8_t>(y, x) == 255;
 }
 auto PerPixelMap::width() const -> std::size_t { return width_; }
 auto PerPixelMap::height() const -> std::size_t { return height_; }

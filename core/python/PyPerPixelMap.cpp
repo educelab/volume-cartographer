@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <tuple>
 
 #include <pybind11/pybind11.h>
@@ -25,12 +26,14 @@ void init_PerPixelMap(py::module& m)
     /** Element Access */
     c.def(
         "__getitem__",
-        [](vc::PerPixelMap& p, std::tuple<size_t, size_t> pos) {
+        [](vc::PerPixelMap& p, std::tuple<std::size_t, std::size_t> pos) {
             return p(std::get<0>(pos), std::get<1>(pos));
         },
         py::arg("pos[y, x]"), "Get the mapping for a pixel by coordinate");
     c.def(
-        "get", py::overload_cast<size_t, size_t>(&vc::PerPixelMap::operator()),
+        "get",
+        py::overload_cast<std::size_t, std::size_t>(
+            &vc::PerPixelMap::operator()),
         py::arg("y"), py::arg("x"),
         "Get the mapping for a pixel by coordinate");
     c.def(

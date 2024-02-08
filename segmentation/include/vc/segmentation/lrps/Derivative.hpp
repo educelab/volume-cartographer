@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <vector>
 
 namespace volcart::segmentation
@@ -53,7 +54,7 @@ T D1Forward(const std::vector<T>& vs, int index, int hstep = 1)
 {
     assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
     assert(index <= int(vs.size()) && "index must not be last point");
-    return (-vs[index] + vs[size_t(index) + hstep]) / double(hstep);
+    return (-vs[index] + vs[std::size_t(index) + hstep]) / double(hstep);
 }
 
 /**
@@ -90,7 +91,8 @@ T D1Central(const std::vector<T>& vs, int index, int hstep = 1)
     assert(index >= 0 && index < int(vs.size()) && "index not in range of vs");
     assert(index - hstep >= 0 && "index out of range");
     assert(index + hstep < int(vs.size()) && "index out of range");
-    return ((-0.5) * vs[index - hstep] + (0.5) * vs[size_t(index) + hstep]) /
+    return ((-0.5) * vs[index - hstep] +
+            (0.5) * vs[std::size_t(index) + hstep]) /
            double(hstep);
 }
 
@@ -118,8 +120,8 @@ T D1FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
     return (
         (1.0/12) * vs[index - 2 * hstep] +
         (-2.0/3) * vs[index - hstep] +
-         (2.0/3) * vs[size_t(index) + hstep] +
-       (-1.0/12) * vs[size_t(index) + 2 * hstep]) /
+         (2.0/3) * vs[std::size_t(index) + hstep] +
+       (-1.0/12) * vs[std::size_t(index) + 2 * hstep]) /
            double(hstep);
     // clang-format on
 }
@@ -163,7 +165,7 @@ std::vector<T> D1(const std::vector<T>& vs, int hstep = 1)
 {
     std::vector<T> dvs;
     dvs.reserve(vs.size());
-    for (size_t i = 0; i < vs.size(); ++i) {
+    for (std::size_t i = 0; i < vs.size(); ++i) {
         dvs.push_back(D1At(vs, i, hstep));
     }
     return dvs;
@@ -181,8 +183,8 @@ T D2Forward(const std::vector<T>& vs, int index, int hstep = 1)
     assert(index >= 0 && index < int(vs.size()) && "index out of range");
     assert(index + hstep < int(vs.size()) && "index out of range");
     assert(index + 2 * hstep < int(vs.size()) && "index out of  range");
-    return (vs[index] + (-2.0) * vs[size_t(index) + hstep] +
-            vs[size_t(index) + 2 * hstep]) /
+    return (vs[index] + (-2.0) * vs[std::size_t(index) + hstep] +
+            vs[std::size_t(index) + 2 * hstep]) /
            double(hstep * hstep);
 }
 
@@ -215,7 +217,7 @@ T D2Central(const std::vector<T>& vs, int index, int hstep = 1)
     assert(index - hstep >= 0 && "index out of range");
     assert(index + hstep < int(vs.size()) && "index out of range");
     return (vs[index - hstep] + (-2.0) * vs[index] +
-            vs[size_t(index) + hstep]) /
+            vs[std::size_t(index) + hstep]) /
            double(hstep * hstep);
 }
 
@@ -240,8 +242,8 @@ T D2FivePointStencil(const std::vector<T>& vs, int index, int hstep = 1)
        (-1.0/12) * vs[index - 2 * hstep] +
          (4.0/3) * vs[index - hstep] +
         (-5.0/2) * vs[index] +
-         (4.0/3) * vs[size_t(index) + hstep] +
-       (-1.0/12) * vs[size_t(index) + 2 * hstep]) /
+         (4.0/3) * vs[std::size_t(index) + hstep] +
+       (-1.0/12) * vs[std::size_t(index) + 2 * hstep]) /
            double(hstep * hstep);
     // clang-format on
 }
@@ -282,7 +284,7 @@ std::vector<T> D2(const std::vector<T>& vs, int hstep = 1)
 {
     std::vector<T> dvs;
     dvs.reserve(vs.size());
-    for (size_t i = 0; i < vs.size(); ++i) {
+    for (std::size_t i = 0; i < vs.size(); ++i) {
         dvs.push_back(D2At(vs, i, hstep));
     }
     return dvs;

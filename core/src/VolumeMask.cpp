@@ -2,7 +2,8 @@
 
 using namespace volcart;
 
-VolumeMask::VolumeMask(size_t width, size_t height, size_t numSlices)
+VolumeMask::VolumeMask(
+    std::size_t width, std::size_t height, std::size_t numSlices)
     : sliceWidth_{width}, sliceHeight_{height}
 {
 

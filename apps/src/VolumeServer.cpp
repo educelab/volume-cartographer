@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
 
 #include <QCoreApplication>
@@ -52,7 +54,7 @@ void vc::VolumeServer::socketReadyRead(QDataStream* dataStream)
     if (requestHdr.version != protocol::V1) {
         vc::Logger()->error(
             "{}: version is unsupported: {}", socketStr_(socket),
-            static_cast<uint32_t>(requestHdr.version));
+            static_cast<std::uint32_t>(requestHdr.version));
         // TODO: actually exit
     }
     vc::Logger()->info(
@@ -77,7 +79,7 @@ void vc::VolumeServer::socketReadyRead(QDataStream* dataStream)
         return;
     }
     // Resolve requests
-    for (uint32_t i = 0; i < requestHdr.numRequests; i++) {
+    for (std::uint32_t i = 0; i < requestHdr.numRequests; i++) {
         resolveRequest_(socket, &requestArgs[i]);
     }
     // Clean up
@@ -163,15 +165,15 @@ void vc::VolumeServer::resolveRequest_(
         subvolume.compute(volume, center, {zvec, yvec, xvec});
     vc::Logger()->info("{}: Subvolume generated...", socketStr_(socket));
     responseArgs.size =
-        static_cast<uint32_t>(neighborhood.size() * sizeof(uint16_t));
+        static_cast<std::uint32_t>(neighborhood.size() * sizeof(uint16_t));
     auto extents = neighborhood.extents();
-    responseArgs.extentX = static_cast<uint32_t>(extents[2]);
-    responseArgs.extentY = static_cast<uint32_t>(extents[1]);
-    responseArgs.extentZ = static_cast<uint32_t>(extents[0]);
+    responseArgs.extentX = static_cast<std::uint32_t>(extents[2]);
+    responseArgs.extentY = static_cast<std::uint32_t>(extents[1]);
+    responseArgs.extentZ = static_cast<std::uint32_t>(extents[0]);
     socket->write(
         reinterpret_cast<char*>(&responseArgs), sizeof(protocol::ResponseArgs));
     socket->write(
         reinterpret_cast<char*>(neighborhood.data()),
-        sizeof(uint16_t) * neighborhood.size());
+        sizeof(std::uint16_t) * neighborhood.size());
     socket->flush();
 }

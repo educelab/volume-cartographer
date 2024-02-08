@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <map>
 #include <memory>
 
@@ -37,7 +38,7 @@ const static cv::Vec2d NULL_MAPPING{-1, -1};
  * different origin positions. By setting the origin prior to insertion and
  * again prior to retrieval, mappings can be inserted relative to one origin but
  * retrieved relative to another. When using the overloaded
- * set(size_t, const cv::Vec2d&) and get(size_t) functions, the source and
+ * set(std::size_t, const cv::Vec2d&) and get(size_t) functions, the source and
  * target origins are set using the constructor or setOrigin().
  *
  * Since UV maps store \em relative position information, they are agnostic to
@@ -78,7 +79,7 @@ public:
 
     /**@{*/
     /** @brief Return the number of UV elements */
-    [[nodiscard]] auto size() const -> size_t;
+    [[nodiscard]] auto size() const -> std::size_t;
 
     /** @brief Return whether the UVMap is empty */
     [[nodiscard]] auto empty() const -> bool;
@@ -102,34 +103,34 @@ public:
      *
      * Point is inserted relative to the provided origin.
      */
-    void set(size_t id, const cv::Vec2d& uv, const Origin& o);
+    void set(std::size_t id, const cv::Vec2d& uv, const Origin& o);
 
     /**
      * @copybrief set()
      *
      * Point is inserted relative to the origin returned by origin().
      */
-    void set(size_t id, const cv::Vec2d& uv);
+    void set(std::size_t id, const cv::Vec2d& uv);
 
     /**
      * @brief Get the UV value for a point by ID
      *
      * Point is retrieved relative to the provided origin.
      */
-    [[nodiscard]] auto get(size_t id, const Origin& o) const -> cv::Vec2d;
+    [[nodiscard]] auto get(std::size_t id, const Origin& o) const -> cv::Vec2d;
 
     /**
      * @copybrief get()
      *
      * Point is retrieved relative to the origin returned by origin().
      */
-    [[nodiscard]] auto get(size_t id) const -> cv::Vec2d;
+    [[nodiscard]] auto get(std::size_t id) const -> cv::Vec2d;
 
     /** @brief Check if the vertex index has a UV mapping */
     [[nodiscard]] auto contains(std::size_t id) const -> bool;
 
     /** Access to underlying data. For serialization only. */
-    [[nodiscard]] auto as_map() const -> std::map<size_t, cv::Vec2d>;
+    [[nodiscard]] auto as_map() const -> std::map<std::size_t, cv::Vec2d>;
     /**@}*/
 
     /**@{*/
@@ -234,7 +235,7 @@ public:
 
 private:
     /** UV storage */
-    std::map<size_t, cv::Vec2d> map_;
+    std::map<std::size_t, cv::Vec2d> map_;
     /** Origin for set and get functions */
     Origin origin_{Origin::TopLeft};
     /** Aspect ratio */

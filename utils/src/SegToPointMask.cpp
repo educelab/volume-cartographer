@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <boost/program_options.hpp>
 #include <opencv2/core.hpp>
 
@@ -15,7 +18,7 @@ namespace vc = volcart;
 namespace vcs = volcart::segmentation;
 
 void WriteMaskImage(
-    int idx, size_t pad, const fs::path& dir, const cv::Mat& img);
+    int idx, std::size_t pad, const fs::path& dir, const cv::Mat& img);
 
 int main(int argc, char* argv[])
 {
@@ -36,15 +39,15 @@ int main(int argc, char* argv[])
     // TFF options
     po::options_description tffOptions("Thinned Flood Fill Segmentation Options");
     tffOptions.add_options()
-        ("low-thresh,l", po::value<uint16_t>()->default_value(14135),
+        ("low-thresh,l", po::value<std::uint16_t>()->default_value(14135),
              "Low threshold for the bounded flood-fill component [0-255]")
-        ("high-thresh,t", po::value<uint16_t>()->default_value(65535),
+        ("high-thresh,t", po::value<std::uint16_t>()->default_value(65535),
              "High threshold for the bounded flood-fill component [0-255]")
         ("enable-closing", po::value<bool>()->default_value(true),
              "If enabled, perform morphological mask closing.")
         ("closing-kernel-size,k", po::value<int>()->default_value(5),
              "Size of the kernel used for closing")
-        ("max-seed-radius", po::value<size_t>(),
+        ("max-seed-radius", po::value<std::size_t>(),
             "Max radius a seed point can have when measuring the thickness of the page.")
         ("measure-vert", "Measure the thickness of the page by going vertically (+/- y) "
             "from each seed point (measures horizontally by default)");
@@ -104,12 +107,12 @@ int main(int argc, char* argv[])
     vcs::ComputeVolumetricMask maskGen;
     maskGen.setPointSet(segmentation);
     maskGen.setVolume(volume);
-    maskGen.setLowThreshold(parsed["low-thresh"].as<uint16_t>());
-    maskGen.setHighThreshold(parsed["high-thresh"].as<uint16_t>());
+    maskGen.setLowThreshold(parsed["low-thresh"].as<std::uint16_t>());
+    maskGen.setHighThreshold(parsed["high-thresh"].as<std::uint16_t>());
     maskGen.setEnableClosing(parsed["enable-closing"].as<bool>());
     maskGen.setClosingKernelSize(parsed["closing-kernel-size"].as<int>());
     if (parsed.count("max-seed-radius") > 0) {
-        auto r = parsed["max-seed-radius"].as<size_t>();
+        auto r = parsed["max-seed-radius"].as<std::size_t>();
         maskGen.setMaxRadius(r);
     }
     maskGen.setMeasureVertical(parsed.count("measure-vert") > 0);

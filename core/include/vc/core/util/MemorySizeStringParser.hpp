@@ -8,6 +8,7 @@
  * @ingroup Util
  */
 
+#include <cstddef>
 #include <string>
 
 namespace volcart
@@ -27,10 +28,10 @@ enum class MemoryStringFormat { Int, Float };
  * Input: "1K", Output: 1024
  * Input: "1M", Output: 1048576
  */
-size_t MemorySizeStringParser(const std::string& s);
+std::size_t MemorySizeStringParser(const std::string& s);
 
 std::string BytesToMemorySizeString(
-    size_t bytes,
+    std::size_t bytes,
     const std::string& suffix = "GB",
     MemoryStringFormat fmt = MemoryStringFormat::Int);
 }  // namespace volcart

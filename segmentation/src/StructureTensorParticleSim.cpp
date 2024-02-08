@@ -7,9 +7,9 @@ using namespace vc::segmentation;
 
 static constexpr double RK_STEP_SCALE = 1.0 / 6.0;
 
-size_t StructureTensorParticleSim::progressIterations() const
+std::size_t StructureTensorParticleSim::progressIterations() const
 {
-    return static_cast<size_t>(std::ceil(numSteps_ / stepSize_));
+    return static_cast<std::size_t>(std::ceil(numSteps_ / stepSize_));
 }
 
 StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
@@ -45,17 +45,17 @@ StructureTensorParticleSim::PointSet StructureTensorParticleSim::compute()
         std::ceil(materialThickness_ / vol_->voxelSize()) * 0.5);
 
     // Output iterations
-    auto outIters = static_cast<size_t>(std::ceil(numSteps_ / stepSize_));
+    auto outIters = static_cast<std::size_t>(std::ceil(numSteps_ / stepSize_));
     // Runge-Kutta iterations
-    auto rkIters = static_cast<size_t>(std::ceil(stepSize_ / rkStepSize_));
+    auto rkIters = static_cast<std::size_t>(std::ceil(stepSize_ / rkStepSize_));
 
     // Sampled output iterations
-    for (size_t it = 0; it < outIters; it++) {
+    for (std::size_t it = 0; it < outIters; it++) {
         // Update progress
         progressUpdated(it);
 
         // Run Runge-Kutta multiple times to accumulate one full output step
-        for (size_t rkIt = 0; rkIt < rkIters; rkIt++) {
+        for (std::size_t rkIt = 0; rkIt < rkIters; rkIt++) {
             // K1
             auto chainK1 = currentChain_;
             auto k1 = calc_prop_forces_(chainK1) + calc_spring_forces_(chainK1);

@@ -8,21 +8,21 @@ auto ProjectInfo::Name() -> std::string
     return name;
 }
 
-auto ProjectInfo::VersionMajor() -> uint32_t
+auto ProjectInfo::VersionMajor() -> std::uint32_t
 {
-    static uint32_t vMaj{@PROJECT_VERSION_MAJOR@};
+    static std::uint32_t vMaj{@PROJECT_VERSION_MAJOR@};
     return vMaj;
 }
 
-auto ProjectInfo::VersionMinor() -> uint32_t
+auto ProjectInfo::VersionMinor() -> std::uint32_t
 {
-    static uint32_t vMin{@PROJECT_VERSION_MINOR@};
+    static std::uint32_t vMin{@PROJECT_VERSION_MINOR@};
     return vMin;
 }
 
-auto ProjectInfo::VersionPatch() -> uint32_t
+auto ProjectInfo::VersionPatch() -> std::uint32_t
 {
-    static uint32_t vPatch{@PROJECT_VERSION_PATCH@};
+    static std::uint32_t vPatch{@PROJECT_VERSION_PATCH@};
     return vPatch;
 }
 

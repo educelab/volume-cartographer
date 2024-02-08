@@ -1,6 +1,9 @@
 /* @file OrderedResampling.cpp*/
 
 #include "vc/meshing/OrderedResampling.hpp"
+
+#include <cstdint>
+
 #include "vc/core/util/Logging.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
 
@@ -70,7 +73,7 @@ void OrderedResampling::compute()
         "Error resampling. Output and expected output don't match.");
 
     // Vertices for each face in the new mesh
-    uint32_t point1, point2, point3, point4;
+    std::uint32_t point1, point2, point3, point4;
 
     // Create two new faces each iteration based on new set of points and keeps
     // normals same as original
@@ -111,7 +114,8 @@ void OrderedResampling::compute()
         std::to_string(output_->GetNumberOfCells()));
 }
 
-void OrderedResampling::add_cell_(uint32_t a, uint32_t b, uint32_t c)
+void OrderedResampling::add_cell_(
+    std::uint32_t a, std::uint32_t b, std::uint32_t c)
 {
     ITKCell::CellAutoPointer currentCell;
 

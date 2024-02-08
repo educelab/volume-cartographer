@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <iostream>
 #include <numeric>
 
@@ -77,7 +78,7 @@ TEST(CommonTest, UnzipTestingSizeTwo)
     std::tie(xs, ys) = Unzip(vs);
     EXPECT_EQ(xs.size(), vs.size());
     EXPECT_EQ(ys.size(), vs.size());
-    for (size_t i = 0; i < vs.size(); ++i) {
+    for (std::size_t i = 0; i < vs.size(); ++i) {
         EXPECT_EQ(xs[i], vs[i](0));
         EXPECT_EQ(ys[i], vs[i](1));
     }

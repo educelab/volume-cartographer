@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <cstddef>
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
@@ -88,8 +89,8 @@ TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
     // Compare clouds, make sure each point is within a certain tolerance.
     // Currently set in this file, may be set outside later on
     constexpr double voxelDiffTol = 10;  // %
-    size_t diffCount = 0;
-    for (size_t i = 0; i < groundTruthCloud.size(); ++i) {
+    std::size_t diffCount = 0;
+    for (std::size_t i = 0; i < groundTruthCloud.size(); ++i) {
         PointXYZ trueV(groundTruthCloud[i]);
         PointXYZ testV(resultCloud[i]);
         auto xdiff = std::abs(trueV.x - testV.x);
@@ -110,7 +111,7 @@ TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
 
     // Check that the clouds never vary in point differences by 10%
     auto maxAllowedDiffCount =
-        size_t(std::round(0.1 * groundTruthCloud.size()));
+        std::size_t(std::round(0.1 * groundTruthCloud.size()));
     std::cout << "# different points: " << diffCount
               << " (max allowed: " << maxAllowedDiffCount << ")" << std::endl;
     EXPECT_TRUE(diffCount < maxAllowedDiffCount);

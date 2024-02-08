@@ -97,7 +97,7 @@ public:
     void disconnect() { connections_.clear(); }
 
     /** @brief Get the number of connected slots */
-    size_t numConnections() const { return connections_.size(); }
+    std::size_t numConnections() const { return connections_.size(); }
 
     /** @brief Signal all connections with parameters */
     void send(Types... args) const

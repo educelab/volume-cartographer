@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 
 #include <boost/program_options.hpp>
@@ -58,7 +59,7 @@ int main(int argc, char* argv[])
 
     // Get the memory to reserve
     std::string memoryString = parsed["memory"].as<std::string>();
-    size_t memory = 0;
+    std::size_t memory = 0;
     try {
         memory = vc::MemorySizeStringParser(memoryString);
         if (memory > SystemMemorySize()) {

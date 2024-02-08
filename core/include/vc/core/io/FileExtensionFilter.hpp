@@ -23,7 +23,7 @@ inline bool FileExtensionFilter(
     const volcart::filesystem::path& path, const ExtensionList& exts)
 {
     std::string regexExpression = ".*\\.(";
-    size_t count = 0;
+    std::size_t count = 0;
     for (const auto& e : exts) {
         regexExpression.append(e);
         if (++count < exts.size()) {

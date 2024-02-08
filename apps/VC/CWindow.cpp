@@ -431,7 +431,7 @@ void CWindow::CreateBackend()
     connect(
         worker, &VolPkgBackend::segmentationFailed, this,
         &CWindow::onSegmentationFailed);
-    connect(worker, &VolPkgBackend::progressUpdated, [=](size_t p) {
+    connect(worker, &VolPkgBackend::progressUpdated, [=](std::size_t p) {
         progress_ = p;
     });
     worker_thread_.start();
@@ -444,7 +444,7 @@ void CWindow::CreateBackend()
     progressBar_ = new QProgressBar();
     layout->addWidget(progressBar_);
     progressBar_->setMinimum(0);
-    connect(worker, &VolPkgBackend::segmentationStarted, [=](size_t its) {
+    connect(worker, &VolPkgBackend::segmentationStarted, [=](std::size_t its) {
         progressBar_->setMaximum(its);
     });
 
@@ -854,9 +854,9 @@ void CWindow::SetUpCurves(void)
     fMaxSegIndex = maxIndex;
 
     // assign rows of particles to the curves
-    for (size_t i = 0; i < fMasterCloud.height(); ++i) {
+    for (std::size_t i = 0; i < fMasterCloud.height(); ++i) {
         CXCurve aCurve;
-        for (size_t j = 0; j < fMasterCloud.width(); ++j) {
+        for (std::size_t j = 0; j < fMasterCloud.width(); ++j) {
             int pointIndex = j + (i * fMasterCloud.width());
             aCurve.SetSliceIndex(
                 static_cast<int>(floor(fMasterCloud[pointIndex][2])));
@@ -1385,7 +1385,7 @@ void CWindow::OnPathChanged(void)
         // update current slice
         fStartingPath.clear();
         cv::Vec3d tempPt;
-        for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
+        for (std::size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
             tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
             tempPt[1] = fIntersectionCurve.GetPoint(i)[1];
             tempPt[2] = fPathOnSliceIndex;

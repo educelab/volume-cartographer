@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include "vc/core/util/Signals.hpp"
 
 namespace volcart
@@ -11,9 +13,9 @@ namespace volcart
 struct IterationsProgress {
     virtual ~IterationsProgress() = default;
     Signal<> progressStarted;
-    Signal<size_t> progressUpdated;
+    Signal<std::size_t> progressUpdated;
     Signal<> progressComplete;
-    virtual size_t progressIterations() const = 0;
+    virtual std::size_t progressIterations() const = 0;
 };
 
 }  // namespace volcart

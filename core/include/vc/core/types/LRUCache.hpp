@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <list>
 #include <memory>
 #include <unordered_map>
@@ -59,13 +60,13 @@ public:
     LRUCache() : BaseClass() {}
 
     /** @brief Constructor with cache capacity parameter */
-    explicit LRUCache(size_t capacity) : BaseClass(capacity) {}
+    explicit LRUCache(std::size_t capacity) : BaseClass(capacity) {}
 
     /** @overload LRUCache() */
     static Pointer New() { return std::make_shared<LRUCache<TKey, TValue>>(); }
 
-    /** @overload LRUCache(size_t) */
-    static Pointer New(size_t capacity)
+    /** @overload LRUCache(std::size_t) */
+    static Pointer New(std::size_t capacity)
     {
         return std::make_shared<LRUCache<TKey, TValue>>(capacity);
     }
@@ -73,7 +74,7 @@ public:
 
     /**@{*/
     /** @brief Set the maximum number of elements in the cache */
-    void setCapacity(size_t capacity) override
+    void setCapacity(std::size_t capacity) override
     {
         if (capacity <= 0) {
             throw std::invalid_argument(
@@ -91,10 +92,10 @@ public:
     }
 
     /** @brief Get the maximum number of elements in the cache */
-    size_t capacity() const override { return capacity_; }
+    std::size_t capacity() const override { return capacity_; }
 
     /** @brief Get the current number of elements in the cache */
-    size_t size() const override { return lookup_.size(); }
+    std::size_t size() const override { return lookup_.size(); }
     /**@}*/
 
     /**@{*/

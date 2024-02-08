@@ -3,6 +3,7 @@
 /** @file */
 
 #include <chrono>
+#include <cstddef>
 #include <iterator>
 #include <memory>
 
@@ -17,7 +18,7 @@ namespace volcart
  *
  * @ingroup Support
  */
-inline auto NewProgressBar(size_t maxProg, std::string label = "")
+inline auto NewProgressBar(std::size_t maxProg, std::string label = "")
 {
     using namespace indicators;
     namespace opt = option;
@@ -89,9 +90,9 @@ private:
         /** Shared progress bar instance */
         std::shared_ptr<indicators::ProgressBar> bar_;
         /** Current progress value */
-        size_t prog_{0};
+        std::size_t prog_{0};
         /** Max progress value */
-        size_t maxProg_{0};
+        std::size_t maxProg_{0};
         /** Use colors */
         bool useColors_{false};
         /** Last update timestamp */
@@ -102,7 +103,7 @@ private:
 
     public:
         /** @{ Iterator type traits */
-        using difference_type = size_t;
+        using difference_type = std::size_t;
         using value_type = typename std::iterator_traits<T>::value_type;
         using pointer = typename std::iterator_traits<T>::pointer;
         using reference = typename std::iterator_traits<T>::reference;
@@ -112,7 +113,7 @@ private:
         /** Constructor for the begin() iterator */
         explicit ConsoleProgressIterator(
             T beginIt,
-            size_t max,
+            std::size_t max,
             std::string label,
             bool useColors,
             std::chrono::steady_clock::duration interval =
@@ -219,8 +220,8 @@ public:
         auto begin = std::begin(container_);
         auto end = std::end(container_);
         return iterator{
-            begin, static_cast<size_t>(std::distance(begin, end)), cfg_.label,
-            cfg_.useColors};
+            begin, static_cast<std::size_t>(std::distance(begin, end)),
+            cfg_.label, cfg_.useColors};
     }
 
     /**

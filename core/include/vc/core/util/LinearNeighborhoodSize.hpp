@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include "vc/core/neighborhood/NeighborhoodGenerator.hpp"
 #include "vc/core/types/Volume.hpp"
 
@@ -13,7 +15,7 @@ namespace volcart
  *
  * @ingroup Util
  */
-static size_t LinearNeighborhoodSize(
+static std::size_t LinearNeighborhoodSize(
     double radius, double interval, Direction dir)
 {
     // Setup Range
@@ -37,6 +39,6 @@ static size_t LinearNeighborhoodSize(
         }
     }
 
-    return static_cast<size_t>(std::floor((max - min) / interval) + 1);
+    return static_cast<std::size_t>(std::floor((max - min) / interval) + 1);
 }
 }  // namespace volcart

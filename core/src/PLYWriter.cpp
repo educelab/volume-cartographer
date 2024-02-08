@@ -1,5 +1,7 @@
 #include "vc/core/io/PLYWriter.hpp"
 
+#include <cstddef>
+
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
@@ -7,15 +9,18 @@ using namespace volcart;
 using namespace volcart::io;
 namespace fs = volcart::filesystem;
 
-static inline auto PtIntensity(
+namespace
+{
+auto PtIntensity(
     std::size_t idx, const UVMap::Pointer& uvMap, const cv::Mat& image)
     -> double
 {
     auto uv = uvMap->get(idx);
     int u = cvRound(uv[0] * (image.cols - 1));
     int v = cvRound(uv[1] * (image.rows - 1));
-    return image.at<uint16_t>(v, u);
+    return image.at<std::uint16_t>(v, u);
 }
+}  // namespace
 
 ///// Output Methods /////
 auto PLYWriter::write() -> int
@@ -162,7 +167,7 @@ auto PLYWriter::write_faces_() -> int
     return EXIT_SUCCESS;
 }
 
-void PLYWriter::setVertexColors(const std::vector<uint16_t>& c)
+void PLYWriter::setVertexColors(const std::vector<std::uint16_t>& c)
 {
     vcolors_ = c;
 }
