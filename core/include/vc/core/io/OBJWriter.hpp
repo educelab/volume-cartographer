@@ -75,8 +75,10 @@ public:
     /** @brief Write the OBJ to disk
      *
      * If UV Map is not empty, automatically writes MTL and texture image.
+     *
+     * @throws volcart::IOException
      */
-    auto write() -> int;
+    void write();
     /**@}*/
 
 private:
@@ -109,20 +111,20 @@ private:
     cv::Mat texture_;
 
     /** Write the OBJ file */
-    auto write_obj_() -> int;
+    void write_obj_();
     /** Write the MTL file */
-    auto write_mtl_() -> int;
+    void write_mtl_();
     /** Write the texture file */
-    auto write_texture_() -> int;
+    void write_texture_();
 
     /** Write the OBJ header */
-    auto write_header_() -> int;
+    void write_header_();
     /** Write the OBJ vertices */
-    auto write_vertices_() -> int;
+    void write_vertices_();
     /** Write the OBJ texture coordinates */
-    auto write_texture_coordinates_() -> int;
+    void write_texture_coordinates_();
     /** Write the OBJ faces */
-    auto write_faces_() -> int;
+    void write_faces_();
 };
 
 }  // namespace volcart::io
