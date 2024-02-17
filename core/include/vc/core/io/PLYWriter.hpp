@@ -70,8 +70,10 @@ public:
      *
      * If UV Map is not empty, automatically writes per-vertex texture
      * information.
+     *
+     * @throws volcart::IOException
      */
-    auto write() -> int;
+    void write();
     /**@}*/
 
 private:
@@ -89,7 +91,7 @@ private:
     std::vector<std::uint16_t> vcolors_;
 
     /** @brief Write the PLY header */
-    auto write_header_() -> int;
+    void write_header_();
 
     /**
      * @brief Write the PLY vertices
@@ -98,13 +100,13 @@ private:
      *
      * `x y z nx ny nz`
      */
-    auto write_vertices_() -> int;
+    void write_vertices_();
     /**@brief Write the PLY faces
      *
      * Lines are formatted:
      *
      * `[n vertices in face] v1 v2 ... vn`
      */
-    auto write_faces_() -> int;
+    void write_faces_();
 };
 }  // namespace volcart::io

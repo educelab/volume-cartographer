@@ -23,16 +23,17 @@ auto PtIntensity(
 }  // namespace
 
 ///// Output Methods /////
-auto PLYWriter::write() -> int
+void PLYWriter::write()
 {
     if (not mesh_ or mesh_->GetNumberOfPoints() == 0) {
-        throw volcart::IOException("Mesh is empty or null");
+        throw IOException("Mesh is empty or null");
     }
 
     // Open the file stream
     outputMesh_.open(outputPath_.string());
     if (!outputMesh_.is_open()) {
-        return EXIT_FAILURE;
+        auto msg = "failure writing file '" + outputPath_.string() + "'";
+        throw IOException(msg);
     }
 
     // Capture the starting origin and set origin to what PLY reader needs
@@ -46,23 +47,22 @@ auto PLYWriter::write() -> int
     write_vertices_();
     write_faces_();
 
-    outputMesh_.close();
-
     // Restore the starting origin
     if (uvMap_) {
         uvMap_->setOrigin(startingOrigin);
     }
 
-    return EXIT_SUCCESS;
+    outputMesh_.flush();
+    outputMesh_.close();
+    if (outputMesh_.fail()) {
+        auto msg = "failure writing file '" + outputPath_.string() + "'";
+        throw IOException(msg);
+    }
 }
 
 // Write our custom header
-auto PLYWriter::write_header_() -> int
+void PLYWriter::write_header_()
 {
-    if (!outputMesh_.is_open()) {
-        return EXIT_FAILURE;
-    }
-
     outputMesh_ << "ply" << '\n';
     outputMesh_ << "format ascii 1.0" << '\n';
     outputMesh_ << "comment VC PLY Exporter v1.0" << '\n';
@@ -92,15 +92,13 @@ auto PLYWriter::write_header_() -> int
 
     // End header
     outputMesh_ << "end_header" << '\n';
-
-    return EXIT_SUCCESS;
 }
 
 // Write the vertex information: 'x y z nx ny nz'
-auto PLYWriter::write_vertices_() -> int
+void PLYWriter::write_vertices_()
 {
-    if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
-        return EXIT_FAILURE;
+    if (mesh_->GetNumberOfPoints() == 0) {
+        return;
     }
     Logger()->info("Writing vertices...");
 
@@ -137,15 +135,13 @@ auto PLYWriter::write_vertices_() -> int
 
         outputMesh_ << '\n';
     }
-
-    return EXIT_SUCCESS;
 }
 
 // Write the face information: 'n#-of-verts v1 v1 ... vn'
-auto PLYWriter::write_faces_() -> int
+void PLYWriter::write_faces_()
 {
-    if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
-        return EXIT_FAILURE;
+    if (mesh_->GetNumberOfCells() == 0) {
+        return;
     }
     Logger()->info("Writing faces...");
 
@@ -162,8 +158,6 @@ auto PLYWriter::write_faces_() -> int
         }
         outputMesh_ << '\n';
     }
-
-    return EXIT_SUCCESS;
 }
 
 void PLYWriter::setVertexColors(const std::vector<std::uint16_t>& c)
