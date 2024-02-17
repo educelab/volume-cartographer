@@ -96,7 +96,7 @@ auto main(int argc, char* argv[]) -> int
                 return EXIT_FAILURE;
             }
             volpkgs.insert({volpkg.name(), volpkg});
-        } catch (std::runtime_error& e) {
+        } catch (std::exception& e) {
             vc::Logger()->error(
                 "Failed to load volume package: {}: {}", volpkgPath, e.what());
             return EXIT_FAILURE;

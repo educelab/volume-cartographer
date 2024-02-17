@@ -8,6 +8,7 @@
 
 #include "vc/core/Version.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
 // Wrapping in a namespace to avoid define collisions
@@ -69,13 +70,13 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
 {
     // Make sure input file exists
     if (!fs::exists(path)) {
-        throw std::runtime_error("File does not exist");
+        throw IOException("File does not exist");
     }
 
     // Open the file read-only
     lt::TIFF* tif = lt::TIFFOpen(path.c_str(), "r");
     if (tif == nullptr) {
-        throw std::runtime_error("Failed to open tif");
+        throw IOException("Failed to open tif");
     }
 
     // Get metadata
@@ -107,7 +108,7 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
             std::memcpy(img.ptr(row), &buffer[0], bufferSize);
         }
     } else if (config == PLANARCONFIG_SEPARATE) {
-        throw std::runtime_error(
+        throw IOException(
             "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
     }
 
@@ -142,11 +143,11 @@ void tio::WriteTIFF(
 {
     // Safety checks
     if (img.channels() < 1 or img.channels() > 4) {
-        throw std::runtime_error("Unsupported number of channels");
+        throw IOException("Unsupported number of channels");
     }
 
     if (not io::FileExtensionFilter(path, {"tif", "tiff"})) {
-        throw std::runtime_error(
+        throw IOException(
             "Invalid file extension " + path.extension().string());
     }
 
@@ -189,7 +190,7 @@ void tio::WriteTIFF(
             bitsPerSample = 64;
             break;
         default:
-            throw std::runtime_error("Unsupported image depth");
+            throw IOException("Unsupported image depth");
     }
 
     // Photometric Interpretation
@@ -204,7 +205,7 @@ void tio::WriteTIFF(
             photometric = PHOTOMETRIC_RGB;
             break;
         default:
-            throw std::runtime_error("Unsupported number of channels");
+            throw IOException("Unsupported number of channels");
     }
 
     // Get working copy with converted channels if an RGB-type image
@@ -219,7 +220,7 @@ void tio::WriteTIFF(
             cv::cvtColor(img, imgCopy, cv::COLOR_BGRA2RGBA);
         }
     } else if (cvtNeeded) {
-        throw std::runtime_error(
+        throw IOException(
             "BGR->RGB conversion for signed 8-bit and 16-bit images is not "
             "supported.");
     } else {
@@ -237,8 +238,7 @@ void tio::WriteTIFF(
     auto* out = lt::TIFFOpen(path.c_str(), mode.c_str());
     if (out == nullptr) {
         Logger()->error("Failed to open file for writing: {}", path.string());
-        throw std::runtime_error(
-            "Failed to open file for writing: " + path.string());
+        throw IOException("Failed to open file for writing: " + path.string());
     }
 
     // Encoding parameters
@@ -276,7 +276,7 @@ void tio::WriteTIFF(
         if (result == -1) {
             lt::TIFFClose(out);
             auto msg = "Failed to write row " + std::to_string(row);
-            throw std::runtime_error(msg);
+            throw IOException(msg);
         }
     }
 
