@@ -44,7 +44,12 @@ void vio::WriteUVMap(const fs::path& path, const UVMap& uvMap)
         outfile.write(reinterpret_cast<const char*>(uv.val), nbytes);
     }
 
+    outfile.flush();
     outfile.close();
+    if (outfile.fail()) {
+        auto msg = "failure writing file '" + path.string() + "'";
+        throw IOException(msg);
+    }
 }
 
 auto vio::ReadUVMap(const fs::path& path) -> UVMap

@@ -33,7 +33,11 @@ public:
     /** @brief Default constructor */
     Metadata() = default;
 
-    /** @brief Read a metadata file from disk */
+    /**
+     * @brief Read a metadata file from disk
+     *
+     * @throws volcart::IOException
+     */
     explicit Metadata(volcart::filesystem::path fileLocation);
     /**@}*/
 
@@ -44,7 +48,11 @@ public:
     /** @brief Set the path where the metadata file will be written */
     void setPath(const volcart::filesystem::path& path) { path_ = path; }
 
-    /** @brief Save the metadata file to the stored path */
+    /**
+     * @brief Save the metadata file to the stored path
+     *
+     * @throws volcart::IOException 
+     */
     void save() { save(path_); }
 
     /** @brief Save the metadata file to a specified path */

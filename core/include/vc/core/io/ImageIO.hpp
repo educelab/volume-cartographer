@@ -39,6 +39,8 @@ struct WriteImageOpts {
  *
  * Uses volcart::WriteTIFF for all tiff images, which includes support for
  * transparency and floating-point images. Otherwise, uses cv::imwrite.
+ *
+ * @throws volcart::IOException
  */
 void WriteImage(
     const filesystem::path& path, const cv::Mat& img, WriteImageOpts = {});

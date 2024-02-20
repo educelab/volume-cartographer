@@ -7,7 +7,9 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/io/TIFFIO.hpp"
+#include "vc/core/types/Exceptions.hpp"
 
+using namespace volcart;
 using namespace volcart::tiffio;
 namespace fs = volcart::filesystem;
 
@@ -201,7 +203,7 @@ TEST(TIFFIO, Write8SC3)
 
     const fs::path imgPath(
         "vc_core_TIFFIO_Write_" + cv::typeToString(cvType) + ".tif");
-    EXPECT_THROW(WriteTIFF(imgPath, img), std::runtime_error);
+    EXPECT_THROW(WriteTIFF(imgPath, img), IOException);
 }
 
 TEST(TIFFIO, Write8SC4)
@@ -214,7 +216,7 @@ TEST(TIFFIO, Write8SC4)
 
     const fs::path imgPath(
         "vc_core_TIFFIO_Write_" + cv::typeToString(cvType) + ".tif");
-    EXPECT_THROW(WriteTIFF(imgPath, img), std::runtime_error);
+    EXPECT_THROW(WriteTIFF(imgPath, img), IOException);
 }
 
 TEST(TIFFIO, WriteRead16UC1)
@@ -359,7 +361,7 @@ TEST(TIFFIO, Write16SC3)
 
     const fs::path imgPath(
         "vc_core_TIFFIO_Write_" + cv::typeToString(cvType) + ".tif");
-    EXPECT_THROW(WriteTIFF(imgPath, img), std::runtime_error);
+    EXPECT_THROW(WriteTIFF(imgPath, img), IOException);
 }
 
 TEST(TIFFIO, Write16SC4)
@@ -372,7 +374,7 @@ TEST(TIFFIO, Write16SC4)
 
     const fs::path imgPath(
         "vc_core_TIFFIO_Write_" + cv::typeToString(cvType) + ".tif");
-    EXPECT_THROW(WriteTIFF(imgPath, img), std::runtime_error);
+    EXPECT_THROW(WriteTIFF(imgPath, img), IOException);
 }
 
 TEST(TIFFIO, WriteRead32SC1)
@@ -429,7 +431,7 @@ TEST(TIFFIO, Write32SC3)
 
     const fs::path imgPath(
         "vc_core_TIFFIO_Write_" + cv::typeToString(cvType) + ".tif");
-    EXPECT_THROW(WriteTIFF(imgPath, img), std::runtime_error);
+    EXPECT_THROW(WriteTIFF(imgPath, img), IOException);
 }
 
 TEST(TIFFIO, Write32SC4)
@@ -442,7 +444,7 @@ TEST(TIFFIO, Write32SC4)
 
     const fs::path imgPath(
         "vc_core_TIFFIO_Write_" + cv::typeToString(cvType) + ".tif");
-    EXPECT_THROW(WriteTIFF(imgPath, img), std::runtime_error);
+    EXPECT_THROW(WriteTIFF(imgPath, img), IOException);
 }
 
 TEST(TIFFIO, WriteRead32FC1)
