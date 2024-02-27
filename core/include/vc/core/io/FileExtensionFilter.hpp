@@ -4,9 +4,11 @@
 
 #include <regex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/util/String.hpp"
 
 namespace volcart
 {
@@ -36,9 +38,20 @@ inline bool FileExtensionFilter(
     return std::regex_match(path.extension().string(), extensions);
 }
 
+/**
+ * Returns true if `path` has a prefix beginning with `prefix`. Comparison is
+ * case insensitive.
+ */
+inline bool UnixHiddenFileFilter(const volcart::filesystem::path& path)
+{
+    return volcart::starts_with(path.filename().string(), ".");
+}
+
 }  // namespace io
 
 /** Convenience alias for FileExtensionFilter */
 constexpr auto IsFileType = io::FileExtensionFilter;
 
+/** Convenience alias for UnixHiddenFileFilter */
+constexpr auto IsUnixHiddenFile = io::UnixHiddenFileFilter;
 }  // namespace volcart
