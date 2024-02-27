@@ -10,6 +10,7 @@
 #include "vc/apps/packager/SliceImage.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FilePrefixFilter.hpp"
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -287,7 +288,8 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
         // Filter by either file extension or the provided regex
         if (info.sliceRegex.empty()) {
             if (vci::FileExtensionFilter(
-                    subfile->path().filename(), ImageExts)) {
+                    subfile->path().filename(), ImageExts) &&
+                !vci::FilePrefixFilter(subfile->path().filename(), "._")) {
                 slices.emplace_back(subfile->path());
             }
         } else {
