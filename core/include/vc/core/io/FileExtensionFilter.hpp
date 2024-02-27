@@ -38,8 +38,8 @@ inline bool FileExtensionFilter(
 }
 
 /**
- * Returns true if `path` has a prefix beginning with `prefix`. Comparison is
- * case insensitive.
+ * Returns true if `path` is a UNIX hidden file (i.e., the filename starts with
+ * the `.` character)
  */
 inline bool UnixHiddenFileFilter(const volcart::filesystem::path& path)
 {
