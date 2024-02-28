@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/util/String.hpp"
 
 namespace volcart
 {
