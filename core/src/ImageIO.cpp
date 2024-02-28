@@ -2,7 +2,7 @@
 
 #include <opencv2/imgcodecs.hpp>
 
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/TIFFIO.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/ImageConversion.hpp"

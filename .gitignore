@@ -30,6 +30,7 @@ target/
 *install_manifest.txt
 *build*/
 deps/
+.cache/
 
 # Vim
 tags

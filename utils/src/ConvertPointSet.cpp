@@ -5,7 +5,7 @@
 
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"

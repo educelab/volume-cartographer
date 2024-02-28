@@ -9,7 +9,7 @@
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/apps/packager/SliceImage.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -268,7 +268,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
     std::cout << "Reading the slice directory..." << std::endl;
     std::vector<vc::SliceImage> slices;
 
-    if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
+    if (not fs::exists(info.path) or not fs::is_directory(info.path)) {
         std::cerr << "ERROR: Provided slice path does not exist/is not a "
                      "directory. Please provide a directory of slice images."
                   << std::endl;
@@ -277,24 +277,24 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 
     // Iterate through all files in the directory
     fs::directory_iterator subfile(info.path);
-    fs::directory_iterator dirEnd;
-    for (; subfile != dirEnd; subfile++) {
-        // Skip if not a regular file
-        if (!fs::is_regular_file(subfile->path())) {
+    for (const fs::directory_iterator dirEnd; subfile != dirEnd; ++subfile) {
+        // Get subfile as path
+        const auto subpath = subfile->path();
+
+        // Skip if not a regular or visible file
+        if (not fs::is_regular_file(subpath) or vc::IsUnixHiddenFile(subpath)) {
             continue;
         }
 
         // Filter by either file extension or the provided regex
         if (info.sliceRegex.empty()) {
-            if (vci::FileExtensionFilter(
-                    subfile->path().filename(), ImageExts)) {
-                slices.emplace_back(subfile->path());
+            if (vc::IsFileType(subpath, ImageExts)) {
+                slices.emplace_back(subpath);
             }
         } else {
             if (std::regex_match(
-                    subfile->path().filename().string(),
-                    std::regex{info.sliceRegex})) {
-                slices.emplace_back(subfile->path());
+                    subpath.filename().string(), std::regex{info.sliceRegex})) {
+                slices.emplace_back(subpath);
             }
         }
     }
