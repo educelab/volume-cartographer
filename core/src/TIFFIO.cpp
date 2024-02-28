@@ -7,7 +7,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "vc/core/Version.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 

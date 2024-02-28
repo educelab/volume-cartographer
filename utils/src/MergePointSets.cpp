@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/util/HashFunctions.hpp"
 #include "vc/core/util/Logging.hpp"

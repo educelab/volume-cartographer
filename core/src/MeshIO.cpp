@@ -1,6 +1,6 @@
 #include "vc/core/io/MeshIO.hpp"
 
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"

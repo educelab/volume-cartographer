@@ -6,7 +6,7 @@
 #include <boost/program_options.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/PerPixelMap.hpp"

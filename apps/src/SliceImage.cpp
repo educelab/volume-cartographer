@@ -6,7 +6,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "vc/apps/packager/SliceImage.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/util/String.hpp"
 
 static const double MAX_16BPC = std::numeric_limits<std::uint16_t>::max();
