@@ -252,11 +252,4 @@ auto to_padded_string(Integer val, int padding, char fill = '0') -> std::string
     return stream.str();
 }
 
-/** @brief Indicate whether a given string starts with a separate given string
- */
-static inline bool starts_with(const std::string& s, const std::string& prefix)
-{
-    return s.rfind(prefix, 0) == 0;
-}
-
 }  // namespace volcart

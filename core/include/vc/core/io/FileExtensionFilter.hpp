@@ -20,8 +20,8 @@ using ExtensionList = std::vector<std::string>;
  * Returns true if `path` has a file extension in `exts`. Comparison is case
  * insensitive.
  */
-inline bool FileExtensionFilter(
-    const volcart::filesystem::path& path, const ExtensionList& exts)
+inline auto FileExtensionFilter(
+    const filesystem::path& path, const ExtensionList& exts) -> bool
 {
     std::string regexExpression = ".*\\.(";
     std::size_t count = 0;
@@ -33,7 +33,7 @@ inline bool FileExtensionFilter(
     }
     regexExpression.append(")$");
 
-    std::regex extensions{regexExpression, std::regex::icase};
+    const std::regex extensions{regexExpression, std::regex::icase};
     return std::regex_match(path.extension().string(), extensions);
 }
 
@@ -41,9 +41,9 @@ inline bool FileExtensionFilter(
  * Returns true if `path` is a UNIX hidden file (i.e., the filename starts with
  * the `.` character)
  */
-inline bool UnixHiddenFileFilter(const volcart::filesystem::path& path)
+inline auto UnixHiddenFileFilter(const filesystem::path& path) -> bool
 {
-    return volcart::starts_with(path.filename().string(), ".");
+    return path.filename().string()[0] == '.';
 }
 
 }  // namespace io
