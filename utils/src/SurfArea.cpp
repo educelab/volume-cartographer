@@ -8,7 +8,8 @@
 #include <vtkPolyData.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-#include "vc/core/io/PLYReader.hpp"
+#include "vc/core/io/FileFilters.hpp"
+#include "vc/core/io/MeshIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
@@ -16,21 +17,29 @@
 auto main(int argc, char** argv) -> int
 {
     if (argc < 3) {
-        std::cout << "Usage: vc_area volpkg seg-id" << '\n';
+        std::cout << "Usage: vc_area volpkg (seg-id | mesh)" << '\n';
         exit(-1);
     }
 
     // Load the VolumePkg
     volcart::VolumePkg vpkg(argv[1]);
 
-    // Get the segmentation
-    std::string segID = argv[2];
-    auto seg = vpkg.segmentation(segID);
+    volcart::ITKMesh::Pointer mesh;
+    std::string segID;
+    if (volcart::IsFileType(argv[2], {"obj", "ply"})) {
+        // Load the mesh
+        auto meshReaderResult = volcart::ReadMesh(argv[2]);
+        mesh = meshReaderResult.mesh;
+    } else {
+        // Get the segmentation
+        segID = argv[2];
+        auto seg = vpkg.segmentation(segID);
 
-    // Mesh the point cloud
-    volcart::meshing::OrderedPointSetMesher mesher;
-    mesher.setPointSet(seg->getPointSet());
-    auto mesh = mesher.compute();
+        // Mesh the point cloud
+        volcart::meshing::OrderedPointSetMesher mesher;
+        mesher.setPointSet(seg->getPointSet());
+        mesh = mesher.compute();
+    }
 
     auto smoothVTK = vtkPolyData::New();
     volcart::meshing::ITK2VTK(mesh, smoothVTK);
