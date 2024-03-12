@@ -1,6 +1,6 @@
 # Volume Cartographer Apps and Utilities
 
-An exhaustive list of the applicaitons and utilities provided by Volume 
+An exhaustive list of the applications and utilities provided by Volume 
 Cartographer. Most programs can be run with `--help` for more usage details.
 
 ## VC
