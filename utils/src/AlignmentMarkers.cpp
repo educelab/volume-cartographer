@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <exception>
 #include <iostream>
 #include <regex>
@@ -18,9 +19,10 @@ namespace fs = volcart::filesystem;
 namespace vc = volcart;
 namespace vct = volcart::texturing;
 
-vct::AlignmentMarkerGenerator::LineSegment ParseLineSegString(std::string s);
+auto ParseLineSegString(std::string s)
+    -> vct::AlignmentMarkerGenerator::LineSegment;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // clang-format off
@@ -126,7 +128,7 @@ int main(int argc, char* argv[])
 
     // Save all of the images
     vc::Logger()->info("Saving alignment marked outputs...");
-    for (size_t idx = 0; idx < imgs.size(); idx++) {
+    for (std::size_t idx = 0; idx < imgs.size(); idx++) {
         // Get the file name
         auto path = fs::path(meshPaths[idx]).filename();
 
@@ -154,7 +156,8 @@ int main(int argc, char* argv[])
     return EXIT_SUCCESS;
 }
 
-vct::AlignmentMarkerGenerator::LineSegment ParseLineSegString(std::string s)
+auto ParseLineSegString(std::string s)
+    -> vct::AlignmentMarkerGenerator::LineSegment
 {
     // Parse the string into doubles
     std::regex delim(",");

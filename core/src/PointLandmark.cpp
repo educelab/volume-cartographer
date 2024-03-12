@@ -16,14 +16,15 @@ PointLandmark::PointLandmark(
     update_meta_();
 }
 
-PointLandmark::Pointer PointLandmark::New(
-    const Identifier& uuid, const std::string& name)
+auto PointLandmark::New(const Identifier& uuid, const std::string& name)
+    -> PointLandmark::Pointer
 {
     return std::make_shared<PointLandmark>(uuid, name);
 }
 
-PointLandmark::Pointer PointLandmark::New(
+auto PointLandmark::New(
     const Identifier& uuid, const std::string& name, const cv::Vec3d& position)
+    -> PointLandmark::Pointer
 {
     return std::make_shared<PointLandmark>(uuid, name, position);
 }
@@ -42,6 +43,9 @@ void PointLandmark::setPosition(double x, double y, double z)
     update_meta_();
 }
 
-PointLandmark::Point PointLandmark::getPosition() const { return position_; }
+auto PointLandmark::getPosition() const -> PointLandmark::Point
+{
+    return position_;
+}
 
 void PointLandmark::update_meta_() { metadata_.set("position", position_); }

@@ -2,6 +2,7 @@
 #pragma ide diagnostic ignored "readability-identifier-length"
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
+#include <cstdint>
 #include <iostream>
 #include <vector>
 
@@ -75,7 +76,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") != 0 || argc < 4) {
-        std::cerr << all << std::endl;
+        std::cerr << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -83,7 +84,7 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -132,8 +133,8 @@ auto main(int argc, char* argv[]) -> int
         std::cerr << "Cannot load volume. ";
         std::cerr << "Please check that the Volume Package has volumes and "
                      "that the volume ID is correct."
-                  << std::endl;
-        std::cerr << e.what() << std::endl;
+                  << '\n';
+        std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -257,7 +258,7 @@ auto main(int argc, char* argv[]) -> int
             for (const auto pt : range2D(processed.rows, processed.cols)) {
                 const auto& x = pt.second;
                 const auto& y = pt.first;
-                if (processed.at<uint8_t>(y, x) > 0) {
+                if (processed.at<std::uint8_t>(y, x) > 0) {
                     middle = {
                         static_cast<double>(x), static_cast<double>(y),
                         static_cast<double>(z)};
@@ -397,7 +398,7 @@ auto main(int argc, char* argv[]) -> int
                 && yI < processed.rows
             ) {
                 // if point is on detected edge
-                if (!haveFirst && processed.at<uint8_t>(yI, xI) != 0) {
+                if (!haveFirst && processed.at<std::uint8_t>(yI, xI) != 0) {
                     // set first
                     first = {pt[0], pt[1], static_cast<double>(z)};
                     last = first;
@@ -405,7 +406,8 @@ auto main(int argc, char* argv[]) -> int
                     continue;
                 }
 
-                if (cannySettings.midpoint && haveFirst && processed.at<uint8_t>(yI, xI) != 0) {
+                if (cannySettings.midpoint && haveFirst &&
+                    processed.at<std::uint8_t>(yI, xI) != 0) {
                     last = {pt[0], pt[1], static_cast<double>(z)};
                 }
 

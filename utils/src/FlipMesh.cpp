@@ -7,15 +7,16 @@
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/Logging.hpp"
 
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -46,7 +47,7 @@ int main(int argc, char** argv)
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -54,7 +55,7 @@ int main(int argc, char** argv)
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -63,10 +64,11 @@ int main(int argc, char** argv)
 
     ///// Load the volume package /////
     auto vpkg = vc::VolumePkg::New(volpkgPath);
-    if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume Package is version " << vpkg->version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -82,8 +84,8 @@ int main(int argc, char** argv)
         std::cerr << "Cannot load volume. ";
         std::cerr << "Please check that the Volume Package has volumes and "
                      "that the volume ID is correct."
-                  << std::endl;
-        std::cerr << e.what() << std::endl;
+                  << '\n';
+        std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
 

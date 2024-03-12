@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <limits>
 #include <regex>
@@ -8,15 +9,14 @@
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/apps/packager/SliceImage.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/FormatStrToRegexStr.hpp"
 #include "vc/core/util/Iteration.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/core/util/String.hpp"
-
-using PathStringList = std::vector<std::string>;
 
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
@@ -28,11 +28,11 @@ enum class Flip { None, Horizontal, Vertical, ZFlip, Both, All };
 static const vci::ExtensionList ImageExts{"tif", "tiff", "png",
                                           "jpg", "jpeg", "bmp"};
 
-static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
-static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+static const double MIN_16BPC = std::numeric_limits<std::uint16_t>::min();
+static const double MAX_16BPC = std::numeric_limits<std::uint16_t>::max();
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
+static constexpr int VOLPKG_MIN_VERSION = 6;
 
 struct VolumeInfo {
     fs::path path;
@@ -46,40 +46,51 @@ struct VolumeInfo {
 
 static bool DoAnalyze{true};
 
-auto GetVolumeInfo(const fs::path& slicePath) -> VolumeInfo;
+auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo;
 void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info);
 
 auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
-    // All command line options
     // clang-format off
     po::options_description options("Options");
     options.add_options()
         ("help,h", "Show this message")
         ("volpkg,v", po::value<std::string>()->required(),
-           "Path for the output volume package")
-        ("material-thickness,m", po::value<double>(),
-           "Estimated thickness of a material layer (in microns). Required "
-           "when making a new volume package.")
-        ("slices,s", po::value<PathStringList>(),
-            "Path to input slice data. Ends with prefix of slice images or log "
-            "file path. Can be specified multiple times to add multiple "
-            "volumes.");
+           "Path for the output volume package.");
 
-    // Useful transforms for origin adjustment
-    po::options_description extras("Metadata");
-    extras.add_options()
+    po::options_description volpkg_metadata("Volpkg metadata");
+    volpkg_metadata.add_options()
         ("name", po::value<std::string>(),
             "Set a descriptive name for the VolumePkg. Default: Filename "
-            "specified by --volpkg");
-    // clang-format on
+            "specified by --volpkg")
+        ("material-thickness,m", po::value<double>(),
+           "Estimated thickness of a material layer (in microns). Required "
+           "when making a new volume package.");
+
+    po::options_description volume_options("Volume");
+    volume_options.add_options()
+        ("slices,s", po::value<std::string>(),
+            "Path to input slice data. Ends with prefix of slice images or log "
+            "file path. Required when making a new volume.")
+        ("volume-name,n", po::value<std::string>(),
+            "Descriptive name for the volume. Required when making a new "
+            "volume.")
+        ("voxel-size-um,u", po::value<double>(),
+            "Voxel size of the volume in microns (e.g. 13.546). Required when "
+            "making a new volume.")
+        ("flip,f", po::value<std::string>()->default_value("none"),
+            "Flip options: Vertical flip (vf), horizontal flip (hf), both, "
+            "z-flip (zf), all, [none].")
+        ("compress,c", "Compress slice images");
+    
     po::options_description helpOpts("Usage");
-    helpOpts.add(options).add(extras);
+    helpOpts.add(options).add(volpkg_metadata).add(volume_options);
 
     po::options_description all("Usage");
     all.add(helpOpts).add_options()(
-        "analyze", po::value<bool>()->default_value(true), "Analyze volumes");
+        "analyze", po::value<bool>()->default_value(true), "Analyze volume");
+    // clang-format on
 
     // parsed will hold the values of all parsed options as a Map
     po::variables_map parsed;
@@ -87,7 +98,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << helpOpts << std::endl;
+        std::cout << helpOpts << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -95,7 +106,7 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -118,7 +129,7 @@ auto main(int argc, char* argv[]) -> int
         if (parsed.count("material-thickness") == 0) {
             std::cerr << "ERROR: Making a new volume package but did not "
                          "provide the material thickness."
-                      << std::endl;
+                      << '\n';
             return EXIT_FAILURE;
         }
         volpkg = vc::VolumePkg::New(volpkgPath, vc::VOLPKG_VERSION_LATEST);
@@ -127,10 +138,11 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Make sure we support this version of the VolPkg
-    if (volpkg->version() != VOLPKG_SUPPORTED_VERSION) {
-        std::cerr << "ERROR: Volume package is version " << volpkg->version()
-                  << " but this program requires version "
-                  << VOLPKG_SUPPORTED_VERSION << "." << std::endl;
+    if (volpkg->version() < VOLPKG_MIN_VERSION) {
+        vc::Logger()->error(
+            "Volume Package is version {} but this program requires version "
+            "{}+. ",
+            volpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -154,29 +166,17 @@ auto main(int argc, char* argv[]) -> int
     // Update metadata on disk
     volpkg->saveMetadata();
 
-    ///// Add Volumes /////
-    PathStringList volumesPaths;
-    if (parsed.count("slices")) {
-        volumesPaths = parsed["slices"].as<PathStringList>();
-    }
-
-    // Get volume info
-    std::vector<VolumeInfo> volumesList;
-    for (auto& v : volumesPaths) {
-        volumesList.emplace_back(GetVolumeInfo(v));
-    }
-
-    // Add volumes in sequence
-    for (auto& v : volumesList) {
-        AddVolume(volpkg, v);
-    }
+    ///// Add Volume /////
+    auto info = GetVolumeInfo(parsed);
+    AddVolume(volpkg, info);
 }
 
-VolumeInfo GetVolumeInfo(const fs::path& slicePath)
+auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
 {
-    std::cout << "Getting info for Volume: " << slicePath << std::endl;
-
     VolumeInfo info;
+
+    fs::path slicePath = parsed["slices"].as<std::string>();
+
     bool voxelFound = false;
 
     // If path is a log file, try to read its info
@@ -216,51 +216,46 @@ VolumeInfo GetVolumeInfo(const fs::path& slicePath)
     }
 
     // Volume Name
-    std::cout << "Enter a descriptive name for the volume: ";
-    std::getline(std::cin, info.name);
+    if (parsed.count("volume-name") == 0) {
+        std::cerr << "ERROR: --volume-name required when creating a new volume."
+                  << '\n';
+        exit(EXIT_FAILURE);
+    }
+    info.name = parsed["volume-name"].as<std::string>();
 
     // Get voxel size
-    std::string input;
     if (!voxelFound) {
-        bool success{false};
-        do {
-            std::cout << "Enter the voxel size of the volume in microns "
-                         "(e.g. 13.546): ";
-            std::getline(std::cin, input);
-            try {
-                info.voxelsize = std::stod(input);
-                success = true;
-            } catch (...) {
-                std::cout << "Cannot parse input: " << input << std::endl;
-            }
-        } while (not success);
+        if (parsed.count("voxel-size-um") == 0) {
+            std::cerr
+                << "ERROR: --voxel-size-um required when creating a new volume."
+                << '\n';
+            exit(EXIT_FAILURE);
+        }
+        info.voxelsize = parsed["voxel-size-um"].as<double>();
     }
 
     // Flip options
-    std::cout << "Flip options: Vertical flip (vf), horizontal flip (hf), "
-                 "both, z-flip (zf), all, [none] : ";
-    std::getline(std::cin, input);
-    vc::trim(input);
+    auto flip = parsed["flip"].as<std::string>();
+    vc::to_lower(flip);
 
-    if (input == "vf") {
+    if (flip == "vf") {
         info.flipOption = Flip::Vertical;
-    } else if (input == "hf") {
+    } else if (flip == "hf") {
         info.flipOption = Flip::Horizontal;
-    } else if (input == "both") {
+    } else if (flip == "both") {
         info.flipOption = Flip::Both;
-    } else if (input == "zf") {
+    } else if (flip == "zf") {
         info.flipOption = Flip::ZFlip;
-    } else if (input == "all") {
+    } else if (flip == "all") {
         info.flipOption = Flip::All;
-    } else if (not input.empty()) {
-        std::cerr << "Ignoring unrecognized flip option: " << input << "\n";
+    } else if (flip == "none") {
+        info.flipOption = Flip::None;
+    } else if (not flip.empty()) {
+        std::cerr << "Ignoring unrecognized flip option: " << flip << "\n";
     }
 
     // Whether to compress
-    std::cout << "Compress slice images? [yN]: ";
-    std::getline(std::cin, input);
-    vc::to_lower(input);
-    info.compress = input == "y";
+    info.compress = parsed.count("compress") != 0;
 
     return info;
 }
@@ -273,7 +268,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
     std::cout << "Reading the slice directory..." << std::endl;
     std::vector<vc::SliceImage> slices;
 
-    if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
+    if (not fs::exists(info.path) or not fs::is_directory(info.path)) {
         std::cerr << "ERROR: Provided slice path does not exist/is not a "
                      "directory. Please provide a directory of slice images."
                   << std::endl;
@@ -282,24 +277,24 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 
     // Iterate through all files in the directory
     fs::directory_iterator subfile(info.path);
-    fs::directory_iterator dirEnd;
-    for (; subfile != dirEnd; subfile++) {
-        // Skip if not a regular file
-        if (!fs::is_regular_file(subfile->path())) {
+    for (const fs::directory_iterator dirEnd; subfile != dirEnd; ++subfile) {
+        // Get subfile as path
+        const auto subpath = subfile->path();
+
+        // Skip if not a regular or visible file
+        if (not fs::is_regular_file(subpath) or vc::IsUnixHiddenFile(subpath)) {
             continue;
         }
 
         // Filter by either file extension or the provided regex
         if (info.sliceRegex.empty()) {
-            if (vci::FileExtensionFilter(
-                    subfile->path().filename(), ImageExts)) {
-                slices.emplace_back(subfile->path());
+            if (vc::IsFileType(subpath, ImageExts)) {
+                slices.emplace_back(subpath);
             }
         } else {
             if (std::regex_match(
-                    subfile->path().filename().string(),
-                    std::regex{info.sliceRegex})) {
-                slices.emplace_back(subfile->path());
+                    subpath.filename().string(), std::regex{info.sliceRegex})) {
+                slices.emplace_back(subpath);
             }
         }
     }

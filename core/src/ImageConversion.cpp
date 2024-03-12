@@ -1,24 +1,27 @@
 #include "vc/core/util/ImageConversion.hpp"
 
+#include <cstdint>
+
 namespace vc = volcart;
 
-static inline auto CreateAlphaChannel(const cv::Size& size, int depth)
-    -> cv::Mat
+namespace
+{
+auto CreateAlphaChannel(const cv::Size& size, int depth) -> cv::Mat
 {
     // Create and scale the alpha channel
     cv::Mat alpha = cv::Mat::ones(size, depth);
     switch (alpha.depth()) {
         case CV_8U:
-            alpha *= std::numeric_limits<uint8_t>::max();
+            alpha *= std::numeric_limits<std::uint8_t>::max();
             break;
         case CV_8S:
-            alpha *= std::numeric_limits<int8_t>::max();
+            alpha *= std::numeric_limits<std::int8_t>::max();
             break;
         case CV_16U:
-            alpha *= std::numeric_limits<uint16_t>::max();
+            alpha *= std::numeric_limits<std::uint16_t>::max();
             break;
         case CV_16S:
-            alpha *= std::numeric_limits<int16_t>::max();
+            alpha *= std::numeric_limits<std::int16_t>::max();
             break;
         default:
             // do nothing
@@ -27,6 +30,7 @@ static inline auto CreateAlphaChannel(const cv::Size& size, int depth)
 
     return alpha;
 }
+}  // namespace
 
 auto vc::DepthToString(int depth) -> std::string
 {
@@ -63,16 +67,16 @@ auto vc::QuantizeImage(const cv::Mat& m, int depth, bool scaleMinMax) -> cv::Mat
     double outputMax{1.0};
     switch (depth) {
         case CV_8U:
-            outputMax = std::numeric_limits<uint8_t>::max();
+            outputMax = std::numeric_limits<std::uint8_t>::max();
             break;
         case CV_8S:
-            outputMax = std::numeric_limits<int8_t>::max();
+            outputMax = std::numeric_limits<std::int8_t>::max();
             break;
         case CV_16U:
-            outputMax = std::numeric_limits<uint16_t>::max();
+            outputMax = std::numeric_limits<std::uint16_t>::max();
             break;
         case CV_16S:
-            outputMax = std::numeric_limits<int16_t>::max();
+            outputMax = std::numeric_limits<std::int16_t>::max();
             break;
         default:
             // do nothing
@@ -87,16 +91,16 @@ auto vc::QuantizeImage(const cv::Mat& m, int depth, bool scaleMinMax) -> cv::Mat
     } else {
         switch (m.depth()) {
             case CV_8U:
-                max = std::numeric_limits<uint8_t>::max();
+                max = std::numeric_limits<std::uint8_t>::max();
                 break;
             case CV_8S:
-                max = std::numeric_limits<int8_t>::max();
+                max = std::numeric_limits<std::int8_t>::max();
                 break;
             case CV_16U:
-                max = std::numeric_limits<uint16_t>::max();
+                max = std::numeric_limits<std::uint16_t>::max();
                 break;
             case CV_16S:
-                max = std::numeric_limits<int16_t>::max();
+                max = std::numeric_limits<std::int16_t>::max();
                 break;
             default:
                 // do nothing

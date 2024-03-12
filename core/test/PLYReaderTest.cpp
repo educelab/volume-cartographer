@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+
 #include "vc/core/io/PLYReader.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
@@ -89,7 +91,7 @@ TEST_F(ReadITKArchMeshFixture, ReadArchMeshTest)
         _in_ArchMesh->GetNumberOfPoints(), _read_ArchMesh->GetNumberOfPoints());
     EXPECT_EQ(
         _in_ArchMesh->GetNumberOfCells(), _read_ArchMesh->GetNumberOfCells());
-    for (uint64_t pnt_id = 0; pnt_id < _in_ArchMesh->GetNumberOfPoints();
+    for (std::uint64_t pnt_id = 0; pnt_id < _in_ArchMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_ArchMesh->GetPoint(pnt_id)[0],
@@ -112,7 +114,7 @@ TEST_F(ReadITKArchMeshFixture, ReadArchMeshTest)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (uint64_t cell_id = 0; cell_id < _in_ArchMesh->GetNumberOfCells();
+    for (std::uint64_t cell_id = 0; cell_id < _in_ArchMesh->GetNumberOfCells();
          cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_ArchMesh->GetCell(cell_id, in_C);
@@ -134,7 +136,7 @@ TEST_F(ReadITKPlaneMeshFixture, ReadPlaneMeshTest)
         _read_PlaneMesh->GetNumberOfPoints());
     EXPECT_EQ(
         _in_PlaneMesh->GetNumberOfCells(), _read_PlaneMesh->GetNumberOfCells());
-    for (uint64_t pnt_id = 0; pnt_id < _in_PlaneMesh->GetNumberOfPoints();
+    for (std::uint64_t pnt_id = 0; pnt_id < _in_PlaneMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_PlaneMesh->GetPoint(pnt_id)[0],
@@ -157,7 +159,7 @@ TEST_F(ReadITKPlaneMeshFixture, ReadPlaneMeshTest)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (uint64_t cell_id = 0; cell_id < _in_PlaneMesh->GetNumberOfCells();
+    for (std::uint64_t cell_id = 0; cell_id < _in_PlaneMesh->GetNumberOfCells();
          cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_PlaneMesh->GetCell(cell_id, in_C);
@@ -178,7 +180,7 @@ TEST_F(ReadITKConeMeshFixture, ReadConeMeshTest)
         _in_ConeMesh->GetNumberOfPoints(), _read_ConeMesh->GetNumberOfPoints());
     EXPECT_EQ(
         _in_ConeMesh->GetNumberOfCells(), _read_ConeMesh->GetNumberOfCells());
-    for (uint64_t pnt_id = 0; pnt_id < _in_ConeMesh->GetNumberOfPoints();
+    for (std::uint64_t pnt_id = 0; pnt_id < _in_ConeMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_ConeMesh->GetPoint(pnt_id)[0],
@@ -201,7 +203,7 @@ TEST_F(ReadITKConeMeshFixture, ReadConeMeshTest)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (uint64_t cell_id = 0; cell_id < _in_ConeMesh->GetNumberOfCells();
+    for (std::uint64_t cell_id = 0; cell_id < _in_ConeMesh->GetNumberOfCells();
          cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_ConeMesh->GetCell(cell_id, in_C);
@@ -224,7 +226,7 @@ TEST_F(ReadITKSphereMeshFixture, ReadSphereMeshTest)
     EXPECT_EQ(
         _in_SphereMesh->GetNumberOfCells(),
         _read_SphereMesh->GetNumberOfCells());
-    for (uint64_t pnt_id = 0; pnt_id < _in_SphereMesh->GetNumberOfPoints();
+    for (std::uint64_t pnt_id = 0; pnt_id < _in_SphereMesh->GetNumberOfPoints();
          pnt_id++) {
         volcart::testing::SmallOrClose(
             _in_SphereMesh->GetPoint(pnt_id)[0],
@@ -247,8 +249,8 @@ TEST_F(ReadITKSphereMeshFixture, ReadSphereMeshTest)
         volcart::testing::SmallOrClose(in_normal[2], read_normal[2]);
     }
 
-    for (uint64_t cell_id = 0; cell_id < _in_SphereMesh->GetNumberOfCells();
-         cell_id++) {
+    for (std::uint64_t cell_id = 0;
+         cell_id < _in_SphereMesh->GetNumberOfCells(); cell_id++) {
         volcart::ITKCell::CellAutoPointer in_C;
         _in_SphereMesh->GetCell(cell_id, in_C);
         volcart::ITKCell::CellAutoPointer read_C;

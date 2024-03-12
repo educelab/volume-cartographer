@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -22,15 +23,15 @@ namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
 // Volpkg version required by this app
-static constexpr int VOLPKG_SUPPORTED_VERSION = 6;
-static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+static constexpr int VOLPKG_MIN_VERSION = 6;
+static const double MAX_16BPC = std::numeric_limits<std::uint16_t>::max();
 
 fs::path g_outputDir;
-size_t g_numSliceChars;
+std::size_t g_numSliceChars;
 
 void WriteBumpedSlice(const cv::Mat& slice, int index);
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // clang-format off
@@ -61,7 +62,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 11) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -76,11 +77,11 @@ int main(int argc, char* argv[])
     ///// Load the volume package /////
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
     auto vpkg = vc::VolumePkg::New(volpkgPath);
-    if (vpkg->version() != VOLPKG_SUPPORTED_VERSION) {
+    if (vpkg->version() < VOLPKG_MIN_VERSION) {
         vc::Logger()->error(
             "Volume Package is version {} but this program requires version "
-            "{}. ",
-            vpkg->version(), VOLPKG_SUPPORTED_VERSION);
+            "{}+. ",
+            vpkg->version(), VOLPKG_MIN_VERSION);
         return EXIT_FAILURE;
     }
 
@@ -98,7 +99,7 @@ int main(int argc, char* argv[])
     g_numSliceChars = std::to_string(volume->numSlices()).size();
 
     // Set the cache size
-    size_t cacheBytes;
+    std::size_t cacheBytes;
     if (parsed.count("cache-memory-limit")) {
         auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
         cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
@@ -170,10 +171,12 @@ int main(int argc, char* argv[])
         }
 
         // Use the bump mask as an opacity function on the bumpVal
-        auto bumpOpacity = bumpMask.at<uint16_t>(pixel.y, pixel.x) / MAX_16BPC;
-        auto bumped = currentSlice.at<uint16_t>(y, x) + bumpOpacity * bumpVal;
-        currentSlice.at<uint16_t>(y, x) =
-            static_cast<uint16_t>(std::min(bumped, MAX_16BPC));
+        auto bumpOpacity =
+            bumpMask.at<std::uint16_t>(pixel.y, pixel.x) / MAX_16BPC;
+        auto bumped =
+            currentSlice.at<std::uint16_t>(y, x) + bumpOpacity * bumpVal;
+        currentSlice.at<std::uint16_t>(y, x) =
+            static_cast<std::uint16_t>(std::min(bumped, MAX_16BPC));
     }
 
     // Write the last slice image

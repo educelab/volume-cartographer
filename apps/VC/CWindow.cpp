@@ -431,7 +431,7 @@ void CWindow::CreateBackend()
     connect(
         worker, &VolPkgBackend::segmentationFailed, this,
         &CWindow::onSegmentationFailed);
-    connect(worker, &VolPkgBackend::progressUpdated, [=](size_t p) {
+    connect(worker, &VolPkgBackend::progressUpdated, [=](std::size_t p) {
         progress_ = p;
     });
     worker_thread_.start();
@@ -444,7 +444,7 @@ void CWindow::CreateBackend()
     progressBar_ = new QProgressBar();
     layout->addWidget(progressBar_);
     progressBar_->setMinimum(0);
-    connect(worker, &VolPkgBackend::segmentationStarted, [=](size_t its) {
+    connect(worker, &VolPkgBackend::segmentationStarted, [=](std::size_t its) {
         progressBar_->setMaximum(its);
     });
 
@@ -484,7 +484,7 @@ void CWindow::setWidgetsEnabled(bool state)
     fVolumeViewerWidget->setButtonsEnabled(state);
 }
 
-bool CWindow::InitializeVolumePkg(const std::string& nVpkgPath)
+auto CWindow::InitializeVolumePkg(const std::string& nVpkgPath) -> bool
 {
     fVpkg = nullptr;
 
@@ -513,7 +513,7 @@ void CWindow::setDefaultWindowWidth(vc::Volume::Pointer volume)
     fEdtWindowWidth->setValue(static_cast<int>(winWidth));
 }
 
-CWindow::SaveResponse CWindow::SaveDialog(void)
+auto CWindow::SaveDialog(void) -> CWindow::SaveResponse
 {
     // Return if nothing has changed
     if (not fVpkgChanged) {
@@ -771,7 +771,7 @@ void CWindow::CleanupSegmentation(void)
 }
 
 // Set up the parameters for doing segmentation
-bool CWindow::SetUpSegParams(void)
+auto CWindow::SetUpSegParams(void) -> bool
 {
     bool aIsOk;
 
@@ -854,9 +854,9 @@ void CWindow::SetUpCurves(void)
     fMaxSegIndex = maxIndex;
 
     // assign rows of particles to the curves
-    for (size_t i = 0; i < fMasterCloud.height(); ++i) {
+    for (std::size_t i = 0; i < fMasterCloud.height(); ++i) {
         CXCurve aCurve;
-        for (size_t j = 0; j < fMasterCloud.width(); ++j) {
+        for (std::size_t j = 0; j < fMasterCloud.width(); ++j) {
             int pointIndex = j + (i * fMasterCloud.width());
             aCurve.SetSliceIndex(
                 static_cast<int>(floor(fMasterCloud[pointIndex][2])));
@@ -989,11 +989,11 @@ void CWindow::OpenVolume()
     }
 
     // Check version number
-    if (fVpkg->version() != VOLPKG_SUPPORTED_VERSION) {
+    if (fVpkg->version() < VOLPKG_MIN_VERSION) {
         const auto msg = "Volume package is version " +
                          std::to_string(fVpkg->version()) +
                          " but this program requires version " +
-                         std::to_string(VOLPKG_SUPPORTED_VERSION) + ".";
+                         std::to_string(VOLPKG_MIN_VERSION) + "+.";
         vc::Logger()->error(msg);
         QMessageBox::warning(this, tr("ERROR"), QString(msg.c_str()));
         fVpkg = nullptr;
@@ -1385,7 +1385,7 @@ void CWindow::OnPathChanged(void)
         // update current slice
         fStartingPath.clear();
         cv::Vec3d tempPt;
-        for (size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
+        for (std::size_t i = 0; i < fIntersectionCurve.GetPointsNum(); ++i) {
             tempPt[0] = fIntersectionCurve.GetPoint(i)[0];
             tempPt[1] = fIntersectionCurve.GetPoint(i)[1];
             tempPt[2] = fPathOnSliceIndex;
@@ -1394,7 +1394,7 @@ void CWindow::OnPathChanged(void)
     }
 }
 
-bool CWindow::can_change_volume_()
+auto CWindow::can_change_volume_() -> bool
 {
     return fVpkg != nullptr && fVpkg->numberOfVolumes() > 1 &&
            (fSegmentation == nullptr || !fSegmentation->hasPointSet() ||

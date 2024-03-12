@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <iostream>
 
 #include "vc/core/util/Signals.hpp"
@@ -23,7 +24,7 @@ static void freeFnIntPtrSlot(int* i) { freeFnIntRefSlot(*i); }
 
 [[noreturn]] static void freeFnExit()
 {
-    std::cerr << "Success" << std::endl;
+    std::cerr << "Success" << '\n';
     std::exit(0);
 }
 
@@ -35,7 +36,7 @@ struct Receiver {
     void floatSlot(float f) { floatVal = f; }
     [[noreturn]] void exitSlot()
     {
-        std::cerr << "Success" << std::endl;
+        std::cerr << "Success" << '\n';
         std::exit(intVal);
     }
 
@@ -172,11 +173,11 @@ TEST(Signals, PointerParameterFn)
 
 TEST(Signals, Sendlval)
 {
-    size_t val{0};
-    Signal<size_t> signal;
-    signal.connect([&val](size_t v) { val = v; });
+    std::size_t val{0};
+    Signal<std::size_t> signal;
+    signal.connect([&val](std::size_t v) { val = v; });
 
-    size_t i{1};
+    std::size_t i{1};
     signal(i);
 
     EXPECT_EQ(val, 1);

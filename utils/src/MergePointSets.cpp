@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/util/HashFunctions.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -25,7 +25,7 @@ using psio = vc::PointSetIO<Voxel>;
  * the vcps file is named: LAST_SLICE_NUM.vcps. Otherwise
  * pruning will fail. TODO: a regex approach would be better
  * */
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 

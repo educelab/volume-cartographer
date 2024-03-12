@@ -1,5 +1,9 @@
 #pragma once
 
+/** @file */
+
+#include <cstddef>
+
 #include "vc/core/types/ITKMesh.hpp"
 
 namespace volcart::meshing

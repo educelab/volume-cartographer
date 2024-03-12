@@ -39,7 +39,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -99,9 +99,10 @@ auto main(int argc, char* argv[]) -> int
 
     // Fill the outputs
     vc::Logger()->info("Converting mappings...");
-    for (const auto& m : ppm.getMappings()) {
+    for (const auto [y, x] : ppm.getMappingCoords()) {
 
         // Get values
+        const auto m = ppm.getAsPixelMap(y, x);
         auto p = m.pos;
         auto n = m.normal;
 

@@ -10,6 +10,7 @@
  * @ingroup Types
  */
 
+#include <cstdint>
 #include <iostream>
 
 namespace volcart
@@ -24,9 +25,12 @@ struct SimpleMesh {
 
     /** Generic triangular face structure */
     struct Cell {
-        uint64_t v1, v2, v3;
+        std::uint64_t v1, v2, v3;
         Cell() = default;
-        Cell(uint64_t p1, uint64_t p2, uint64_t p3) : v1{p1}, v2{p2}, v3{p3} {}
+        Cell(std::uint64_t p1, std::uint64_t p2, std::uint64_t p3)
+            : v1{p1}, v2{p2}, v3{p3}
+        {
+        }
     };
 
     std::vector<Vertex> verts;

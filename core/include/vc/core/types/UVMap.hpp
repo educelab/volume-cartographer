@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <map>
 #include <memory>
 
@@ -37,7 +38,7 @@ const static cv::Vec2d NULL_MAPPING{-1, -1};
  * different origin positions. By setting the origin prior to insertion and
  * again prior to retrieval, mappings can be inserted relative to one origin but
  * retrieved relative to another. When using the overloaded
- * set(size_t, const cv::Vec2d&) and get(size_t) functions, the source and
+ * set(std::size_t, const cv::Vec2d&) and get(size_t) functions, the source and
  * target origins are set using the constructor or setOrigin().
  *
  * Since UV maps store \em relative position information, they are agnostic to
@@ -78,7 +79,7 @@ public:
 
     /**@{*/
     /** @brief Return the number of UV elements */
-    [[nodiscard]] auto size() const -> size_t;
+    [[nodiscard]] auto size() const -> std::size_t;
 
     /** @brief Return whether the UVMap is empty */
     [[nodiscard]] auto empty() const -> bool;
@@ -102,34 +103,34 @@ public:
      *
      * Point is inserted relative to the provided origin.
      */
-    void set(size_t id, const cv::Vec2d& uv, const Origin& o);
+    void set(std::size_t id, const cv::Vec2d& uv, const Origin& o);
 
     /**
      * @copybrief set()
      *
      * Point is inserted relative to the origin returned by origin().
      */
-    void set(size_t id, const cv::Vec2d& uv);
+    void set(std::size_t id, const cv::Vec2d& uv);
 
     /**
      * @brief Get the UV value for a point by ID
      *
      * Point is retrieved relative to the provided origin.
      */
-    [[nodiscard]] auto get(size_t id, const Origin& o) const -> cv::Vec2d;
+    [[nodiscard]] auto get(std::size_t id, const Origin& o) const -> cv::Vec2d;
 
     /**
      * @copybrief get()
      *
      * Point is retrieved relative to the origin returned by origin().
      */
-    [[nodiscard]] auto get(size_t id) const -> cv::Vec2d;
+    [[nodiscard]] auto get(std::size_t id) const -> cv::Vec2d;
 
     /** @brief Check if the vertex index has a UV mapping */
     [[nodiscard]] auto contains(std::size_t id) const -> bool;
 
     /** Access to underlying data. For serialization only. */
-    [[nodiscard]] auto as_map() const -> std::map<size_t, cv::Vec2d>;
+    [[nodiscard]] auto as_map() const -> std::map<std::size_t, cv::Vec2d>;
     /**@}*/
 
     /**@{*/
@@ -150,6 +151,9 @@ public:
     /** Flipping axis enumeration */
     enum class FlipAxis { Vertical = 0, Horizontal, Both };
 
+    /** Align to axis enumeration */
+    enum class AlignmentAxis { None = 0, ZPos, ZNeg, YPos, YNeg, XPos, XNeg };
+
     /**
      * @brief Plot the UV points on an image
      *
@@ -169,6 +173,31 @@ public:
         int width = -1,
         int height = -1,
         const Color& color = color::LIGHT_GRAY) -> cv::Mat;
+
+    /**
+     * @brief Rotate a UVMap to align a specified volume axis to the -V
+     * direction of UV space
+     *
+     * We want to rotate the virtually unwrapped image so that the bottom of
+     * the content page is at the bottom of the virtually unwrapped image
+     * (\f( v ~= 1.\f)) and the top of the page is at the top of the image
+     * (\f( v ~= 0.\f)). As a consequence, this function aligns the given
+     * 3D axis to the -V direction of UV space rather than the +V direction.
+     *
+     * Usually, we want the alignment axis to be the volume's +Z axis. It is a
+     * convention in CT data for the +Z axis to travel the length of the
+     * sample, from the bottom to the top. Without _a priori_ knowledge, we
+     * assume that the bottom of the sample corresponds to the bottom of the
+     * content page, thus the +Z axis should align to the -V direction of UV
+     * space.
+     *
+     * @param uv The UVMap to be rotated.
+     * @param mesh Original 3D mesh for the given UVMap. Used as reference for
+     * the vertices' 3D positions.
+     * @param axis Volume axis to align to the -V axis.
+     */
+    static void AlignToAxis(
+        UVMap& uv, const ITKMesh::Pointer& mesh, AlignmentAxis axis);
 
     /** @brief Rotate a UVMap by a multiple of 90 degrees */
     static void Rotate(UVMap& uv, Rotation rotation);
@@ -206,7 +235,7 @@ public:
 
 private:
     /** UV storage */
-    std::map<size_t, cv::Vec2d> map_;
+    std::map<std::size_t, cv::Vec2d> map_;
     /** Origin for set and get functions */
     Origin origin_{Origin::TopLeft};
     /** Aspect ratio */

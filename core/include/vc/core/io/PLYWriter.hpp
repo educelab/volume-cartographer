@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstdint>
 #include <fstream>
 
 #include <opencv2/core.hpp>
@@ -60,7 +61,7 @@ public:
     void setTexture(cv::Mat texture);
 
     /** @brief Set per-vertex color information */
-    void setVertexColors(const std::vector<uint16_t>& c);
+    void setVertexColors(const std::vector<std::uint16_t>& c);
     /**@}*/
 
     /**@{*/
@@ -69,8 +70,10 @@ public:
      *
      * If UV Map is not empty, automatically writes per-vertex texture
      * information.
+     *
+     * @throws volcart::IOException
      */
-    auto write() -> int;
+    void write();
     /**@}*/
 
 private:
@@ -85,10 +88,10 @@ private:
     /** Input texture image */
     cv::Mat texture_;
     /** Vertex colors */
-    std::vector<uint16_t> vcolors_;
+    std::vector<std::uint16_t> vcolors_;
 
     /** @brief Write the PLY header */
-    auto write_header_() -> int;
+    void write_header_();
 
     /**
      * @brief Write the PLY vertices
@@ -97,13 +100,13 @@ private:
      *
      * `x y z nx ny nz`
      */
-    auto write_vertices_() -> int;
+    void write_vertices_();
     /**@brief Write the PLY faces
      *
      * Lines are formatted:
      *
      * `[n vertices in face] v1 v2 ... vn`
      */
-    auto write_faces_() -> int;
+    void write_faces_();
 };
 }  // namespace volcart::io

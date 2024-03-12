@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <deque>
 #include <iomanip>
 #include <limits>
@@ -23,16 +24,16 @@ namespace fs = volcart::filesystem;
 using std::begin;
 using std::end;
 
-size_t LocalResliceSegmentation::progressIterations() const
+auto LocalResliceSegmentation::progressIterations() const -> std::size_t
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
         [](auto a, auto b) { return a[2] < b[2]; });
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
-    return static_cast<size_t>((endIndex_ - startIndex) / stepSize_);
+    return static_cast<std::size_t>((endIndex_ - startIndex) / stepSize_);
 }
 
-LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
+auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
 {
     // reset progress
     progressStarted();
@@ -72,12 +73,12 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> points;
     points.reserve(
-        (endIndex_ - startIndex + 1) / static_cast<uint64_t>(stepSize_));
+        (endIndex_ - startIndex + 1) / static_cast<std::uint64_t>(stepSize_));
     points.push_back(currentVs);
 
     // Iterate over z-slices
     auto stepSize = static_cast<int>(stepSize_);
-    size_t iteration{0};
+    std::size_t iteration{0};
     for (int zIndex = startIndex; zIndex < endIndex_; zIndex += stepSize) {
         // Update progress
         progressUpdated(iteration++);
@@ -256,7 +257,7 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
         while (*maxVal > 10.0 && settlingIters++ < 100) {
             Voxel newPoint;
             int i = maxVal - begin(normDeriv2);
-            Voxel diff = 0.5 * nextVs[size_t(i) + 1] - 0.5 * nextVs[i - 1];
+            Voxel diff = 0.5 * nextVs[std::size_t(i) + 1] - 0.5 * nextVs[i - 1];
             newPoint = nextVs[i - 1] + diff;
             nextVs[i] = newPoint;
 
@@ -296,13 +297,13 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
         // algorithm will choose.
         if (dumpVis_) {
             // Create output directory for this iter's output
-            const size_t nchars = std::to_string(endIndex_).size();
+            const std::size_t nchars = std::to_string(endIndex_).size();
             std::stringstream iterDirSS;
             iterDirSS << std::setw(nchars) << std::setfill('0') << zIndex;
             fs::create_directory(outputDir / iterDirSS.str());
 
             // Dump chain, map, reslice for every particle
-            for (size_t i = 0; i < nextVs.size(); ++i) {
+            for (std::size_t i = 0; i < nextVs.size(); ++i) {
                 cv::Mat chain =
                     draw_particle_on_slice_(currentCurve, zIndex, i);
                 cv::Mat resliceMat = reslices[i].draw();
@@ -331,8 +332,8 @@ LocalResliceSegmentation::PointSet LocalResliceSegmentation::compute()
     return create_final_pointset_(points);
 }
 
-cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
-    const FittedCurve& currentCurve, int index)
+auto LocalResliceSegmentation::estimate_normal_at_index_(
+    const FittedCurve& currentCurve, int index) -> cv::Vec3d
 {
     auto currentVoxel = currentCurve(index);
     auto radius = static_cast<int>(
@@ -347,9 +348,9 @@ cv::Vec3d LocalResliceSegmentation::estimate_normal_at_index_(
     return tan3d.cross(cv::Vec3d{0, 0, 1});
 }
 
-LocalResliceSegmentation::PointSet
-LocalResliceSegmentation::create_final_pointset_(
+auto LocalResliceSegmentation::create_final_pointset_(
     const std::vector<std::vector<Voxel>>& points)
+    -> LocalResliceSegmentation::PointSet
 {
     auto rows = points.size();
     auto cols = points[0].size();
@@ -357,8 +358,8 @@ LocalResliceSegmentation::create_final_pointset_(
     result_.clear();
     result_.setWidth(cols);
 
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < cols; ++j) {
+    for (std::size_t i = 0; i < rows; ++i) {
+        for (std::size_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
             tempRow.emplace_back(v(0), v(1), v(2));
         }
@@ -368,15 +369,15 @@ LocalResliceSegmentation::create_final_pointset_(
     return result_;
 }
 
-cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
+auto LocalResliceSegmentation::draw_particle_on_slice_(
     const FittedCurve& curve,
     int sliceIndex,
     int particleIndex,
-    bool showSpline) const
+    bool showSpline) const -> cv::Mat
 {
     auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
-        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
+        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<std::uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
 
     // Superimpose interpolated currentCurve on window
@@ -392,7 +393,7 @@ cv::Mat LocalResliceSegmentation::draw_particle_on_slice_(
         cv::polylines(pkgSlice, contour, false, BGR_BLUE, 1, cv::LINE_AA);
     } else {
         // Draw circles on the pkgSlice window for each point
-        for (size_t i = 0; i < curve.size(); ++i) {
+        for (std::size_t i = 0; i < curve.size(); ++i) {
             cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
             cv::circle(pkgSlice, real, 2, BGR_GREEN, -1);
         }

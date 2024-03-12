@@ -40,23 +40,27 @@ Volume::Volume(fs::path path, std::string uuid, std::string name)
 }
 
 // Load a Volume from disk, return a pointer
-Volume::Pointer Volume::New(fs::path path)
+auto Volume::New(fs::path path) -> Volume::Pointer
 {
     return std::make_shared<Volume>(path);
 }
 
 // Set a Volume from a folder of slices, return a pointer
-Volume::Pointer Volume::New(fs::path path, std::string uuid, std::string name)
+auto Volume::New(fs::path path, std::string uuid, std::string name)
+    -> Volume::Pointer
 {
     return std::make_shared<Volume>(path, uuid, name);
 }
 
-int Volume::sliceWidth() const { return width_; }
-int Volume::sliceHeight() const { return height_; }
-int Volume::numSlices() const { return slices_; }
-double Volume::voxelSize() const { return metadata_.get<double>("voxelsize"); }
-double Volume::min() const { return metadata_.get<double>("min"); }
-double Volume::max() const { return metadata_.get<double>("max"); }
+auto Volume::sliceWidth() const -> int { return width_; }
+auto Volume::sliceHeight() const -> int { return height_; }
+auto Volume::numSlices() const -> int { return slices_; }
+auto Volume::voxelSize() const -> double
+{
+    return metadata_.get<double>("voxelsize");
+}
+auto Volume::min() const -> double { return metadata_.get<double>("min"); }
+auto Volume::max() const -> double { return metadata_.get<double>("max"); }
 
 void Volume::setSliceWidth(int w)
 {
@@ -70,7 +74,7 @@ void Volume::setSliceHeight(int h)
     metadata_.set("height", h);
 }
 
-void Volume::setNumberOfSlices(size_t numSlices)
+void Volume::setNumberOfSlices(std::size_t numSlices)
 {
     slices_ = numSlices;
     numSliceCharacters_ = std::to_string(numSlices).size();
@@ -81,7 +85,7 @@ void Volume::setVoxelSize(double s) { metadata_.set("voxelsize", s); }
 void Volume::setMin(double m) { metadata_.set("min", m); }
 void Volume::setMax(double m) { metadata_.set("max", m); }
 
-Volume::Bounds Volume::bounds() const
+auto Volume::bounds() const -> Volume::Bounds
 {
     return {
         {0, 0, 0},
@@ -89,18 +93,18 @@ Volume::Bounds Volume::bounds() const
          static_cast<double>(slices_)}};
 }
 
-bool Volume::isInBounds(double x, double y, double z) const
+auto Volume::isInBounds(double x, double y, double z) const -> bool
 {
     return x >= 0 && x < width_ && y >= 0 && y < height_ && z >= 0 &&
            z < slices_;
 }
 
-bool Volume::isInBounds(const cv::Vec3d& v) const
+auto Volume::isInBounds(const cv::Vec3d& v) const -> bool
 {
     return isInBounds(v(0), v(1), v(2));
 }
 
-fs::path Volume::getSlicePath(int index) const
+auto Volume::getSlicePath(int index) const -> fs::path
 {
     std::stringstream ss;
     ss << std::setw(numSliceCharacters_) << std::setfill('0') << index
@@ -108,16 +112,15 @@ fs::path Volume::getSlicePath(int index) const
     return path_ / ss.str();
 }
 
-cv::Mat Volume::getSliceData(int index) const
+auto Volume::getSliceData(int index) const -> cv::Mat
 {
     if (cacheSlices_) {
         return cache_slice_(index);
-    } else {
-        return load_slice_(index);
     }
+    return load_slice_(index);
 }
 
-cv::Mat Volume::getSliceDataCopy(int index) const
+auto Volume::getSliceDataCopy(int index) const -> cv::Mat
 {
     return getSliceData(index).clone();
 }
@@ -130,7 +133,7 @@ void Volume::setSliceData(int index, const cv::Mat& slice, bool compress)
         (compress) ? tiffio::Compression::LZW : tiffio::Compression::NONE);
 }
 
-uint16_t Volume::intensityAt(int x, int y, int z) const
+auto Volume::intensityAt(int x, int y, int z) const -> std::uint16_t
 {
     // clang-format off
     if (x < 0 || x >= sliceWidth() ||
@@ -139,12 +142,12 @@ uint16_t Volume::intensityAt(int x, int y, int z) const
         return 0;
     }
     // clang-format on
-    return getSliceData(z).at<uint16_t>(y, x);
+    return getSliceData(z).at<std::uint16_t>(y, x);
 }
 
 // Trilinear Interpolation
 // From: https://en.wikipedia.org/wiki/Trilinear_interpolation
-uint16_t Volume::interpolateAt(double x, double y, double z) const
+auto Volume::interpolateAt(double x, double y, double z) const -> std::uint16_t
 {
     // insert safety net
     if (!isInBounds(x, y, z)) {
@@ -175,15 +178,15 @@ uint16_t Volume::interpolateAt(double x, double y, double z) const
     auto c1 = c01 * (1 - dy) + c11 * dy;
 
     auto c = c0 * (1 - dz) + c1 * dz;
-    return static_cast<uint16_t>(cvRound(c));
+    return static_cast<std::uint16_t>(cvRound(c));
 }
 
-Reslice Volume::reslice(
+auto Volume::reslice(
     const cv::Vec3d& center,
     const cv::Vec3d& xvec,
     const cv::Vec3d& yvec,
     int width,
-    int height) const
+    int height) const -> Reslice
 {
     auto xnorm = cv::normalize(xvec);
     auto ynorm = cv::normalize(yvec);
@@ -192,7 +195,7 @@ Reslice Volume::reslice(
     cv::Mat m(height, width, CV_16UC1);
     for (int h = 0; h < height; ++h) {
         for (int w = 0; w < width; ++w) {
-            m.at<uint16_t>(h, w) =
+            m.at<std::uint16_t>(h, w) =
                 interpolateAt(origin + (h * ynorm) + (w * xnorm));
         }
     }
@@ -200,13 +203,13 @@ Reslice Volume::reslice(
     return Reslice(m, origin, xnorm, ynorm);
 }
 
-cv::Mat Volume::load_slice_(int index) const
+auto Volume::load_slice_(int index) const -> cv::Mat
 {
     auto slicePath = getSlicePath(index);
     return cv::imread(slicePath.string(), -1);
 }
 
-cv::Mat Volume::cache_slice_(int index) const
+auto Volume::cache_slice_(int index) const -> cv::Mat
 {
     const std::lock_guard<std::mutex> lock(cacheMutex_);
     if (cache_->contains(index)) {

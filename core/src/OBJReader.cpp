@@ -1,5 +1,6 @@
 #include "vc/core/io/OBJReader.hpp"
 
+#include <cstddef>
 #include <regex>
 #include <string>
 
@@ -15,7 +16,7 @@ namespace fs = volcart::filesystem;
 
 // Constant for validating face values
 constexpr static int NOT_PRESENT = -1;
-constexpr static size_t VALID_FACE_SIZE = 3;
+constexpr static std::size_t VALID_FACE_SIZE = 3;
 
 void OBJReader::setPath(const filesystem::path& p) { path_ = p; }
 
@@ -196,7 +197,7 @@ void OBJReader::parse_mtllib_(const std::vector<std::string>& strs)
     ifs.close();
 }
 
-OBJReader::RefType OBJReader::classify_vertref_(const std::string& ref)
+auto OBJReader::classify_vertref_(const std::string& ref) -> OBJReader::RefType
 {
     const char delimiter = '/';
     auto slashCount = std::count(ref.begin(), ref.end(), delimiter);

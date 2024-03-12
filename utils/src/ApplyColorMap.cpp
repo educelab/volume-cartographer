@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <limits>
 
@@ -14,21 +16,24 @@ using namespace volcart;
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 
-static inline float ValueMax(int cvDepth)
+namespace
+{
+auto ValueMax(int cvDepth) -> float
 {
     switch (cvDepth) {
         case CV_8U:
-            return std::numeric_limits<uint8_t>::max();
+            return std::numeric_limits<std::uint8_t>::max();
         case CV_16U:
-            return std::numeric_limits<uint16_t>::max();
+            return std::numeric_limits<std::uint16_t>::max();
         case CV_32F:
             return 1.F;
         default:
             return 255;
     }
 }
+}  // namespace
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -68,7 +73,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 5) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -76,7 +81,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 

@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstdint>
 #include <limits>
 
 #include <opencv2/core.hpp>
@@ -19,6 +20,7 @@
 #include "vc/texturing/FlatteningError.hpp"
 #include "vc/texturing/IntegralTexture.hpp"
 #include "vc/texturing/IntersectionTexture.hpp"
+#include "vc/texturing/LayerTexture.hpp"
 #include "vc/texturing/OrthographicProjectionFlattening.hpp"
 #include "vc/texturing/PPMGenerator.hpp"
 #include "vc/texturing/ThicknessTexture.hpp"
@@ -58,11 +60,11 @@ public:
     ABFNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -97,11 +99,11 @@ public:
     OrthographicFlatteningNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -136,11 +138,11 @@ public:
     FlatteningErrorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -188,11 +190,11 @@ public:
     PlotLStretchErrorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -234,11 +236,11 @@ public:
     PPMGeneratorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -274,11 +276,11 @@ public:
     CalculateNeighborhoodRadiusNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -333,11 +335,11 @@ public:
     NeighborhoodGeneratorNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool /*useCache*/, const filesystem::path& /*cacheDir*/)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta,
         const filesystem::path& /*cacheDir*/) override;
@@ -381,11 +383,11 @@ public:
     CompositeTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -417,11 +419,11 @@ public:
     IntersectionTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -469,7 +471,7 @@ public:
     /** @copybrief texturing::IntegralTexture::setClampValuesToMax() */
     smgl::InputPort<bool> clampValuesToMax;
     /** @copybrief texturing::IntegralTexture::setClampMax() */
-    smgl::InputPort<uint16_t> clampMax;
+    smgl::InputPort<std::uint16_t> clampMax;
     /** @copybrief texturing::IntegralTexture::setWeightMethod() */
     smgl::InputPort<WeightMethod> weightMethod;
     /** @copybrief texturing::IntegralTexture::setLinearWeightDirection() */
@@ -489,11 +491,11 @@ public:
     IntegralTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };
@@ -531,11 +533,58 @@ public:
     ThicknessTextureNode();
 
 private:
-    /** Smeagol custom serialization */
+    /** smgl custom serialization */
     auto serialize_(bool useCache, const filesystem::path& cacheDir)
         -> smgl::Metadata override;
 
-    /** Smeagol custom deserialization */
+    /** smgl custom deserialization */
+    void deserialize_(
+        const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
+};
+
+/**
+ * @copybrief texturing::LayerTexture
+ * @see texturing::LayerTexture
+ * @ingroup Graph
+ */
+class LayerTextureNode : public smgl::Node
+{
+private:
+    /** Image list type */
+    using ImageList = std::vector<cv::Mat>;
+    /** Algorithm class type */
+    using TAlgo = texturing::LayerTexture;
+    /** Generator class type */
+    using Generator = NeighborhoodGenerator::Pointer;
+    /** Texturing algorithm */
+    TAlgo textureGen_;
+    /** Output layer images */
+    ImageList texture_;
+
+public:
+    /** @brief Input PerPixelMap */
+    smgl::InputPort<PerPixelMap::Pointer> ppm;
+    /** @brief Input Volume */
+    smgl::InputPort<Volume::Pointer> volume;
+    /**
+     * @brief Neighborhood generator
+     *
+     * @throws std::runtime_error If the provided generator is not a
+     * LineGenerator.
+     */
+    smgl::InputPort<Generator> generator;
+    /** @brief Generated texture image */
+    smgl::OutputPort<ImageList> texture;
+
+    /** Constructor */
+    LayerTextureNode();
+
+private:
+    /** smgl custom serialization */
+    auto serialize_(bool useCache, const filesystem::path& cacheDir)
+        -> smgl::Metadata override;
+
+    /** smgl custom deserialization */
     void deserialize_(
         const smgl::Metadata& meta, const filesystem::path& cacheDir) override;
 };

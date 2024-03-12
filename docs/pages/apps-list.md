@@ -100,20 +100,10 @@ virtually unwrapped result from a segmentation.
 vc_render -v my-project.volpkg -s 20230315130225 -o first-result.obj
 ```
 
-## vc_layers
-Similar to `vc_render` but outputs a flattened 
-[surface volume](https://scrollprize.org/tutorial3#surface-volumes), 
-the portion of the full volume that is immediately adjacent to the segmentation.
-
-```shell
-vc_layers -v my-project.volpkg -s 20230315130225 -o first-surface-vol/
-```
-
 ## vc_render_from_ppm, vc_layers_from_ppm
-Special versions of `vc_render` and `vc_layers` which use a pre-generated 
-per-pixel map (PPM) rather than meshing and flattening a segmentation. Saves 
-time when you want to compare renders generated using different texturing 
-parameters.
+Special version of `vc_render` which use a pre-generated per-pixel map 
+(PPM) rather than meshing and flattening a segmentation. Saves time when 
+you want to compare renders generated using different texturing parameters.
 
 ```shell
 # Generate the PPM
@@ -240,7 +230,7 @@ vc_generate_ppm
 vc_image_stats
 vc_invert_cloud
 vc_metaedit
-vc_ppm_to_pointset
+vc_ppm_tool
 vc_project_mesh
 vc_seg_to_pointmask
 vc_uv2mesh

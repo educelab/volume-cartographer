@@ -7,11 +7,11 @@ namespace vc = volcart;
 // From Christer Ericson's Real-Time Collision Detection
 // Code from:
 // http://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-cv::Vec3d vc::CartesianToBarycentric(
+auto vc::CartesianToBarycentric(
     const cv::Vec3d& pt,
     const cv::Vec3d& triA,
     const cv::Vec3d& triB,
-    const cv::Vec3d& triC)
+    const cv::Vec3d& triC) -> cv::Vec3d
 {
     auto v0 = triB - triA;
     auto v1 = triC - triA;
@@ -32,16 +32,16 @@ cv::Vec3d vc::CartesianToBarycentric(
     return output;
 }
 
-cv::Vec3d vc::BarycentricToCartesian(
+auto vc::BarycentricToCartesian(
     const cv::Vec3d& pt,
     const cv::Vec3d& triA,
     const cv::Vec3d& triB,
-    const cv::Vec3d& triC)
+    const cv::Vec3d& triC) -> cv::Vec3d
 {
     return pt[0] * triA + pt[1] * triB + pt[2] * triC;
 }
 
-bool vc::BarycentricPointIsInTriangle(const cv::Vec3d& pt)
+auto vc::BarycentricPointIsInTriangle(const cv::Vec3d& pt) -> bool
 {
     return (
         (pt[0] > 0.0 || AlmostEqual(pt[0], 0.0)) &&
@@ -60,11 +60,11 @@ auto vc::BarycentricNormalInterpolation(
         uvw[0] * nA + uvw[1] * nB + (1. - uvw[0] - uvw[1]) * nC);
 }
 
-bool vc::CartesianPointIsInTriangle(
+auto vc::CartesianPointIsInTriangle(
     const cv::Vec3d& pt,
     const cv::Vec3d& triA,
     const cv::Vec3d& triB,
-    const cv::Vec3d& triC)
+    const cv::Vec3d& triC) -> bool
 {
     auto bPt = CartesianToBarycentric(pt, triA, triB, triC);
     return BarycentricPointIsInTriangle(bPt);

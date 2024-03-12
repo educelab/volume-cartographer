@@ -86,7 +86,7 @@ Sphere::Sphere(float /*radius*/, int recursion)
     }
 }
 
-int Sphere::midpoint_(int p1, int p2)
+auto Sphere::midpoint_(int p1, int p2) -> int
 {
     // Generate unique id
     bool firstIsSmaller = p1 < p2;

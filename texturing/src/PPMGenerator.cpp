@@ -1,5 +1,6 @@
 #include "vc/texturing/PPMGenerator.hpp"
 
+#include <cstdint>
 #include <exception>
 
 #include <bvh/bvh.hpp>
@@ -14,7 +15,6 @@
 #include "vc/core/util/BarycentricCoordinates.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/meshing/CalculateNormals.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 
 using namespace volcart;
 using namespace texturing;
@@ -22,7 +22,7 @@ using namespace texturing;
 namespace vcm = volcart::meshing;
 namespace vct = volcart::texturing;
 
-static constexpr uint8_t MASK_TRUE{255};
+static constexpr std::uint8_t MASK_TRUE{255};
 
 using Scalar = double;
 using Vector3 = bvh::Vector3<Scalar>;
@@ -32,20 +32,16 @@ using Bvh = bvh::Bvh<Scalar>;
 using Intersector = bvh::ClosestPrimitiveIntersector<Bvh, Triangle>;
 using Traverser = bvh::SingleRayTraverser<Bvh>;
 
-static auto PhongNormal(
-    const cv::Vec3d& nUVW,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC) -> cv::Vec3d;
-
-PPMGenerator::PPMGenerator(size_t h, size_t w) : width_{w}, height_{h} {}
+PPMGenerator::PPMGenerator(std::size_t h, std::size_t w) : width_{w}, height_{h}
+{
+}
 
 void PPMGenerator::setMesh(const ITKMesh::Pointer& m) { inputMesh_ = m; }
 
 void PPMGenerator::setUVMap(const UVMap::Pointer& u) { uvMap_ = u; }
 
 // Parameters
-void PPMGenerator::setDimensions(size_t h, size_t w)
+void PPMGenerator::setDimensions(std::size_t h, std::size_t w)
 {
     height_ = h;
     width_ = w;
@@ -55,7 +51,7 @@ void PPMGenerator::setShading(PPMGenerator::Shading s) { shading_ = s; }
 
 auto PPMGenerator::getPPM() const -> PerPixelMap::Pointer { return ppm_; }
 
-auto PPMGenerator::progressIterations() const -> size_t
+auto PPMGenerator::progressIterations() const -> std::size_t
 {
     return width_ * height_;
 }
@@ -171,7 +167,7 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
                 throw std::runtime_error(
                     "Performing smooth shading but missing vertex normal");
             }
-            xyzNorm = PhongNormal(
+            xyzNorm = BarycentricNormalInterpolation(
                 baryCoord, {nA[0], nA[1], nA[2]}, {nB[0], nB[1], nB[2]},
                 {nC[0], nC[1], nC[2]});
         }
@@ -179,10 +175,10 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
         // Assign the cell index to the cell map
         auto intX = static_cast<int>(x);
         auto intY = static_cast<int>(y);
-        cellMap.at<int32_t>(intY, intX) = cellId;
+        cellMap.at<std::int32_t>(intY, intX) = cellId;
 
         // Assign the intensity value at the UV position
-        mask.at<uint8_t>(intY, intX) = MASK_TRUE;
+        mask.at<std::uint8_t>(intY, intX) = MASK_TRUE;
 
         // Assign 3D position to the lookup map
         ppm_->getMapping(y, x) = cv::Vec6d(
@@ -195,17 +191,6 @@ auto PPMGenerator::compute() -> PerPixelMap::Pointer
     ppm_->setCellMap(cellMap);
 
     return ppm_;
-}
-
-// Convert from Barycentric coordinates to a smoothly interpolated normal
-auto PhongNormal(
-    const cv::Vec3d& nUVW,
-    const cv::Vec3d& nA,
-    const cv::Vec3d& nB,
-    const cv::Vec3d& nC) -> cv::Vec3d
-{
-    return cv::normalize(
-        (1 - nUVW[0] - nUVW[1]) * nA + nUVW[1] * nB + nUVW[2] * nC);
 }
 
 auto vct::GenerateCellMap(
@@ -263,7 +248,7 @@ auto vct::GenerateCellMap(
         // Assign the cell index to the cell map
         auto intX = static_cast<int>(x);
         auto intY = static_cast<int>(y);
-        cellMap.at<int32_t>(intY, intX) =
+        cellMap.at<std::int32_t>(intY, intX) =
             static_cast<int>(hit->primitive_index);
     }
 

@@ -29,15 +29,21 @@ public:
     /** Pointer type */
     using Pointer = std::shared_ptr<ThicknessTexture>;
 
-    /** Static New function for all constructors of T */
-    template <typename... Args>
-    static auto New(Args... args) -> Pointer
-    {
-        return std::make_shared<ThicknessTexture>(std::forward<Args>(args)...);
-    }
+    /** Make shared pointer */
+    static auto New() -> Pointer;
 
-    /** Destructor */
+    /** Default constructor */
+    ThicknessTexture() = default;
+    /** Default destructor */
     ~ThicknessTexture() override = default;
+    /** Default copy constructor */
+    ThicknessTexture(ThicknessTexture&) = default;
+    /** Default move constructor */
+    ThicknessTexture(ThicknessTexture&&) = default;
+    /** Default copy operator */
+    auto operator=(const ThicknessTexture&) -> ThicknessTexture& = default;
+    /** Default move operator */
+    auto operator=(ThicknessTexture&&) -> ThicknessTexture& = default;
 
     /**
      * @brief Set the sampling interval

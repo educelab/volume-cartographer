@@ -1,6 +1,7 @@
 #include "vc/core/util/ColorMaps.hpp"
 
 #include <array>
+#include <cstdint>
 #include <limits>
 #include <unordered_map>
 
@@ -11,12 +12,12 @@
 using namespace volcart;
 namespace vc = volcart;
 
-static cv::Mat GetMagmaMat();
-static cv::Mat GetInfernoMat();
-static cv::Mat GetPlasmaMat();
-static cv::Mat GetViridisMat();
-static cv::Mat GetPhaseMat();
-static cv::Mat GetBWRMat();
+static auto GetMagmaMat() -> cv::Mat;
+static auto GetInfernoMat() -> cv::Mat;
+static auto GetPlasmaMat() -> cv::Mat;
+static auto GetViridisMat() -> cv::Mat;
+static auto GetPhaseMat() -> cv::Mat;
+static auto GetBWRMat() -> cv::Mat;
 
 static const std::unordered_map<ColorMap, std::string> CM_TO_STR{
     {ColorMap::Magma, "Magma"},   {ColorMap::Inferno, "Inferno"},
@@ -28,7 +29,7 @@ static const std::unordered_map<std::string, ColorMap> STR_TO_CM{
     {"plasma", ColorMap::Plasma}, {"viridis", ColorMap::Viridis},
     {"phase", ColorMap::Phase},   {"bwr", ColorMap::BWR}};
 
-cv::Mat vc::GetColorMapLUT(ColorMap cm, std::size_t bins)
+auto vc::GetColorMapLUT(ColorMap cm, std::size_t bins) -> cv::Mat
 {
     cv::Mat lut;
     switch (cm) {
@@ -57,18 +58,21 @@ cv::Mat vc::GetColorMapLUT(ColorMap cm, std::size_t bins)
     }
 
     // Convert to 8bpc
-    lut.convertTo(lut, CV_8U, std::numeric_limits<uint8_t>::max());
+    lut.convertTo(lut, CV_8U, std::numeric_limits<std::uint8_t>::max());
     return lut;
 }
 
-cv::Mat vc::GetColorMapLUT(const std::string& name, std::size_t bins)
+auto vc::GetColorMapLUT(const std::string& name, std::size_t bins) -> cv::Mat
 {
     return GetColorMapLUT(ColorMapFromString(name), bins);
 }
 
-std::string vc::ColorMapToString(ColorMap cm) { return CM_TO_STR.at(cm); }
+auto vc::ColorMapToString(ColorMap cm) -> std::string
+{
+    return CM_TO_STR.at(cm);
+}
 
-ColorMap vc::ColorMapFromString(const std::string& str)
+auto vc::ColorMapFromString(const std::string& str) -> ColorMap
 {
     return STR_TO_CM.at(to_lower_copy(str));
 }
@@ -528,7 +532,7 @@ constexpr std::array<float, 3 * 3> PHASE_DATA = {
 constexpr std::array<float, 3 * 3> BWR_DATA = {1.F,   0.F, 0.F, 0.929F, 0.914F,
                                                0.91F, 0.F, 0.F, 1.F};
 
-cv::Mat GetMagmaMat()
+auto GetMagmaMat() -> cv::Mat
 {
     cv::Mat mat(1, 256, CV_32FC3);
     std::memcpy(
@@ -537,7 +541,7 @@ cv::Mat GetMagmaMat()
     return mat;
 }
 
-cv::Mat GetInfernoMat()
+auto GetInfernoMat() -> cv::Mat
 {
     cv::Mat mat(1, 256, CV_32FC3);
     std::memcpy(
@@ -546,7 +550,7 @@ cv::Mat GetInfernoMat()
     return mat;
 }
 
-cv::Mat GetPlasmaMat()
+auto GetPlasmaMat() -> cv::Mat
 {
     cv::Mat mat(1, 256, CV_32FC3);
     std::memcpy(
@@ -555,7 +559,7 @@ cv::Mat GetPlasmaMat()
     return mat;
 }
 
-cv::Mat GetViridisMat()
+auto GetViridisMat() -> cv::Mat
 {
     cv::Mat mat(1, 256, CV_32FC3);
     std::memcpy(
@@ -564,7 +568,7 @@ cv::Mat GetViridisMat()
     return mat;
 }
 
-cv::Mat GetPhaseMat()
+auto GetPhaseMat() -> cv::Mat
 {
     cv::Mat mat(1, 3, CV_32FC3);
     std::memcpy(
@@ -572,7 +576,7 @@ cv::Mat GetPhaseMat()
     return mat;
 }
 
-cv::Mat GetBWRMat()
+auto GetBWRMat() -> cv::Mat
 {
     cv::Mat mat(1, 3, CV_32FC3);
     std::memcpy(mat.data, BWR_DATA.begin(), BWR_DATA.size() * sizeof(float));

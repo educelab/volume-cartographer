@@ -1,10 +1,13 @@
 #include "vc/texturing/IntegralTexture.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <set>
 
 #include <opencv2/core.hpp>
+
+#include "vc/core/util/Iteration.hpp"
 
 using namespace volcart;
 using namespace volcart::texturing;
@@ -19,35 +22,39 @@ auto IntegralTexture::compute() -> Texture
     auto height = static_cast<int>(ppm_->height());
     auto width = static_cast<int>(ppm_->width());
 
-    // Setup the weights
+    // Set up the weights
     setup_weights_();
 
     // Output image
     cv::Mat image = cv::Mat::zeros(height, width, CV_32FC1);
 
     // Get the mappings
-    auto mappings = ppm_->getMappings();
+    auto mappings = ppm_->getMappingCoords();
 
     // Sort the mappings by Z-value
     std::sort(
-        mappings.begin(), mappings.end(), [](const auto& lhs, const auto& rhs) {
-            return lhs.pos[2] < rhs.pos[2];
+        mappings.begin(), mappings.end(),
+        [&](const auto& lhs, const auto& rhs) {
+            return (*ppm_)(lhs.y, lhs.x)[2] < (*ppm_)(rhs.y, rhs.x)[2];
         });
 
     // Iterate through the mappings
-    size_t counter = 0;
     progressStarted();
-    for (const auto& pixel : mappings) {
-        progressUpdated(counter++);
+    for (const auto [idx, coord] : enumerate(mappings)) {
+        progressUpdated(idx);
 
         // Generate the neighborhood
-        auto n = gen_->compute(vol_, pixel.pos, {pixel.normal});
+        const auto [y, x] = coord;
+        const auto& m = ppm_->getMapping(y, x);
+        const cv::Vec3d pos{m[0], m[1], m[2]};
+        const cv::Vec3d normal{m[3], m[4], m[5]};
+        auto n = gen_->compute(vol_, pos, {normal});
 
         // Clamp values
         if (clampToMax_) {
             std::replace_if(
                 n.begin(), n.end(),
-                [this](uint16_t v) { return v > clampMax_; }, clampMax_);
+                [this](std::uint16_t v) { return v > clampMax_; }, clampMax_);
         }
 
         // Convert to double and weight the neighborhood
@@ -59,9 +66,9 @@ auto IntegralTexture::compute() -> Texture
         auto value = std::accumulate(weighted.begin(), weighted.end(), 0.0);
 
         // Assign the intensity value at the UV position
-        auto x = static_cast<int>(pixel.x);
-        auto y = static_cast<int>(pixel.y);
-        image.at<float>(y, x) = static_cast<float>(value);
+        const auto v = static_cast<int>(y);
+        const auto u = static_cast<int>(x);
+        image.at<float>(v, u) = static_cast<float>(value);
     }
     progressComplete();
 
@@ -153,12 +160,13 @@ void IntegralTexture::setup_expodiff_weights_()
     }
 }
 
-auto IntegralTexture::expodiff_intersection_pts_() -> std::vector<uint16_t>
+auto IntegralTexture::expodiff_intersection_pts_() -> std::vector<std::uint16_t>
 {
-    // Get all of the intensity values
-    std::vector<uint16_t> values;
-    for (const auto& m : ppm_->getMappings()) {
-        values.emplace_back(vol_->interpolateAt(m.pos));
+    // Get all the intensity values
+    std::vector<std::uint16_t> values;
+    for (const auto [y, x] : ppm_->getMappingCoords()) {
+        const auto& m = ppm_->getMapping(y, x);
+        values.emplace_back(vol_->interpolateAt({m[0], m[1], m[2]}));
     }
 
     return values;
@@ -170,7 +178,7 @@ auto IntegralTexture::expodiff_mean_base_() -> double
     auto values = expodiff_intersection_pts_();
 
     // Calculate the mean
-    size_t n = 0;
+    std::size_t n = 0;
     double mean = 0.0;
     for (const auto& v : values) {
         double delta = v - mean;
@@ -186,7 +194,7 @@ auto IntegralTexture::expodiff_mode_base_() -> double
     auto values = expodiff_intersection_pts_();
 
     // Generate a histogram
-    std::map<uint16_t, int> histogram;
+    std::map<std::uint16_t, int> histogram;
     for (const auto& v : values) {
         try {
             histogram.at(v) += 1;
@@ -196,7 +204,7 @@ auto IntegralTexture::expodiff_mode_base_() -> double
     }
 
     // Sort by frequency high to low
-    using KVPair = std::pair<uint16_t, int>;
+    using KVPair = std::pair<std::uint16_t, int>;
     using Comparator = std::function<bool(KVPair, KVPair)>;
     Comparator compare = [](KVPair a, KVPair b) { return a.second > b.second; };
     std::set<KVPair, Comparator> sorter(
@@ -236,9 +244,9 @@ void IntegralTexture::setClampValuesToMax(bool b) { clampToMax_ = b; }
 
 auto IntegralTexture::clampValuesToMax() const -> bool { return clampToMax_; }
 
-void IntegralTexture::setClampMax(uint16_t m) { clampMax_ = m; }
+void IntegralTexture::setClampMax(std::uint16_t m) { clampMax_ = m; }
 
-auto IntegralTexture::clampMax() const -> uint16_t { return clampMax_; }
+auto IntegralTexture::clampMax() const -> std::uint16_t { return clampMax_; }
 
 void IntegralTexture::setWeightMethod(IntegralTexture::WeightMethod w)
 {

@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <list>
 #include <memory>
 #include <unordered_map>
@@ -59,13 +60,16 @@ public:
     LRUCache() : BaseClass() {}
 
     /** @brief Constructor with cache capacity parameter */
-    explicit LRUCache(size_t capacity) : BaseClass(capacity) {}
+    explicit LRUCache(std::size_t capacity) : BaseClass(capacity) {}
 
     /** @overload LRUCache() */
-    static Pointer New() { return std::make_shared<LRUCache<TKey, TValue>>(); }
+    static auto New() -> Pointer
+    {
+        return std::make_shared<LRUCache<TKey, TValue>>();
+    }
 
-    /** @overload LRUCache(size_t) */
-    static Pointer New(size_t capacity)
+    /** @overload LRUCache(std::size_t) */
+    static auto New(std::size_t capacity) -> Pointer
     {
         return std::make_shared<LRUCache<TKey, TValue>>(capacity);
     }
@@ -73,14 +77,13 @@ public:
 
     /**@{*/
     /** @brief Set the maximum number of elements in the cache */
-    void setCapacity(size_t capacity) override
+    void setCapacity(std::size_t capacity) override
     {
         if (capacity <= 0) {
             throw std::invalid_argument(
                 "Cannot create cache with capacity <= 0");
-        } else {
-            capacity_ = capacity;
         }
+        capacity_ = capacity;
 
         // Cleanup elements that exceed the capacity
         while (lookup_.size() > capacity_) {
@@ -92,15 +95,15 @@ public:
     }
 
     /** @brief Get the maximum number of elements in the cache */
-    size_t capacity() const override { return capacity_; }
+    auto capacity() const -> std::size_t override { return capacity_; }
 
     /** @brief Get the current number of elements in the cache */
-    size_t size() const override { return lookup_.size(); }
+    auto size() const -> std::size_t override { return lookup_.size(); }
     /**@}*/
 
     /**@{*/
     /** @brief Get an item from the cache by key */
-    TValue get(const TKey& k) override
+    auto get(const TKey& k) -> TValue override
     {
         auto lookupIter = lookup_.find(k);
         if (lookupIter == std::end(lookup_)) {
@@ -133,7 +136,7 @@ public:
     }
 
     /** @brief Check if an item is already in the cache */
-    bool contains(const TKey& k) override
+    auto contains(const TKey& k) -> bool override
     {
         return lookup_.find(k) != std::end(lookup_);
     }

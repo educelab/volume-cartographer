@@ -3,6 +3,7 @@
 #include <QGestureEvent>
 #include <QLabel>
 #include <QScrollArea>
+#include <QShortcut>
 #include <opencv2/core.hpp>
 
 namespace volcart::gui
@@ -22,6 +23,8 @@ public slots:
 
 private:
     QLabel* imageLabel_;
+    QShortcut* zoomIn_;
+    QShortcut* zoomOut_;
 
     double scaleFactor_;
 

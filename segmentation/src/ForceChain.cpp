@@ -3,7 +3,7 @@
 using namespace volcart::segmentation;
 namespace vcs = volcart::segmentation;
 
-ForceChain& ForceChain::operator+=(const ForceChain& rhs)
+auto ForceChain::operator+=(const ForceChain& rhs) -> ForceChain&
 {
     if (data_.size() != rhs.size()) {
         throw std::domain_error("Vector sizes don't match");
@@ -16,7 +16,7 @@ ForceChain& ForceChain::operator+=(const ForceChain& rhs)
     return *this;
 }
 
-ForceChain& ForceChain::operator*=(const double& rhs)
+auto ForceChain::operator*=(const double& rhs) -> ForceChain&
 {
     std::for_each(
         std::begin(data_), std::end(data_), [rhs](Force& p) { p *= rhs; });
@@ -24,17 +24,17 @@ ForceChain& ForceChain::operator*=(const double& rhs)
     return *this;
 }
 
-ForceChain vcs::operator+(ForceChain lhs, const ForceChain& rhs)
+auto vcs::operator+(ForceChain lhs, const ForceChain& rhs) -> ForceChain
 {
     return lhs += rhs;
 }
 
-ForceChain vcs::operator*(ForceChain lhs, const double& rhs)
+auto vcs::operator*(ForceChain lhs, const double& rhs) -> ForceChain
 {
     return lhs *= rhs;
 }
 
-ForceChain vcs::operator*(const double& rhs, ForceChain lhs)
+auto vcs::operator*(const double& rhs, ForceChain lhs) -> ForceChain
 {
     return lhs *= rhs;
 }

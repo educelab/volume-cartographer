@@ -1,5 +1,7 @@
 #include "vc/core/io/PLYReader.hpp"
 
+#include <cstdint>
+
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/String.hpp"
@@ -8,7 +10,7 @@ using namespace volcart;
 using namespace volcart::io;
 namespace fs = volcart::filesystem;
 
-ITKMesh::Pointer PLYReader::read()
+auto PLYReader::read() -> ITKMesh::Pointer
 {
     if (inputPath_.empty() || !fs::exists(inputPath_)) {
         auto msg = "File not provided or does not exist.";
@@ -153,7 +155,7 @@ void PLYReader::read_faces_()
 void PLYReader::create_mesh_()
 {
     ITKPoint p;
-    uint32_t pointCount = 0;
+    std::uint32_t pointCount = 0;
     for (auto& cur : pointList_) {
         p[0] = cur.x;
         p[1] = cur.y;
@@ -168,7 +170,7 @@ void PLYReader::create_mesh_()
         }
         pointCount++;
     }
-    uint32_t faceCount = 0;
+    std::uint32_t faceCount = 0;
     for (auto& cur : faceList_) {
         ITKCell::CellAutoPointer cellpointer;
         cellpointer.TakeOwnership(new ITKTriangle);

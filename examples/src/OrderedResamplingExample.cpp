@@ -5,7 +5,7 @@
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/meshing/OrderedResampling.hpp"
 
-int main()
+auto main() -> int
 {
     volcart::io::OBJWriter writer;
 

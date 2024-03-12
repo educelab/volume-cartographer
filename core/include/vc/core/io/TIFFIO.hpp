@@ -48,10 +48,36 @@ enum class Compression {
 };
 
 /**
+ * @brief Read a TIFF file
+ *
+ * Reads Gray, Gray+Alpha, RGB, and RGBA TIFF images. Supports 8, 16, and
+ * 32-bit integer types as well as 32-bit float types. 3 and 4 channel images
+ * will be returned with a BGR channel order, except for 8-bit and 16-bit
+ * signed integer types which will be returned with an RGB channel order.
+ *
+ * Only supports single image TIFF files with scanline encoding and a
+ * contiguous planar configuration (this matches the format written by
+ * WriteTIFF). Unless you need to read some obscure image type (e.g. 32-bit
+ * float or signed integer images), it's generally preferable to use cv::imread.
+ *
+ * If the raw size of the image (width x height x channels x bytes-per-sample)
+ * is >= 4GB, the TIFF will be written using the BigTIFF extension to the TIFF
+ * format.
+ *
+ * @param path Path to TIFF file
+ * @throws volcart::IOException Unrecoverable read errors
+ */
+auto ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat;
+
+/**
  * @brief Write a TIFF image to file
  *
- * Supports writing floating point and signed integer TIFFs, in addition to
- * unsigned 8 & 16 bit integer types. Also supports 1-4 channel images.
+ * Writes Gray, Gray+Alpha, RGB, and RGBA TIFF images. Supports 8, 16, and
+ * 32-bit integer types as well as 32-bit float types. 3 and 4 channel images
+ * are assumed to have a BGR channel order, except for 8-bit and 16-bit signed
+ * integer types which are not supported.
+ *
+ * @throws volcart::IOException All writing errors
  */
 void WriteTIFF(
     const volcart::filesystem::path& path,

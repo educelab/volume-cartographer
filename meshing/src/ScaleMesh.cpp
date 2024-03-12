@@ -1,7 +1,6 @@
 /**@file ScaleMesh.cpp  */
 
 #include "vc/meshing/ScaleMesh.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 
 namespace volcart::meshing
 {
@@ -23,7 +22,8 @@ void ScaleMesh(
     }
 }
 
-ITKMesh::Pointer ScaleMesh(const ITKMesh::Pointer& input, double scaleFactor)
+auto ScaleMesh(const ITKMesh::Pointer& input, double scaleFactor)
+    -> ITKMesh::Pointer
 {
     auto output = ITKMesh::New();
     ScaleMesh(input, output, scaleFactor);

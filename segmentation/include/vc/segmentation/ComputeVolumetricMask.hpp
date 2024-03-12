@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 
 #include "vc/core/types/Mixins.hpp"
@@ -33,10 +35,10 @@ public:
     void setVolume(const Volume::Pointer& v);
 
     /** @brief Set the low threshold for the bounded flood-fill operation. */
-    void setLowThreshold(uint16_t t);
+    void setLowThreshold(std::uint16_t t);
 
     /** @brief Set the high threshold for the bounded flood-fill operation. */
-    void setHighThreshold(uint16_t t);
+    void setHighThreshold(std::uint16_t t);
 
     /** @brief If enabled, apply a morphological closing kernel to the mask */
     void setEnableClosing(bool b);
@@ -58,7 +60,7 @@ public:
      * @brief Set the max radius that a single point can hav when measuring the
      * width of the page.
      */
-    void setMaxRadius(size_t radius);
+    void setMaxRadius(std::size_t radius);
 
     /** @brief Computes the segmentation. */
     VolumetricMask::Pointer compute();
@@ -67,7 +69,7 @@ public:
     VolumetricMask::Pointer getMask() const;
 
     /** @brief Returns the maximum progress value */
-    size_t progressIterations() const override;
+    std::size_t progressIterations() const override;
 
 private:
     /** Input points */
@@ -75,9 +77,9 @@ private:
     /** Input volume */
     Volume::Pointer vol_;
     /** Low flood-fill threshold parameter */
-    uint16_t low_{14135};
+    std::uint16_t low_{14135};
     /** High flood-fill threshold parameter */
-    uint16_t high_{65535};
+    std::uint16_t high_{65535};
     /** Enable closing */
     bool enableClosing_{true};
     /** (Square) Kernel size parameter for the closing operation */
@@ -85,7 +87,7 @@ private:
     /** Direction of thickness estimation measurement */
     bool measureVertically_{false};
     /** Maximum layer thickness to consider for a single seed point */
-    size_t maxRadius_{std::numeric_limits<size_t>::max()};
+    std::size_t maxRadius_{std::numeric_limits<std::size_t>::max()};
     /** Mask */
     VolumetricMask::Pointer mask_;
 };

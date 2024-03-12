@@ -11,7 +11,7 @@
 using namespace volcart;
 
 // Read and return map of metadata values
-volcart::Metadata SkyscanMetadataIO::read()
+auto SkyscanMetadataIO::read() -> volcart::Metadata
 {
     parse_();
     return metadata_;
@@ -183,7 +183,7 @@ void SkyscanMetadataIO::parse_()
     ifs.close();
 }
 
-std::string SkyscanMetadataIO::getSliceRegexString()
+auto SkyscanMetadataIO::getSliceRegexString() -> std::string
 {
     // Get components
     auto prefix = metadata_.get<std::string>("sliceImgPrefix");

@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <limits>
 
 #include <opencv2/core.hpp>
@@ -5,20 +6,20 @@
 #include <opencv2/imgproc.hpp>
 
 #include "vc/apps/packager/SliceImage.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/util/String.hpp"
 
-static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+static const double MAX_16BPC = std::numeric_limits<std::uint16_t>::max();
 
 namespace volcart
 {
 
-bool SliceImage::operator==(const SliceImage& b) const
+auto SliceImage::operator==(const SliceImage& b) const -> bool
 {
     return (w_ == b.w_ && h_ == b.h_ && type_ == b.type_);
 }
 
-bool SliceImage::operator<(const SliceImage& b) const
+auto SliceImage::operator<(const SliceImage& b) const -> bool
 {
     auto aName = to_lower_copy(path.filename().string());
     auto bName = to_lower_copy(b.path.filename().string());
@@ -33,7 +34,7 @@ bool SliceImage::operator<(const SliceImage& b) const
     return aName.size() < bName.size();
 }
 
-bool SliceImage::analyze()
+auto SliceImage::analyze() -> bool
 {
     // return if the path is wrong or if this isn't a regular file
     if (!(volcart::filesystem::exists(path)) ||
@@ -64,7 +65,7 @@ bool SliceImage::analyze()
     return true;
 }
 
-cv::Mat SliceImage::conformedImage()
+auto SliceImage::conformedImage() -> cv::Mat
 {
     // Load the image
     auto image =

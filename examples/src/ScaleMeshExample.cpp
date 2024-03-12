@@ -13,7 +13,7 @@
 #include "vc/core/shapes/Sphere.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
-int main()
+auto main() -> int
 {
 
     // init shapes

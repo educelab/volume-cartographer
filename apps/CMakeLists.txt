@@ -95,7 +95,7 @@ target_link_libraries(vc_render
 )
 
 ## Render from PPM
-add_executable(vc_render_from_ppm src/RenderFromPPM.cpp src/RenderIO.cpp src/RenderTexturing.cpp)
+add_executable(vc_render_from_ppm src/RenderFromPPM.cpp src/RenderTexturing.cpp)
 target_link_libraries(vc_render_from_ppm
     VC::core
     VC::texturing
@@ -106,17 +106,6 @@ target_link_libraries(vc_render_from_ppm
 )
 target_include_directories(vc_render_from_ppm PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
-
-## Layers ##
-add_executable(vc_layers src/Layers.cpp)
-target_link_libraries(vc_layers
-    VC::app_support
-    VC::core
-    VC::texturing
-    VC::meshing
-    ${VC_FS_LIB}
-    Boost::program_options
 )
 
 ## PPM Generator
@@ -172,7 +161,6 @@ target_link_libraries(vc_volpkg_explorer
 if(VC_INSTALL_APPS)
 install(
     TARGETS
-        vc_layers
         vc_layers_from_ppm
         vc_mesher
         vc_packager

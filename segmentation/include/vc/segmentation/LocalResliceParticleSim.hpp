@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <iostream>
 
 #include "vc/core/types/OrderedPointSet.hpp"
@@ -113,7 +114,7 @@ public:
     void setDumpVis(bool b) { dumpVis_ = b; }
 
     /** @brief Returns the maximum progress value */
-    [[nodiscard]] auto progressIterations() const -> size_t override;
+    [[nodiscard]] auto progressIterations() const -> std::size_t override;
 
 private:
     /**

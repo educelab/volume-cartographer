@@ -3,6 +3,8 @@
 #include <nlohmann/json.hpp>
 
 #include "vc/core/io/MeshIO.hpp"
+#include "vc/core/util/Json.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
 using namespace volcart;
@@ -16,7 +18,13 @@ namespace volcart::meshing
 using ResampleMode = ResampleMeshNode::Mode;
 NLOHMANN_JSON_SERIALIZE_ENUM(ResampleMode, {
     {ResampleMode::Isotropic, "isotropic"},
-    {ResampleMode::Anisotropic, "Anisotropic"}
+    {ResampleMode::Anisotropic, "anisotropic"}
+})
+
+using ReferenceMode = OrientNormalsNode::ReferenceMode;
+NLOHMANN_JSON_SERIALIZE_ENUM(ReferenceMode , {
+    {ReferenceMode::Centroid, "centroid"},
+    {ReferenceMode::Manual, "manual"}
 })
 // clang-format on
 }  // namespace volcart::meshing
@@ -26,7 +34,11 @@ MeshingNode::MeshingNode()
 {
     registerInputPort("points", points);
     registerOutputPort("mesh", mesh);
-    compute = [=]() { mesh_ = mesher_.compute(); };
+
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] meshing point set");
+        mesh_ = mesher_.compute();
+    };
 }
 
 auto MeshingNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -56,8 +68,10 @@ ScaleMeshNode::ScaleMeshNode()
     registerInputPort("scaleFactor", scaleFactor);
     registerOutputPort("output", output);
 
-    compute = [=]() {
+    compute = [&]() {
         if (input_) {
+            Logger()->debug(
+                "[graph.meshing] scaling mesh {.3f}x", scaleFactor_);
             output_ = ScaleMesh(input_, scaleFactor_);
         }
     };
@@ -95,18 +109,19 @@ CalculateNumVertsNode::CalculateNumVertsNode()
     registerInputPort("density", density);
     registerOutputPort("numVerts", numVerts);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] calculating number of vertices");
         using meshmath::SurfaceArea;
         static constexpr double UM_TO_MM{0.000001};
         static constexpr std::size_t MIN_NUM{100};
         auto sqVoxel = voxelSize_ * voxelSize_;
         auto a = SurfaceArea(mesh_) * sqVoxel * UM_TO_MM;
-        numVerts_ = std::max(static_cast<size_t>(density_ * a), MIN_NUM);
+        numVerts_ = std::max(static_cast<std::size_t>(density_ * a), MIN_NUM);
     };
 }
 
-smgl::Metadata CalculateNumVertsNode::serialize_(
-    bool /*useCache*/, const fs::path& /*cacheDir*/)
+auto CalculateNumVertsNode::serialize_(
+    bool /*useCache*/, const fs::path& /*cacheDir*/) -> smgl::Metadata
 {
     return {
         {"density", density_},
@@ -119,7 +134,7 @@ void CalculateNumVertsNode::deserialize_(
 {
     density_ = meta["density"].get<double>();
     voxelSize_ = meta["voxelSize"].get<double>();
-    numVerts_ = meta["numVerts"].get<size_t>();
+    numVerts_ = meta["numVerts"].get<std::size_t>();
 }
 
 LaplacianSmoothMeshNode::LaplacianSmoothMeshNode()
@@ -127,7 +142,10 @@ LaplacianSmoothMeshNode::LaplacianSmoothMeshNode()
 {
     registerInputPort("input", input);
     registerOutputPort("output", output);
-    compute = [=]() { mesh_ = smoother_.compute(); };
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] smoothing mesh");
+        mesh_ = smoother_.compute();
+    };
 }
 
 auto LaplacianSmoothMeshNode::serialize_(
@@ -180,7 +198,12 @@ ResampleMeshNode::ResampleMeshNode()
     registerInputPort("subsampleThreshold", subsampleThreshold);
     registerInputPort("quadricsOptimizationLevel", quadricsOptimizationLevel);
     registerOutputPort("output", output);
-    compute = [=]() { mesh_ = acvd_.compute(); };
+    compute = [&]() {
+        Logger()->debug(
+            "[graph.meshing] resampling mesh to {} vertices",
+            acvd_.numberOfClusters());
+        mesh_ = acvd_.compute();
+    };
 }
 
 auto ResampleMeshNode::serialize_(bool useCache, const fs::path& cacheDir)
@@ -227,7 +250,8 @@ UVMapToMeshNode::UVMapToMeshNode()
     registerInputPort("scaleToUVDimensions", scaleToUVDimensions);
     registerOutputPort("outputMesh", outputMesh);
 
-    compute = [=]() {
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] converting UV map to mesh");
         mesher_.setScaleToUVDimensions(scaleDims_);
         output_ = mesher_.compute();
     };
@@ -251,5 +275,52 @@ void UVMapToMeshNode::deserialize_(
     if (meta.contains("mesh")) {
         auto file = meta["mesh"].get<std::string>();
         output_ = ReadMesh(cacheDir / file).mesh;
+    }
+}
+
+OrientNormalsNode::OrientNormalsNode()
+    : Node{true}
+    , input{&orientNormals_, &OrientNormals::setMesh}
+    , referenceMode{&orientNormals_, &OrientNormals::setReferenceMode}
+    , referencePoint{&orientNormals_, &OrientNormals::setReferencePoint}
+    , output{&output_}
+{
+    registerInputPort("input", input);
+    registerInputPort("referenceMode", referenceMode);
+    registerInputPort("referencePoint", referencePoint);
+    registerOutputPort("output", output);
+    compute = [&]() {
+        Logger()->debug("[graph.meshing] orienting vertex normals");
+        output_ = orientNormals_.compute();
+    };
+}
+
+auto OrientNormalsNode::serialize_(bool useCache, const fs::path& cacheDir)
+    -> smgl::Metadata
+{
+    smgl::Metadata meta{{"referenceMode", orientNormals_.referenceMode()}};
+    if (orientNormals_.referenceMode() == ReferenceMode::Manual) {
+        meta["referencePoint"] = orientNormals_.referencePoint();
+    }
+    if (useCache and output_) {
+        WriteMesh(cacheDir / "orient_normals.obj", output_);
+        meta["mesh"] = "orient_normals.obj";
+    }
+    return meta;
+}
+
+void OrientNormalsNode::deserialize_(
+    const smgl::Metadata& meta, const fs::path& cacheDir)
+{
+    auto refMode = meta["referenceMode"].get<ReferenceMode>();
+    orientNormals_.setReferenceMode(refMode);
+    if (refMode == ReferenceMode::Manual) {
+        orientNormals_.setReferencePoint(
+            meta["referencePoint"].get<cv::Vec3d>());
+    }
+
+    if (meta.contains("mesh")) {
+        auto meshFile = meta["mesh"].get<std::string>();
+        output_ = ReadMesh(cacheDir / meshFile).mesh;
     }
 }

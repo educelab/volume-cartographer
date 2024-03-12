@@ -1,11 +1,11 @@
-/** @file DeepCopy.cpp */
+#include "vc/core/types/ITKMesh.hpp"
 
-#include "vc/meshing/DeepCopy.hpp"
+#include <cstdint>
 
-namespace volcart::meshing
-{
+using namespace volcart;
+namespace vc = volcart;
 
-void DeepCopy(
+void vc::DeepCopy(
     const ITKMesh::Pointer& input,
     const ITKMesh::Pointer& output,
     bool copyVertices,
@@ -32,7 +32,7 @@ void DeepCopy(
              cell != input->GetCells()->End(); ++cell) {
 
             c.TakeOwnership(new ITKTriangle);
-            for (uint32_t pointId = 0;
+            for (std::uint32_t pointId = 0;
                  pointId < cell.Value()->GetNumberOfPoints(); ++pointId) {
                 c->SetPointId(
                     pointId, cell.Value()->GetPointIdsContainer()[pointId]);
@@ -42,4 +42,12 @@ void DeepCopy(
         }
     }
 }
-}  // namespace volcart::meshing
+
+auto vc::DeepCopy(
+    const ITKMesh::Pointer& input, bool copyVertices, bool copyFaces)
+    -> ITKMesh::Pointer
+{
+    auto output = ITKMesh::New();
+    DeepCopy(input, output, copyVertices, copyFaces);
+    return output;
+}

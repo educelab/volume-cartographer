@@ -1,0 +1,18 @@
+{
+  "type": "Transform3D",
+  "source": "20231128010200",
+  "target": "20231127120000",
+  "transform-type": "CompositeTransform",
+  "transform-stack": [
+    {
+      "type": "Transform3D",
+      "source": "not-used",
+      "target": "not-used",
+      "transform-type": "AffineTransform",
+      "params": [[1.0, 0.0, 0.0, 0.0],
+                 [0.0, 1.0, 0.0, 0.0],
+                 [0.0, 0.0, 1.0, 0.0],
+                 [0.0, 0.0, 0.0, 1.0]]
+    }
+  ]
+}

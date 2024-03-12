@@ -7,9 +7,11 @@
  */
 
 #include <chrono>
+#include <cstddef>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <regex>
 #include <sstream>
 
 namespace volcart
@@ -21,10 +23,10 @@ namespace volcart
  *
  * Code from <a href="http://stackoverflow.com/a/16358264/1917043">here</a>.
  */
-inline std::string DateTime()
+inline auto DateTime() -> std::string
 {
-    auto now = std::time(nullptr);
-    auto time = std::localtime(&now);
+    const auto now = std::time(nullptr);
+    const auto* time = std::localtime(&now);
 
     std::stringstream ss;
     ss << std::put_time(time, "%Y%m%d%H%M%S");
@@ -39,21 +41,21 @@ inline std::string DateTime()
  * Code from <a href="https://stackoverflow.com/a/46134506">here</a>.
  */
 template <typename Rep, typename Period>
-std::string DurationToDurationString(std::chrono::duration<Rep, Period> input)
+auto DurationToString(std::chrono::duration<Rep, Period> input) -> std::string
 {
     using namespace std::chrono;
     using days = duration<int, std::ratio<86400>>;
-    auto d = duration_cast<days>(input);
+    const auto d = duration_cast<days>(input);
     input -= d;
-    auto h = duration_cast<hours>(input);
+    const auto h = duration_cast<hours>(input);
     input -= h;
-    auto m = duration_cast<minutes>(input);
+    const auto m = duration_cast<minutes>(input);
     input -= m;
-    auto s = duration_cast<seconds>(input);
+    const auto s = duration_cast<seconds>(input);
 
-    auto dc = d.count();
-    auto hc = h.count();
-    auto mc = m.count();
+    const auto dc = d.count();
+    const auto hc = h.count();
+    const auto mc = m.count();
 
     std::stringstream ss;
     ss.fill('0');
@@ -81,4 +83,46 @@ std::string DurationToDurationString(std::chrono::duration<Rep, Period> input)
 
     return ss.str();
 }
+
+/**
+ * @brief Convert a duration string to a a std::chrono duration.
+ *
+ * Accepts strings with ordered combinations of `#h`, `#m`, `#s`, and `#ms`.
+ * Examples: `10s`, `500ms`, `1m30s`.
+ *
+ * @tparam Duration Output duration type
+ * @param str Input string
+ */
+template <typename Duration = std::chrono::milliseconds>
+auto DurationFromString(const std::string& str) -> Duration
+{
+    using namespace std::chrono;
+    const std::regex dReg{
+        R"((\d+h){0,1}(\d+m(?!s)){0,1}(\d+s){0,1}(\d+ms){0,1})"};
+    std::smatch match;
+    Duration d(0);
+    if (std::regex_search(str, match, dReg)) {
+        for (std::size_t i = 1; i < 5; i++) {
+            if (match[i].length() == 0) {
+                continue;
+            }
+            auto part = match[i].str();
+            auto end = (i == 4) ? part.size() - 2 : part.size() - 1;
+            auto val = std::stoi(part.substr(0, end));
+            if (i == 1) {
+                d += std::chrono::hours(val);
+            } else if (i == 2) {
+                d += std::chrono::minutes(val);
+            } else if (i == 3) {
+                d += std::chrono::seconds(val);
+            } else if (i == 4) {
+                d += std::chrono::milliseconds(val);
+            }
+        }
+    } else {
+        throw std::invalid_argument("Cannot parse as duration: " + str);
+    }
+    return d;
+}
+
 }  // namespace volcart

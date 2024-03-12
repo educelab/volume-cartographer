@@ -41,7 +41,7 @@ TEST_F(PLYWriter, UntexturedMesh)
     EXPECT_EQ(mesh->GetNumberOfCells(), saved.faces.size());
 
     // Check vertex values
-    size_t idx = 0;
+    std::size_t idx = 0;
     vc::ITKPixel origN;
     for (const auto& v : saved.verts) {
         // Check 3D Position

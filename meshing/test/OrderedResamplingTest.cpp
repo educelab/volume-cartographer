@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
@@ -56,7 +58,7 @@ TEST_F(OrderedPlaneFixture, ResampledPlaneTest)
 
     // Check Points and Normals
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
-    for (uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
+    for (std::uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -76,7 +78,7 @@ TEST_F(OrderedPlaneFixture, ResampledPlaneTest)
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
     EXPECT_EQ(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
-    for (uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
+    for (std::uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         EXPECT_EQ(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
@@ -94,7 +96,7 @@ TEST_F(OrderedArchFixture, ResampledArchTest)
 
     // Check Points and Normals
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
-    for (uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
+    for (std::uint64_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         volcart::testing::SmallOrClose(
@@ -114,7 +116,7 @@ TEST_F(OrderedArchFixture, ResampledArchTest)
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
     EXPECT_EQ(_SavedCells.size(), _out_Mesh->GetNumberOfCells());
-    for (uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
+    for (std::uint64_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _out_Mesh->GetCell(cell_id, current_C);
         EXPECT_EQ(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);

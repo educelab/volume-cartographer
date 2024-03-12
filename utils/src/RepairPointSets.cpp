@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include <boost/program_options.hpp>
 
 #include "vc/core/filesystem.hpp"
@@ -35,7 +37,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (args.count("help") > 0 or argc < 3) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 

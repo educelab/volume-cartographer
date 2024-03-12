@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <memory>
 
 #include <opencv2/core.hpp>

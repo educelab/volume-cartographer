@@ -2,8 +2,9 @@
 
 #include <opencv2/imgcodecs.hpp>
 
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/TIFFIO.hpp"
+#include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/ImageConversion.hpp"
 #include "vc/core/util/Logging.hpp"
 
@@ -82,6 +83,9 @@ void vc::WriteImage(
             params.push_back(*opts.compression);
         }
 
-        cv::imwrite(path.string(), output, params);
+        if (not cv::imwrite(path.string(), output, params)) {
+            auto msg = "failure writing file '" + path.string() + "'";
+            throw IOException(msg);
+        }
     }
 }

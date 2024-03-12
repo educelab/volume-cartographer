@@ -28,7 +28,7 @@ list(APPEND VC_CUSTOM_MODULES "${CMAKE_MODULE_PATH}/FindFilesystem.cmake")
 
 ### Qt6 ###
 if((VC_BUILD_APPS OR VC_BUILD_UTILS) AND VC_BUILD_GUI)
-    find_package(Qt6 6.3 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
+    find_package(Qt6 6.5 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
     qt_standard_project_setup()
 endif()
 
@@ -97,7 +97,7 @@ if(VC_BUILD_TESTS)
     FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG        389cb68
+        GIT_TAG        v1.14.0
         CMAKE_CACHE_ARGS
             -DINSTALL_GTEST:BOOL=OFF
     )

@@ -9,6 +9,7 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/util/Json.hpp"
 
 namespace volcart
 {
@@ -32,7 +33,11 @@ public:
     /** @brief Default constructor */
     Metadata() = default;
 
-    /** @brief Read a metadata file from disk */
+    /**
+     * @brief Read a metadata file from disk
+     *
+     * @throws volcart::IOException
+     */
     explicit Metadata(volcart::filesystem::path fileLocation);
     /**@}*/
 
@@ -43,7 +48,11 @@ public:
     /** @brief Set the path where the metadata file will be written */
     void setPath(const volcart::filesystem::path& path) { path_ = path; }
 
-    /** @brief Save the metadata file to the stored path */
+    /**
+     * @brief Save the metadata file to the stored path
+     *
+     * @throws volcart::IOException 
+     */
     void save() { save(path_); }
 
     /** @brief Save the metadata file to a specified path */
@@ -104,26 +113,3 @@ protected:
     volcart::filesystem::path path_;
 };
 }  // namespace volcart
-
-/** JSON Serializer for cv::Vec */
-namespace nlohmann
-{
-template <typename T, int Cn>
-struct adl_serializer<cv::Vec<T, Cn>> {
-    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void to_json(nlohmann::json& j, const cv::Vec<T, Cn>& v)
-    {
-        for (int i = 0; i < Cn; i++) {
-            j.push_back(v[i]);
-        }
-    }
-
-    // NOLINTNEXTLINE(readability-identifier-naming): Must be exact signature
-    static void from_json(const nlohmann::json& j, cv::Vec<T, Cn>& v)
-    {
-        for (int i = 0; i < Cn; i++) {
-            v[i] = j.at(i).get<T>();
-        }
-    }
-};
-}  // namespace nlohmann

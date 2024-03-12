@@ -112,13 +112,13 @@ void OpticalFlowSegmentation::setVisualize(bool b) { visualize_ = b; }
 
 void OpticalFlowSegmentation::setDumpVis(bool b) { dumpVis_ = b; }
 
-auto OpticalFlowSegmentation::progressIterations() const -> size_t
+auto OpticalFlowSegmentation::progressIterations() const -> std::size_t
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
         [](const auto& a, const auto& b) { return a[2] < b[2]; });
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
-    return static_cast<size_t>((endIndex_ - startIndex) / stepSize_);
+    return static_cast<std::size_t>((endIndex_ - startIndex) / stepSize_);
 }
 
 // Multithreaded computation of split curve segment
@@ -440,8 +440,8 @@ auto OpticalFlowSegmentation::create_final_pointset_(
     result_.clear();
     result_.setWidth(cols);
 
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < cols; ++j) {
+    for (std::size_t i = 0; i < rows; ++i) {
+        for (std::size_t j = 0; j < cols; ++j) {
             Voxel v = points[i][j];
             tempRow.emplace_back(v(0), v(1), v(2));
         }
@@ -459,7 +459,7 @@ auto OpticalFlowSegmentation::draw_particle_on_slice_(
 {
     auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
-        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
+        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<std::uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
 
     // Superimpose interpolated currentCurve on window
@@ -475,7 +475,7 @@ auto OpticalFlowSegmentation::draw_particle_on_slice_(
         cv::polylines(pkgSlice, contour, false, color::BLUE, 1, cv::LINE_AA);
     } else {
         // Draw circles on the pkgSlice window for each point
-        for (size_t i = 0; i < curve.size(); ++i) {
+        for (std::size_t i = 0; i < curve.size(); ++i) {
             cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
             cv::circle(pkgSlice, real, 2, color::GREEN, -1);
         }

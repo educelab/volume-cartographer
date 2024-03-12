@@ -1,13 +1,15 @@
 #include "vc/core/neighborhood/LineGenerator.hpp"
 
+#include <cstddef>
+
 #include "vc/core/util/FloatComparison.hpp"
 
 using namespace volcart;
 
-Neighborhood LineGenerator::compute(
+auto LineGenerator::compute(
     const Volume::Pointer& v,
     const cv::Vec3d& pt,
-    const std::vector<cv::Vec3d>& axes)
+    const std::vector<cv::Vec3d>& axes) -> Neighborhood
 {
     // If we don't have enough axes by this point, we're doing it wrong
     if (axes.empty()) {
@@ -45,9 +47,10 @@ Neighborhood LineGenerator::compute(
     }
 
     // Iterate through range
-    auto count = static_cast<size_t>(std::floor((max - min) / interval_) + 1);
+    auto count =
+        static_cast<std::size_t>(std::floor((max - min) / interval_) + 1);
     Neighborhood n(1, count);
-    for (size_t it = 0; it < count; it++) {
+    for (std::size_t it = 0; it < count; it++) {
         auto offset = min + (it * interval_);
         n(it) = v->interpolateAt(pt + (axes[0] * offset));
     }
@@ -55,9 +58,9 @@ Neighborhood LineGenerator::compute(
     return n;
 }
 
-Neighborhood::Extent LineGenerator::extents() const
+auto LineGenerator::extents() const -> Neighborhood::Extent
 {
     auto radius =
         (direction_ != Direction::Bidirectional) ? radius_[0] / 2 : radius_[0];
-    return {static_cast<size_t>(std::floor(2.0 * radius / interval_) + 1)};
+    return {static_cast<std::size_t>(std::floor(2.0 * radius / interval_) + 1)};
 }

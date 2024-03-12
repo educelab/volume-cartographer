@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYWriter.hpp"
 #include "vc/core/shapes/Plane.hpp"
@@ -38,7 +40,7 @@ TEST_F(PlaneFixture, ParseOBJTest)
 
     // Check Points and Normals
     EXPECT_EQ(_input->GetNumberOfPoints(), _SavedPoints.size());
-    for (size_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
+    for (std::size_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         EXPECT_DOUBLE_EQ(_input->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         EXPECT_DOUBLE_EQ(_input->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         EXPECT_DOUBLE_EQ(_input->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
@@ -55,7 +57,7 @@ TEST_F(PlaneFixture, ParseOBJTest)
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
     EXPECT_EQ(_input->GetNumberOfCells(), _SavedCells.size());
-    for (size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
+    for (std::size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _input->GetCell(cell_id, current_C);
         EXPECT_EQ(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);
@@ -79,7 +81,7 @@ TEST_F(PlaneFixture, ParsePLYTest)
 
     // Check Points and Normals
     EXPECT_EQ(_input->GetNumberOfPoints(), _SavedPoints.size());
-    for (size_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
+    for (std::size_t pnt_id = 0; pnt_id < _SavedPoints.size(); pnt_id++) {
         EXPECT_DOUBLE_EQ(_input->GetPoint(pnt_id)[0], _SavedPoints[pnt_id].x);
         EXPECT_DOUBLE_EQ(_input->GetPoint(pnt_id)[1], _SavedPoints[pnt_id].y);
         EXPECT_DOUBLE_EQ(_input->GetPoint(pnt_id)[2], _SavedPoints[pnt_id].z);
@@ -96,7 +98,7 @@ TEST_F(PlaneFixture, ParsePLYTest)
     // Check Cells, Checks Point normals by ensuring that the first vertex is
     // the same in both
     EXPECT_EQ(_SavedCells.size(), _input->GetNumberOfCells());
-    for (size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
+    for (std::size_t cell_id = 0; cell_id < _SavedCells.size(); cell_id++) {
         ITKCell::CellAutoPointer current_C;
         _input->GetCell(cell_id, current_C);
         EXPECT_EQ(current_C->GetPointIds()[0], _SavedCells[cell_id].v1);

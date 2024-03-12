@@ -4,7 +4,6 @@
 
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MeshMath.hpp"
-#include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/ScaleMesh.hpp"
 
 using namespace volcart;
@@ -29,7 +28,7 @@ void AngleBasedFlattening::setABFMaxIterations(std::size_t i)
 }
 
 ///// Process //////
-ITKMesh::Pointer AngleBasedFlattening::compute()
+auto AngleBasedFlattening::compute() -> ITKMesh::Pointer
 {
     // Construct HEM
     auto hem = HalfEdgeMesh::New();

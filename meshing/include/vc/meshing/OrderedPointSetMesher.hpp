@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include <opencv2/core.hpp>
 
 #include "vc/core/types/ITKMesh.hpp"
@@ -83,6 +85,6 @@ private:
      * @param b ID for the second vertex in the face
      * @param c ID for the third vertex in the face
      */
-    void add_cell_(size_t a, size_t b, size_t c);
+    void add_cell_(std::size_t a, std::size_t b, std::size_t c);
 };
 }  // namespace volcart::meshing

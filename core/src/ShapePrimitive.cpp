@@ -12,14 +12,14 @@ ShapePrimitive::ShapePrimitive()
 
 ///// Type Conversions /////
 // return an itk mesh
-ITKMesh::Pointer ShapePrimitive::itkMesh()
+auto ShapePrimitive::itkMesh() -> ITKMesh::Pointer
 {
     auto output = ITKMesh::New();
 
     // points + normals
     ITKPoint point;
     ITKPixel normal;
-    for (size_t pId = 0; pId < points_.size(); ++pId) {
+    for (std::size_t pId = 0; pId < points_.size(); ++pId) {
         point[0] = points_[pId].x;
         point[1] = points_[pId].y;
         point[2] = points_[pId].z;
@@ -33,7 +33,7 @@ ITKMesh::Pointer ShapePrimitive::itkMesh()
 
     // cells
     ITKCell::CellAutoPointer cell;
-    for (size_t cId = 0; cId < cells_.size(); ++cId) {
+    for (std::size_t cId = 0; cId < cells_.size(); ++cId) {
         cell.TakeOwnership(new ITKTriangle);
         cell->SetPointId(0, cells_[cId].v1);
         cell->SetPointId(1, cells_[cId].v2);
@@ -46,7 +46,7 @@ ITKMesh::Pointer ShapePrimitive::itkMesh()
 
 // initialize a vtk mesh //
 
-vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
+auto ShapePrimitive::vtkMesh() -> vtkSmartPointer<vtkPolyData>
 {
 
     // construct new pointer to output mesh
@@ -58,7 +58,7 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
     pointNormals->SetNumberOfComponents(3);
     pointNormals->SetNumberOfTuples(points_.size());
 
-    for (size_t pId = 0; pId < points_.size(); ++pId) {
+    for (std::size_t pId = 0; pId < points_.size(); ++pId) {
 
         // put normals for the current point in an array
         std::array<double, 3> ptNorm = {
@@ -89,7 +89,7 @@ vtkSmartPointer<vtkPolyData> ShapePrimitive::vtkMesh()
 }
 
 // Return point set (unordered)
-volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints()
+auto ShapePrimitive::unorderedPoints() -> volcart::PointSet<cv::Vec3d>
 {
     volcart::PointSet<cv::Vec3d> output;
 
@@ -101,7 +101,7 @@ volcart::PointSet<cv::Vec3d> ShapePrimitive::unorderedPoints()
 }
 
 // Return point set + normals (unordered)
-volcart::PointSet<cv::Vec6d> ShapePrimitive::unorderedPointNormal()
+auto ShapePrimitive::unorderedPointNormal() -> volcart::PointSet<cv::Vec6d>
 {
     volcart::PointSet<cv::Vec6d> output;
     for (auto p : points_) {
@@ -111,7 +111,7 @@ volcart::PointSet<cv::Vec6d> ShapePrimitive::unorderedPointNormal()
 }
 
 // Return point set (ordered)
-volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints()
+auto ShapePrimitive::orderedPoints() -> volcart::OrderedPointSet<cv::Vec3d>
 {
     if (!ordered_) {
         throw std::runtime_error("Shape vertices not ordered");
@@ -129,11 +129,15 @@ volcart::OrderedPointSet<cv::Vec3d> ShapePrimitive::orderedPoints()
 
         tempRow.emplace_back(p.x, p.y, p.z);
     }
+    if (tempRow.size() == output.width()) {
+        output.pushRow(tempRow);
+        tempRow.clear();
+    }
     return output;
 }
 
 // Return point set + normals (ordered)
-volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
+auto ShapePrimitive::orderedPointNormal() -> volcart::OrderedPointSet<cv::Vec6d>
 {
     if (!ordered_) {
         throw std::runtime_error("Shape vertices not ordered");
@@ -142,7 +146,7 @@ volcart::OrderedPointSet<cv::Vec6d> ShapePrimitive::orderedPointNormal()
     volcart::OrderedPointSet<cv::Vec6d> output{orderedWidth_};
     std::vector<cv::Vec6d> tempRow;
     for (auto p : points_) {
-        for (size_t i = 0; i < orderedWidth_; i++) {
+        for (std::size_t i = 0; i < orderedWidth_; i++) {
             tempRow.emplace_back(p.x, p.y, p.z, p.nx, p.ny, p.nz);
         }
         output.pushRow(tempRow);
@@ -161,7 +165,7 @@ void ShapePrimitive::addVertex_(double x, double y, double z)
     v.nx = 0;
     v.ny = 0;
     v.nz = 0;
-    v.faceCount = 0;
+    v.faceCount = 1;
     points_.push_back(v);
 }
 
@@ -209,9 +213,9 @@ void ShapePrimitive::updateNormal_(int vertID, double nx, double ny, double nz)
 {
     // recalculate average (unaverage, add new component, recalculate average)
     SimpleMesh::Vertex v = points_[vertID];
-    v.nx = (v.nx * v.faceCount + nx) / (v.faceCount + 1);
-    v.ny = (v.ny * v.faceCount + ny) / (v.faceCount + 1);
-    v.nz = (v.nz * v.faceCount + nz) / (v.faceCount + 1);
+    v.nx = v.nx + (nx - v.nx) / v.faceCount;
+    v.ny = v.ny + (ny - v.ny) / v.faceCount;
+    v.nz = v.nz + (nz - v.nz) / v.faceCount;
     v.faceCount++;
     points_[vertID] = v;
 }

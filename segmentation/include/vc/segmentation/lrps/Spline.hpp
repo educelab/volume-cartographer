@@ -3,6 +3,7 @@
 /** @file */
 
 #include <cassert>
+#include <cstddef>
 #include <vector>
 
 #include <unsupported/Eigen/Splines>
@@ -51,7 +52,7 @@ public:
 
 private:
     /** Number of points on the spline */
-    size_t npoints_;
+    std::size_t npoints_;
 
     SplineType spline_;
 

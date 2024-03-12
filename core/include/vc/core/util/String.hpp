@@ -7,6 +7,8 @@
 #include <locale>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <tuple>
 #include <type_traits>
 
 namespace volcart
@@ -201,7 +203,7 @@ static inline std::vector<std::string> split(
     // Split string
     std::vector<std::string> tokens;
     std::string::size_type begin{0};
-    for (size_t it = 0; it < delimPos.size(); it++) {
+    for (std::size_t it = 0; it < delimPos.size(); it++) {
         auto end = delimPos[it];
         auto t = s.substr(begin, end - begin);
         if (not t.empty()) {
@@ -215,6 +217,28 @@ static inline std::vector<std::string> split(
     }
 
     return tokens;
+}
+
+/** @brief Partition a string by a separator substring */
+static inline auto partition(std::string_view s, std::string_view sep)
+    -> std::tuple<std::string, std::string, std::string>
+{
+    // Find the starting position
+    const auto startPos = s.find(sep);
+
+    // Didn't find the delimiter
+    if (startPos == std::string::npos) {
+        return {std::string(s), "", ""};
+    }
+
+    // Split into parts
+    const auto endPos = startPos + sep.size();
+    auto pre = std::string(s.substr(0, startPos));
+    auto mid = std::string(s.substr(startPos, endPos));
+    auto post = std::string(s.substr(endPos));
+
+    // Return the parts
+    return {pre, mid, post};
 }
 
 /** @brief Convert an Integer to a padded string */

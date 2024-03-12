@@ -8,17 +8,17 @@
 
 #include <opencv2/core.hpp>
 
-#include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/SmoothNormals.hpp"
 
 namespace volcart::meshing
 {
 
-ITKMesh::Pointer SmoothNormals(const ITKMesh::Pointer& input, double radius)
+auto SmoothNormals(const ITKMesh::Pointer& input, double radius)
+    -> ITKMesh::Pointer
 {
     // declare pointer to new Mesh object to be returned
     auto outputMesh = ITKMesh::New();
-    volcart::meshing::DeepCopy(input, outputMesh);
+    DeepCopy(input, outputMesh);
 
     // Variables for normal smoothing
     cv::Vec3d neighborAvg;

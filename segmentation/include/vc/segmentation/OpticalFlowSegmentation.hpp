@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+#include <cstdint>
 #include <optional>
 
 #include "vc/core/types/OrderedPointSet.hpp"
@@ -99,7 +101,7 @@ public:
     auto compute() -> PointSet override;
 
     /** @brief Returns the maximum progress value */
-    [[nodiscard]] auto progressIterations() const -> size_t override;
+    [[nodiscard]] auto progressIterations() const -> std::size_t override;
 
 private:
     /**

@@ -4,14 +4,14 @@
 #include <regex>
 #include <sstream>
 
-static constexpr size_t BYTES_PER_KB = 1024;
-static constexpr size_t BYTES_PER_MB = BYTES_PER_KB * 1024;
-static constexpr size_t BYTES_PER_GB = BYTES_PER_MB * 1024;
-static constexpr size_t BYTES_PER_TB = BYTES_PER_GB * 1024;
+static constexpr std::size_t BYTES_PER_KB = 1024;
+static constexpr std::size_t BYTES_PER_MB = BYTES_PER_KB * 1024;
+static constexpr std::size_t BYTES_PER_GB = BYTES_PER_MB * 1024;
+static constexpr std::size_t BYTES_PER_TB = BYTES_PER_GB * 1024;
 
-std::string to_string(const float val, const int n = 5);
+auto to_string(const float val, const int n = 5) -> std::string;
 
-size_t volcart::MemorySizeStringParser(const std::string& s)
+auto volcart::MemorySizeStringParser(const std::string& s) -> std::size_t
 {
     // Regex patterns. Stored as string for easy concatenation.
     std::string numRE{"^[0-9]+"};
@@ -25,7 +25,7 @@ size_t volcart::MemorySizeStringParser(const std::string& s)
     // Match the integer value
     std::smatch match;
     std::regex_search(s, match, std::regex{numRE});
-    size_t value = std::stoull(match[0]);
+    std::size_t value = std::stoull(match[0]);
 
     // Match the suffix
     std::regex_search(s, match, std::regex{multRE, std::regex::icase});
@@ -58,8 +58,9 @@ size_t volcart::MemorySizeStringParser(const std::string& s)
     }
 }
 
-std::string volcart::BytesToMemorySizeString(
-    size_t bytes, const std::string& suffix, MemoryStringFormat fmt)
+auto volcart::BytesToMemorySizeString(
+    std::size_t bytes, const std::string& suffix, MemoryStringFormat fmt)
+    -> std::string
 {
     // Return value / multiplier
     // TB
@@ -107,7 +108,7 @@ std::string volcart::BytesToMemorySizeString(
     }
 }
 
-std::string to_string(const float val, const int n)
+auto to_string(const float val, const int n) -> std::string
 {
     std::ostringstream out;
     out.precision(n);

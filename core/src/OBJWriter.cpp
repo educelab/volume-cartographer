@@ -1,5 +1,6 @@
 #include "vc/core/io/OBJWriter.hpp"
 
+#include <cstdint>
 #include <string>
 
 #include "vc/core/io/ImageIO.hpp"
@@ -41,10 +42,10 @@ void OBJWriter::setTextureFormat(std::string fmt)
 
 ///// Output Methods /////
 // Write everything (OBJ, MTL, and PNG) to disk
-auto OBJWriter::write() -> int
+void OBJWriter::write()
 {
     if (not mesh_ or mesh_->GetNumberOfPoints() == 0) {
-        throw volcart::IOException("Mesh is empty or null");
+        throw IOException("Mesh is empty or null");
     }
 
     // Write the OBJ
@@ -55,18 +56,16 @@ auto OBJWriter::write() -> int
         write_mtl_();
         write_texture_();
     }
-
-    return EXIT_SUCCESS;
 }
 
 // Write the OBJ file to disk
-auto OBJWriter::write_obj_() -> int
+void OBJWriter::write_obj_()
 {
     Logger()->debug("Writing OBJ mesh: {}", outputPath_.string());
     outputMesh_.open(outputPath_.string());
     if (!outputMesh_.is_open()) {
-        Logger()->error("Failed to write OBJ mesh");
-        return EXIT_FAILURE;
+        auto msg = "failure writing file '" + outputPath_.string() + "'";
+        throw IOException(msg);
     }
 
     write_header_();
@@ -78,20 +77,24 @@ auto OBJWriter::write_obj_() -> int
     }
 
     write_faces_();
+    outputMesh_.flush();
     outputMesh_.close();
-
-    return EXIT_SUCCESS;
+    if (outputMesh_.fail()) {
+        auto msg = "failure writing file '" + outputPath_.string() + "'";
+        throw IOException(msg);
+    }
 }
 
 // Write the MTL file to disk
 // See http://paulbourke.net/dataformats/mtl/ for more options
-auto OBJWriter::write_mtl_() -> int
+void OBJWriter::write_mtl_()
 {
     fs::path p = outputPath_;
     p.replace_extension("mtl");
     outputMTL_.open(p.string());
     if (not outputMTL_.is_open()) {
-        return EXIT_FAILURE;
+        auto msg = "failure writing file '" + p.string() + "'";
+        throw IOException(msg);
     }
 
     // Setup material properties
@@ -115,51 +118,49 @@ auto OBJWriter::write_mtl_() -> int
         outputMTL_ << "map_Kd " << textureFile.filename().string() << "\n";
     }
 
+    outputMTL_.flush();
     outputMTL_.close();
-    return EXIT_SUCCESS;
+    if (outputMTL_.fail()) {
+        auto msg = "failure writing file '" + p.string() + "'";
+        throw IOException(msg);
+    }
 }
 
 // Write the PNG texture file to disk
-auto OBJWriter::write_texture_() -> int
+void OBJWriter::write_texture_()
 {
     if (texture_.empty()) {
-        return EXIT_FAILURE;
+        return;
     }
 
     Logger()->debug("Writing texture image...");
     auto p = outputPath_;
     p.replace_extension(textureFmt_);
     WriteImage(p, texture_);
-    return EXIT_SUCCESS;
 }
 
 // Write our custom header
-auto OBJWriter::write_header_() -> int
+void OBJWriter::write_header_()
 {
-    if (!outputMesh_.is_open()) {
-        return EXIT_FAILURE;
-    }
-
     outputMesh_ << "# VolCart OBJ File\n";
     outputMesh_ << "# VC OBJ Exporter v1.0\n";
-    return EXIT_SUCCESS;
 }
 
 // Write the vertex information:
 // Vertex: 'v x y z'
 // Vertex normal: 'vn nx ny nz'
-auto OBJWriter::write_vertices_() -> int
+void OBJWriter::write_vertices_()
 {
-    if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
-        return EXIT_FAILURE;
+    if (mesh_->GetNumberOfPoints() == 0) {
+        return;
     }
     Logger()->debug("Writing vertices...");
 
     outputMesh_ << "# Vertices: " << mesh_->GetNumberOfPoints() << "\n";
 
     // Iterate over all of the points
-    uint32_t vIndex = 1;
-    uint32_t vnIndex = 1;
+    std::uint32_t vIndex = 1;
+    std::uint32_t vnIndex = 1;
     for (auto pt = mesh_->GetPoints()->Begin(); pt != mesh_->GetPoints()->End();
          pt++) {
         // Make a new point link for this point
@@ -182,15 +183,13 @@ auto OBJWriter::write_vertices_() -> int
 
         ++vIndex;
     }
-
-    return EXIT_SUCCESS;
 }
 
 // Write the UV coordinates that will be attached to points: 'vt u v'
-auto OBJWriter::write_texture_coordinates_() -> int
+void OBJWriter::write_texture_coordinates_()
 {
-    if (not outputMesh_.is_open() or uvMap_->empty()) {
-        return EXIT_FAILURE;
+    if (uvMap_->empty()) {
+        return;
     }
     Logger()->debug("Writing texture coordinates...");
 
@@ -206,8 +205,8 @@ auto OBJWriter::write_texture_coordinates_() -> int
     outputMesh_ << "usemtl default\n";
 
     // Iterate over all of the saved coordinates in our coordinate map
-    uint32_t vtIndex = 1;
-    for (uint32_t pId = 0; pId < uvMap_->size(); ++pId) {
+    std::uint32_t vtIndex = 1;
+    for (std::uint32_t pId = 0; pId < uvMap_->size(); ++pId) {
         cv::Vec2d uv = uvMap_->get(pId);
         outputMesh_ << "vt " << uv[0] << " " << uv[1] << "\n";
 
@@ -220,14 +219,13 @@ auto OBJWriter::write_texture_coordinates_() -> int
 
     // Restore the starting origin
     uvMap_->setOrigin(startingOrigin);
-    return EXIT_SUCCESS;
 }
 
 // Write the face information: 'f v/vt/vn'
-auto OBJWriter::write_faces_() -> int
+void OBJWriter::write_faces_()
 {
-    if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
-        return EXIT_FAILURE;
+    if (mesh_->GetNumberOfCells() == 0) {
+        return;
     }
     Logger()->debug("Writing faces...");
 
@@ -267,6 +265,4 @@ auto OBJWriter::write_faces_() -> int
         }
         outputMesh_ << "\n";
     }
-
-    return EXIT_SUCCESS;
 }

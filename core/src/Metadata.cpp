@@ -1,5 +1,7 @@
 #include "vc/core/types/Metadata.hpp"
 
+#include "vc/core/types/Exceptions.hpp"
+
 namespace fs = volcart::filesystem;
 
 using namespace volcart;
@@ -10,18 +12,18 @@ Metadata::Metadata(fs::path fileLocation) : path_{fileLocation}
     // open the file
     if (!fs::exists(fileLocation)) {
         auto msg = "could not find json file '" + fileLocation.string() + "'";
-        throw std::runtime_error(msg);
+        throw IOException(msg);
     }
     std::ifstream jsonFile(fileLocation.string());
     if (!jsonFile) {
         auto msg = "could not open json file '" + fileLocation.string() + "'";
-        throw std::ifstream::failure(msg);
+        throw IOException(msg);
     }
 
     jsonFile >> json_;
     if (jsonFile.bad()) {
         auto msg = "could not read json file '" + fileLocation.string() + "'";
-        throw std::ifstream::failure(msg);
+        throw IOException(msg);
     }
 }
 
@@ -32,9 +34,9 @@ void Metadata::save(const fs::path& path)
     std::ofstream jsonFile(path.string(), std::ofstream::out);
 
     // try to push into the json file
-    jsonFile << json_ << std::endl;
+    jsonFile << json_ << '\n';
     if (jsonFile.fail()) {
         auto msg = "could not write json file '" + path.string() + "'";
-        throw std::ifstream::failure(msg);
+        throw IOException(msg);
     }
 }

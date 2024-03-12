@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 namespace volcart
 {
 /**
@@ -19,13 +21,13 @@ public:
 
     /**@{*/
     /** @brief Set the maximum number of elements in the cache */
-    virtual void setCapacity(size_t newCapacity) = 0;
+    virtual void setCapacity(std::size_t newCapacity) = 0;
 
     /** @brief Get the maximum number of elements in the cache */
-    virtual size_t capacity() const = 0;
+    virtual std::size_t capacity() const = 0;
 
     /** @brief Get the current number of elements in the cache */
-    virtual size_t size() const = 0;
+    virtual std::size_t size() const = 0;
     /**@}*/
 
     /**@{*/
@@ -47,9 +49,9 @@ protected:
     Cache() = default;
 
     /** Constructor with capacity */
-    explicit Cache(size_t capacity) : capacity_{capacity} {}
+    explicit Cache(std::size_t capacity) : capacity_{capacity} {}
 
     /** Maximum number of elements in the cache */
-    size_t capacity_{200};
+    std::size_t capacity_{200};
 };
 }  // namespace volcart

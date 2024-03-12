@@ -6,27 +6,26 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-#include "vc/meshing/DeepCopy.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
 using namespace volcart;
 using namespace texturing;
 namespace vcm = volcart::meshing;
 
-OrthographicProjectionFlattening::Pointer
-OrthographicProjectionFlattening::New()
+auto OrthographicProjectionFlattening::New()
+    -> OrthographicProjectionFlattening::Pointer
 {
     return std::make_shared<OrthographicProjectionFlattening>();
 }
 
-ITKMesh::Pointer OrthographicProjectionFlattening::compute()
+auto OrthographicProjectionFlattening::compute() -> ITKMesh::Pointer
 {
     // Setup output
     output_ = ITKMesh::New();
-    vcm::DeepCopy(mesh_, output_);
+    DeepCopy(mesh_, output_);
 
     // convert input mesh to vtkMesh
-    vtkSmartPointer<vtkPolyData> vtkMesh = vtkSmartPointer<vtkPolyData>::New();
+    const auto vtkMesh = vtkSmartPointer<vtkPolyData>::New();
     vcm::ITK2VTK(mesh_, vtkMesh);
     cv::Vec3d origin, xAxis, yAxis, zAxis;
 
@@ -44,7 +43,7 @@ ITKMesh::Pointer OrthographicProjectionFlattening::compute()
     auto vVec = yAxis / vLen;
     ITKPoint oldPt;
     ITKPoint newPt;
-    for (size_t i = 0; i < mesh_->GetNumberOfPoints(); ++i) {
+    for (std::size_t i = 0; i < mesh_->GetNumberOfPoints(); ++i) {
         // Get the original point
         mesh_->GetPoint(i, &oldPt);
         cv::Vec3d pt(oldPt.GetDataPointer());
