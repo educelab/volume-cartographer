@@ -1,8 +1,8 @@
 # VC Main app
 set(target VC)
+set(CMAKE_AUTORCC ON)
 
 set(srcs
-    CSimpleNumEditBox.cpp
     VCAppMain.cpp
     CMesh.cpp
     CWindow.cpp
@@ -14,6 +14,8 @@ set(srcs
     CBezierCurve.cpp
     BlockingDialog.hpp
     ColorFrame.hpp
+    SettingsDialog.cpp
+    UndoCommands.cpp
 )
 
 set(MACOSX_BUNDLE_ICON logo.icns)
@@ -32,7 +34,7 @@ string(CONCAT info_string
     ${copyright}
 )
 
-add_executable(${target} ${srcs})
+add_executable(${target} ${srcs} resources.qrc)
 set_target_properties(${target} PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
@@ -55,6 +57,11 @@ target_include_directories(${target}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
+find_package(OpenMP)
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS})
 target_link_libraries(${target}
     VC::core
     VC::meshing
@@ -63,6 +70,9 @@ target_link_libraries(${target}
     Qt6::Gui
     Qt6::Widgets
     ${OSXSecurity}
+    OpenMP::OpenMP_CXX
+    ${SDL2_LIBRARIES}
+    ${GSL_LIBRARIES}
 )
 
 if (${VC_INSTALL_APPS})

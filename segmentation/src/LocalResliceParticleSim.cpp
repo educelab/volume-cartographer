@@ -50,6 +50,7 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
         })) {
         status_ = Status::ReturnedEarly;
         progressComplete();
+        std::cout << "[Error]: Starting chain out of bounds!" << std::endl;
         return create_final_pointset_({currentVs});
     }
 
@@ -67,7 +68,7 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
 
     if (endIndex_ <= startIndex) {
-        throw std::domain_error("end index <= start index");
+        throw std::domain_error("End index <= start index");
     }
 
     // Collection to hold all positions

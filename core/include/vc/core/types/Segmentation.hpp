@@ -7,6 +7,8 @@
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
 
+#include <variant>
+
 namespace volcart
 {
 
@@ -31,6 +33,22 @@ public:
     /** Point set type */
     using PointSet = OrderedPointSet<cv::Vec3d>;
 
+    /** Annotation type [long, long, double, double]
+     *  The first long is used to store the slice index and the second as
+     *  a bit flag carrier and the two doubles contain the original point
+     *  position before any manual moves.
+     */
+    using Annotation = cv::Vec<std::variant<long, double>, 4>;
+
+    /** Annotation type (raw = only doubles) */
+    using AnnotationRaw = cv::Vec4d;
+
+    /** Annotation set type */
+    using AnnotationSet = OrderedPointSet<Annotation>;
+
+    /** Annotation set type (raw = only doubles) */
+    using AnnotationSetRaw = OrderedPointSet<AnnotationRaw>;
+
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Segmentation>;
 
@@ -51,7 +69,7 @@ public:
     /** @brief Return if this Segmentation has an associated PointSet file */
     bool hasPointSet() const
     {
-        return !metadata_.get<std::string>("vcps").empty();
+        return metadata_.hasKey("vcps") && !metadata_.get<std::string>("vcps").empty();
     }
 
     /**
@@ -68,6 +86,27 @@ public:
      * PointSet data is never cached in memory and is always loaded from disk.
      */
     PointSet getPointSet() const;
+
+    /** @brief Return if this Segmentation has an associated AnnotationSet file */
+    bool hasAnnotations() const
+    {
+        return metadata_.hasKey("vcano") && !metadata_.get<std::string>("vcano").empty();
+    }
+
+    /**
+     * @brief Save AnnotationSet to the Segmentation file
+     *
+     * @warning This will overwrite the AnnotationSet file associated with this
+     * Segmentation.
+     */
+    void setAnnotationSet(const AnnotationSet& as);
+
+    /**
+     * @brief Load the associated AnnotationSet from the Segmentation file
+     *
+     * AnnotationSet data is never cached in memory and is always loaded from disk.
+     */
+    AnnotationSet getAnnotationSet() const;
 
     /** @brief Return whether this Segmentation is associated with a Volume */
     bool hasVolumeID() const

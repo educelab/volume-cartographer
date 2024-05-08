@@ -23,12 +23,17 @@ Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
     height_ = metadata_.get<int>("height");
     slices_ = metadata_.get<int>("slices");
     numSliceCharacters_ = std::to_string(slices_).size();
+
+    std::vector<std::mutex> init_mutexes(slices_);
+
+    slice_mutexes_.swap(init_mutexes);
 }
 
 // Setup a Volume from a folder of slices
 Volume::Volume(fs::path path, std::string uuid, std::string name)
     : DiskBasedObjectBaseClass(
-          std::move(path), std::move(uuid), std::move(name))
+          std::move(path), std::move(uuid), std::move(name)),
+          slice_mutexes_(slices_)
 {
     metadata_.set("type", "vol");
     metadata_.set("width", width_);
@@ -125,6 +130,20 @@ auto Volume::getSliceDataCopy(int index) const -> cv::Mat
     return getSliceData(index).clone();
 }
 
+cv::Mat Volume::getSliceDataRect(int index, cv::Rect rect) const
+{
+    auto whole_img = getSliceData(index);
+    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+    return whole_img(rect);
+}
+
+cv::Mat Volume::getSliceDataRectCopy(int index, cv::Rect rect) const
+{
+    auto whole_img = getSliceData(index);
+    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+    return whole_img(rect).clone();
+}
+
 void Volume::setSliceData(int index, const cv::Mat& slice, bool compress)
 {
     auto slicePath = getSlicePath(index);
@@ -205,18 +224,52 @@ auto Volume::reslice(
 
 auto Volume::load_slice_(int index) const -> cv::Mat
 {
+    {
+        std::unique_lock<std::shared_mutex> lock(print_mutex_);
+        std::cout << "Requested to load slice " << index << std::endl;
+    }
     auto slicePath = getSlicePath(index);
     return cv::imread(slicePath.string(), -1);
 }
 
 auto Volume::cache_slice_(int index) const -> cv::Mat
 {
-    const std::lock_guard<std::mutex> lock(cacheMutex_);
-    if (cache_->contains(index)) {
-        return cache_->get(index);
+    // Check if the slice is in the cache.
+    {
+        std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+        if (cache_->contains(index)) {
+            return cache_->get(index);
+        }
     }
 
-    auto slice = load_slice_(index);
-    cache_->put(index, slice);
-    return slice;
+    {
+        // Get the lock for this slice.
+        auto& mutex = slice_mutexes_[index];
+
+        // If the slice is not in the cache, get exclusive access to this slice's mutex.
+        std::unique_lock<std::mutex> lock(mutex);
+        // Check again to ensure the slice has not been added to the cache while waiting for the lock.
+        {
+            std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+            if (cache_->contains(index)) {
+                return cache_->get(index);
+            }
+        }
+        // Load the slice and add it to the cache.
+        {
+            auto slice = load_slice_(index);
+            std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+            cache_->put(index, slice);
+            return slice;
+        }
+    }
+
 }
+
+
+void Volume::cachePurge() const 
+{
+    std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+    cache_->purge();
+}
+

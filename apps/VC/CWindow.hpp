@@ -19,9 +19,20 @@
 #include "CXCurve.hpp"
 #include "MathUtils.hpp"
 #include "ui_VCMain.h"
+#include "SegmentationStruct.hpp"
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
+
+#include <thread>
+#include <condition_variable>
+#include <atomic>
+#include <SDL2/SDL.h>
+#include <cmath>
+#include <queue>
+#include <unordered_map>
+
+#define MAX_RECENT_VOLPKG 10
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
@@ -32,6 +43,17 @@ namespace ChaoVis
 
 class CVolumeViewerWithCurve;
 
+class AnnotationTreeWidgetItem : public QTreeWidgetItem {
+  public:
+    AnnotationTreeWidgetItem(QTreeWidget* parent) : QTreeWidgetItem(parent){}
+
+  private:
+    bool operator<(const QTreeWidgetItem &other) const {
+        int column = treeWidget()->sortColumn();
+        return text(column).toInt() < other.text(column).toInt();
+    }
+};
+
 class CWindow : public QMainWindow
 {
 
@@ -40,7 +62,7 @@ class CWindow : public QMainWindow
 public:
     enum EWindowState {
         WindowStateSegment,       // under segmentation state
-        WindowStateRefine,        // under mesh refinemen state
+        WindowStateRefine,        // under mesh refinement state
         WindowStateDrawPath,      // draw new path
         WindowStateSegmentation,  // segmentation mode
         WindowStateIdle
@@ -59,12 +81,22 @@ public:
         int fPeakDistanceWeight;
         int fWindowWidth{5};
         bool fIncludeMiddle;
+        int startIndex;
         int targetIndex;
+        int targetAnchor{-1};
         // Optical Flow Segmentation Parameters
-        std::uint8_t ofsSmoothBrightnessThreshold{180};
-        std::uint8_t ofsOutsideThreshold{80};
-        std::uint8_t ofsPixelThreshold{80};
-        std::uint32_t ofsDisplacementThreshold{10};
+        bool purge_cache;
+        int cache_slices;
+        int smoothen_by_brightness;
+        int outside_threshold;
+        int optical_flow_pixel_threshold;
+        int optical_flow_displacement_threshold;
+        bool enable_smoothen_outlier;
+        bool enable_edge;
+        int edge_jump_distance;
+        int edge_bounce_distance;
+        int smoothness_interpolation_percent;
+        int step_size{1};
     };
 
     using Segmenter = volcart::segmentation::ChainSegmentationAlgorithm;
@@ -73,33 +105,38 @@ signals:
     void submitSegmentation(Segmenter::Pointer s);
 
 public slots:
-    void onSegmentationFinished(Segmenter::PointSet ps);
-    void onSegmentationFailed(std::string s);
+    void onSegmentationFinished(Segmenter::Pointer segmenter, Segmenter::PointSet ps);
+    void onSegmentationFailed(Segmenter::Pointer segmenter, std::string s);
+    void onShowStatusMessage(QString text, int timeout);
+    void onImpactRangeUp(void);
+    void onImpactRangeDown(void);
 
 public:
     CWindow();
     ~CWindow(void);
 
-protected:
-    void mousePressEvent(QMouseEvent* nEvent);
-    void keyPressEvent(QKeyEvent* event);
-
 private:
     void CreateWidgets(void);
     void CreateMenus(void);
     void CreateActions(void);
-    void CreateBackend();
+    void CreateBackend(void);
 
-    void closeEvent(QCloseEvent* closing);
+    void UpdateRecentVolpkgActions(void);
+    void UpdateRecentVolpkgList(const QString& path);
+    void RemoveEntryFromRecentVolpkg(const QString& path);
+
+    void closeEvent(QCloseEvent* event);
 
     void setWidgetsEnabled(bool state);
 
     bool InitializeVolumePkg(const std::string& nVpkgPath);
     void setDefaultWindowWidth(volcart::Volume::Pointer volume);
     SaveResponse SaveDialog(void);
+    SaveResponse SaveDialogSegTool(void);
 
     void UpdateView(void);
     void ChangePathItem(std::string segID);
+    void RemovePathItem(std::string segID);
 
     void SplitCloud(void);
     void DoSegmentation(void);
@@ -108,27 +145,56 @@ private:
 
     void SetUpCurves(void);
     void SetCurrentCurve(int nCurrentSliceIndex);
+    void SetUpAnnotations(void);
 
+    void prefetchSlices(void);
+    void startPrefetching(int index);
     void OpenSlice(void);
 
     void InitPathList(void);
+    void UpdateAnnotationList(void);
 
     void SetPathPointCloud(void);
+    void ResetPointCloud(void);
 
-    void OpenVolume(void);
+    bool prepareSegmentationBaseBefore(std::string algorithm, std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    void prepareSegmentationBaseAfter(std::string algorithm, std::string segID, bool forward, bool anchor, int endIndex);
+    bool prepareSegmentationLRPS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    bool prepareSegmentationOFS(std::string segID, bool forward, bool anchor, int startIndex, int endIndex);
+    void queueSegmentation(std::string segmentationId, Segmenter::Pointer s);
+    void executeNextSegmentation();
+
+    void OpenVolume(const QString& path);
     void CloseVolume(void);
 
-    void ResetPointCloud(void);
+    static void audio_callback(void *user_data, Uint8 *raw_buffer, int bytes);
+    void playPing();
 
 private slots:
     void Open(void);
-    void Close(void);
+    void Open(const QString& path);
+    void OpenRecent();
+    void Keybindings(void);
     void About(void);
     void SavePointCloud();
+    void ShowSettings();
+    void PrintDebugInfo();
 
     void OnNewPathClicked(void);
-    void OnPathItemClicked(QListWidgetItem* nItem);
+    void OnRemovePathClicked(void);
+    void OnPathItemClicked(QTreeWidgetItem* item, int column);
+    void OnPathItemSelectionChanged();
 
+    void PreviousSelectedId();
+    void NextSelectedId();
+    void ShowGoToSliceDlg();
+    void ScanRangeUp();
+    void ScanRangeDown();
+    void ReturnToEditSlice();
+    void ToggleAnchor();
+
+    void ActivatePenTool();
+    void ActivateSegmentationTool();
     void TogglePenTool(void);
     void ToggleSegmentationTool(void);
 
@@ -143,19 +209,25 @@ private slots:
     void OnEdtWindowWidthChange(int);
     void OnOptIncludeMiddleClicked(bool clicked);
 
-    // void OnEdtSampleDistValChange( QString nText );
-    void OnEdtStartingSliceValChange(QString nText);
-    void OnEdtEndingSliceValChange();
-
     void OnBtnStartSegClicked(void);
 
     void OnEdtImpactRange(int nImpactRange);
+    void OnEvenlySpacePoints();
 
-    void OnLoadAnySlice(int nSliceIndex);
-    void OnLoadNextSlice(void);
-    void OnLoadPrevSlice(void);
+    void OnLoadAnySlice(int slice);
+    void OnLoadNextSliceShift(int shift);
+    void OnLoadPrevSliceShift(int shift);
 
-    void OnPathChanged(void);
+    void OnPathChanged(std::string segID, PathChangePointVector before, PathChangePointVector after);
+    void OnAnnotationChanged(void);
+
+    void UpdateSegmentCheckboxes(std::string aSegID);
+    void toggleDisplayAll(bool checked);
+    void toggleComputeAll(bool checked);
+    void annotationDoubleClicked(QTreeWidgetItem* item);
+
+    void onBackwardButtonGroupToggled(QAbstractButton* button, bool checked);
+    void onForwardButtonGroupToggled(QAbstractButton* button, bool checked);
 
 private:
     // data model
@@ -167,41 +239,51 @@ private:
     bool fVpkgChanged;
 
     std::string fSegmentationId;
-    volcart::Segmentation::Pointer fSegmentation;
+    std::string fHighlightedSegmentationId;
     volcart::Volume::Pointer currentVolume;
 
-    int fMinSegIndex;
-    int fMaxSegIndex;
-    int fPathOnSliceIndex;
+    static const int AMPLITUDE = 28000;
+    static const int FREQUENCY = 44100;
+
+    std::unordered_map<std::string, SegmentationStruct> fSegStructMap;
+    int fPathOnSliceIndex; // currently visible slice
+    int fSliceIndexToolStart{-1}; // slice for which the currently active tool was started / toggled
     int fEndTargetOffset{5};
+    int fFinalTargetIndexForward{-1}; // only for the highlighted segmentation ID
+    int fFinalTargetIndexBackward{-1}; // only for the highlighted segmentation ID
+    int currentScanRangeIndex{0}; // Index 0 = range size 1 as starting value
+    std::vector<int> impactRangeSteps;
+    std::vector<int> scanRangeSteps;
+    int strideWidth;
 
     // for drawing mode
     CBSpline fSplineCurve;  // the curve at current slice
-    // for editing mode
-    CXCurve fIntersectionCurve;
-    std::vector<CXCurve> fIntersections;  // curves of all the slices
-    //    std::vector< CXCurve > fCurvesLower; // neighboring curves, { -1, -2,
-    //    ... }
-    //    std::vector< CXCurve > fCurvesUpper; // neighboring curves, { +1, +2,
-    //    ... }
 
     SSegParams fSegParams;
-
-    volcart::OrderedPointSet<cv::Vec3d> fMasterCloud;
-    volcart::OrderedPointSet<cv::Vec3d> fUpperPart;
-    std::vector<cv::Vec3d> fStartingPath;
+    std::queue<std::pair<std::string, Segmenter::Pointer>> segmentationQueue;
+    std::string submittedSegmentationId;
 
     // window components
     QMenu* fFileMenu;
+    QMenu* fEditMenu;
+    QMenu* fViewMenu;
     QMenu* fHelpMenu;
+    QMenu* fRecentVolpkgMenu{};
 
     QAction* fOpenVolAct;
+    QAction* fOpenRecentVolpkg[MAX_RECENT_VOLPKG]{};
     QAction* fSavePointCloudAct;
+    QAction* fSettingsAct;
     QAction* fExitAct;
+    QAction* fKeybinds;
     QAction* fAboutAct;
+    QAction* fPrintDebugInfo;
 
     CVolumeViewerWithCurve* fVolumeViewerWidget;
-    QListWidget* fPathListWidget;
+    QCheckBox* fchkDisplayAll;
+    QCheckBox* fchkComputeAll;
+    QTreeWidget* fPathListWidget;
+    QTreeWidget* fAnnotationListWidget;
     QPushButton* fPenTool;  // REVISIT - change me to QToolButton
     QPushButton* fSegTool;
     QComboBox* volSelect;
@@ -216,19 +298,42 @@ private:
     QLineEdit* fEdtK2;
     QCheckBox* fOptIncludeMiddle;
 
-    QLineEdit* fEdtStartIndex;
-    QLineEdit* fEdtEndIndex;
+    // Dynamic OFS algo widgets
+    QLabel* lblInterpolationPercent;
+    QSpinBox* edtInterpolationPercent;
 
     QSlider* fEdtImpactRange;
-    QLabel* fLabImpactRange;
 
     // keyboard shortcuts
     QShortcut* slicePrev;
     QShortcut* sliceNext;
     QShortcut* sliceZoomIn;
     QShortcut* sliceZoomOut;
+    QShortcut* displayCurves;
+    QShortcut* displayCurves_C;
     QShortcut* impactUp;
     QShortcut* impactDwn;
+    QShortcut* impactUp_old;
+    QShortcut* impactDwn_old;
+    QShortcut* segmentationToolShortcut;
+    QShortcut* penToolShortcut;
+    QShortcut* next1;
+    QShortcut* prev1;
+    QShortcut* next2;
+    QShortcut* prev2;
+    QShortcut* next5;
+    QShortcut* prev5;
+    QShortcut* next10;
+    QShortcut* prev10;
+    QShortcut* next100;
+    QShortcut* prev100;
+    QShortcut* prevSelectedId;
+    QShortcut* nextSelectedId;
+    QShortcut* goToSlice;
+    QShortcut* scanRangeUp;
+    QShortcut* scanRangeDown;
+    QShortcut* returnToEditSlice;
+    QShortcut* toggleAnchor;
 
     Ui_VCMainWindow ui;
 
@@ -242,6 +347,18 @@ private:
     std::size_t progress_{0};
     QLabel* progressLabel_;
     QProgressBar* progressBar_;
+
+    // Undo / redo
+    QUndoStack* undoStack;
+    QAction* undoAction;
+    QAction* redoAction;
+
+    // Prefetching worker
+    std::thread prefetchWorker;
+    std::condition_variable cv;
+    std::mutex cv_m;
+    std::atomic<bool> stopPrefetching;
+    std::atomic<int> prefetchSliceIndex;
 };  // class CWindow
 
 class VolPkgBackend : public QObject
@@ -254,8 +371,8 @@ public:
 
 signals:
     void segmentationStarted(std::size_t);
-    void segmentationFinished(Segmenter::PointSet ps);
-    void segmentationFailed(std::string);
+    void segmentationFinished(Segmenter::Pointer, Segmenter::PointSet ps);
+    void segmentationFailed(Segmenter::Pointer, std::string);
     void progressUpdated(std::size_t);
 
 public slots:
@@ -266,9 +383,9 @@ public slots:
         segmentationStarted(segmenter->progressIterations());
         try {
             auto result = segmenter->compute();
-            segmentationFinished(result);
+            segmentationFinished(segmenter, result);
         } catch (const std::exception& e) {
-            segmentationFailed(e.what());
+            segmentationFailed(segmenter, e.what());
         }
     }
 };

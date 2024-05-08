@@ -191,18 +191,36 @@ void CBSpline::UpdateCurve(void)
     }
 }
 
-// Draw the curve on image
-void CBSpline::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
+// // Draw the curve on image
+// void CBSpline::DrawOnImage(cv::Mat& nImg, const cv::Scalar& nColor)
+// {
+//     // Handle drawing curves with only 2 points
+//     if (fControlPoints.size() == 2) {
+//         cv::Point2d start(fControlPoints[0][0], fControlPoints[0][1]);
+//         cv::Point2d end(fControlPoints[1][0], fControlPoints[1][1]);
+//         cv::line(nImg, start, end, nColor);
+//         return;
+//     }
+
+//     for (std::size_t i = 0; i < fCurveSegments.size(); ++i) {
+//         fCurveSegments[i].DrawOnImage(nImg, nColor);
+//     }
+// }
+
+// Draw the curve on the QGraphicsScene
+void CBSpline::DrawOnImage(QGraphicsScene* scene, const QColor& color)
 {
+    QPen pen(color);
+
     // Handle drawing curves with only 2 points
     if (fControlPoints.size() == 2) {
-        cv::Point2d start(fControlPoints[0][0], fControlPoints[0][1]);
-        cv::Point2d end(fControlPoints[1][0], fControlPoints[1][1]);
-        cv::line(nImg, start, end, nColor);
+        auto start = QPointF(fControlPoints[0][0], fControlPoints[0][1]);
+        auto end = QPointF(fControlPoints[1][0], fControlPoints[1][1]);
+        scene->addLine(QLineF(start, end), pen);
         return;
     }
 
     for (std::size_t i = 0; i < fCurveSegments.size(); ++i) {
-        fCurveSegments[i].DrawOnImage(nImg, nColor);
+        fCurveSegments[i].DrawOnImage(scene, color);
     }
 }

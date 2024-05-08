@@ -51,8 +51,17 @@ public:
             std::forward<Args>(args)...);
     }
 
+    /** @brief Set the start z-index */
+    void setStartZIndex(int z) { startIndex_ = z; }
+
+    /** @brief Get the start z-index */
+    int getStartZIndex() { return startIndex_; }
+
     /** @brief Set the target z-index */
     void setTargetZIndex(int z) { endIndex_ = z; }
+
+    /** @brief Get the target z-index */
+    int getTargetZIndex() { return endIndex_; }
 
     /** @brief Set the number of curve optimization iterations per step */
     void setOptimizationIterations(int n) { numIters_ = n; }
@@ -145,6 +154,8 @@ private:
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
+    /** Start z-index */
+    int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
     /** Active Contour weight parameter */

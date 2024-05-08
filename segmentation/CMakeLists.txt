@@ -14,6 +14,7 @@ set(srcs
     src/StructureTensorParticleSim.cpp
     src/ThinnedFloodFillSegmentation.cpp
     src/ComputeVolumetricMask.cpp
+    src/CubicMultithreadedSpline.cpp
 )
 
 add_library(vc_segmentation ${srcs})
@@ -27,6 +28,8 @@ target_compile_options(vc_segmentation
     PUBLIC
         -Wno-c++11-narrowing
 )
+find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS})
 target_link_libraries(vc_segmentation
     PUBLIC
         VC::core
@@ -35,6 +38,7 @@ target_link_libraries(vc_segmentation
         opencv_highgui
         opencv_video
         ${VC_FS_LIB}
+        ${GSL_LIBRARIES}
 )
 target_compile_features(vc_segmentation PUBLIC cxx_std_17)
 set_target_properties(vc_segmentation PROPERTIES

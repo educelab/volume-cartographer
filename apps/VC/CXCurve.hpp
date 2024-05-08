@@ -22,6 +22,7 @@ public:
     std::size_t GetPointsNum(void) const { return fPoints.size(); }
 
     Vec2<double> GetPoint(int nIndex) const { return fPoints[nIndex]; }
+    const std::vector<Vec2<double>> GetPoints() const { return fPoints; }
 
     void setLastState() { fLastState = fPoints; }
     std::vector<Vec2<double>> getLastState() { return fLastState; }
@@ -31,6 +32,12 @@ public:
         fPoints[nIndex] = nPt;
     }
     void SetPointByDifference(
+        int nIndex,
+        const Vec2<double>& nDiff,
+        double (*ImpactFunc)(double, double, double),
+        int nImpactRange = 0);
+
+    void SetPointByDifferenceMt(
         int nIndex,
         const Vec2<double>& nDiff,
         double (*ImpactFunc)(double, double, double),

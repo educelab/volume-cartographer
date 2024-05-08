@@ -204,6 +204,12 @@ public:
      */
     auto newSegmentation(std::string name = "") -> Segmentation::Pointer;
 
+    /**
+     * @brief Removes an existing segmentation.
+     * @return Indicates if removal was successful
+     */
+    auto removeSegmentation(const Segmentation::Identifier& id) -> bool;
+
     /** @brief Get a Segmentation by uuid */
     [[nodiscard]] auto segmentation(const Segmentation::Identifier& id) const
         -> const Segmentation::Pointer;

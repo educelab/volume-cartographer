@@ -9,6 +9,9 @@
 
 #include "CBezierCurve.hpp"
 #include "MathUtils.hpp"
+#include <QGraphicsEllipseItem>
+#include <QGraphicsView>
+#include <QGraphicsScene>
 
 namespace ChaoVis
 {
@@ -34,8 +37,8 @@ public:
     void GetSamplePoints(std::vector<Vec2<double>>& nSamplePoints);
     void GetSamplePoints(std::vector<cv::Vec2f>& nSamplePoints);
 
-    void DrawOnImage(
-        cv::Mat& nImg, const cv::Scalar& nColor = cv::Scalar(0, 0, 255));
+    void DrawOnImage(QGraphicsScene* scene, const QColor& color = QColor(255, 0, 0));
+
 
     void Clear()
     {
