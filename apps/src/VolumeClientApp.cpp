@@ -13,7 +13,7 @@ namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     // clang-format off
     po::options_description required("General Options");
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 5) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 

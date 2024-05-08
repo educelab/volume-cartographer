@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"
 #include "vc/core/shapes/Cube.hpp"
@@ -106,8 +108,8 @@ TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedPlaneWithSavedPlaneTest)
         _out_SmoothedPlaneMesh->GetNumberOfCells(), _SavedPlaneCells.size());
 
     // points
-    for (size_t p_id = 0; p_id < _out_SmoothedPlaneMesh->GetNumberOfPoints();
-         ++p_id) {
+    for (std::size_t p_id = 0;
+         p_id < _out_SmoothedPlaneMesh->GetNumberOfPoints(); ++p_id) {
         volcart::testing::SmallOrClose(
             _out_SmoothedPlaneMesh->GetPoint(p_id)[0],
             _SavedPlanePoints[p_id].x);
@@ -182,8 +184,8 @@ TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedCubeWithSavedCubeTest)
         _out_SmoothedCubeMesh->GetNumberOfCells(), _SavedCubeCells.size());
 
     // points
-    for (size_t p_id = 0; p_id < _out_SmoothedCubeMesh->GetNumberOfPoints();
-         ++p_id) {
+    for (std::size_t p_id = 0;
+         p_id < _out_SmoothedCubeMesh->GetNumberOfPoints(); ++p_id) {
         volcart::testing::SmallOrClose(
             _out_SmoothedCubeMesh->GetPoint(p_id)[0], _SavedCubePoints[p_id].x);
         volcart::testing::SmallOrClose(
@@ -256,8 +258,8 @@ TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedSphereWithSavedSphereTest)
         _out_SmoothedSphereMesh->GetNumberOfCells(), _SavedSphereCells.size());
 
     // points
-    for (size_t p_id = 0; p_id < _out_SmoothedSphereMesh->GetNumberOfPoints();
-         ++p_id) {
+    for (std::size_t p_id = 0;
+         p_id < _out_SmoothedSphereMesh->GetNumberOfPoints(); ++p_id) {
         volcart::testing::SmallOrClose(
             _out_SmoothedSphereMesh->GetPoint(p_id)[0],
             _SavedSpherePoints[p_id].x);
@@ -331,8 +333,8 @@ TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedArchWithSavedArchTest)
         _out_SmoothedArchMesh->GetNumberOfCells(), _SavedArchCells.size());
 
     // points
-    for (size_t p_id = 0; p_id < _out_SmoothedArchMesh->GetNumberOfPoints();
-         ++p_id) {
+    for (std::size_t p_id = 0;
+         p_id < _out_SmoothedArchMesh->GetNumberOfPoints(); ++p_id) {
         volcart::testing::SmallOrClose(
             _out_SmoothedArchMesh->GetPoint(p_id)[0], _SavedArchPoints[p_id].x);
         volcart::testing::SmallOrClose(
@@ -400,8 +402,8 @@ TEST_F(SmoothNormalsFixture, CompareFixtureSmoothedConeWithSavedConeTest)
         _out_SmoothedConeMesh->GetNumberOfPoints(), _SavedConePoints.size());
 
     // points
-    for (size_t p_id = 0; p_id < _out_SmoothedConeMesh->GetNumberOfPoints();
-         ++p_id) {
+    for (std::size_t p_id = 0;
+         p_id < _out_SmoothedConeMesh->GetNumberOfPoints(); ++p_id) {
         volcart::testing::SmallOrClose(
             _out_SmoothedConeMesh->GetPoint(p_id)[0], _SavedConePoints[p_id].x);
         volcart::testing::SmallOrClose(
@@ -487,7 +489,8 @@ TEST_F(SmoothNormalsFixture, SmoothWithZeroRadiusTest)
         ZeroRadiusSmoothedMesh->GetNumberOfCells());
 
     // compare point values
-    for (size_t p_id = 0; p_id < _in_ArchMesh->GetNumberOfPoints(); ++p_id) {
+    for (std::size_t p_id = 0; p_id < _in_ArchMesh->GetNumberOfPoints();
+         ++p_id) {
         volcart::testing::SmallOrClose(
             _in_ArchMesh->GetPoint(p_id)[0],
             ZeroRadiusSmoothedMesh->GetPoint(p_id)[0]);

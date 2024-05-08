@@ -1,4 +1,4 @@
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/MeshIO.hpp"
 #include "vc/core/util/String.hpp"
 #include "vc/meshing/ACVD.hpp"

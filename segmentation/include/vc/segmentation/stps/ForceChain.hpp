@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstddef>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -38,16 +39,16 @@ public:
      * Throws `std::domain_error` if ForceChain size doesn't match the size of
      * this ForceChain.
      */
-    ForceChain& operator+=(const ForceChain& rhs);
+    auto operator+=(const ForceChain& rhs) -> ForceChain&;
 
     /** @brief Multiply each element of chain by a constant scale factor */
-    ForceChain& operator*=(const double& rhs);
+    auto operator*=(const double& rhs) -> ForceChain&;
 
     /** @brief Element access operator */
-    auto operator[](size_t i) { return data_[i]; }
+    auto operator[](std::size_t i) { return data_[i]; }
 
-    /** @copydoc operator[](size_t) */
-    auto operator[](size_t i) const { return data_[i]; }
+    /** @copydoc operator[](std::size_t) */
+    auto operator[](std::size_t i) const { return data_[i]; }
 
     /** @brief Returns an iterator to the beginning of the chain */
     auto begin() { return data_.begin(); }
@@ -72,10 +73,10 @@ public:
     void push_back(const Force& val) { data_.push_back(val); }
 
     /** @brief Returns the number of elements in the chain */
-    size_t size() { return data_.size(); }
+    auto size() -> std::size_t { return data_.size(); }
 
     /** @copydoc size() */
-    size_t size() const { return data_.size(); }
+    auto size() const -> std::size_t { return data_.size(); }
 
     /** @brief Empties and resets the chain */
     void clear() { data_.clear(); }
@@ -93,9 +94,9 @@ private:
 };
 
 /** Free function operator for per-element ForceChain addition */
-ForceChain operator+(ForceChain lhs, const ForceChain& rhs);
+auto operator+(ForceChain lhs, const ForceChain& rhs) -> ForceChain;
 /** Free function operator for multiplying a ForceChain by a scalar */
-ForceChain operator*(ForceChain lhs, const double& rhs);
+auto operator*(ForceChain lhs, const double& rhs) -> ForceChain;
 /** @copydoc operator*(ForceChain, const double&) */
-ForceChain operator*(const double& rhs, ForceChain lhs);
+auto operator*(const double& rhs, ForceChain lhs) -> ForceChain;
 }  // namespace volcart::segmentation

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <limits>
 #include <regex>
@@ -8,7 +9,7 @@
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/apps/packager/SliceImage.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/SkyscanMetadataIO.hpp"
 #include "vc/core/types/Metadata.hpp"
 #include "vc/core/types/VolumePkg.hpp"
@@ -27,8 +28,8 @@ enum class Flip { None, Horizontal, Vertical, ZFlip, Both, All };
 static const vci::ExtensionList ImageExts{"tif", "tiff", "png",
                                           "jpg", "jpeg", "bmp"};
 
-static const double MIN_16BPC = std::numeric_limits<uint16_t>::min();
-static const double MAX_16BPC = std::numeric_limits<uint16_t>::max();
+static const double MIN_16BPC = std::numeric_limits<std::uint16_t>::min();
+static const double MAX_16BPC = std::numeric_limits<std::uint16_t>::max();
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
@@ -97,7 +98,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << helpOpts << std::endl;
+        std::cout << helpOpts << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -105,7 +106,7 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -128,7 +129,7 @@ auto main(int argc, char* argv[]) -> int
         if (parsed.count("material-thickness") == 0) {
             std::cerr << "ERROR: Making a new volume package but did not "
                          "provide the material thickness."
-                      << std::endl;
+                      << '\n';
             return EXIT_FAILURE;
         }
         volpkg = vc::VolumePkg::New(volpkgPath, vc::VOLPKG_VERSION_LATEST);
@@ -170,7 +171,7 @@ auto main(int argc, char* argv[]) -> int
     AddVolume(volpkg, info);
 }
 
-VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
+auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
 {
     VolumeInfo info;
 
@@ -216,7 +217,8 @@ VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
 
     // Volume Name
     if (parsed.count("volume-name") == 0) {
-        std::cerr << "ERROR: --volume-name required when creating a new volume." << std::endl;
+        std::cerr << "ERROR: --volume-name required when creating a new volume."
+                  << '\n';
         exit(EXIT_FAILURE);
     }
     info.name = parsed["volume-name"].as<std::string>();
@@ -224,7 +226,9 @@ VolumeInfo GetVolumeInfo(const po::variables_map& parsed)
     // Get voxel size
     if (!voxelFound) {
         if (parsed.count("voxel-size-um") == 0) {
-            std::cerr << "ERROR: --voxel-size-um required when creating a new volume." << std::endl;
+            std::cerr
+                << "ERROR: --voxel-size-um required when creating a new volume."
+                << '\n';
             exit(EXIT_FAILURE);
         }
         info.voxelsize = parsed["voxel-size-um"].as<double>();
@@ -264,7 +268,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
     std::cout << "Reading the slice directory..." << std::endl;
     std::vector<vc::SliceImage> slices;
 
-    if (!fs::exists(info.path) || !fs::is_directory(info.path)) {
+    if (not fs::exists(info.path) or not fs::is_directory(info.path)) {
         std::cerr << "ERROR: Provided slice path does not exist/is not a "
                      "directory. Please provide a directory of slice images."
                   << std::endl;
@@ -273,24 +277,24 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 
     // Iterate through all files in the directory
     fs::directory_iterator subfile(info.path);
-    fs::directory_iterator dirEnd;
-    for (; subfile != dirEnd; subfile++) {
-        // Skip if not a regular file
-        if (!fs::is_regular_file(subfile->path())) {
+    for (const fs::directory_iterator dirEnd; subfile != dirEnd; ++subfile) {
+        // Get subfile as path
+        const auto subpath = subfile->path();
+
+        // Skip if not a regular or visible file
+        if (not fs::is_regular_file(subpath) or vc::IsUnixHiddenFile(subpath)) {
             continue;
         }
 
         // Filter by either file extension or the provided regex
         if (info.sliceRegex.empty()) {
-            if (vci::FileExtensionFilter(
-                    subfile->path().filename(), ImageExts)) {
-                slices.emplace_back(subfile->path());
+            if (vc::IsFileType(subpath, ImageExts)) {
+                slices.emplace_back(subpath);
             }
         } else {
             if (std::regex_match(
-                    subfile->path().filename().string(),
-                    std::regex{info.sliceRegex})) {
-                slices.emplace_back(subfile->path());
+                    subpath.filename().string(), std::regex{info.sliceRegex})) {
+                slices.emplace_back(subpath);
             }
         }
     }

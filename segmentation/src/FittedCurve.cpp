@@ -8,7 +8,7 @@
 
 using namespace volcart::segmentation;
 
-std::vector<double> GenerateTVals(size_t count);
+auto GenerateTVals(std::size_t count) -> std::vector<double>;
 
 FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int zIndex) :
     npoints_(vs.size()), zIndex_(zIndex), ts_(GenerateTVals(npoints_)),
@@ -22,9 +22,9 @@ FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int zIndex) :
     }
 }
 
-std::vector<Voxel> FittedCurve::resample(double resamplePerc)
+auto FittedCurve::resample(double resamplePerc) -> std::vector<Voxel>
 {
-    npoints_ = size_t(std::round(resamplePerc * npoints_));
+    npoints_ = std::size_t(std::round(resamplePerc * npoints_));
 
     // If we're resampling at 100%, re-use last tvals
     if (resamplePerc != 1.0) {
@@ -36,7 +36,7 @@ std::vector<Voxel> FittedCurve::resample(double resamplePerc)
     return points_;
 }
 
-std::vector<Voxel> FittedCurve::sample(size_t numPoints) const
+auto FittedCurve::sample(std::size_t numPoints) const -> std::vector<Voxel>
 {
     std::vector<Voxel> newPoints(numPoints);
     newPoints.reserve(numPoints);
@@ -50,14 +50,14 @@ std::vector<Voxel> FittedCurve::sample(size_t numPoints) const
     return newPoints;
 }
 
-Voxel FittedCurve::operator()(int index) const
+auto FittedCurve::operator()(int index) const -> Voxel
 {
     assert(index >= 0 && index < int(ts_.size()) && "out of bounds");
     Pixel p = spline_(ts_[index]);
     return {p(0), p(1), double(zIndex_)};
 }
 
-std::vector<double> FittedCurve::curvature(int hstep) const
+auto FittedCurve::curvature(int hstep) const -> std::vector<double>
 {
     std::vector<double> xs, ys;
     std::tie(xs, ys) = Unzip(points_);
@@ -70,7 +70,7 @@ std::vector<double> FittedCurve::curvature(int hstep) const
     // according to: http://mathworld.wolfram.com/Curvature.html
     std::vector<double> k;
     k.reserve(points_.size());
-    for (size_t i = 0; i < points_.size(); ++i) {
+    for (std::size_t i = 0; i < points_.size(); ++i) {
         k.push_back(
             (dx1[i] * dy2[i] - dy1[i] * dx2[i]) /
             std::pow(dx1[i] * dx1[i] + dy1[i] * dy1[i], 3.0 / 2.0));
@@ -79,16 +79,16 @@ std::vector<double> FittedCurve::curvature(int hstep) const
     return k;
 }
 
-double FittedCurve::arclength() const
+auto FittedCurve::arclength() const -> double
 {
     double length = 0;
-    for (size_t i = 1; i < npoints_; ++i) {
+    for (std::size_t i = 1; i < npoints_; ++i) {
         length += cv::norm(points_[i], points_[i - 1]);
     }
     return length;
 }
 
-std::vector<double> GenerateTVals(size_t count)
+auto GenerateTVals(std::size_t count) -> std::vector<double>
 {
     std::vector<double> ts(count);
     if (count > 0) {

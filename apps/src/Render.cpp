@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <cstdint>
 #include <unordered_map>
 
 #include <boost/program_options.hpp>
@@ -6,7 +8,7 @@
 #include "vc/app_support/GetMemorySize.hpp"
 #include "vc/core/Version.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/PointSetIO.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Iteration.hpp"
@@ -254,7 +256,7 @@ auto GetIntegralOpts() -> po::options_description
         ("expodiff-base", po::value<double>()->default_value(0.0), "If the "
             "base calculation method is set to Manual, the value from which "
             "voxel values are differenced.")
-        ("clamp-to-max", po::value<uint16_t>(), "Clamp values to the specified "
+        ("clamp-to-max", po::value<std::uint16_t>(), "Clamp values to the specified "
             "maximum.");
     // clang-format on
 
@@ -316,7 +318,6 @@ auto main(int argc, char* argv[]) -> int
 
     // Set logging level
     auto logLevel = parsed["log-level"].as<std::string>();
-    to_lower(logLevel);
     logging::SetLogLevel(logLevel);
     smgl::SetLogLevel(logLevel);
 
@@ -941,7 +942,7 @@ auto main(int argc, char* argv[]) -> int
         t->exponentialDiffBaseValue = expoDiffBase;
         t->clampValuesToMax = clampToMax;
         if (clampToMax) {
-            t->clampMax = parsed["clamp-to-max"].as<uint16_t>();
+            t->clampMax = parsed["clamp-to-max"].as<std::uint16_t>();
         }
         texturing = t;
     }
@@ -1043,6 +1044,7 @@ auto main(int argc, char* argv[]) -> int
         Logger()->error(e.what());
         return EXIT_FAILURE;
     }
+    Logger()->info("Done.");
 }
 
 ///*** Custom program_options validators ***///

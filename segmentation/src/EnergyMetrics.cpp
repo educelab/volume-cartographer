@@ -1,15 +1,17 @@
+#include "vc/segmentation/lrps/EnergyMetrics.hpp"
+
+#include <cstddef>
 #include <iostream>
 
 #include "vc/segmentation/lrps/Derivative.hpp"
-#include "vc/segmentation/lrps/EnergyMetrics.hpp"
 
 using namespace volcart::segmentation;
 
 // Calculates the active contour internal energy. See:
 // https://en.wikipedia.org/wiki/Active_contour_model#Internal_energy
 // Note: k1 and k2 are constant for all particles in the curve
-double EnergyMetrics::ActiveContourInternal(
-    const FittedCurve& curve, double k1, double k2)
+auto EnergyMetrics::ActiveContourInternal(
+    const FittedCurve& curve, double k1, double k2) -> double
 {
     if (curve.size() <= 0) {
         return 0;
@@ -29,13 +31,13 @@ double EnergyMetrics::ActiveContourInternal(
 
 // Amalgamation of energy metrics used parameterized by their coefficients.
 // To disable a metric, simply set its coefficient to zero
-double EnergyMetrics::TotalEnergy(
+auto EnergyMetrics::TotalEnergy(
     const FittedCurve& curve,
     double alpha,
     double k1,
     double k2,
     double beta,
-    double delta)
+    double delta) -> double
 {
     auto intE = EnergyMetrics::ActiveContourInternal(curve, k1, k2);
     auto kE = EnergyMetrics::AbsCurvatureSum(curve);
@@ -44,7 +46,7 @@ double EnergyMetrics::TotalEnergy(
 }
 
 // Sum of the absolute value of the curvature from curve
-double EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve)
+auto EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve) -> double
 {
     if (curve.size() <= 0) {
         return 0;
@@ -63,8 +65,8 @@ double EnergyMetrics::AbsCurvatureSum(const FittedCurve& curve)
 
 // Determine arc length across a window of size 'windowSize' centered at
 // 'index'
-double EnergyMetrics::LocalWindowedArcLength(
-    const FittedCurve& curve, int index, int windowSize)
+auto EnergyMetrics::LocalWindowedArcLength(
+    const FittedCurve& curve, int index, int windowSize) -> double
 {
     if (curve.size() <= 0) {
         return 0;
@@ -99,8 +101,8 @@ double EnergyMetrics::LocalWindowedArcLength(
 }
 
 // Apply LocalWindowedArcLength across the entire curve
-double EnergyMetrics::WindowedArcLength(
-    const FittedCurve& curve, int windowSize)
+auto EnergyMetrics::WindowedArcLength(const FittedCurve& curve, int windowSize)
+    -> double
 {
     // Special case - empty curve
     if (curve.size() <= 0) {
@@ -108,7 +110,7 @@ double EnergyMetrics::WindowedArcLength(
     }
 
     double sum = 0;
-    for (size_t i = 0; i < curve.size(); ++i) {
+    for (std::size_t i = 0; i < curve.size(); ++i) {
         sum += EnergyMetrics::LocalWindowedArcLength(curve, i, windowSize);
     }
     return sum / curve.size();

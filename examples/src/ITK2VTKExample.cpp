@@ -18,7 +18,7 @@
 
 void writePLYHeaderAndPoints(std::ostream& out, vtkPolyData* mesh);
 
-int main()
+auto main() -> int
 {
     // init shapes --> used by both conversion directions
     volcart::shapes::Plane Plane;
@@ -114,21 +114,21 @@ int main()
 
             // write header
             MeshOutputFileStream
-                << "ply" << std::endl
-                << "format ascii 1.0" << std::endl
+                << "ply" << '\n'
+                << "format ascii 1.0" << '\n'
                 << "comment Created by particle simulation "
                    "https://github.com/viscenter/registration-toolkit"
-                << std::endl
-                << "element vertex " << NumberOfVTKPoints << std::endl
-                << "property float x" << std::endl
-                << "property float y" << std::endl
-                << "property float z" << std::endl
-                << "property float nx" << std::endl
-                << "property float ny" << std::endl
-                << "property float nz" << std::endl
-                << "element face " << NumberOfVTKCells << std::endl
-                << "property list uchar int vertex_indices" << std::endl
-                << "end_header" << std::endl;
+                << '\n'
+                << "element vertex " << NumberOfVTKPoints << '\n'
+                << "property float x" << '\n'
+                << "property float y" << '\n'
+                << "property float z" << '\n'
+                << "property float nx" << '\n'
+                << "property float ny" << '\n'
+                << "property float nz" << '\n'
+                << "element face " << NumberOfVTKCells << '\n'
+                << "property list uchar int vertex_indices" << '\n'
+                << "end_header" << '\n';
 
             for (int point = 0; point < NumberOfVTKPoints; point++) {
 
@@ -147,7 +147,7 @@ int main()
                     << " "
                     << out_VTKPlaneMesh->GetPointData()->GetNormals()->GetTuple(
                            point)[2]
-                    << std::endl;
+                    << '\n';
             }
 
             for (vtkIdType c_id = 0; c_id < NumberOfVTKCells; c_id++) {
@@ -157,7 +157,7 @@ int main()
                 MeshOutputFileStream
                     << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
                     << out_VTKCell->GetPointIds()->GetId(1) << " "
-                    << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
+                    << out_VTKCell->GetPointIds()->GetId(2) << '\n';
             }
 
         }
@@ -172,21 +172,21 @@ int main()
 
             // write header
             MeshOutputFileStream
-                << "ply" << std::endl
-                << "format ascii 1.0" << std::endl
+                << "ply" << '\n'
+                << "format ascii 1.0" << '\n'
                 << "comment Created by particle simulation "
                    "https://github.com/viscenter/registration-toolkit"
-                << std::endl
-                << "element vertex " << NumberOfVTKPoints << std::endl
-                << "property float x" << std::endl
-                << "property float y" << std::endl
-                << "property float z" << std::endl
-                << "property float nx" << std::endl
-                << "property float ny" << std::endl
-                << "property float nz" << std::endl
-                << "element face " << NumberOfVTKCells << std::endl
-                << "property list uchar int vertex_indices" << std::endl
-                << "end_header" << std::endl;
+                << '\n'
+                << "element vertex " << NumberOfVTKPoints << '\n'
+                << "property float x" << '\n'
+                << "property float y" << '\n'
+                << "property float z" << '\n'
+                << "property float nx" << '\n'
+                << "property float ny" << '\n'
+                << "property float nz" << '\n'
+                << "element face " << NumberOfVTKCells << '\n'
+                << "property list uchar int vertex_indices" << '\n'
+                << "end_header" << '\n';
 
             for (int point = 0; point < NumberOfVTKPoints; point++) {
 
@@ -205,7 +205,7 @@ int main()
                     << " "
                     << out_VTKCubeMesh->GetPointData()->GetNormals()->GetTuple(
                            point)[2]
-                    << std::endl;
+                    << '\n';
             }
 
             for (vtkIdType c_id = 0; c_id < NumberOfVTKCells; c_id++) {
@@ -215,7 +215,7 @@ int main()
                 MeshOutputFileStream
                     << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
                     << out_VTKCell->GetPointIds()->GetId(1) << " "
-                    << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
+                    << out_VTKCell->GetPointIds()->GetId(2) << '\n';
             }
 
         }
@@ -230,21 +230,21 @@ int main()
 
             // write header
             MeshOutputFileStream
-                << "ply" << std::endl
-                << "format ascii 1.0" << std::endl
+                << "ply" << '\n'
+                << "format ascii 1.0" << '\n'
                 << "comment Created by particle simulation "
                    "https://github.com/viscenter/registration-toolkit"
-                << std::endl
-                << "element vertex " << NumberOfVTKPoints << std::endl
-                << "property float x" << std::endl
-                << "property float y" << std::endl
-                << "property float z" << std::endl
-                << "property float nx" << std::endl
-                << "property float ny" << std::endl
-                << "property float nz" << std::endl
-                << "element face " << NumberOfVTKCells << std::endl
-                << "property list uchar int vertex_indices" << std::endl
-                << "end_header" << std::endl;
+                << '\n'
+                << "element vertex " << NumberOfVTKPoints << '\n'
+                << "property float x" << '\n'
+                << "property float y" << '\n'
+                << "property float z" << '\n'
+                << "property float nx" << '\n'
+                << "property float ny" << '\n'
+                << "property float nz" << '\n'
+                << "element face " << NumberOfVTKCells << '\n'
+                << "property list uchar int vertex_indices" << '\n'
+                << "end_header" << '\n';
 
             for (int point = 0; point < NumberOfVTKPoints; point++) {
 
@@ -263,7 +263,7 @@ int main()
                     << " "
                     << out_VTKArchMesh->GetPointData()->GetNormals()->GetTuple(
                            point)[2]
-                    << std::endl;
+                    << '\n';
             }
 
             for (vtkIdType c_id = 0; c_id < NumberOfVTKCells; c_id++) {
@@ -273,7 +273,7 @@ int main()
                 MeshOutputFileStream
                     << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
                     << out_VTKCell->GetPointIds()->GetId(1) << " "
-                    << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
+                    << out_VTKCell->GetPointIds()->GetId(2) << '\n';
             }
 
         }
@@ -287,21 +287,21 @@ int main()
             MeshOutputFileStream.open("ITKSphereMeshConvertedToVTK.ply");
             // write header
             MeshOutputFileStream
-                << "ply" << std::endl
-                << "format ascii 1.0" << std::endl
+                << "ply" << '\n'
+                << "format ascii 1.0" << '\n'
                 << "comment Created by particle simulation "
                    "https://github.com/viscenter/registration-toolkit"
-                << std::endl
-                << "element vertex " << NumberOfVTKPoints << std::endl
-                << "property float x" << std::endl
-                << "property float y" << std::endl
-                << "property float z" << std::endl
-                << "property float nx" << std::endl
-                << "property float ny" << std::endl
-                << "property float nz" << std::endl
-                << "element face " << NumberOfVTKCells << std::endl
-                << "property list uchar int vertex_indices" << std::endl
-                << "end_header" << std::endl;
+                << '\n'
+                << "element vertex " << NumberOfVTKPoints << '\n'
+                << "property float x" << '\n'
+                << "property float y" << '\n'
+                << "property float z" << '\n'
+                << "property float nx" << '\n'
+                << "property float ny" << '\n'
+                << "property float nz" << '\n'
+                << "element face " << NumberOfVTKCells << '\n'
+                << "property list uchar int vertex_indices" << '\n'
+                << "end_header" << '\n';
 
             for (int point = 0; point < NumberOfVTKPoints; point++) {
 
@@ -322,7 +322,7 @@ int main()
                                      << out_VTKSphereMesh->GetPointData()
                                             ->GetNormals()
                                             ->GetTuple(point)[2]
-                                     << std::endl;
+                                     << '\n';
             }
 
             for (vtkIdType c_id = 0; c_id < NumberOfVTKCells; c_id++) {
@@ -332,7 +332,7 @@ int main()
                 MeshOutputFileStream
                     << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
                     << out_VTKCell->GetPointIds()->GetId(1) << " "
-                    << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
+                    << out_VTKCell->GetPointIds()->GetId(2) << '\n';
             }
 
         }
@@ -347,21 +347,21 @@ int main()
 
             // write header
             MeshOutputFileStream
-                << "ply" << std::endl
-                << "format ascii 1.0" << std::endl
+                << "ply" << '\n'
+                << "format ascii 1.0" << '\n'
                 << "comment Created by particle simulation "
                    "https://github.com/viscenter/registration-toolkit"
-                << std::endl
-                << "element vertex " << NumberOfVTKPoints << std::endl
-                << "property float x" << std::endl
-                << "property float y" << std::endl
-                << "property float z" << std::endl
-                << "property float nx" << std::endl
-                << "property float ny" << std::endl
-                << "property float nz" << std::endl
-                << "element face " << NumberOfVTKCells << std::endl
-                << "property list uchar int vertex_indices" << std::endl
-                << "end_header" << std::endl;
+                << '\n'
+                << "element vertex " << NumberOfVTKPoints << '\n'
+                << "property float x" << '\n'
+                << "property float y" << '\n'
+                << "property float z" << '\n'
+                << "property float nx" << '\n'
+                << "property float ny" << '\n'
+                << "property float nz" << '\n'
+                << "element face " << NumberOfVTKCells << '\n'
+                << "property list uchar int vertex_indices" << '\n'
+                << "end_header" << '\n';
 
             for (int point = 0; point < NumberOfVTKPoints; point++) {
 
@@ -380,7 +380,7 @@ int main()
                     << " "
                     << out_VTKConeMesh->GetPointData()->GetNormals()->GetTuple(
                            point)[2]
-                    << std::endl;
+                    << '\n';
             }
 
             for (vtkIdType c_id = 0; c_id < NumberOfVTKCells; c_id++) {
@@ -390,7 +390,7 @@ int main()
                 MeshOutputFileStream
                     << "3 " << out_VTKCell->GetPointIds()->GetId(0) << " "
                     << out_VTKCell->GetPointIds()->GetId(1) << " "
-                    << out_VTKCell->GetPointIds()->GetId(2) << std::endl;
+                    << out_VTKCell->GetPointIds()->GetId(2) << '\n';
             }
         }
 

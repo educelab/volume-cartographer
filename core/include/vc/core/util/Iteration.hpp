@@ -3,6 +3,7 @@
 /** @file */
 
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <type_traits>
 
@@ -36,7 +37,7 @@ private:
 
     public:
         /** @{ Iterator type traits */
-        using difference_type = size_t;
+        using difference_type = std::size_t;
         using value_type = ItT;
         using pointer = value_type*;
         using reference = value_type const&;
@@ -104,16 +105,16 @@ public:
 
     /** Returns the size of the range (floating point ranges) */
     template <typename Q = T>
-    std::enable_if_t<std::is_floating_point<Q>::value, size_t> size() const
+    std::enable_if_t<std::is_floating_point<Q>::value, std::size_t> size() const
     {
-        return static_cast<size_t>(std::ceil((end_ - start_) / step_));
+        return static_cast<std::size_t>(std::ceil((end_ - start_) / step_));
     }
 
     /** Returns the size of the range (integral ranges) */
     template <typename Q = T>
-    std::enable_if_t<std::is_integral<Q>::value, size_t> size() const
+    std::enable_if_t<std::is_integral<Q>::value, std::size_t> size() const
     {
-        return static_cast<size_t>((end_ - start_) / step_);
+        return static_cast<std::size_t>((end_ - start_) / step_);
     }
 
 private:
@@ -212,7 +213,7 @@ private:
 
     public:
         /** @{ Iterator type traits */
-        using difference_type = size_t;
+        using difference_type = std::size_t;
         using value_type = std::pair<ItT const&, ItT const&>;
         using pointer = value_type*;
         using reference = value_type;
@@ -298,18 +299,20 @@ public:
 
     /** Returns the size of the range (floating point ranges) */
     template <typename Q = T>
-    std::enable_if_t<std::is_floating_point<Q>::value, size_t> size() const
+    std::enable_if_t<std::is_floating_point<Q>::value, std::size_t> size() const
     {
-        auto vLen = static_cast<size_t>(std::ceil((vEnd_ - vStart_) / step_));
-        return static_cast<size_t>(std::ceil((uEnd_ - uStart_) / step_)) * vLen;
+        auto vLen =
+            static_cast<std::size_t>(std::ceil((vEnd_ - vStart_) / step_));
+        return static_cast<std::size_t>(std::ceil((uEnd_ - uStart_) / step_)) *
+               vLen;
     }
 
     /** Returns the size of the range (integral ranges) */
     template <typename Q = T>
-    std::enable_if_t<std::is_integral<Q>::value, size_t> size() const
+    std::enable_if_t<std::is_integral<Q>::value, std::size_t> size() const
     {
-        auto vLen = static_cast<size_t>((vEnd_ - vStart_) / step_);
-        return static_cast<size_t>((uEnd_ - uStart_) / step_) * vLen;
+        auto vLen = static_cast<std::size_t>((vEnd_ - vStart_) / step_);
+        return static_cast<std::size_t>((uEnd_ - uStart_) / step_) * vLen;
     }
 
 private:
@@ -403,21 +406,21 @@ private:
     class EnumerateIterator
     {
     private:
-        size_t idx_;
+        std::size_t idx_;
         T it_;
 
     public:
         /** @{ Iterator type traits */
-        using difference_type = size_t;
+        using difference_type = std::size_t;
         using value_type =
-            std::pair<const size_t&, decltype(*std::declval<T&>())&>;
+            std::pair<std::size_t, decltype(*std::declval<T&>())&>;
         using pointer = value_type*;
         using reference = value_type;
         using iterator_category = std::input_iterator_tag;
         /** @} */
 
         /** Constructor for the iterator */
-        explicit EnumerateIterator(size_t idx, T&& it)
+        explicit EnumerateIterator(std::size_t idx, T&& it)
             : idx_{idx}, it_{std::move(it)}
         {
         }
@@ -447,6 +450,7 @@ private:
     };
 
     using IteratorType = decltype(std::begin(std::declval<Iterable>()));
+
     EnumerateIterable(Iterable&& container)
         : container_{std::forward<Iterable>(container)}
     {

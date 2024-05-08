@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <fstream>
 #include <regex>
 #include <sstream>
@@ -45,10 +46,10 @@ class PointSetIO
 public:
     /** @brief PointSet file header information */
     struct Header {
-        size_t width{0};
-        size_t height{0};
-        size_t size{0};
-        size_t dim{0};
+        std::size_t width{0};
+        std::size_t height{0};
+        std::size_t size{0};
+        std::size_t dim{0};
         bool ordered{false};
         std::string type;
     };
@@ -350,9 +351,9 @@ private:
         auto header = PointSetIO<T>::ParseHeader(infile, false);
         PointSet<T> ps{header.size};
 
-        for (size_t i = 0; i < header.size; ++i) {
+        for (std::size_t i = 0; i < header.size; ++i) {
             std::array<typename T::value_type, T::channels> values;
-            for (size_t d = 0; d < header.dim; ++d) {
+            for (std::size_t d = 0; d < header.dim; ++d) {
                 infile >> values[d];
             }
             ps.push_back(T{values.data()});
@@ -375,17 +376,18 @@ private:
         auto header = PointSetIO<T>::ParseHeader(infile, true);
         OrderedPointSet<T> ps{header.width};
 
-        for (size_t h = 0; h < header.height; ++h) {
-            std::vector<T> points;
-            points.reserve(header.width);
-            for (size_t w = 0; w < header.width; ++w) {
+        std::vector<T> points;
+        points.reserve(header.width);
+        for (std::size_t h = 0; h < header.height; ++h) {
+            for (std::size_t w = 0; w < header.width; ++w) {
                 std::array<typename T::value_type, T::channels> values;
-                for (size_t d = 0; d < header.dim; ++d) {
+                for (std::size_t d = 0; d < header.dim; ++d) {
                     infile >> values.at(d);
                 }
                 points.emplace_back(values.data());
             }
             ps.pushRow(points);
+            points.clear();
         }
 
         return ps;
@@ -403,7 +405,7 @@ private:
         PointSet<T> ps{header.size};
 
         // Size of binary elements to read
-        size_t typeBytes{};
+        std::size_t typeBytes{};
         if (header.type == "float") {
             typeBytes = sizeof(float);
         } else if (header.type == "double") {
@@ -414,7 +416,7 @@ private:
 
         // Read data
         T t;
-        for (size_t i = 0; i < header.size; ++i) {
+        for (std::size_t i = 0; i < header.size; ++i) {
             auto nbytes = header.dim * typeBytes;
             infile.read(reinterpret_cast<char*>(t.val), nbytes);
             ps.push_back(t);
@@ -436,7 +438,7 @@ private:
         OrderedPointSet<T> ps{header.width};
 
         // Size of binary elements to read
-        size_t typeBytes = sizeof(int);
+        std::size_t typeBytes = sizeof(int);
         if (header.type == "float") {
             typeBytes = sizeof(float);
         } else if (header.type == "double") {
@@ -453,7 +455,7 @@ private:
         std::size_t nbytes = header.width * header.dim * typeBytes;
         std::vector<T> points(header.width, 0);
         points.reserve(header.width);
-        for (size_t h = 0; h < header.height; ++h) {
+        for (std::size_t h = 0; h < header.height; ++h) {
             infile.read(reinterpret_cast<char*>(points.data()), nbytes);
             ps.pushRow(points);
         }
@@ -476,7 +478,7 @@ private:
         auto header = PointSetIO<T>::MakeHeader(ps);
         outfile << header;
         for (const auto& p : ps) {
-            for (size_t i = 0; i < T::channels; ++i) {
+            for (std::size_t i = 0; i < T::channels; ++i) {
                 outfile << p(i) << " ";
             }
             outfile << std::endl;
@@ -529,7 +531,7 @@ private:
         auto header = PointSetIO<T>::MakeOrderedHeader(ps);
         outfile << header;
         for (const auto& p : ps) {
-            for (size_t i = 0; i < T::channels; ++i) {
+            for (std::size_t i = 0; i < T::channels; ++i) {
                 outfile << p(i) << " ";
             }
             outfile << std::endl;

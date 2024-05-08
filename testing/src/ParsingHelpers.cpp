@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -124,7 +125,8 @@ void ParsingHelpers::ParsePLYFile(
 
             // Read in the vertex information
             for (int v = 0; v < numVertices; v++) {
-                for (size_t i = 0; i < typeOfPointInformation.size(); i++) {
+                for (std::size_t i = 0; i < typeOfPointInformation.size();
+                     i++) {
 
                     if (typeOfPointInformation[i] == "x") {
                         plyVertex.x = std::stod(plyLine[i]);

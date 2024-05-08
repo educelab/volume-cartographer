@@ -19,24 +19,24 @@ VolumeLandmark::VolumeLandmark(
     type_ = type;
 }
 
-VolumeLandmark::Identifier VolumeLandmark::id() const
+auto VolumeLandmark::id() const -> VolumeLandmark::Identifier
 {
     return metadata_.get<std::string>("uuid");
 }
 
-std::string VolumeLandmark::name() const
+auto VolumeLandmark::name() const -> std::string
 {
     return metadata_.get<std::string>("name");
 }
 
-Type VolumeLandmark::type() const { return type_; }
+auto VolumeLandmark::type() const -> Type { return type_; }
 
 void VolumeLandmark::Write(const fs::path& path, const Pointer& ldm)
 {
     ldm->metadata_.save(path);
 }
 
-VolumeLandmark::Pointer VolumeLandmark::Read(const fs::path& path)
+auto VolumeLandmark::Read(const fs::path& path) -> VolumeLandmark::Pointer
 {
     // Load metadata
     volcart::Metadata meta(path);

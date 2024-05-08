@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+#include <cstdint>
 #include <mutex>
 
 #include "vc/core/filesystem.hpp"
@@ -43,7 +45,7 @@ public:
     using DefaultCache = LRUCache<int, cv::Mat>;
 
     /** Default slice cache capacity */
-    static constexpr size_t DEFAULT_CAPACITY = 200;
+    static constexpr std::size_t DEFAULT_CAPACITY = 200;
 
     /**@{*/
     /** Default constructor. Cannot be constructed without path. */
@@ -84,7 +86,7 @@ public:
     /** @brief Set the expected height of the slice images */
     void setSliceHeight(int h);
     /** @brief Set the expected number of slice images */
-    void setNumberOfSlices(size_t numSlices);
+    void setNumberOfSlices(std::size_t numSlices);
     /** @brief Set the voxel size (in microns) */
     void setVoxelSize(double s);
     /** @brief Set the minimum value in the Volume */
@@ -136,10 +138,10 @@ public:
 
     /**@{*/
     /** @brief Get the intensity value at a voxel position */
-    uint16_t intensityAt(int x, int y, int z) const;
+    std::uint16_t intensityAt(int x, int y, int z) const;
 
     /** @copydoc intensityAt() */
-    uint16_t intensityAt(const cv::Vec3d& v) const
+    std::uint16_t intensityAt(const cv::Vec3d& v) const
     {
         return intensityAt(int(v[0]), int(v[1]), int(v[2]));
     }
@@ -152,10 +154,10 @@ public:
      * Trilinear interpolation equation from
      * <a href = "http://paulbourke.net/miscellaneous/interpolation/"> here</a>.
      */
-    uint16_t interpolateAt(double x, double y, double z) const;
+    std::uint16_t interpolateAt(double x, double y, double z) const;
 
     /** @copydoc interpolateAt(double, double, double) const */
-    uint16_t interpolateAt(const cv::Vec3d& v) const
+    std::uint16_t interpolateAt(const cv::Vec3d& v) const
     {
         return interpolateAt(v[0], v[1], v[2]);
     }
@@ -189,23 +191,23 @@ public:
     void setCache(SliceCache::Pointer c) { cache_ = std::move(c); }
 
     /** @brief Set the maximum number of cached slices */
-    void setCacheCapacity(size_t newCacheCapacity)
+    void setCacheCapacity(std::size_t newCacheCapacity)
     {
         cache_->setCapacity(newCacheCapacity);
     }
 
     /** @brief Set the maximum size of the cache in bytes */
-    void setCacheMemoryInBytes(size_t nbytes)
+    void setCacheMemoryInBytes(std::size_t nbytes)
     {
         // x2 because pixels are 16 bits normally. Not a great solution.
         setCacheCapacity(nbytes / (sliceWidth() * sliceHeight() * 2));
     }
 
     /** @brief Get the maximum number of cached slices */
-    size_t getCacheCapacity() const { return cache_->capacity(); }
+    std::size_t getCacheCapacity() const { return cache_->capacity(); }
 
     /** @brief Get the current number of cached slices */
-    size_t getCacheSize() const { return cache_->size(); }
+    std::size_t getCacheSize() const { return cache_->size(); }
 
     /** @brief Purge the slice cache */
     void cachePurge() const;

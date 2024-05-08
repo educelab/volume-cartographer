@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <iostream>
 
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"
@@ -32,13 +33,13 @@ public:
 
     ConstantFittedCurve()
     {
-        size_t pointCount = 10;
+        std::size_t pointCount = 10;
         double yConstant = 1.0;
         std::vector<double> xs(pointCount), ys(pointCount);
         std::iota(std::begin(xs), std::end(xs), 0.0);
         std::fill(std::begin(ys), std::end(ys), yConstant);
         std::vector<Voxel> vs(pointCount);
-        for (size_t i = 0; i < pointCount; ++i) {
+        for (std::size_t i = 0; i < pointCount; ++i) {
             vs[i] = {xs[i], ys[i], 0};
         }
         _curve = FittedCurve(vs, 0);

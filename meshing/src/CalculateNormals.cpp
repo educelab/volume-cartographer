@@ -1,5 +1,7 @@
 #include "vc/meshing/CalculateNormals.hpp"
 
+#include <cstdint>
+
 using namespace volcart;
 using namespace volcart::meshing;
 
@@ -13,7 +15,7 @@ CalculateNormals::CalculateNormals(const ITKMesh::Pointer& mesh)
 void CalculateNormals::setMesh(const ITKMesh::Pointer& mesh) { input_ = mesh; }
 
 ///// Processing /////
-ITKMesh::Pointer CalculateNormals::compute()
+auto CalculateNormals::compute() -> ITKMesh::Pointer
 {
     output_ = ITKMesh::New();
     DeepCopy(input_, output_);
@@ -35,7 +37,7 @@ void CalculateNormals::compute_normals_()
         cv::Vec3d v0, v1, v2, e0, e1;
 
         // Collect the point id's for this cell
-        std::vector<uint64_t> pointIds;
+        std::vector<std::uint64_t> pointIds;
         ITKPoint vert;
         for (auto p = cellIt->Value()->PointIdsBegin();
              p != cellIt->Value()->PointIdsEnd(); ++p) {

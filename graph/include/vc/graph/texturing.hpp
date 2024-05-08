@@ -2,6 +2,7 @@
 
 /** @file */
 
+#include <cstdint>
 #include <limits>
 
 #include <opencv2/core.hpp>
@@ -470,7 +471,7 @@ public:
     /** @copybrief texturing::IntegralTexture::setClampValuesToMax() */
     smgl::InputPort<bool> clampValuesToMax;
     /** @copybrief texturing::IntegralTexture::setClampMax() */
-    smgl::InputPort<uint16_t> clampMax;
+    smgl::InputPort<std::uint16_t> clampMax;
     /** @copybrief texturing::IntegralTexture::setWeightMethod() */
     smgl::InputPort<WeightMethod> weightMethod;
     /** @copybrief texturing::IntegralTexture::setLinearWeightDirection() */

@@ -13,7 +13,7 @@ namespace po = boost::program_options;
 namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     // clang-format off
     po::options_description options{"options arguments"};
@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
     // Print help
     if (argc == 1 || opts.count("help")) {
         std::cout << "Usage: " << argv[0]
-                  << " [options] key=value [key=value ...]" << std::endl;
-        std::cout << options << std::endl;
+                  << " [options] key=value [key=value ...]" << '\n';
+        std::cout << options << '\n';
         std::exit(1);
     }
 
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     try {
         po::notify(opts);
     } catch (po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
     if (opts.count("test") + opts.count("write") > 1) {
         std::cerr
             << "Multiple modes specified. Only pick one of [print/test/write]"
-            << std::endl;
+            << '\n';
         std::exit(1);
     }
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     // Test or write metadata
     if (opts.count("test") || opts.count("write")) {
         if (!opts.count("configs")) {
-            std::cout << "No metadata changes to make, exiting" << std::endl;
+            std::cout << "No metadata changes to make, exiting" << '\n';
             std::exit(0);
         }
         auto configs = opts["configs"].as<std::vector<std::string>>();
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
         auto types_it = vc::VERSION_LIBRARY.find(volpkg.version());
         if (types_it == std::end(vc::VERSION_LIBRARY)) {
             std::cerr << "Could not find type mapping for version "
-                      << volpkg.version() << std::endl;
+                      << volpkg.version() << '\n';
             std::exit(1);
         }
         auto typeMap = types_it->second;
@@ -150,18 +150,17 @@ int main(int argc, char* argv[])
 
         // Only print, don't save.
         if (opts.count("test")) {
-            std::cout << "Final metadata: " << std::endl;
+            std::cout << "Final metadata: " << '\n';
             volpkg.metadata().printObject();
-            std::cout << std::endl;
+            std::cout << '\n';
             return EXIT_SUCCESS;
         }
 
         // Actually save.
         if (opts.count("write")) {
-            std::cout << "Writing metadata to file..." << std::endl;
+            std::cout << "Writing metadata to file..." << '\n';
             volpkg.saveMetadata();
-            std::cout << "Metadata written successfully." << std::endl
-                      << std::endl;
+            std::cout << "Metadata written successfully." << '\n' << '\n';
             return EXIT_SUCCESS;
         }
     }

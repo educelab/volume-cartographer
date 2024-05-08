@@ -14,9 +14,9 @@ using namespace volcart;
 using namespace volcart::texturing;
 namespace vct = volcart::texturing;
 
-std::vector<cv::Vec3d> GetCellVertices(
+auto GetCellVertices(
     const ITKMesh::Pointer& mesh,
-    const ITKCell::PointIdentifierContainerType& ids)
+    const ITKCell::PointIdentifierContainerType& ids) -> std::vector<cv::Vec3d>
 {
 
     // Output vector
@@ -31,13 +31,13 @@ std::vector<cv::Vec3d> GetCellVertices(
     return pts;
 }
 
-static std::tuple<double, double, double, double, double> CalculateGammas(
+static auto CalculateGammas(
     const cv::Vec3d& p1,
     const cv::Vec3d& p2,
     const cv::Vec3d& p3,
     const cv::Vec3d& q1,
     const cv::Vec3d& q2,
-    const cv::Vec3d& q3)
+    const cv::Vec3d& q3) -> std::tuple<double, double, double, double, double>
 {
     // Calculate 2D area
     auto a = cv::norm(p2 - p1);
@@ -71,20 +71,21 @@ static std::tuple<double, double, double, double, double> CalculateGammas(
     return {max, min, a, b, c};
 }
 
-static std::pair<double, double> TriLStretch(
+static auto TriLStretch(
     const cv::Vec3d& p0,
     const cv::Vec3d& p1,
     const cv::Vec3d& p2,
     const cv::Vec3d& q0,
     const cv::Vec3d& q1,
-    const cv::Vec3d& q2)
+    const cv::Vec3d& q2) -> std::pair<double, double>
 {
     const auto& [max, min, a, b, c] = CalculateGammas(p0, p1, p2, q0, q1, q2);
     return {std::sqrt(0.5 * (a + c)), max};
 }
 
-LStretchMetrics vct::LStretch(
+auto vct::LStretch(
     const ITKMesh::Pointer& mesh3D, const ITKMesh::Pointer& mesh2D)
+    -> LStretchMetrics
 {
     if (mesh3D->GetNumberOfCells() != mesh2D->GetNumberOfCells()) {
         throw std::runtime_error(
@@ -138,7 +139,8 @@ LStretchMetrics vct::LStretch(
     return metrics;
 }
 
-LStretchMetrics vct::InvertLStretchMetrics(const LStretchMetrics& metrics)
+auto vct::InvertLStretchMetrics(const LStretchMetrics& metrics)
+    -> LStretchMetrics
 {
     LStretchMetrics out;
 
@@ -160,12 +162,12 @@ LStretchMetrics vct::InvertLStretchMetrics(const LStretchMetrics& metrics)
 }
 
 // Function for creating a plot legend bar for LStretch metrics
-static cv::Mat CreateLegend(
+static auto CreateLegend(
     int width,
     float min,
     float max,
     const cv::Mat& lut,
-    const std::string& label = "")
+    const std::string& label = "") -> cv::Mat
 {
     // Keep track of the original requested width
     // Will render at high-res and resample to orig width
@@ -247,11 +249,11 @@ static cv::Mat CreateLegend(
     return bar;
 }
 
-std::vector<cv::Mat> vct::PlotLStretchError(
+auto vct::PlotLStretchError(
     const LStretchMetrics& metrics,
     const cv::Mat& cellMap,
     ColorMap cm,
-    bool drawLegend)
+    bool drawLegend) -> std::vector<cv::Mat>
 {
     // Get easy handles to the metrics
     const auto& faceL2 = metrics.faceL2;

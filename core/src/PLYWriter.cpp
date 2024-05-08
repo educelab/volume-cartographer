@@ -1,5 +1,7 @@
 #include "vc/core/io/PLYWriter.hpp"
 
+#include <cstddef>
+
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
@@ -7,27 +9,31 @@ using namespace volcart;
 using namespace volcart::io;
 namespace fs = volcart::filesystem;
 
-static inline auto PtIntensity(
+namespace
+{
+auto PtIntensity(
     std::size_t idx, const UVMap::Pointer& uvMap, const cv::Mat& image)
     -> double
 {
     auto uv = uvMap->get(idx);
     int u = cvRound(uv[0] * (image.cols - 1));
     int v = cvRound(uv[1] * (image.rows - 1));
-    return image.at<uint16_t>(v, u);
+    return image.at<std::uint16_t>(v, u);
 }
+}  // namespace
 
 ///// Output Methods /////
-auto PLYWriter::write() -> int
+void PLYWriter::write()
 {
     if (not mesh_ or mesh_->GetNumberOfPoints() == 0) {
-        throw volcart::IOException("Mesh is empty or null");
+        throw IOException("Mesh is empty or null");
     }
 
     // Open the file stream
     outputMesh_.open(outputPath_.string());
     if (!outputMesh_.is_open()) {
-        return EXIT_FAILURE;
+        auto msg = "failure writing file '" + outputPath_.string() + "'";
+        throw IOException(msg);
     }
 
     // Capture the starting origin and set origin to what PLY reader needs
@@ -41,62 +47,58 @@ auto PLYWriter::write() -> int
     write_vertices_();
     write_faces_();
 
-    outputMesh_.close();
-
     // Restore the starting origin
     if (uvMap_) {
         uvMap_->setOrigin(startingOrigin);
     }
 
-    return EXIT_SUCCESS;
+    outputMesh_.flush();
+    outputMesh_.close();
+    if (outputMesh_.fail()) {
+        auto msg = "failure writing file '" + outputPath_.string() + "'";
+        throw IOException(msg);
+    }
 }
 
 // Write our custom header
-auto PLYWriter::write_header_() -> int
+void PLYWriter::write_header_()
 {
-    if (!outputMesh_.is_open()) {
-        return EXIT_FAILURE;
-    }
-
-    outputMesh_ << "ply" << std::endl;
-    outputMesh_ << "format ascii 1.0" << std::endl;
-    outputMesh_ << "comment VC PLY Exporter v1.0" << std::endl;
+    outputMesh_ << "ply" << '\n';
+    outputMesh_ << "format ascii 1.0" << '\n';
+    outputMesh_ << "comment VC PLY Exporter v1.0" << '\n';
 
     // Vertex Info for Header
-    outputMesh_ << "element vertex " << mesh_->GetNumberOfPoints() << std::endl;
-    outputMesh_ << "property float x" << std::endl;
-    outputMesh_ << "property float y" << std::endl;
-    outputMesh_ << "property float z" << std::endl;
-    outputMesh_ << "property float nx" << std::endl;
-    outputMesh_ << "property float ny" << std::endl;
-    outputMesh_ << "property float nz" << std::endl;
+    outputMesh_ << "element vertex " << mesh_->GetNumberOfPoints() << '\n';
+    outputMesh_ << "property float x" << '\n';
+    outputMesh_ << "property float y" << '\n';
+    outputMesh_ << "property float z" << '\n';
+    outputMesh_ << "property float nx" << '\n';
+    outputMesh_ << "property float ny" << '\n';
+    outputMesh_ << "property float nz" << '\n';
 
     // Color info for vertices
     if ((not texture_.empty() and uvMap_ and not uvMap_->empty()) or
         not vcolors_.empty()) {
-        outputMesh_ << "property uchar red" << std::endl;
-        outputMesh_ << "property uchar green" << std::endl;
-        outputMesh_ << "property uchar blue" << std::endl;
+        outputMesh_ << "property uchar red" << '\n';
+        outputMesh_ << "property uchar green" << '\n';
+        outputMesh_ << "property uchar blue" << '\n';
     }
 
     // Face Info for Header
     if (mesh_->GetNumberOfCells() != 0) {
-        outputMesh_ << "element face " << mesh_->GetNumberOfCells()
-                    << std::endl;
-        outputMesh_ << "property list uchar int vertex_indices" << std::endl;
+        outputMesh_ << "element face " << mesh_->GetNumberOfCells() << '\n';
+        outputMesh_ << "property list uchar int vertex_indices" << '\n';
     }
 
     // End header
-    outputMesh_ << "end_header" << std::endl;
-
-    return EXIT_SUCCESS;
+    outputMesh_ << "end_header" << '\n';
 }
 
 // Write the vertex information: 'x y z nx ny nz'
-auto PLYWriter::write_vertices_() -> int
+void PLYWriter::write_vertices_()
 {
-    if (!outputMesh_.is_open() || mesh_->GetNumberOfPoints() == 0) {
-        return EXIT_FAILURE;
+    if (mesh_->GetNumberOfPoints() == 0) {
+        return;
     }
     Logger()->info("Writing vertices...");
 
@@ -131,17 +133,15 @@ auto PLYWriter::write_vertices_() -> int
             outputMesh_ << " " << i << " " << i << " " << i;
         }
 
-        outputMesh_ << std::endl;
+        outputMesh_ << '\n';
     }
-
-    return EXIT_SUCCESS;
 }
 
 // Write the face information: 'n#-of-verts v1 v1 ... vn'
-auto PLYWriter::write_faces_() -> int
+void PLYWriter::write_faces_()
 {
-    if (!outputMesh_.is_open() || mesh_->GetNumberOfCells() == 0) {
-        return EXIT_FAILURE;
+    if (mesh_->GetNumberOfCells() == 0) {
+        return;
     }
     Logger()->info("Writing faces...");
 
@@ -156,13 +156,11 @@ auto PLYWriter::write_faces_() -> int
              point != cell.Value()->PointIdsEnd(); ++point) {
             outputMesh_ << " " << *point;
         }
-        outputMesh_ << std::endl;
+        outputMesh_ << '\n';
     }
-
-    return EXIT_SUCCESS;
 }
 
-void PLYWriter::setVertexColors(const std::vector<uint16_t>& c)
+void PLYWriter::setVertexColors(const std::vector<std::uint16_t>& c)
 {
     vcolors_ = c;
 }

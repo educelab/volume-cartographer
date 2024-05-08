@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Cone.hpp"
@@ -170,7 +172,7 @@ TEST_F(ScaledPlaneFixture, ScaledPlaneTest)
             _in_PlaneMesh->GetNumberOfPoints(),
             _out_PlaneMesh->GetNumberOfPoints());
 
-        for (size_t point = 0; point < _out_PlaneMesh->GetNumberOfPoints();
+        for (std::size_t point = 0; point < _out_PlaneMesh->GetNumberOfPoints();
              ++point) {
 
             // check each of the points in the input and output meshes to
@@ -203,7 +205,7 @@ TEST_F(ScaledCubeFixture, ScaledCubeTest)
             _in_CubeMesh->GetNumberOfPoints(),
             _out_CubeMesh->GetNumberOfPoints());
 
-        for (size_t point = 0; point < _out_CubeMesh->GetNumberOfPoints();
+        for (std::size_t point = 0; point < _out_CubeMesh->GetNumberOfPoints();
              ++point) {
 
             volcart::testing::SmallOrClose(
@@ -232,7 +234,7 @@ TEST_F(ScaledArchFixture, ScaledArchTest)
             _in_ArchMesh->GetNumberOfPoints(),
             _out_ArchMesh->GetNumberOfPoints());
 
-        for (size_t point = 0; point < _out_ArchMesh->GetNumberOfPoints();
+        for (std::size_t point = 0; point < _out_ArchMesh->GetNumberOfPoints();
              ++point) {
 
             volcart::testing::SmallOrClose(
@@ -262,8 +264,8 @@ TEST_F(ScaledSphereFixture, ScaledSphereTest)
             _in_SphereMesh->GetNumberOfPoints(),
             _out_SphereMesh->GetNumberOfPoints());
 
-        for (size_t point = 0; point < _out_SphereMesh->GetNumberOfPoints();
-             ++point) {
+        for (std::size_t point = 0;
+             point < _out_SphereMesh->GetNumberOfPoints(); ++point) {
 
             volcart::testing::SmallOrClose(
                 _in_SphereMesh->GetPoint(point)[0] * _ScaleFactor,
@@ -291,7 +293,7 @@ TEST_F(ScaledConeFixture, ScaledConeTest)
             _in_ConeMesh->GetNumberOfPoints(),
             _out_ConeMesh->GetNumberOfPoints());
 
-        for (size_t point = 0; point < _out_ConeMesh->GetNumberOfPoints();
+        for (std::size_t point = 0; point < _out_ConeMesh->GetNumberOfPoints();
              ++point) {
 
             volcart::testing::SmallOrClose(
@@ -330,7 +332,7 @@ TEST_F(ScaledPlaneFixture, ConfirmInputPlaneMeshIsUnchangedAfterScalingTest)
     EXPECT_EQ(
         _in_PlaneMesh->GetNumberOfCells(), NewPlaneMesh->GetNumberOfCells());
 
-    for (size_t point = 0; point < _in_PlaneMesh->GetNumberOfPoints();
+    for (std::size_t point = 0; point < _in_PlaneMesh->GetNumberOfPoints();
          ++point) {
 
         EXPECT_EQ(
@@ -391,7 +393,7 @@ TEST_F(ScaledPlaneFixture, CompareSavedAndFixtureScaledPlaneMesh)
         _SavedPlaneCells.size());
 
     // points
-    for (size_t point = 0; point < _SavedPlanePoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedPlanePoints.size(); ++point) {
 
         EXPECT_EQ(
             _out_PlaneMeshUsedForRegressionTest->GetPoint(point)[0],
@@ -484,7 +486,7 @@ TEST_F(ScaledCubeFixture, CompareSavedAndFixtureScaledCubeMesh)
         _out_CubeMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedCubeCells.size());
 
-    for (size_t point = 0; point < _SavedCubePoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedCubePoints.size(); ++point) {
 
         EXPECT_EQ(
             _out_CubeMeshUsedForRegressionTest->GetPoint(point)[0],
@@ -564,7 +566,7 @@ TEST_F(ScaledArchFixture, CompareSavedAndFixtureScaledArchMesh)
         _out_ArchMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedArchCells.size());
 
-    for (size_t point = 0; point < _SavedArchPoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedArchPoints.size(); ++point) {
 
         volcart::testing::SmallOrClose(
             _out_ArchMeshUsedForRegressionTest->GetPoint(point)[0],
@@ -644,7 +646,7 @@ TEST_F(ScaledSphereFixture, CompareSavedAndFixtureScaledSphereMesh)
         _out_SphereMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedSphereCells.size());
 
-    for (size_t point = 0; point < _SavedSpherePoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedSpherePoints.size(); ++point) {
 
         volcart::testing::SmallOrClose(
             _out_SphereMeshUsedForRegressionTest->GetPoint(point)[0],
@@ -725,7 +727,7 @@ TEST_F(ScaledConeFixture, CompareSavedAndFixtureScaledConeMesh)
         _out_ConeMeshUsedForRegressionTest->GetNumberOfCells(),
         _SavedConeCells.size());
 
-    for (size_t point = 0; point < _SavedConePoints.size(); ++point) {
+    for (std::size_t point = 0; point < _SavedConePoints.size(); ++point) {
 
         volcart::testing::SmallOrClose(
             _out_ConeMeshUsedForRegressionTest->GetPoint(point)[0],

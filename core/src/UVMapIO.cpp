@@ -1,5 +1,6 @@
 #include "vc/core/io/UVMapIO.hpp"
 
+#include <cstddef>
 #include <fstream>
 #include <regex>
 #include <sstream>
@@ -24,14 +25,14 @@ void vio::WriteUVMap(const fs::path& path, const UVMap& uvMap)
 
     // Header
     std::stringstream ss;
-    ss << "filetype: uvmap" << std::endl;
-    ss << "version: 1" << std::endl;
-    ss << "type: per-vertex" << std::endl;
-    ss << "size: " << uvMap.size() << std::endl;
-    ss << "width: " << uvMap.ratio().width << std::endl;
-    ss << "height: " << uvMap.ratio().height << std::endl;
-    ss << "origin: " << static_cast<int>(uvMap.origin()) << std::endl;
-    ss << "<>" << std::endl;
+    ss << "filetype: uvmap" << '\n';
+    ss << "version: 1" << '\n';
+    ss << "type: per-vertex" << '\n';
+    ss << "size: " << uvMap.size() << '\n';
+    ss << "width: " << uvMap.ratio().width << '\n';
+    ss << "height: " << uvMap.ratio().height << '\n';
+    ss << "origin: " << static_cast<int>(uvMap.origin()) << '\n';
+    ss << "<>" << '\n';
     outfile << ss.rdbuf();
 
     // Write the mappings
@@ -43,7 +44,12 @@ void vio::WriteUVMap(const fs::path& path, const UVMap& uvMap)
         outfile.write(reinterpret_cast<const char*>(uv.val), nbytes);
     }
 
+    outfile.flush();
     outfile.close();
+    if (outfile.fail()) {
+        auto msg = "failure writing file '" + path.string() + "'";
+        throw IOException(msg);
+    }
 }
 
 auto vio::ReadUVMap(const fs::path& path) -> UVMap
@@ -58,7 +64,7 @@ auto vio::ReadUVMap(const fs::path& path) -> UVMap
         std::string fileType;
         int version;
         std::string type;
-        size_t size;
+        std::size_t size;
         double width{0};
         double height{0};
         int origin{-1};
@@ -169,7 +175,7 @@ auto vio::ReadUVMap(const fs::path& path) -> UVMap
     // Read all of the points
     for (const auto& i : range(h.size)) {
         std::ignore = i;
-        size_t id{0};
+        std::size_t id{0};
         cv::Vec2d uv;
         infile.read(reinterpret_cast<char*>(&id), sizeof(id));
         infile.read(reinterpret_cast<char*>(uv.val), 2 * sizeof(double));

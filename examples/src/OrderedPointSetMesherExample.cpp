@@ -6,7 +6,7 @@
 
 using namespace volcart;
 
-int main()
+auto main() -> int
 {
     // Plane
     OrderedPointSet<cv::Vec3d> Plane(5);

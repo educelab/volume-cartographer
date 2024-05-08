@@ -1,11 +1,14 @@
 #include "vc/core/io/TIFFIO.hpp"
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 
 #include <opencv2/imgproc.hpp>
 
 #include "vc/core/Version.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
+#include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
 // Wrapping in a namespace to avoid define collisions
@@ -23,8 +26,9 @@ namespace
 // Return a CV Mat type using TIF type (signed, unsigned, float),
 // bit-depth, and number of channels
 auto GetCVMatType(
-    const uint16_t tifType, const uint16_t depth, const uint16_t channels)
-    -> int
+    const std::uint16_t tifType,
+    const std::uint16_t depth,
+    const std::uint16_t channels) -> int
 {
     switch (depth) {
         case 8:
@@ -66,22 +70,22 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
 {
     // Make sure input file exists
     if (!fs::exists(path)) {
-        throw std::runtime_error("File does not exist");
+        throw IOException("File does not exist");
     }
 
     // Open the file read-only
     lt::TIFF* tif = lt::TIFFOpen(path.c_str(), "r");
     if (tif == nullptr) {
-        throw std::runtime_error("Failed to open tif");
+        throw IOException("Failed to open tif");
     }
 
     // Get metadata
-    uint32_t width = 0;
-    uint32_t height = 0;
-    uint16_t type = 1;
-    uint16_t depth = 1;
-    uint16_t channels = 1;
-    uint16_t config = 0;
+    std::uint32_t width = 0;
+    std::uint32_t height = 0;
+    std::uint16_t type = 1;
+    std::uint16_t depth = 1;
+    std::uint16_t channels = 1;
+    std::uint16_t config = 0;
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &type);
@@ -96,7 +100,7 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     cv::Mat img = cv::Mat::zeros(h, w, cvType);
 
     // Read the rows
-    auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(tif));
+    auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(tif));
     std::vector<char> buffer(bufferSize + 4);
     if (config == PLANARCONFIG_CONTIG) {
         for (auto row = 0; row < height; row++) {
@@ -104,7 +108,7 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
             std::memcpy(img.ptr(row), &buffer[0], bufferSize);
         }
     } else if (config == PLANARCONFIG_SEPARATE) {
-        std::runtime_error(
+        throw IOException(
             "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
     }
 
@@ -139,11 +143,11 @@ void tio::WriteTIFF(
 {
     // Safety checks
     if (img.channels() < 1 or img.channels() > 4) {
-        throw std::runtime_error("Unsupported number of channels");
+        throw IOException("Unsupported number of channels");
     }
 
     if (not io::FileExtensionFilter(path, {"tif", "tiff"})) {
-        throw std::runtime_error(
+        throw IOException(
             "Invalid file extension " + path.extension().string());
     }
 
@@ -186,7 +190,7 @@ void tio::WriteTIFF(
             bitsPerSample = 64;
             break;
         default:
-            throw std::runtime_error("Unsupported image depth");
+            throw IOException("Unsupported image depth");
     }
 
     // Photometric Interpretation
@@ -201,7 +205,7 @@ void tio::WriteTIFF(
             photometric = PHOTOMETRIC_RGB;
             break;
         default:
-            throw std::runtime_error("Unsupported number of channels");
+            throw IOException("Unsupported number of channels");
     }
 
     // Get working copy with converted channels if an RGB-type image
@@ -216,7 +220,7 @@ void tio::WriteTIFF(
             cv::cvtColor(img, imgCopy, cv::COLOR_BGRA2RGBA);
         }
     } else if (cvtNeeded) {
-        throw std::runtime_error(
+        throw IOException(
             "BGR->RGB conversion for signed 8-bit and 16-bit images is not "
             "supported.");
     } else {
@@ -234,8 +238,7 @@ void tio::WriteTIFF(
     auto* out = lt::TIFFOpen(path.c_str(), mode.c_str());
     if (out == nullptr) {
         Logger()->error("Failed to open file for writing: {}", path.string());
-        throw std::runtime_error(
-            "Failed to open file for writing: " + path.string());
+        throw IOException("Failed to open file for writing: " + path.string());
     }
 
     // Encoding parameters
@@ -253,7 +256,7 @@ void tio::WriteTIFF(
     // TODO: Let user decide associated/unassociated tag
     // See TIFF 6.0 spec, section 18
     if (channels == 2 or channels == 4) {
-        std::array<uint16_t, 1> tag{EXTRASAMPLE_UNASSALPHA};
+        std::array<std::uint16_t, 1> tag{EXTRASAMPLE_UNASSALPHA};
         lt::TIFFSetField(out, TIFFTAG_EXTRASAMPLES, 1, tag.data());
     }
 
@@ -263,7 +266,7 @@ void tio::WriteTIFF(
 
     // Row buffer. OpenCV documentation mentions that TIFFWriteScanline
     // modifies its read buffer, so we can't use the cv::Mat directly
-    auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(out));
+    auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(out));
     std::vector<char> buffer(bufferSize + 32);
 
     // For each row
@@ -273,7 +276,7 @@ void tio::WriteTIFF(
         if (result == -1) {
             lt::TIFFClose(out);
             auto msg = "Failed to write row " + std::to_string(row);
-            throw std::runtime_error(msg);
+            throw IOException(msg);
         }
     }
 

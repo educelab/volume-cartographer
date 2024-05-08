@@ -95,7 +95,7 @@ target_link_libraries(vc_render
 )
 
 ## Render from PPM
-add_executable(vc_render_from_ppm src/RenderFromPPM.cpp src/RenderIO.cpp src/RenderTexturing.cpp)
+add_executable(vc_render_from_ppm src/RenderFromPPM.cpp src/RenderTexturing.cpp)
 target_link_libraries(vc_render_from_ppm
     VC::core
     VC::texturing

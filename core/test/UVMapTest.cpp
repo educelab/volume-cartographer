@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <iostream>
 
 #include "vc/core/io/UVMapIO.hpp"
@@ -141,8 +142,8 @@ TEST(UVMapTest, WriteAndRead)
     cv::RNG rng(std::time(nullptr));
     uvMap.setOrigin(static_cast<UVMap::Origin>(rng.uniform(0, 4)));
     auto size = static_cast<std::size_t>(rng.uniform(100, 1000));
-    for (size_t i = 0; i < size; i++) {
-        size_t id = rng.uniform(0, size);
+    for (std::size_t i = 0; i < size; i++) {
+        std::size_t id = rng.uniform(0, size);
         auto u = rng.uniform(0.0, 1.0);
         auto v = rng.uniform(0.0, 1.0);
         uvMap.set(id, {u, v});

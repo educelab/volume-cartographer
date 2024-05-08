@@ -22,7 +22,7 @@ static constexpr int TEXT_OFFSET_X = 10;
 static constexpr int TEXT_OFFSET_Y = 5;
 static constexpr int SCALE_WIDTH = 200;
 
-cv::Mat vct::ScaleMarkerGenerator::compute()
+auto vct::ScaleMarkerGenerator::compute() -> cv::Mat
 {
     // Safety check
     if (inputImg_.empty()) {
@@ -75,7 +75,7 @@ cv::Mat vct::ScaleMarkerGenerator::compute()
     return outputImg_;
 }
 
-cv::Mat vct::ScaleMarkerGenerator::resize_ref_image_()
+auto vct::ScaleMarkerGenerator::resize_ref_image_() -> cv::Mat
 {
     // resizing the sample character
     cv::Mat resized;
@@ -92,7 +92,7 @@ cv::Mat vct::ScaleMarkerGenerator::resize_ref_image_()
     return resized;
 }
 
-cv::Mat vct::ScaleMarkerGenerator::generate_scale_bar_()
+auto vct::ScaleMarkerGenerator::generate_scale_bar_() -> cv::Mat
 {
     // Setup empty output image
     cv::Mat barImg = cv::Mat::zeros(inputImg_.rows, SCALE_WIDTH, CV_8UC3);

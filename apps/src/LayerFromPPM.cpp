@@ -1,8 +1,10 @@
+#include <cstddef>
 #include <sstream>
 
 #include <boost/program_options.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "vc/app_support/GeneralOptions.hpp"
 #include "vc/app_support/GetMemorySize.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
@@ -11,20 +13,19 @@
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/MemorySizeStringParser.hpp"
 #include "vc/core/util/String.hpp"
 #include "vc/texturing/LayerTexture.hpp"
 
-namespace vc = volcart;
+using namespace volcart;
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
-
-using volcart::enumerate;
 
 namespace
 {
@@ -48,9 +49,8 @@ auto main(int argc, char* argv[]) -> int
     ///// Parse the command line options /////
     // All command line options
     // clang-format off
-    po::options_description required("General Options");
-    required.add_options()
-        ("help,h", "Show this message")
+    po::options_description ioOpts("Input/Output Options");
+    ioOpts.add_options()
         ("volpkg,v", po::value<std::string>()->required(), "VolumePkg path")
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
         ("volume", po::value<std::string>(),
@@ -59,12 +59,10 @@ auto main(int argc, char* argv[]) -> int
         ("output-dir,o", po::value<std::string>()->required(),
             "Output directory for layer images.")
         ("output-ppm", po::value<std::string>(), "Create and save a new PPM "
-            "that maps to the layer subvolume.")
+            "that maps to the layer volume.")
         ("image-format,f", po::value<std::string>()->default_value("png"),
             "Image format for layer images. Default: png")
-        ("compression", po::value<int>(), "Image compression level")
-        ("progress", po::value<bool>()->default_value(true),
-            "When enabled, show algorithm progress bars.");
+        ("compression", po::value<int>(), "Image compression level");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -84,18 +82,12 @@ auto main(int argc, char* argv[]) -> int
             "default, normals in the new PPM are oriented in the positive "
             "Z direction.");
 
-    po::options_description performanceOptions("Performance Options");
-    performanceOptions.add_options()
-        ("cache-memory-limit", po::value<std::string>(), "Maximum size of the "
-            "slice cache in bytes. Accepts the suffixes: (K|M|G|T)(B). "
-            "Default: 50% of the total system memory.");
-
     po::options_description all("Usage");
-    all.add(required)
+    all.add(GetGeneralOpts())
+        .add(ioOpts)
         .add(::GetTransformOpts())
         .add(filterOptions)
-        .add(ppmOptions)
-        .add(performanceOptions);
+        .add(ppmOptions);
     // clang-format on
 
     // Parse the cmd line
@@ -103,8 +95,8 @@ auto main(int argc, char* argv[]) -> int
     po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
 
     // Show the help message
-    if (parsed.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+    if (parsed.count("help") > 0 || argc < 2) {
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -112,33 +104,37 @@ auto main(int argc, char* argv[]) -> int
     try {
         po::notify(parsed);
     } catch (po::error& e) {
-        vc::Logger()->error(e.what());
+        Logger()->error(e.what());
         return EXIT_FAILURE;
     }
 
+    // Set logging level
+    auto logLevel = parsed["log-level"].as<std::string>();
+    logging::SetLogLevel(logLevel);
+
     // Get the parsed options
-    fs::path volpkgPath = fs::canonical(parsed["volpkg"].as<std::string>());
-    fs::path inputPPMPath = parsed["ppm"].as<std::string>();
+    const fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+    const fs::path inputPPMPath = parsed["ppm"].as<std::string>();
 
     // Check for output file
     auto outDir = fs::weakly_canonical(parsed["output-dir"].as<std::string>());
     if (outDir.has_extension()) {
-        vc::Logger()->error(
+        Logger()->error(
             "Provided output path is not a directory: {}", outDir.string());
         return EXIT_FAILURE;
     }
     if (not fs::exists(outDir)) {
         auto success = fs::create_directory(outDir);
         if (not success) {
-            vc::Logger()->error(
+            Logger()->error(
                 "Could not create output directory: {}. Check that parent "
                 "exists and is writable.",
                 outDir.string());
             return EXIT_FAILURE;
         }
     }
-    auto imgFmt = vc::to_lower_copy(parsed["image-format"].as<std::string>());
-    vc::WriteImageOpts writeOpts;
+    auto imgFmt = to_lower_copy(parsed["image-format"].as<std::string>());
+    WriteImageOpts writeOpts;
     if (parsed.count("compression") > 0) {
         writeOpts.compression = parsed["compression"].as<int>();
     } else {
@@ -149,9 +145,9 @@ auto main(int argc, char* argv[]) -> int
     }
 
     ///// Load the volume package /////
-    vc::VolumePkg vpkg(volpkgPath);
+    VolumePkg vpkg(volpkgPath);
     if (vpkg.version() < VOLPKG_MIN_VERSION) {
-        vc::Logger()->error(
+        Logger()->error(
             "Volume Package is version {} but this program requires version "
             "{}+. ",
             vpkg.version(), VOLPKG_MIN_VERSION);
@@ -159,139 +155,142 @@ auto main(int argc, char* argv[]) -> int
     }
 
     ///// Load the Volume /////
-    vc::Volume::Pointer volume;
+    Volume::Pointer volume;
     try {
-        if (parsed.count("volume")) {
+        if (parsed.count("volume") > 0) {
             volume = vpkg.volume(parsed["volume"].as<std::string>());
         } else {
             volume = vpkg.volume();
         }
     } catch (const std::exception& e) {
-        std::cerr << "Cannot load volume. ";
-        std::cerr << "Please check that the Volume Package has volumes and "
-                     "that the volume ID is correct."
-                  << std::endl;
-        std::cerr << e.what() << std::endl;
+        Logger()->error(
+            "Cannot load volume. Please check that the "
+            "Volume Package has volumes and that the volume ID is correct: "
+            "{}",
+            e.what());
         return EXIT_FAILURE;
     }
 
     // Set the cache size
-    size_t cacheBytes;
-    if (parsed.count("cache-memory-limit")) {
+    std::size_t cacheBytes{SystemMemorySize() / 2};
+    if (parsed.count("cache-memory-limit") > 0) {
         auto cacheSizeOpt = parsed["cache-memory-limit"].as<std::string>();
-        cacheBytes = vc::MemorySizeStringParser(cacheSizeOpt);
-    } else {
-        cacheBytes = SystemMemorySize() / 2;
+        cacheBytes = MemorySizeStringParser(cacheSizeOpt);
     }
     volume->setCacheMemoryInBytes(cacheBytes);
-    std::cout << "Volume Cache :: ";
-    std::cout << "Capacity: " << volume->getCacheCapacity() << " || ";
-    std::cout << "Size: " << vc::BytesToMemorySizeString(cacheBytes);
-    std::cout << std::endl;
+    Logger()->info(
+        "Volume Cache :: Capacity: {} || Size: {}", volume->getCacheCapacity(),
+        BytesToMemorySizeString(cacheBytes));
 
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
     // defined by the estimated thickness of the layer
-    double radius;
-    if (parsed.count("radius")) {
+    double radius{0};
+    if (parsed.count("radius") > 0) {
         radius = parsed["radius"].as<double>();
     } else {
         radius = vpkg.materialThickness() / 2 / volume->voxelSize();
     }
 
     auto interval = parsed["interval"].as<double>();
-    auto direction = static_cast<vc::Direction>(parsed["direction"].as<int>());
+    auto direction = static_cast<Direction>(parsed["direction"].as<int>());
 
     // Read the ppm
-    std::cout << "Loading PPM..." << std::endl;
-    auto ppm = vc::PerPixelMap::New(vc::PerPixelMap::ReadPPM(inputPPMPath));
+    Logger()->info("Loading PPM...");
+    auto ppm = PerPixelMap::New(PerPixelMap::ReadPPM(inputPPMPath));
 
     ///// Transform the PPM /////
     if (parsed.count("transform") > 0) {
         // load the transform
         auto tfmId = parsed.at("transform").as<std::string>();
-        vc::Transform3D::Pointer tfm;
+        Transform3D::Pointer tfm;
         if (vpkg.hasTransform(tfmId)) {
             tfm = vpkg.transform(tfmId);
         } else {
-            tfm = vc::Transform3D::Load(tfmId);
+            tfm = Transform3D::Load(tfmId);
         }
 
         if (parsed.count("invert-transform") > 0) {
             if (tfm->invertible()) {
                 tfm = tfm->invert();
             } else {
-                std::cerr << "WARNING: ";
-                std::cerr << "Cannot invert transform. Using original.";
-                std::cerr << std::endl;
+                Logger()->warn("Cannot invert transform. Using original.");
             }
         }
 
-        std::cout << "Applying transform..." << std::endl;
-        ppm = vc::ApplyTransform(ppm, tfm);
+        Logger()->info("Applying transform...");
+        ppm = ApplyTransform(ppm, tfm);
     }
 
     // Setup line generator
-    auto line = vc::LineGenerator::New();
+    auto line = LineGenerator::New();
     line->setSamplingRadius(radius);
     line->setSamplingInterval(interval);
     line->setSamplingDirection(direction);
 
     // Layer texture
-    vc::texturing::LayerTexture s;
-    s.setVolume(volume);
-    s.setPerPixelMap(ppm);
-    s.setGenerator(line);
+    texturing::LayerTexture layerGen;
+    layerGen.setVolume(volume);
+    layerGen.setPerPixelMap(ppm);
+    layerGen.setGenerator(line);
 
-    if (parsed["progress"].as<bool>()) {
-        vc::ReportProgress(s, "Generating layers:");
-        vc::Logger()->debug("Generating layers...");
-    } else {
-        vc::Logger()->info("Generating layers...");
+    // Progress reporting
+    auto enableProgress = parsed["progress"].as<bool>();
+    ProgressConfig cfg;
+    if (parsed.count("progress-interval") > 0) {
+        cfg.interval =
+            DurationFromString(parsed["progress-interval"].as<std::string>());
     }
 
-    auto texture = s.compute();
+    if (enableProgress) {
+        ReportProgress(layerGen, "Generating layers:", cfg);
+        Logger()->debug("Generating layers...");
+    } else {
+        Logger()->info("Generating layers...");
+    }
+
+    auto texture = layerGen.compute();
 
     // Write the image sequence
     const fs::path filepath = outDir / ("{}." + imgFmt);
-    if (parsed["progress"].as<bool>()) {
-        vc::Logger()->debug("Writing layers...");
-        auto progIt = vc::ProgressWrap(texture, "Writing layers:");
-        vc::WriteImageSequence(filepath, progIt, writeOpts);
+    if (enableProgress) {
+        Logger()->debug("Writing layers...");
+        auto progIt = ProgressWrap(texture, "Writing layers:", cfg);
+        WriteImageSequence(filepath, progIt, writeOpts);
     } else {
-        vc::Logger()->info("Writing layers...");
-        vc::WriteImageSequence(filepath, texture, writeOpts);
+        Logger()->info("Writing layers...");
+        WriteImageSequence(filepath, texture, writeOpts);
     }
 
     if (parsed.count("output-ppm") > 0) {
-        std::cout << "Generating new PPM..." << std::endl;
+        Logger()->info("Generating new PPM...");
         const fs::path outputPPMPath = parsed["output-ppm"].as<std::string>();
 
         // Setup new PPM
         auto height = ppm->height();
         auto width = ppm->width();
-        vc::PerPixelMap newPPM(height, width);
+        PerPixelMap newPPM(height, width);
         newPPM.setMask(ppm->mask());
+        newPPM.setCellMap(ppm->cellMap());
 
         // Fill new PPM
         auto z = static_cast<double>(texture.size() - 1) / 2.0;
         auto normal = (parsed.count("negative-normal") > 0) ? -1.0 : 1.0;
-        for (size_t y = 0; y < height; y++) {
-            for (size_t x = 0; x < width; x++) {
-                if (!newPPM.hasMapping(y, x)) {
-                    continue;
-                }
-                newPPM(y, x) = {static_cast<double>(x),
-                                static_cast<double>(y),
-                                z,
-                                0.0,
-                                0.0,
-                                normal};
+        for (auto [y, x] : range2D(height, width)) {
+            if (!newPPM.hasMapping(y, x)) {
+                continue;
             }
+            newPPM(y, x) = {static_cast<double>(x),
+                            static_cast<double>(y),
+                            z,
+                            0.0,
+                            0.0,
+                            normal};
         }
 
         // Write the new PPM
-        std::cout << "Writing new PPM..." << std::endl;
-        vc::PerPixelMap::WritePPM(outputPPMPath, newPPM);
+        Logger()->info("Writing new PPM...");
+        PerPixelMap::WritePPM(outputPPMPath, newPPM);
     }
+    Logger()->info("Done.");
 }

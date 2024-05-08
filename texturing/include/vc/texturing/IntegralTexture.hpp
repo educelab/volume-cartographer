@@ -2,9 +2,10 @@
 
 /** @file */
 
-#include "vc/texturing/TexturingAlgorithm.hpp"
+#include <cstdint>
 
 #include "vc/core/neighborhood/NeighborhoodGenerator.hpp"
+#include "vc/texturing/TexturingAlgorithm.hpp"
 
 namespace volcart::texturing
 {
@@ -60,8 +61,18 @@ public:
     /** Make shared pointer */
     static auto New() -> Pointer;
 
+    /** Default constructor */
+    IntegralTexture() = default;
     /** Default destructor */
     ~IntegralTexture() override = default;
+    /** Default copy constructor */
+    IntegralTexture(IntegralTexture&) = default;
+    /** Default move constructor */
+    IntegralTexture(IntegralTexture&&) = default;
+    /** Default copy operator */
+    auto operator=(const IntegralTexture&) -> IntegralTexture& = default;
+    /** Default move operator */
+    auto operator=(IntegralTexture&&) -> IntegralTexture& = default;
     /**@}*/
 
     /**@{*/
@@ -89,12 +100,12 @@ public:
      *
      * Ignored if setClampValuesToMax() is set to `false`
      *
-     * Default: std::numeric_limits<uint16_t>::max()
+     * Default: std::numeric_limits<std::uint16_t>::max()
      */
-    void setClampMax(uint16_t m);
+    void setClampMax(std::uint16_t m);
 
-    /** @copydoc setClampMax(uint16_t) */
-    [[nodiscard]] auto clampMax() const -> uint16_t;
+    /** @copydoc setClampMax(std::uint16_t) */
+    [[nodiscard]] auto clampMax() const -> std::uint16_t;
 
     /**
      * @brief Set the weighting method
@@ -169,7 +180,7 @@ private:
     bool clampToMax_{false};
 
     /** Maximum allowed value in neighborhood when clamping is enabled */
-    uint16_t clampMax_{std::numeric_limits<uint16_t>::max()};
+    std::uint16_t clampMax_{std::numeric_limits<uint16_t>::max()};
 
     /** Selected Weighting method */
     WeightMethod weight_{WeightMethod::None};
@@ -211,7 +222,7 @@ private:
     void setup_expodiff_weights_();
 
     /** Get the list of intensities on the surface of the mesh */
-    auto expodiff_intersection_pts_() -> std::vector<uint16_t>;
+    auto expodiff_intersection_pts_() -> std::vector<std::uint16_t>;
 
     /** Calculate the mean base value */
     auto expodiff_mean_base_() -> double;

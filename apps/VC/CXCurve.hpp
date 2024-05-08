@@ -19,7 +19,7 @@ public:
     void SetSliceIndex(int nIndex) { fSliceIndex = nIndex; }
     int GetSliceIndex(void) { return fSliceIndex; }
 
-    size_t GetPointsNum(void) const { return fPoints.size(); }
+    std::size_t GetPointsNum(void) const { return fPoints.size(); }
 
     Vec2<double> GetPoint(int nIndex) const { return fPoints[nIndex]; }
     const std::vector<Vec2<double>> GetPoints() const { return fPoints; }

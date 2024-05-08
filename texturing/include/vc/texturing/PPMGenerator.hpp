@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+
 #include "vc/core/types/ITKMesh.hpp"
 #include "vc/core/types/Mixins.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
@@ -42,7 +44,7 @@ public:
     PPMGenerator() = default;
 
     /** Construct with dimension parameters */
-    PPMGenerator(size_t h, size_t w);
+    PPMGenerator(std::size_t h, std::size_t w);
     /**@}*/
 
     /**@{*/
@@ -55,7 +57,7 @@ public:
 
     /**@{*/
     /** @brief Set the dimensions of the output PPM */
-    void setDimensions(size_t h, size_t w);
+    void setDimensions(std::size_t h, std::size_t w);
 
     /** @brief Set the normal shading method */
     void setShading(Shading s);
@@ -72,7 +74,7 @@ public:
     /**@}*/
 
     /** @brief Returns the maximum progress value */
-    [[nodiscard]] auto progressIterations() const -> size_t override;
+    [[nodiscard]] auto progressIterations() const -> std::size_t override;
 
 private:
     /** Input mesh */
@@ -87,9 +89,9 @@ private:
     /** Output shading */
     Shading shading_{Shading::Smooth};
     /** Output width of the PerPixelMap */
-    size_t width_{0};
+    std::size_t width_{0};
     /** Output height of the PerPixelMap */
-    size_t height_{0};
+    std::size_t height_{0};
 };
 
 /**

@@ -2,6 +2,8 @@
 
 /** @file */
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 
 #include "vc/core/types/NDArray.hpp"
@@ -15,7 +17,7 @@ namespace volcart
  *
  * @ingroup Neighborhoods
  */
-using Neighborhood = NDArray<uint16_t>;
+using Neighborhood = NDArray<std::uint16_t>;
 
 /**
  * @brief Neighborhood directional filtering options
@@ -42,7 +44,7 @@ public:
 
     /**@{*/
     /** @brief Get the dimensionality of the neighborhood generator */
-    size_t dim() { return dim_; }
+    std::size_t dim() { return dim_; }
 
     /** @brief Get the size of the neighborhood returned by this class
      *
@@ -54,7 +56,10 @@ public:
 
     /**@{*/
     /** @brief Set the sampling search radius by axis */
-    void setSamplingRadius(double r, size_t axis = 0) { radius_[axis] = r; }
+    void setSamplingRadius(double r, std::size_t axis = 0)
+    {
+        radius_[axis] = r;
+    }
 
     /** @brief Set the sampling search radius for all axes */
     void setSamplingRadius(double r0, double r1, double r2)
@@ -98,12 +103,12 @@ public:
 
 protected:
     /** Default constructor */
-    explicit NeighborhoodGenerator(size_t dim) : dim_{dim} {}
+    explicit NeighborhoodGenerator(std::size_t dim) : dim_{dim} {}
 
     virtual ~NeighborhoodGenerator() = default;
 
     /** Dimensionality of the generator */
-    const size_t dim_{0};
+    const std::size_t dim_{0};
 
     /** Radius of calculation */
     cv::Vec3d radius_{1.0, 1.0, 1.0};

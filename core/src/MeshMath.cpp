@@ -5,7 +5,7 @@
 namespace volcart::meshmath
 {
 
-double SurfaceArea(const ITKMesh::Pointer& mesh)
+auto SurfaceArea(const ITKMesh::Pointer& mesh) -> double
 {
     if(mesh == nullptr) {
         throw std::runtime_error("Failed to calculate surface area. Mesh is nullptr.");

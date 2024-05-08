@@ -29,13 +29,13 @@ namespace fs = volcart::filesystem;
 using std::begin;
 using std::end;
 
-size_t OpticalFlowSegmentationClass::progressIterations() const
+std::size_t OpticalFlowSegmentationClass::progressIterations() const
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
         [](auto a, auto b) { return a[2] < b[2]; });
     auto startIndexChain = static_cast<int>(std::floor((*minZPoint)[2]));
-    return static_cast<size_t>((std::abs(endIndex_ - startIndexChain) + smoothness_interpolation_distance_ + smoothness_interpolation_window_) / stepSize_);
+    return static_cast<std::size_t>((std::abs(endIndex_ - startIndexChain) + smoothness_interpolation_distance_ + smoothness_interpolation_window_) / stepSize_);
 }
 
 // print curve points with the help of this function
@@ -332,7 +332,7 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
     // // Approximate curves for the contours
     // double epsilonFactor = 0.001; // Set the approximation accuracy factor here
     // std::vector<std::vector<cv::Point>> approx_curves(filtered_contours.size());
-    // for (size_t i = 0; i < filtered_contours.size(); ++i)
+    // for (std::size_t i = 0; i < filtered_contours.size(); ++i)
     // {
     //     double epsilon = epsilonFactor * cv::arcLength(filtered_contours[i], true);
     //     cv::approxPolyDP(filtered_contours[i], approx_curves[i], epsilon, true);
@@ -784,7 +784,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     points.reserve((std::abs(interpolationEnd - startIndexChain) + 1 + 1));
 
     // Iterate over z-slices
-    size_t iteration{0};
+    std::size_t iteration{0};
 
     if (smoothness_interpolation_distance_ > 0 && !reSegStartingChain_.empty()) {
 
@@ -951,7 +951,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
 }
 
 ChainSegmentationAlgorithm::Status OpticalFlowSegmentationClass::computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startChainIndex, int endChainIndex, int endIndex, int initialStepAdjustment, bool backwards,
-    size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
+    std::size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
 {
     int loopCounter = 0;
     auto adjustedStepSize = stepSize_ + (backwards ? -initialStepAdjustment : initialStepAdjustment);
@@ -1155,8 +1155,8 @@ OpticalFlowSegmentationClass::create_final_pointset_(
     result_.clear();
     result_.setWidth(cols);
 
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < cols; ++j) {
+    for (std::size_t i = 0; i < rows; ++i) {
+        for (std::size_t j = 0; j < cols; ++j) {
             int index = backwards ? (rows - i - 1) : i;
             Voxel v = points[index][j];
             tempRow.emplace_back(v(0), v(1), v(2));
@@ -1176,7 +1176,7 @@ cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
 {
     auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(
-        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<uint8_t>::max());
+        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<std::uint8_t>::max());
     cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
 
     // Superimpose interpolated currentCurve on window
@@ -1192,7 +1192,7 @@ cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
         cv::polylines(pkgSlice, contour, false, BGR_BLUE, 1, cv::LINE_AA);
     } else {
         // Draw circles on the pkgSlice window for each point
-        for (size_t i = 0; i < curve.size(); ++i) {
+        for (std::size_t i = 0; i < curve.size(); ++i) {
             cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
             cv::circle(pkgSlice, real, 2, BGR_GREEN, -1);
         }
@@ -1232,7 +1232,7 @@ cv::Mat OpticalFlowSegmentationClass::draw_particle_on_image_(
         cv::polylines(pkgSlice, contour, false, BGR_BLUE, 1, cv::LINE_AA);
     } else {
         // Draw circles on the pkgSlice window for each point
-        for (size_t i = 0; i < curve.size(); ++i) {
+        for (std::size_t i = 0; i < curve.size(); ++i) {
             cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
             cv::circle(pkgSlice, real, 2, BGR_GREEN, -1);
         }

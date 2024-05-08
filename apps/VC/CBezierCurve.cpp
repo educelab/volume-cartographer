@@ -14,7 +14,7 @@
 using namespace ChaoVis;
 
 // Bezier point
-inline float GetPt(int n1, int n2, float percent)
+inline auto GetPt(int n1, int n2, float percent) -> float
 {
     int diff = n2 - n1;
     return n1 + (diff * percent);

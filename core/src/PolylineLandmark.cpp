@@ -17,14 +17,15 @@ PolylineLandmark::PolylineLandmark(
     update_meta_();
 }
 
-PolylineLandmark::Pointer PolylineLandmark::New(
-    const Identifier& uuid, const std::string& name)
+auto PolylineLandmark::New(const Identifier& uuid, const std::string& name)
+    -> PolylineLandmark::Pointer
 {
     return std::make_shared<PolylineLandmark>(uuid, name);
 }
 
-PolylineLandmark::Pointer PolylineLandmark::New(
+auto PolylineLandmark::New(
     const Identifier& uuid, const std::string& name, const Polyline& poly)
+    -> PolylineLandmark::Pointer
 {
     return std::make_shared<PolylineLandmark>(uuid, name, poly);
 }
@@ -35,7 +36,7 @@ void PolylineLandmark::setPolyline(Polyline p)
     update_meta_();
 }
 
-PolylineLandmark::Polyline PolylineLandmark::getPolyline() const
+auto PolylineLandmark::getPolyline() const -> PolylineLandmark::Polyline
 {
     return poly_;
 }

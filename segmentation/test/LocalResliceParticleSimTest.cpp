@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <cstddef>
 
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
@@ -14,9 +15,9 @@ struct PointXYZ {
     explicit PointXYZ(const cv::Vec3d& p) : x(p[0]), y(p[1]), z(p[2]) {}
 };
 
-std::ostream& operator<<(std::ostream& s, PointXYZ p);
+auto operator<<(std::ostream& s, PointXYZ p) -> std::ostream&;
 
-inline double NormL2(const PointXYZ p1, const PointXYZ p2)
+inline auto NormL2(const PointXYZ p1, const PointXYZ p2) -> double
 {
     return std::sqrt(
         (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) +
@@ -88,8 +89,8 @@ TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
     // Compare clouds, make sure each point is within a certain tolerance.
     // Currently set in this file, may be set outside later on
     constexpr double voxelDiffTol = 10;  // %
-    size_t diffCount = 0;
-    for (size_t i = 0; i < groundTruthCloud.size(); ++i) {
+    std::size_t diffCount = 0;
+    for (std::size_t i = 0; i < groundTruthCloud.size(); ++i) {
         PointXYZ trueV(groundTruthCloud[i]);
         PointXYZ testV(resultCloud[i]);
         auto xdiff = std::abs(trueV.x - testV.x);
@@ -110,13 +111,13 @@ TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
 
     // Check that the clouds never vary in point differences by 10%
     auto maxAllowedDiffCount =
-        size_t(std::round(0.1 * groundTruthCloud.size()));
+        std::size_t(std::round(0.1 * groundTruthCloud.size()));
     std::cout << "# different points: " << diffCount
-              << " (max allowed: " << maxAllowedDiffCount << ")" << std::endl;
+              << " (max allowed: " << maxAllowedDiffCount << ")" << '\n';
     EXPECT_TRUE(diffCount < maxAllowedDiffCount);
 }
 
-std::ostream& operator<<(std::ostream& s, PointXYZ p)
+auto operator<<(std::ostream& s, PointXYZ p) -> std::ostream&
 {
     return s << "[" << p.x << ", " << p.y << ", " << p.z << "]";
 }

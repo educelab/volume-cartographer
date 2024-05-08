@@ -2,7 +2,7 @@
 FetchContent_Declare(
   bvh
   GIT_REPOSITORY https://github.com/madmann91/bvh.git
-  GIT_TAG 19dde37
+  GIT_TAG 2fd0db6
 )
 
 # Populate the project but exclude from all

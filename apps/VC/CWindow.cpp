@@ -652,7 +652,7 @@ void CWindow::CreateBackend()
     connect(
         worker, &VolPkgBackend::segmentationFailed, this,
         &CWindow::onSegmentationFailed);
-    connect(worker, &VolPkgBackend::progressUpdated, [=](size_t p) {
+    connect(worker, &VolPkgBackend::progressUpdated, [=](std::size_t p) {
         progress_ = p;
     });
     worker_thread_.start();
@@ -665,7 +665,7 @@ void CWindow::CreateBackend()
     progressBar_ = new QProgressBar();
     layout->addWidget(progressBar_);
     progressBar_->setMinimum(0);
-    connect(worker, &VolPkgBackend::segmentationStarted, [=](size_t its) {
+    connect(worker, &VolPkgBackend::segmentationStarted, [=](std::size_t its) {
         progressBar_->setMaximum(its);
     });
 
@@ -775,7 +775,7 @@ void CWindow::setWidgetsEnabled(bool state)
     fVolumeViewerWidget->setButtonsEnabled(state);
 }
 
-bool CWindow::InitializeVolumePkg(const std::string& nVpkgPath)
+auto CWindow::InitializeVolumePkg(const std::string& nVpkgPath) -> bool
 {
     fVpkg = nullptr;
 
@@ -804,7 +804,7 @@ void CWindow::setDefaultWindowWidth(vc::Volume::Pointer volume)
     fEdtWindowWidth->setValue(static_cast<int>(winWidth));
 }
 
-CWindow::SaveResponse CWindow::SaveDialog(void)
+auto CWindow::SaveDialog(void) -> CWindow::SaveResponse
 {
     // First check the state of the segmentation tool
     if (fSegTool->isChecked() && SaveDialogSegTool() == SaveResponse::Cancelled) {
@@ -1477,7 +1477,7 @@ void CWindow::CleanupSegmentation(void)
 }
 
 // Set up the parameters for doing segmentation
-bool CWindow::SetUpSegParams(void)
+auto CWindow::SetUpSegParams(void) -> bool
 {
     bool aIsOk;
 
@@ -2894,7 +2894,7 @@ void CWindow::OnAnnotationChanged(void)
     UpdateAnnotationList();
 }
 
-bool CWindow::can_change_volume_()
+auto CWindow::can_change_volume_() -> bool
 {
     // return fVpkg != nullptr && fVpkg->numberOfVolumes() > 1 &&
     //        (fSegStructMap[fSegmentationId].fSegmentation == nullptr || !fSegStructMap[fSegmentationId].fSegmentation->hasPointSet() ||

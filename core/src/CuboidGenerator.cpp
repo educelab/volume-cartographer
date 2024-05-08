@@ -1,5 +1,6 @@
 #include "vc/core/neighborhood/CuboidGenerator.hpp"
 
+#include <cstddef>
 #include <exception>
 
 static const std::vector<cv::Vec3d> BASIS_VECTORS = {
@@ -7,10 +8,10 @@ static const std::vector<cv::Vec3d> BASIS_VECTORS = {
 
 using namespace volcart;
 
-Neighborhood CuboidGenerator::compute(
+auto CuboidGenerator::compute(
     const Volume::Pointer& v,
     const cv::Vec3d& pt,
-    const std::vector<cv::Vec3d>& axes)
+    const std::vector<cv::Vec3d>& axes) -> Neighborhood
 {
     // Auto-generate missing axes
     auto bases = axes;
@@ -56,9 +57,9 @@ Neighborhood CuboidGenerator::compute(
 
     // Iterate over the axes
     Neighborhood output(3, extent);
-    for (size_t z = 0; z < extent[0]; ++z) {
-        for (size_t y = 0; y < extent[1]; ++y) {
-            for (size_t x = 0; x < extent[2]; ++x) {
+    for (std::size_t z = 0; z < extent[0]; ++z) {
+        for (std::size_t y = 0; y < extent[1]; ++y) {
+            for (std::size_t x = 0; x < extent[2]; ++x) {
 
                 // Offset along each axis
                 auto zOffset = -radius[0] + (z * interval_);
@@ -78,18 +79,18 @@ Neighborhood CuboidGenerator::compute(
     return output;
 }
 
-Neighborhood::Extent CuboidGenerator::extents() const
+auto CuboidGenerator::extents() const -> Neighborhood::Extent
 {
     auto radius =
         (direction_ != Direction::Bidirectional) ? radius_[0] / 2 : radius_[0];
 
     Neighborhood::Extent extent;
     extent.emplace_back(
-        static_cast<size_t>(std::floor(2.0 * radius / interval_) + 1));
+        static_cast<std::size_t>(std::floor(2.0 * radius / interval_) + 1));
     extent.emplace_back(
-        static_cast<size_t>(std::floor(2.0 * radius_[1] / interval_) + 1));
+        static_cast<std::size_t>(std::floor(2.0 * radius_[1] / interval_) + 1));
     extent.emplace_back(
-        static_cast<size_t>(std::floor(2.0 * radius_[2] / interval_) + 1));
+        static_cast<std::size_t>(std::floor(2.0 * radius_[2] / interval_) + 1));
 
     return extent;
 }

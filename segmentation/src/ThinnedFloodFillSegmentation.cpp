@@ -27,7 +27,7 @@ using Voxel = cv::Vec3i;
 using VoxelList = std::vector<cv::Vec3i>;
 using VoxelSet = std::unordered_set<Voxel, Vec3iHash>;
 
-static VoxelSet FindIntersections(const VoxelSet& pts)
+static auto FindIntersections(const VoxelSet& pts) -> VoxelSet
 {
     VoxelSet intersections;
     for (const auto& v : pts) {
@@ -50,7 +50,7 @@ static VoxelSet FindIntersections(const VoxelSet& pts)
  * Search the skeleton for spurs.
  * An 'intersection' where more than two paths are available contains a spur.
  * */
-static VoxelSet PruneSpurs(VoxelSet skeleton, size_t spurLength)
+static auto PruneSpurs(VoxelSet skeleton, std::size_t spurLength) -> VoxelSet
 {
     auto intersections = FindIntersections(skeleton);
 
@@ -123,7 +123,7 @@ static VoxelSet PruneSpurs(VoxelSet skeleton, size_t spurLength)
     return skeleton;
 }
 
-static bool ThinPts(int dir, VoxelSet& pts)
+static auto ThinPts(int dir, VoxelSet& pts) -> bool
 {
     std::vector<Voxel> ptsToRemove;
     for (const Voxel& v : pts) {
@@ -204,7 +204,7 @@ static bool ThinPts(int dir, VoxelSet& pts)
  * Edition, by E.R. Davies. This thinning algorithm produces a centered,
  * continuous skeleton. (So long as the mask it is thinning is continuous.)
  * */
-static VoxelSet ThinMask(VoxelSet& pts)
+static auto ThinMask(VoxelSet& pts) -> VoxelSet
 {
     bool nThinned{true};
     bool sThinned{true};
@@ -219,8 +219,8 @@ static VoxelSet ThinMask(VoxelSet& pts)
     return pts;
 }
 
-static TFF::PointSet AppendVoxelSetToPointSet(
-    const VoxelSet& points, TFF::PointSet result)
+static auto AppendVoxelSetToPointSet(
+    const VoxelSet& points, TFF::PointSet result) -> TFF::PointSet
 {
     for (const auto& v : points) {
         result.emplace_back(v[0], v[1], v[2]);
@@ -228,17 +228,17 @@ static TFF::PointSet AppendVoxelSetToPointSet(
     return result;
 }
 
-void TFF::setFFLowThreshold(uint16_t t) { low_ = t; }
-void TFF::setFFHighThreshold(uint16_t t) { high_ = t; }
+void TFF::setFFLowThreshold(std::uint16_t t) { low_ = t; }
+void TFF::setFFHighThreshold(std::uint16_t t) { high_ = t; }
 void TFF::setDistanceTransformThreshold(float t) { dtt_ = t; }
 void TFF::setClosingKernelSize(int s) { kernel_ = s; }
 void TFF::setMeasureVertical(bool b) { measureVertically_ = b; }
 void TFF::setSpurLengthThreshold(int length) { spurLength_ = length; }
-void TFF::setMaxRadius(size_t radius) { maxRadius_ = radius; }
-TFF::VoxelMask TFF::getMask() const { return volMask_; }
+void TFF::setMaxRadius(std::size_t radius) { maxRadius_ = radius; }
+auto TFF::getMask() const -> TFF::VoxelMask { return volMask_; }
 void TFF::setDumpVis(bool b) { dumpVis_ = b; }
 
-TFF::PointSet TFF::compute()
+auto TFF::compute() -> TFF::PointSet
 {
     // Setup debug vis directories
     const fs::path outputDir("debugvis");
@@ -260,9 +260,9 @@ TFF::PointSet TFF::compute()
     // Initialize running points with the provided starting seeds
     // Converts double-to-int by truncation
     VoxelList seedPoints;
-    auto startSlice = std::numeric_limits<size_t>::max();
+    auto startSlice = std::numeric_limits<std::size_t>::max();
     for (const auto& pt : startingPoints_) {
-        startSlice = std::min(startSlice, static_cast<size_t>(pt[2]));
+        startSlice = std::min(startSlice, static_cast<std::size_t>(pt[2]));
         seedPoints.emplace_back(pt[0], pt[1], pt[2]);
     }
 
@@ -287,7 +287,7 @@ TFF::PointSet TFF::compute()
         auto slice = vol_->getSliceDataCopy(zIndex);
 
         // Estimate thickness of page from every seed point.
-        std::vector<size_t> estimates;
+        std::vector<std::size_t> estimates;
         for (const auto& v : seedPoints) {
             estimates.emplace_back(MeasureThickness(
                 v, slice, low_, high_, measureVertically_, maxRadius_));
@@ -308,7 +308,7 @@ TFF::PointSet TFF::compute()
         // Each voxel in the mask should be assigned 'white' in the binary
         // image.
         for (const Voxel& v : sliceMask) {
-            binaryImg.at<uint8_t>(v[1], v[0]) = 255;
+            binaryImg.at<std::uint8_t>(v[1], v[0]) = 255;
         }
 
         // Apply closing to fill holes and gaps.
@@ -320,7 +320,7 @@ TFF::PointSet TFF::compute()
         for (const auto p : range2D(closedImg.rows, closedImg.cols)) {
             const auto& x = p.second;
             const auto& y = p.first;
-            if (closedImg.at<uint8_t>(y, x) > 0) {
+            if (closedImg.at<std::uint8_t>(y, x) > 0) {
                 volMask_.emplace_back(x, y, zIndex);
             }
         }
@@ -332,7 +332,7 @@ TFF::PointSet TFF::compute()
             for (const auto v : range2D(closedImg.rows, closedImg.cols)) {
                 const auto& x = v.second;
                 const auto& y = v.first;
-                if (closedImg.at<uint8_t>(y, x) > 0) {
+                if (closedImg.at<std::uint8_t>(y, x) > 0) {
                     i.at<cv::Vec3b>(y, x) = color::BLUE;
                 }
             }

@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 
 #include <boost/program_options.hpp>
@@ -19,7 +20,7 @@ namespace vc = volcart;
 // Volpkg version required by this app
 static constexpr int VOLPKG_MIN_VERSION = 6;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     // Add CLI arguments
     // clang-format off
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (parsed.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -58,7 +59,7 @@ int main(int argc, char* argv[])
 
     // Get the memory to reserve
     std::string memoryString = parsed["memory"].as<std::string>();
-    size_t memory = 0;
+    std::size_t memory = 0;
     try {
         memory = vc::MemorySizeStringParser(memoryString);
         if (memory > SystemMemorySize()) {
@@ -95,7 +96,7 @@ int main(int argc, char* argv[])
                 return EXIT_FAILURE;
             }
             volpkgs.insert({volpkg.name(), volpkg});
-        } catch (std::runtime_error& e) {
+        } catch (std::exception& e) {
             vc::Logger()->error(
                 "Failed to load volume package: {}: {}", volpkgPath, e.what());
             return EXIT_FAILURE;

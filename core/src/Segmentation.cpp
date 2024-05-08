@@ -29,14 +29,14 @@ Segmentation::Segmentation(fs::path path, Identifier uuid, std::string name)
 }
 
 // Load a Segmentation from disk, return a pointer
-Segmentation::Pointer Segmentation::New(fs::path path)
+auto Segmentation::New(fs::path path) -> Segmentation::Pointer
 {
     return std::make_shared<Segmentation>(path);
 }
 
 // Make a new segmentation on disk, return a pointer
-Segmentation::Pointer Segmentation::New(
-    fs::path path, std::string uuid, std::string name)
+auto Segmentation::New(fs::path path, std::string uuid, std::string name)
+    -> Segmentation::Pointer
 {
     return std::make_shared<Segmentation>(path, uuid, name);
 }
@@ -56,7 +56,7 @@ void Segmentation::setPointSet(const PointSet& ps)
 }
 
 // Load the PointSet from disk
-Segmentation::PointSet Segmentation::getPointSet() const
+auto Segmentation::getPointSet() const -> Segmentation::PointSet
 {
     // Make sure there's an associated pointset file
     if (metadata_.get<std::string>("vcps").empty()) {
@@ -87,11 +87,11 @@ void Segmentation::setAnnotationSet(const AnnotationSet& as)
 
     // Convert from the long and double variant to only double values for storing
     AnnotationSetRaw asRaw(as.width());
-    for (size_t h = 0; h < as.height(); ++h) {
+    for (std::size_t h = 0; h < as.height(); ++h) {
         std::vector<Segmentation::AnnotationRaw> asRowRaw(as.width());
-        for (size_t w = 0; w < as.width(); ++w) {
+        for (std::size_t w = 0; w < as.width(); ++w) {
             AnnotationRaw anRaw;
-            for (size_t i = 0; i < as[h * as.width() + w].channels; ++i) {
+            for (std::size_t i = 0; i < as[h * as.width() + w].channels; ++i) {
                 anRaw[i] = std::visit(long_to_double, as[h * as.width() + w](i));
             }
             asRowRaw[w] = anRaw;
@@ -119,9 +119,9 @@ Segmentation::AnnotationSet Segmentation::getAnnotationSet() const
 
         // Convert from raw (only double values) to long and double variant
         Segmentation::AnnotationSet as(raw.width());
-        for (size_t h = 0; h < raw.height(); ++h) {
+        for (std::size_t h = 0; h < raw.height(); ++h) {
             std::vector<Segmentation::Annotation> asRow(raw.width());
-            for (size_t w = 0; w < raw.width(); ++w) {
+            for (std::size_t w = 0; w < raw.width(); ++w) {
                 asRow[w] = Annotation((long)raw[h * raw.width() + w][0], (long)raw[h * raw.width() + w][1], raw[h * raw.width() + w][2], raw[h * raw.width() + w][3]);
             }
             as.pushRow(asRow);

@@ -1,10 +1,11 @@
 #include <cmath>
+#include <cstdint>
 
 #include <boost/program_options.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/FileExtensionFilter.hpp"
+#include "vc/core/io/FileFilters.hpp"
 #include "vc/core/io/OBJReader.hpp"
 #include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/io/PLYReader.hpp"
@@ -27,7 +28,7 @@ void MeshToPointSet(const fs::path& inputPath, const fs::path& outputPath);
 
 po::variables_map PARSED;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     ///// Parse the command line options /////
     // All command line options
@@ -48,7 +49,7 @@ int main(int argc, char* argv[])
 
     // Show the help message
     if (PARSED.count("help") || argc < 2) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -82,7 +83,7 @@ void PointSetToMesh(const fs::path& inputPath, const fs::path& outputPath)
     vc::Logger()->info("Loaded PointSet with {} points", inputCloud.size());
 
     // Add vertex intensity
-    std::vector<uint16_t> intensities;
+    std::vector<std::uint16_t> intensities;
     if (PARSED.count("volpkg")) {
         // Load the volume package
         auto volpkgPath = PARSED["volpkg"].as<std::string>();

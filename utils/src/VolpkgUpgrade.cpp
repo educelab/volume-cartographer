@@ -8,7 +8,7 @@
 namespace fs = volcart::filesystem;
 namespace vc = volcart;
 
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " [volpkg]\n";

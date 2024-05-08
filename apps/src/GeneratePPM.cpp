@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include <boost/program_options.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
@@ -36,7 +38,7 @@ auto main(int argc, char* argv[]) -> int
 
     // Show the help message
     if (parsed.count("help") > 0 || argc < 3) {
-        std::cout << all << std::endl;
+        std::cout << all << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -78,8 +80,9 @@ auto main(int argc, char* argv[]) -> int
         uvMap = abf.getUVMap();
     }
 
-    auto width = static_cast<size_t>(std::ceil(uvMap->ratio().width));
-    auto height = static_cast<size_t>(std::ceil(width / uvMap->ratio().aspect));
+    auto width = static_cast<std::size_t>(std::ceil(uvMap->ratio().width));
+    auto height =
+        static_cast<std::size_t>(std::ceil(width / uvMap->ratio().aspect));
 
     // PPM
     vc::Logger()->info("Generating per-pixel map");

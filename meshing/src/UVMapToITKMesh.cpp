@@ -9,7 +9,7 @@ void UVMapToITKMesh::setUVMap(UVMap::Pointer u) { uvMap_ = std::move(u); }
 
 void UVMapToITKMesh::setScaleToUVDimensions(bool b) { scaleMesh_ = b; }
 
-ITKMesh::Pointer UVMapToITKMesh::compute()
+auto UVMapToITKMesh::compute() -> ITKMesh::Pointer
 {
     // Setup the output mesh with the faces of the input mesh
     outputMesh_ = ITKMesh::New();

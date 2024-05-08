@@ -19,7 +19,7 @@ IntensityMap::IntensityMap(
 {
     assert(r.rows > 2);
     // DEBUG - need to convert to 8 bit before we can do anything
-    r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<uint8_t>::max());
+    r.convertTo(r, CV_8UC1, 1.0 / std::numeric_limits<std::uint8_t>::max());
     cv::equalizeHist(r, r);
     resliceData_ = r;
 
@@ -30,7 +30,7 @@ IntensityMap::IntensityMap(
     binWidth_ = cvRound(float(displayWidth_) / mapWidth_);
 }
 
-cv::Mat IntensityMap::draw()
+auto IntensityMap::draw() -> cv::Mat
 {
     // Repaint the drawTarget_ so we don't draw over others
     drawTarget_ = BGR_BLACK;
@@ -83,7 +83,7 @@ cv::Mat IntensityMap::draw()
 }
 
 // Finds the top 'N' maxima in the row being processed
-std::deque<std::pair<int, double>> IntensityMap::sortedMaxima()
+auto IntensityMap::sortedMaxima() -> std::deque<std::pair<int, double>>
 {
     bool includesMiddle = false;
     std::deque<std::pair<int, double>> crossings;

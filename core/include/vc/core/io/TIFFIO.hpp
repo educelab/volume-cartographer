@@ -65,7 +65,7 @@ enum class Compression {
  * format.
  *
  * @param path Path to TIFF file
- * @throws std::runtime_error Unrecoverable read errors
+ * @throws volcart::IOException Unrecoverable read errors
  */
 auto ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat;
 
@@ -77,7 +77,7 @@ auto ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat;
  * are assumed to have a BGR channel order, except for 8-bit and 16-bit signed
  * integer types which are not supported.
  *
- * @throws std::runtime_error All writing errors
+ * @throws volcart::IOException All writing errors
  */
 void WriteTIFF(
     const volcart::filesystem::path& path,

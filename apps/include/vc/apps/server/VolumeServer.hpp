@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <cstddef>
 #include <map>
 
 #include "vc/apps/server/VolumeProtocol.hpp"
@@ -57,7 +58,7 @@ private:
     std::size_t memory_;
 
     /** Generate a string for representing a socket. */
-    std::string socketStr_(QTcpSocket* socket);
+    auto socketStr_(QTcpSocket* socket) -> std::string;
 
     /** Resolve a single sub-volume request. */
     void resolveRequest_(QTcpSocket* socket, protocol::RequestArgs* args);

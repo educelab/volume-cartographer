@@ -2,7 +2,7 @@
 
 #include <regex>
 
-std::string volcart::FormatStrToRegexStr(const std::string& s)
+auto volcart::FormatStrToRegexStr(const std::string& s) -> std::string
 {
     std::string result;
 
