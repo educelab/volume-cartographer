@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 // Wrapping in a namespace to avoid define collisions
 namespace lt
@@ -117,22 +118,23 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
         std::uint32_t* stripOffset = 0;
         int res = TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, &stripOffset);
 
-        // Open and mmap tiff file
+        // Open and mmap TIFF file
         int fd = open(path.c_str(), O_RDONLY);
         if (fd == -1) {
-            throw IOException("Failed to open TIFF");
+            throw IOException("Failed to open TIFF: " + path.string());
         }
         struct stat sb;
         if (fstat(fd, &sb) == -1) {
-            throw IOException("Failed to open TIFF fstat");
+            throw IOException("Failed to fstat TIFF: " + path.string());
         }
 
         void* data = mmap(nullptr, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
         if (data == MAP_FAILED) {
             // Print error code
-            printf("errno: %d\n", errno);
-            throw IOException("Failed to open TIFF mmap");
+            printf("mmap() errno: %d\n", errno);
+            throw IOException("Failed to mmap TIFF: " + path.string());
         }
+        close(fd);
 
         img = cv::Mat(h, w, cvType, (char*)data + stripOffset[0]);
     } else {  
