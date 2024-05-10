@@ -5,7 +5,11 @@ virtually unwrapping volumetric datasets. It was designed to recover text from
 CT scans of ancient, badly damaged manuscripts, but can be applied in many
 volumetric analysis applications.
 
-## Changes
+## Changes 2024
+- Merged in latest version from Educelab (state 2024-05-08)
+- Added Y/Z shortcut to evenly space points on current curve (in Segmentation tool)
+
+## Changes 2023
 This fork contains the following changes compared to upstream currently:
 
 ### Changes from Whist List / Feature Requests of Segmentation Team
