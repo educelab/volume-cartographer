@@ -140,11 +140,11 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
 
         img = cv::Mat(h, w, cvType, (char*)data + stripOffset[0]);
     } else {  
-        // Load the old way
+        // Load the old way via TIFF library
         vc::Logger()->debug(
-            "Cannot mmap TIFF width: %d height: %d config: %d type: %d depth: "
-            "%d channel: %d rowsPerStrip: %d, loading the old way",
-            width, height, config, type, depth, channels, rowsPerStrip);
+            "Cannot mmap TIFF (width: %d height: %d config: %d type: %d depth: "
+            "%d channel: %d rowsPerStrip: %d compression: %s) => loading the old way",
+            width, height, config, type, depth, channels, rowsPerStrip, (compression != Compression::NONE ? "true" : "false"));
 
         img = cv::Mat::zeros(h, w, cvType);
 
