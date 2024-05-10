@@ -27,8 +27,8 @@ jobs:
 
     - name: Install SDL & GSL tool
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libsdl2-dev libgsl-dev
+        apt-get update
+        apt-get install -y libsdl2-dev libgsl-dev
 
     - name: Build volume-cartographer
       run: |
@@ -55,8 +55,8 @@ jobs:
 
     - name: Install SDL & GSL tool
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libsdl2-dev libgsl-dev
+        apt-get update
+        apt-get install -y libsdl2-dev libgsl-dev
 
     - name: Build volume-cartographer
       run: |
