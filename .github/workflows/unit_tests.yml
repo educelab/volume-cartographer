@@ -25,6 +25,11 @@ jobs:
       with:
         fetch-depth: 20
 
+    - name: Install SDL & GSL tool
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev libgsl-dev
+
     - name: Build volume-cartographer
       run: |
         cmake -S . -B build/ -GNinja $EXTRA_CMAKE_FLAGS
@@ -47,6 +52,11 @@ jobs:
       uses: actions/checkout@v3.3.0
       with:
         fetch-depth: 20
+
+    - name: Install SDL & GSL tool
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev libgsl-dev
 
     - name: Build volume-cartographer
       run: |
