@@ -8,6 +8,7 @@ using qga = QGuiApplication;
 
 #define BGND_RECT_MARGIN 8
 #define DEFAULT_TEXT_COLOR QColor(255, 255, 120)
+#define ZOOM_FACTOR 1.15
 
 // Constructor
 CVolumeViewerView::CVolumeViewerView(QWidget* parent)
@@ -314,7 +315,7 @@ void CVolumeViewer::CenterOn(const QPointF& point)
 void CVolumeViewer::OnZoomInClicked(void)
 {
     if (fZoomInBtn->isEnabled()) {
-        ScaleImage(1.15);
+        ScaleImage(ZOOM_FACTOR);
     }
 }
 
@@ -322,7 +323,7 @@ void CVolumeViewer::OnZoomInClicked(void)
 void CVolumeViewer::OnZoomOutClicked(void)
 {
     if (fZoomOutBtn->isEnabled()) {
-        ScaleImage(0.85);
+        ScaleImage(1 / ZOOM_FACTOR);
     }
 }
 
