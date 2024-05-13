@@ -130,14 +130,14 @@ auto Volume::getSliceDataCopy(int index) const -> cv::Mat
     return getSliceData(index).clone();
 }
 
-cv::Mat Volume::getSliceDataRect(int index, cv::Rect rect) const
+auto Volume::getSliceDataRect(int index, cv::Rect rect) const -> cv::Mat
 {
     auto whole_img = getSliceData(index);
     std::shared_lock<std::shared_mutex> lock(cache_mutex_);
     return whole_img(rect);
 }
 
-cv::Mat Volume::getSliceDataRectCopy(int index, cv::Rect rect) const
+auto Volume::getSliceDataRectCopy(int index, cv::Rect rect) const -> cv::Mat
 {
     auto whole_img = getSliceData(index);
     std::shared_lock<std::shared_mutex> lock(cache_mutex_);
@@ -229,7 +229,12 @@ auto Volume::load_slice_(int index) const -> cv::Mat
         std::cout << "Requested to load slice " << index << std::endl;
     }
     auto slicePath = getSlicePath(index);
-    return cv::imread(slicePath.string(), -1);
+    cv::Mat mat;
+    try {
+        mat = tio::ReadTIFF(slicePath.string());
+    } catch (std::runtime_error) {
+    }
+    return mat;
 }
 
 auto Volume::cache_slice_(int index) const -> cv::Mat
