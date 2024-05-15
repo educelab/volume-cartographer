@@ -47,6 +47,9 @@ void CVolumeViewerView::keyPressEvent(QKeyEvent* event)
     } else if (event->key() == Qt::Key_R) {
         curvePanKeyPressed = true;
         event->accept();
+    } else if (event->key() == Qt::Key_S) {
+        rotateKeyPressed = true;
+        event->accept();
     }
 }
 
@@ -57,6 +60,9 @@ void CVolumeViewerView::keyReleaseEvent(QKeyEvent* event)
         event->accept();
     } else if (event->key() == Qt::Key_R) {
         curvePanKeyPressed = false;
+        event->accept();
+    } else if (event->key() == Qt::Key_S) {
+        rotateKeyPressed = false;
         event->accept();
     }
 }
@@ -288,14 +294,15 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             }
             return true;
         }
+        // Rotate key pressed
+        else if (fGraphicsView->isRotateKyPressed()) {
+            int delta = wheelEvent->angleDelta().y() / 22;
+            fGraphicsView->rotate(delta);
+            fGraphicsView->updateCurrentRotation(delta);
+            return true;
+        }
     }
     return QWidget::eventFilter(watched, event);
-}
-
-// Handle paint event
-void CVolumeViewer::paintEvent(QPaintEvent* /*event*/)
-{
-    // REVISIT - FILL ME HERE
 }
 
 void CVolumeViewer::ScaleImage(double nFactor)
@@ -309,6 +316,13 @@ void CVolumeViewer::ScaleImage(double nFactor)
 void CVolumeViewer::CenterOn(const QPointF& point)
 {
     fGraphicsView->centerOn(point);
+}
+
+void CVolumeViewer::ResetRotation()
+{
+    auto current = fGraphicsView->getCurrentRotation();
+    fGraphicsView->rotate(-current);
+    fGraphicsView->updateCurrentRotation(-current);
 }
 
 // Handle zoom in click
@@ -377,14 +391,6 @@ void CVolumeViewer::UpdateButtons(void)
         fImgQImage != nullptr && fabs(fScaleFactor - 1.0) > 1e-6);
     fNextBtn->setEnabled(fImgQImage != nullptr);
     fPrevBtn->setEnabled(fImgQImage != nullptr);
-}
-
-// Adjust scroll bar of scroll area
-void CVolumeViewer::AdjustScrollBar(QScrollBar* nScrollBar, double nFactor)
-{
-    nScrollBar->setValue(
-        int(nFactor * nScrollBar->value() +
-            ((nFactor - 1) * nScrollBar->pageStep() / 2)));
 }
 
 cv::Vec2f CVolumeViewer::CleanScrollPosition(cv::Vec2f pos) const

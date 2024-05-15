@@ -525,9 +525,6 @@ bool CVolumeViewerWithCurve::eventFilter(QObject* watched, QEvent* event)
     return CVolumeViewer::eventFilter(watched, event);
 }
 
-// Handle paint event
-void CVolumeViewerWithCurve::paintEvent(QPaintEvent* /*event*/) {}
-
 void CVolumeViewerWithCurve::toggleShowCurveBox()
 {
     bool currentState = fShowCurveBox->isChecked();

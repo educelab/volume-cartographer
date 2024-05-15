@@ -334,6 +334,7 @@ private:
     QShortcut* scanRangeDown;
     QShortcut* returnToEditSlice;
     QShortcut* toggleAnchor;
+    QShortcut* resetRotation;
 
     Ui_VCMainWindow ui;
 

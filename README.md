@@ -7,7 +7,8 @@ volumetric analysis applications.
 
 ## Changes 2024
 - Merged in latest version from Educelab (state 2024-05-08)
-- Added Y/Z shortcut to evenly space points on current curve (in Segmentation tool)
+- Added "Y"/"Z" shortcut to evenly space points on current curve (in Segmentation tool)
+- Added slice view rotation via "Hold S + Mouse Wheel" + "X" to reset rotation
 
 ## Changes 2023
 This fork contains the following changes compared to upstream currently:
