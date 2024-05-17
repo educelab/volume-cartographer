@@ -106,9 +106,6 @@ protected:
     void ScaleImage(double nFactor);
     void CenterOn(const QPointF& point);
     virtual void UpdateButtons(void);
-    void ScrollToCenter(cv::Vec2f pos);
-    cv::Vec2f GetScrollPosition() const;
-    cv::Vec2f CleanScrollPosition(cv::Vec2f pos) const;
 
 protected:
     // widget components
