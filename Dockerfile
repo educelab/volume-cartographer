@@ -20,4 +20,4 @@ RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.6.1/" \
     && rm -rf /volume-cartographer/
 
 # Start an interactive shell
-CMD ["/bin/bash"]
+ENTRYPOINT export QT_PLUGIN_PATH=/usr/local/Qt-6.6.1/plugins && /bin/bash
