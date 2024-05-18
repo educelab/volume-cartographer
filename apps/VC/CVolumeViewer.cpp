@@ -185,6 +185,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
 
     QSettings settings("VC.ini", QSettings::IniFormat);
     fCenterOnZoomEnabled = settings.value("viewer/center_on_zoom", false).toInt() != 0;
+    fScrollSpeed = settings.value("viewer/scroll_speed", false).toInt();
 
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fGraphicsView);
@@ -300,6 +301,23 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             fGraphicsView->rotate(delta);
             fGraphicsView->updateCurrentRotation(delta);
             return true;
+        } 
+        // View scrolling
+        else {
+            // If there is no valid scroll speed override value set, we rely
+            // on the default handling of Qt, so we pass on the event.
+            if (fScrollSpeed > 0) {
+                int numDegrees = wheelEvent->angleDelta().y() / 8;
+
+                if (QApplication::keyboardModifiers() == Qt::AltModifier) {
+                    fGraphicsView->horizontalScrollBar()->setValue(
+                        fGraphicsView->horizontalScrollBar()->value() + fScrollSpeed * ((numDegrees < 0) ? 1 : -1));
+                } else {
+                    fGraphicsView->verticalScrollBar()->setValue(
+                        fGraphicsView->verticalScrollBar()->value() + fScrollSpeed * ((numDegrees < 0) ? 1 : -1));
+                }
+                return true;
+            }
         }
     }
     return QWidget::eventFilter(watched, event);

@@ -128,7 +128,9 @@ protected:
     int sliceIndexToolStart{-1};
     int fScanRange;  // how many slices a mouse wheel step will jump
 
+    // user settings
     bool fCenterOnZoomEnabled;
+    int fScrollSpeed{-1};
 
     QGraphicsPixmapItem* fBaseImageItem;
 };  // class CVolumeViewer

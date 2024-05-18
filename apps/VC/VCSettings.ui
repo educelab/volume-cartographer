@@ -62,6 +62,13 @@
            </property>
           </widget>
          </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Impact range steps for A/D and Mouse Wheel + W</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="1">
           <widget class="QSpinBox" name="spinFwdBackStepMs">
            <property name="minimum">
@@ -82,21 +89,14 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="edtScanRange">
            <property name="text">
-            <string>Impact range steps for A/D and Mouse Wheel + W</string>
+            <string>1, 2, 5, 10, 20, 50, 100</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Mouse Forward/Backwards: Milliseconds delay</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
+         <item row="5" column="0">
           <widget class="QCheckBox" name="chkPlaySoundAfterSegRun">
            <property name="text">
             <string>Play sound when segmenation run finished</string>
@@ -113,10 +113,27 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="edtScanRange">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>1, 2, 5, 10, 20, 50, 100</string>
+            <string>Mouse Forward/Backwards: Milliseconds delay</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Scoll speed (-1 = use default)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QSpinBox" name="spinScrollSpeed">
+           <property name="minimum">
+            <number>-1</number>
+           </property>
+           <property name="value">
+            <number>-1</number>
            </property>
           </widget>
          </item>
@@ -167,8 +184,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset theme="help-contents">
-             <normaloff>.</normaloff>.</iconset>
+            <iconset theme="help-contents"/>
            </property>
            <property name="flat">
             <bool>true</bool>
