@@ -307,14 +307,21 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
             // If there is no valid scroll speed override value set, we rely
             // on the default handling of Qt, so we pass on the event.
             if (fScrollSpeed > 0) {
-                int numDegrees = wheelEvent->angleDelta().y() / 8;
+                // We have to add the two values since when pressing AltGr as the modifier, 
+                // the X component seems to be set by Qt
+                int delta = wheelEvent->angleDelta().x() + wheelEvent->angleDelta().y();
+                if (delta == 0) {
+                    return true;
+                }
 
-                if (QApplication::keyboardModifiers() == Qt::AltModifier) {
+                // Taken from QGraphicsView Qt source logic
+                const bool horizontal = qAbs(wheelEvent->angleDelta().x()) > qAbs(wheelEvent->angleDelta().y());
+                if (QApplication::keyboardModifiers() == Qt::AltModifier || horizontal) {
                     fGraphicsView->horizontalScrollBar()->setValue(
-                        fGraphicsView->horizontalScrollBar()->value() + fScrollSpeed * ((numDegrees < 0) ? 1 : -1));
+                        fGraphicsView->horizontalScrollBar()->value() + fScrollSpeed * ((delta < 0) ? 1 : -1));
                 } else {
                     fGraphicsView->verticalScrollBar()->setValue(
-                        fGraphicsView->verticalScrollBar()->value() + fScrollSpeed * ((numDegrees < 0) ? 1 : -1));
+                        fGraphicsView->verticalScrollBar()->value() + fScrollSpeed * ((delta < 0) ? 1 : -1));
                 }
                 return true;
             }
