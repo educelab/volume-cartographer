@@ -138,18 +138,32 @@ CWindow::CWindow()
     UpdateRecentVolpkgActions();
     CreateBackend();
 
-    // stylesheets
-    const auto style = "QMenuBar { background: qlineargradient( x0:0 y0:0, x1:1 y1:0, stop:0 rgb(85, 110, 200), stop:0.8 rgb(255, 120, 110), stop:1 rgb(255, 180, 30)); }"
-        "QMenuBar::item { background: transparent; }"
-        "QMenuBar::item:selected { background: rgb(255, 200, 50); }"
-        "QWidget#dockWidgetVolumesContent { background: rgb(245, 245, 255); }"
-        "QWidget#dockWidgetSegmentationContent { background: rgb(245, 245, 255); }"
-        "QWidget#dockWidgetAnnotationsContent { background: rgb(245, 245, 255); }"
-        "QDockWidget::title { padding-top: 6px; background: rgb(205, 210, 240); }"
-        "QTabBar::tab { background: rgb(205, 210, 240); }"
-        "QWidget#tabSegment { background: rgb(245, 245, 255); }"
-        "QRadioButton:disabled { color: gray; }";
-    setStyleSheet(style);
+    if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
+        // stylesheet
+        const auto style = "QMenuBar { background: qlineargradient( x0:0 y0:0, x1:1 y1:0, stop:0 rgb(55, 80, 170), stop:0.8 rgb(225, 90, 80), stop:1 rgb(225, 150, 0)); }"
+            "QMenuBar::item { background: transparent; }"
+            "QMenuBar::item:selected { background: rgb(235, 180, 30); }"
+            "QWidget#dockWidgetVolumesContent { background: rgb(55, 55, 55); }"
+            "QWidget#dockWidgetSegmentationContent { background: rgb(55, 55, 55); }"
+            "QWidget#dockWidgetAnnotationsContent { background: rgb(55, 55, 55); }"
+            "QDockWidget::title { padding-top: 6px; background: rgb(60, 60, 75); }"
+            "QTabBar::tab { background: rgb(60, 60, 75); }"
+            "QWidget#tabSegment { background: rgb(55, 55, 55); }";
+        setStyleSheet(style);
+    } else {
+        // stylesheet
+        const auto style = "QMenuBar { background: qlineargradient( x0:0 y0:0, x1:1 y1:0, stop:0 rgb(85, 110, 200), stop:0.8 rgb(255, 120, 110), stop:1 rgb(255, 180, 30)); }"
+            "QMenuBar::item { background: transparent; }"
+            "QMenuBar::item:selected { background: rgb(255, 200, 50); }"
+            "QWidget#dockWidgetVolumesContent { background: rgb(245, 245, 255); }"
+            "QWidget#dockWidgetSegmentationContent { background: rgb(245, 245, 255); }"
+            "QWidget#dockWidgetAnnotationsContent { background: rgb(245, 245, 255); }"
+            "QDockWidget::title { padding-top: 6px; background: rgb(205, 210, 240); }"
+            "QTabBar::tab { background: rgb(205, 210, 240); }"
+            "QWidget#tabSegment { background: rgb(245, 245, 255); }"
+            "QRadioButton:disabled { color: gray; }";
+        setStyleSheet(style);
+    }
 
     OpenSlice();
     UpdateView();
