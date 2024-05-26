@@ -451,11 +451,11 @@ void CWindow::CreateWidgets(void)
     fEdtImpactRng->setValue(impactRangeSteps.size() / 2);
 
     ui.btnEvenlySpacePoints->setDisabled(true);
-    // Add both Y and Z to account for QWERZT and QWERTY keyboard.
+    // Add both Y, Z and V to account for QWERZT and QWERTY keyboards.
     // Long-term, a more flexible and robust setup would be good
     // in general, to also account for AZERTY and others.
     auto action = new QAction(this);
-    action->setShortcuts({Qt::Key_Y, Qt::Key_Z});
+    action->setShortcuts({Qt::Key_Y, Qt::Key_Z, Qt::Key_V});
     addAction(action);
     auto button = ui.btnEvenlySpacePoints;
     connect(action, &QAction::triggered, [button]() {
@@ -1931,7 +1931,7 @@ void CWindow::Keybindings(void)
         "K: Highlight Previous Curve that is selected for computation \n"
         "F: Return to slice that the currently active tool was started on \n"
         "L: Mark/unmark current slice as anchor (only in Segmentation Tool) \n"
-        "Y/Z: Evenly space Points on Curve (only in Segmentation Tool) \n"
+        "Y/Z/V: Evenly space Points on Curve (only in Segmentation Tool) \n"
         "U: Rotate view counterclockwise \n"
         "O: Rotate view clockwise \n"
         "X/I: Reset view rotation back to zero \n"
