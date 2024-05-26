@@ -15,6 +15,7 @@ volumetric analysis applications.
 - Fixed Docker builds to no longer require "export QT_PLUGIN_PATH" in order to find xcb platform library
 - Added user setting to override the default slice view scroll speed
 - Added dark theme support
+- Adjusted slice scanning step sizes on number keys (from 1/2/5/10/100 to 1/5/10/50/100)
 
 ## Changes 2023
 This fork contains the following changes compared to upstream currently:

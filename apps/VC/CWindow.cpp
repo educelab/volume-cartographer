@@ -482,12 +482,12 @@ void CWindow::CreateWidgets(void)
     penToolShortcut = new QShortcut(QKeySequence(Qt::Key_P), this);
     prev1 = new QShortcut(QKeySequence(Qt::Key_1), this);
     next1 = new QShortcut(QKeySequence(Qt::Key_2), this);
-    prev2 = new QShortcut(QKeySequence(Qt::Key_3), this);
-    next2 = new QShortcut(QKeySequence(Qt::Key_4), this);
-    prev5 = new QShortcut(QKeySequence(Qt::Key_5), this);
-    next5 = new QShortcut(QKeySequence(Qt::Key_6), this);
-    prev10 = new QShortcut(QKeySequence(Qt::Key_7), this);
-    next10 = new QShortcut(QKeySequence(Qt::Key_8), this);
+    prev5 = new QShortcut(QKeySequence(Qt::Key_3), this);
+    next5 = new QShortcut(QKeySequence(Qt::Key_4), this);
+    prev10 = new QShortcut(QKeySequence(Qt::Key_5), this);
+    next10 = new QShortcut(QKeySequence(Qt::Key_6), this);
+    prev50 = new QShortcut(QKeySequence(Qt::Key_7), this);
+    next50 = new QShortcut(QKeySequence(Qt::Key_8), this);
     prev100 = new QShortcut(QKeySequence(Qt::Key_9), this);
     next100 = new QShortcut(QKeySequence(Qt::Key_0), this);
     prevSelectedId = new QShortcut(QKeySequence(Qt::Key_K), this);
@@ -526,46 +526,16 @@ void CWindow::CreateWidgets(void)
     connect(impactDwn_old, &QShortcut::activated, this, &CWindow::onImpactRangeDown);
     connect(segmentationToolShortcut, &QShortcut::activated, this, &CWindow::ActivateSegmentationTool);
     connect(penToolShortcut, &QShortcut::activated, this, &CWindow::ActivatePenTool);
-    connect(next1, &QShortcut::activated, [this]() {
-        int shift = 1;
-        OnLoadNextSliceShift(shift);
-    });
-    connect(prev1, &QShortcut::activated, [this]() {
-        int shift = 1;
-        OnLoadPrevSliceShift(shift);
-    });
-    connect(next2, &QShortcut::activated, [this]() {
-        int shift = 2;
-        OnLoadNextSliceShift(shift);
-    });
-    connect(prev2, &QShortcut::activated, [this]() {
-        int shift = 2;
-        OnLoadPrevSliceShift(shift);
-    });
-    connect(next5, &QShortcut::activated, [this]() {
-        int shift = 5;
-        OnLoadNextSliceShift(shift);
-    });
-    connect(prev5, &QShortcut::activated, [this]() {
-        int shift = 5;
-        OnLoadPrevSliceShift(shift);
-    });
-    connect(next10, &QShortcut::activated, [this]() {
-        int shift = 10;
-        OnLoadNextSliceShift(shift);
-    });
-    connect(prev10, &QShortcut::activated, [this]() {
-        int shift = 10;
-        OnLoadPrevSliceShift(shift);
-    });
-    connect(next100, &QShortcut::activated, [this]() {
-        int shift = 100;
-        OnLoadNextSliceShift(shift);
-    });
-    connect(prev100, &QShortcut::activated, [this]() {
-        int shift = 100;
-        OnLoadPrevSliceShift(shift);
-    });
+    connect(next1, &QShortcut::activated, [this]() { OnLoadNextSliceShift(1); });
+    connect(prev1, &QShortcut::activated, [this]() { OnLoadPrevSliceShift(1); });
+    connect(next5, &QShortcut::activated, [this]() { OnLoadNextSliceShift(5); });
+    connect(prev5, &QShortcut::activated, [this]() { OnLoadPrevSliceShift(5); });
+    connect(next10, &QShortcut::activated, [this]() { OnLoadNextSliceShift(10); });
+    connect(prev10, &QShortcut::activated, [this]() { OnLoadPrevSliceShift(10); });
+    connect(next50, &QShortcut::activated, [this]() { OnLoadNextSliceShift(50); });
+    connect(prev50, &QShortcut::activated, [this]() { OnLoadPrevSliceShift(50); });
+    connect(next100, &QShortcut::activated, [this]() { OnLoadNextSliceShift(100); });
+    connect(prev100, &QShortcut::activated, [this]() { OnLoadPrevSliceShift(100); });
     connect(prevSelectedId, &QShortcut::activated, this, &CWindow::PreviousSelectedId);
     connect(nextSelectedId, &QShortcut::activated, this, &CWindow::NextSelectedId);
     connect(goToSlice, &QShortcut::activated, this, &CWindow::ShowGoToSliceDlg);
@@ -1918,9 +1888,9 @@ void CWindow::Keybindings(void)
         "Q,E: Slice scan range down/up (mouse wheel scanning) \n"
         "Arrow Left/Right: Slice down/up by 1 \n"
         "1,2: Slice down/up by 1 \n"
-        "3,4: Slice down/up by 2 \n"
-        "5,6: Slice down/up by 5 \n"
-        "7,8: Slice down/up by 10 \n"
+        "3,4: Slice down/up by 5 \n"
+        "5,6: Slice down/up by 10 \n"
+        "7,8: Slice down/up by 50 \n"
         "9,0: Slice down/up by 100 \n"
         "Ctrl+G: Go to slice (opens dialog to insert slice index) \n"
         "T: Segmentation Tool \n"

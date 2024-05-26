@@ -319,12 +319,12 @@ private:
     QShortcut* penToolShortcut;
     QShortcut* next1;
     QShortcut* prev1;
-    QShortcut* next2;
-    QShortcut* prev2;
     QShortcut* next5;
     QShortcut* prev5;
     QShortcut* next10;
     QShortcut* prev10;
+    QShortcut* next50;
+    QShortcut* prev50;
     QShortcut* next100;
     QShortcut* prev100;
     QShortcut* prevSelectedId;
