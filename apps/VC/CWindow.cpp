@@ -498,6 +498,9 @@ void CWindow::CreateWidgets(void)
     returnToEditSlice = new QShortcut(QKeySequence(Qt::Key_F), this);
     toggleAnchor = new QShortcut(QKeySequence(Qt::Key_L), this);
     resetRotation = new QShortcut(QKeySequence(Qt::Key_X), this);
+    resetRotationAlternative = new QShortcut(QKeySequence(Qt::Key_I), this);
+    rotateCW = new QShortcut(QKeySequence(Qt::Key_O), this);
+    rotateCCW = new QShortcut(QKeySequence(Qt::Key_U), this);
 
     connect(
         slicePrev, &QShortcut::activated, fVolumeViewerWidget,
@@ -571,6 +574,9 @@ void CWindow::CreateWidgets(void)
     connect(returnToEditSlice, &QShortcut::activated, this, &CWindow::ReturnToEditSlice);
     connect(toggleAnchor, &QShortcut::activated, this, &CWindow::ToggleAnchor);
     connect(resetRotation, &QShortcut::activated, fVolumeViewerWidget, &CVolumeViewer::ResetRotation);
+    connect(resetRotationAlternative, &QShortcut::activated, fVolumeViewerWidget, &CVolumeViewer::ResetRotation);
+    connect(rotateCW, &QShortcut::activated, fVolumeViewerWidget, [this]() { fVolumeViewerWidget->Rotate(5); });
+    connect(rotateCCW, &QShortcut::activated, fVolumeViewerWidget, [this]() { fVolumeViewerWidget->Rotate(-5); });
 }
 
 // Create menus
@@ -1926,7 +1932,9 @@ void CWindow::Keybindings(void)
         "F: Return to slice that the currently active tool was started on \n"
         "L: Mark/unmark current slice as anchor (only in Segmentation Tool) \n"
         "Y/Z: Evenly space Points on Curve (only in Segmentation Tool) \n"
-        "Z: Reset view rotation back to zero \n"
+        "U: Rotate view counterclockwise \n"
+        "O: Rotate view clockwise \n"
+        "X/I: Reset view rotation back to zero \n"
         "\n"
         "Mouse: \n"
         "------------------- \n"

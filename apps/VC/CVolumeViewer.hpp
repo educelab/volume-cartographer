@@ -76,6 +76,7 @@ public:
     }
     void setNumSlices(int num);
     void SetRotation(int degress);
+    void Rotate(int delta);
     void ResetRotation();
 
 protected:

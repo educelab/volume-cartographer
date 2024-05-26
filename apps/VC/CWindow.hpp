@@ -335,6 +335,9 @@ private:
     QShortcut* returnToEditSlice;
     QShortcut* toggleAnchor;
     QShortcut* resetRotation;
+    QShortcut* resetRotationAlternative;
+    QShortcut* rotateCW;
+    QShortcut* rotateCCW;
 
     Ui_VCMainWindow ui;
 

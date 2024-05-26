@@ -368,6 +368,11 @@ void CVolumeViewer::SetRotation(int degrees)
     }
 }
 
+void CVolumeViewer::Rotate(int delta)
+{
+    SetRotation(currentRotation + delta);
+}
+
 void CVolumeViewer::ResetRotation()
 {
     fGraphicsView->rotate(-currentRotation);
