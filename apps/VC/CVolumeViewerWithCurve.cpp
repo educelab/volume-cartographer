@@ -686,7 +686,7 @@ void CVolumeViewerWithCurve::UpdateButtons(void)
         fImgQImage != nullptr && (fViewState == EViewState::ViewStateIdle || fViewState == EViewState::ViewStateEdit));
     fPrevBtn->setEnabled(
         fImgQImage != nullptr && (fViewState == EViewState::ViewStateIdle || fViewState == EViewState::ViewStateEdit));
-    fImageIndexEdit->setEnabled(fViewState == EViewState::ViewStateIdle || fViewState == EViewState::ViewStateEdit);
+    fImageIndexSpin->setEnabled(fViewState == EViewState::ViewStateIdle || fViewState == EViewState::ViewStateEdit);
 }
 
 // Disable stuff
@@ -696,6 +696,6 @@ void CVolumeViewerWithCurve::setButtonsEnabled(bool state)
     fZoomInBtn->setEnabled(state);
     fPrevBtn->setEnabled(state);
     fNextBtn->setEnabled(state);
-    fImageIndexEdit->setEnabled(state);
+    fImageIndexSpin->setEnabled(state);
     fShowCurveBox->setEnabled(state);
 }

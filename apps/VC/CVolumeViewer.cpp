@@ -143,13 +143,22 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fPrevBtn = new QPushButton(tr("Previous Slice"), this);
 
     // slice index edit
-    fImageIndexEdit = new QSpinBox(this);
-    fImageIndexEdit->setMinimum(0);
-    fImageIndexEdit->setEnabled(true);
-    fImageIndexEdit->setMinimumWidth(100);
+    fImageIndexSpin = new QSpinBox(this);
+    fImageIndexSpin->setMinimum(0);
+    fImageIndexSpin->setEnabled(true);
+    fImageIndexSpin->setMinimumWidth(100);
     connect(
-        fImageIndexEdit, SIGNAL(editingFinished()), this,
-        SLOT(OnImageIndexEditTextChanged()));
+        fImageIndexSpin, SIGNAL(editingFinished()), this,
+        SLOT(OnImageIndexSpinChanged()));
+
+    fImageRotationSpin = new QSpinBox(this);
+    fImageRotationSpin->setMinimum(-360);
+    fImageRotationSpin->setMaximum(360);
+    fImageRotationSpin->setSuffix("°");
+    fImageRotationSpin->setEnabled(true);
+    connect(
+        fImageRotationSpin, SIGNAL(editingFinished()), this,
+        SLOT(OnImageRotationSpinChanged()));
 
     fBaseImageItem = nullptr;
 
@@ -173,7 +182,8 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fButtonsLayout->addWidget(fResetBtn);
     fButtonsLayout->addWidget(fPrevBtn);
     fButtonsLayout->addWidget(fNextBtn);
-    fButtonsLayout->addWidget(fImageIndexEdit);
+    fButtonsLayout->addWidget(fImageIndexSpin);
+    fButtonsLayout->addWidget(fImageRotationSpin);
     // Add some space between the slice spin box and the curve tools (color, checkboxes, ...)
     fButtonsLayout->addSpacerItem(new QSpacerItem(1, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 
@@ -207,7 +217,8 @@ CVolumeViewer::~CVolumeViewer(void)
     deleteNULL(fResetBtn);
     deleteNULL(fPrevBtn);
     deleteNULL(fNextBtn);
-    deleteNULL(fImageIndexEdit);
+    deleteNULL(fImageIndexSpin);
+    deleteNULL(fImageRotationSpin);
 }
 
 void CVolumeViewer::setButtonsEnabled(bool state)
@@ -216,7 +227,8 @@ void CVolumeViewer::setButtonsEnabled(bool state)
     fZoomInBtn->setEnabled(state);
     fPrevBtn->setEnabled(state);
     fNextBtn->setEnabled(state);
-    fImageIndexEdit->setEnabled(state);
+    fImageIndexSpin->setEnabled(state);
+    fImageRotationSpin->setEnabled(state);
 }
 
 void CVolumeViewer::SetImage(const QImage& nSrc)
@@ -244,7 +256,7 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
 
 void CVolumeViewer::setNumSlices(int num)
 {
-    fImageIndexEdit->setMaximum(num);
+    fImageIndexSpin->setMaximum(num);
 }
 
 bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
@@ -299,7 +311,9 @@ bool CVolumeViewer::eventFilter(QObject* watched, QEvent* event)
         else if (fGraphicsView->isRotateKyPressed()) {
             int delta = wheelEvent->angleDelta().y() / 22;
             fGraphicsView->rotate(delta);
-            fGraphicsView->updateCurrentRotation(delta);
+            currentRotation += delta;
+            currentRotation = currentRotation % 360;
+            fImageRotationSpin->setValue(currentRotation);
             return true;
         } 
         // View scrolling
@@ -343,11 +357,22 @@ void CVolumeViewer::CenterOn(const QPointF& point)
     fGraphicsView->centerOn(point);
 }
 
+void CVolumeViewer::SetRotation(int degrees)
+{
+    if (currentRotation != degrees) {
+        auto delta = (currentRotation - degrees) * -1;
+        fGraphicsView->rotate(delta);
+        currentRotation += delta;
+        currentRotation = currentRotation % 360;
+        fImageRotationSpin->setValue(currentRotation);
+    }
+}
+
 void CVolumeViewer::ResetRotation()
 {
-    auto current = fGraphicsView->getCurrentRotation();
-    fGraphicsView->rotate(-current);
-    fGraphicsView->updateCurrentRotation(-current);
+    fGraphicsView->rotate(-currentRotation);
+    currentRotation = 0;
+    fImageRotationSpin->setValue(currentRotation);
 }
 
 // Handle zoom in click
@@ -401,10 +426,16 @@ void CVolumeViewer::OnPrevClicked(void)
 }
 
 // Handle image index change
-void CVolumeViewer::OnImageIndexEditTextChanged(void)
+void CVolumeViewer::OnImageIndexSpinChanged(void)
 {
     // send signal to controller in order to update the content
-    SendSignalOnLoadAnyImage(fImageIndexEdit->value());
+    SendSignalOnLoadAnyImage(fImageIndexSpin->value());
+}
+
+// Handle image rotation change
+void CVolumeViewer::OnImageRotationSpinChanged(void)
+{
+    SetRotation(fImageRotationSpin->value());
 }
 
 // Update the status of the buttons

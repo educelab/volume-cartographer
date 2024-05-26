@@ -37,9 +37,6 @@ class CVolumeViewerView : public QGraphicsView
         void showCurrentScanRange(int range);
         void showCurrentSliceIndex(int slice, bool highlight);
 
-        void updateCurrentRotation(int delta) { currentRotation += delta; }
-        auto getCurrentRotation() -> int { return currentRotation; }
-
     protected:
         bool rangeKeyPressed{false};
         bool curvePanKeyPressed{false};
@@ -48,9 +45,6 @@ class CVolumeViewerView : public QGraphicsView
         QGraphicsTextItem* textAboveCursor;
         QGraphicsRectItem* backgroundBehindText;
         QTimer* timerTextAboveCursor;
-
-        // Required to be able to reset the rotation without also resetting the scaling
-        int currentRotation{0};
 };
 
 class CVolumeViewer : public QWidget
@@ -77,10 +71,11 @@ public:
     void SetImageIndex(int nImageIndex)
     {
         fImageIndex = nImageIndex;
-        fImageIndexEdit->setValue(nImageIndex);
+        fImageIndexSpin->setValue(nImageIndex);
         UpdateButtons();
     }
     void setNumSlices(int num);
+    void SetRotation(int degress);
     void ResetRotation();
 
 protected:
@@ -92,7 +87,8 @@ public slots:
     void OnResetClicked(void);
     void OnNextClicked(void);
     void OnPrevClicked(void);
-    void OnImageIndexEditTextChanged(void);
+    void OnImageIndexSpinChanged(void);
+    void OnImageRotationSpinChanged(void);
 
 signals:
     void SendSignalOnNextSliceShift(int shift);
@@ -117,7 +113,8 @@ protected:
     QPushButton* fZoomInBtn;
     QPushButton* fZoomOutBtn;
     QPushButton* fResetBtn;
-    QSpinBox* fImageIndexEdit;
+    QSpinBox* fImageIndexSpin;
+    QSpinBox* fImageRotationSpin;
     QHBoxLayout* fButtonsLayout;
 
     // data
@@ -127,6 +124,8 @@ protected:
     int fImageIndex;
     int sliceIndexToolStart{-1};
     int fScanRange;  // how many slices a mouse wheel step will jump
+    // Required to be able to reset the rotation without also resetting the scaling
+    int currentRotation{0};
 
     // user settings
     bool fCenterOnZoomEnabled;
