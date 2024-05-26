@@ -147,18 +147,14 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     fImageIndexSpin->setMinimum(0);
     fImageIndexSpin->setEnabled(true);
     fImageIndexSpin->setMinimumWidth(100);
-    connect(
-        fImageIndexSpin, SIGNAL(editingFinished()), this,
-        SLOT(OnImageIndexSpinChanged()));
+    connect(fImageIndexSpin, SIGNAL(editingFinished()), this, SLOT(OnImageIndexSpinChanged()));
 
     fImageRotationSpin = new QSpinBox(this);
     fImageRotationSpin->setMinimum(-360);
     fImageRotationSpin->setMaximum(360);
     fImageRotationSpin->setSuffix("°");
     fImageRotationSpin->setEnabled(true);
-    connect(
-        fImageRotationSpin, SIGNAL(editingFinished()), this,
-        SLOT(OnImageRotationSpinChanged()));
+    connect(fImageRotationSpin, SIGNAL(editingFinished()), this, SLOT(OnImageRotationSpinChanged()));
 
     fBaseImageItem = nullptr;
 
@@ -221,7 +217,7 @@ CVolumeViewer::~CVolumeViewer(void)
     deleteNULL(fImageRotationSpin);
 }
 
-void CVolumeViewer::setButtonsEnabled(bool state)
+void CVolumeViewer::SetButtonsEnabled(bool state)
 {
     fZoomOutBtn->setEnabled(state);
     fZoomInBtn->setEnabled(state);
@@ -240,21 +236,20 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
     }
 
     // Create a QPixmap from the QImage
-    QPixmap pixmap = QPixmap::fromImage(*fImgQImage);
+    QPixmap pixmap = QPixmap::fromImage(*fImgQImage, Qt::NoFormatConversion);
 
     // Add the QPixmap to the scene as a QGraphicsPixmapItem
-    if (fBaseImageItem) {
-        // If the item already exists, remove it from the scene
-        fScene->removeItem(fBaseImageItem);
-        delete fBaseImageItem; // Delete the old item
+    if (!fBaseImageItem) {
+        fBaseImageItem = fScene->addPixmap(pixmap);
+    } else {
+        fBaseImageItem->setPixmap(pixmap);
     }
-    fBaseImageItem = fScene->addPixmap(pixmap);
 
     UpdateButtons();
     update();
 }
 
-void CVolumeViewer::setNumSlices(int num)
+void CVolumeViewer::SetNumSlices(int num)
 {
     fImageIndexSpin->setMaximum(num);
 }
@@ -400,6 +395,8 @@ void CVolumeViewer::OnResetClicked(void)
 {
     fGraphicsView->resetTransform();
     fScaleFactor = 1.0;
+    currentRotation = 0;
+    fImageRotationSpin->setValue(currentRotation);
 
     UpdateButtons();
 }
@@ -448,8 +445,18 @@ void CVolumeViewer::UpdateButtons(void)
 {
     fZoomInBtn->setEnabled(fImgQImage != nullptr && fScaleFactor < 10.0);
     fZoomOutBtn->setEnabled(fImgQImage != nullptr && fScaleFactor > 0.05);
-    fResetBtn->setEnabled(
-        fImgQImage != nullptr && fabs(fScaleFactor - 1.0) > 1e-6);
+    fResetBtn->setEnabled(fImgQImage != nullptr && fabs(fScaleFactor - 1.0) > 1e-6);
     fNextBtn->setEnabled(fImgQImage != nullptr);
     fPrevBtn->setEnabled(fImgQImage != nullptr);
+}
+
+// Reset the viewer
+void CVolumeViewer::Reset()
+{
+    if (fBaseImageItem) {
+        delete fBaseImageItem;
+        fBaseImageItem = nullptr;
+    }
+
+    OnResetClicked(); // to reset zoom
 }

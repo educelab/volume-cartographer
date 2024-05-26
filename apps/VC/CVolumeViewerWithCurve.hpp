@@ -31,8 +31,6 @@ public:
     CVolumeViewerWithCurve(std::unordered_map<std::string, SegmentationStruct>& nSegStructMapRef);
     ~CVolumeViewerWithCurve();
 
-    virtual void SetImage(const QImage& nSrc);
-
     // for drawing mode
     void SetSplineCurve(CBSpline& nCurve);
     void UpdateSplineCurve(void);
@@ -48,7 +46,7 @@ public:
     void SetShowCurve(bool b) { showCurve = b; }
     void toggleShowCurveBox();
 
-    void setButtonsEnabled(bool state);
+    void SetButtonsEnabled(bool state);
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event);

@@ -116,30 +116,6 @@ CVolumeViewerWithCurve::~CVolumeViewerWithCurve()
     delete timer;
 }
 
-
-void CVolumeViewerWithCurve::SetImage(const QImage& nSrc)
-{
-    if (fImgQImage == nullptr) {
-        fImgQImage = new QImage(nSrc);
-    } else {
-        *fImgQImage = nSrc;
-    }
-
-    // Create a QPixmap from the QImage
-    QPixmap pixmap = QPixmap::fromImage(*fImgQImage);
-
-    // Add the QPixmap to the scene as a QGraphicsPixmapItem
-    if (fBaseImageItem) {
-        // If the item already exists, remove it from the scene
-        fScene->removeItem(fBaseImageItem);
-        delete fBaseImageItem; // Delete the old item
-    }
-    fBaseImageItem = fScene->addPixmap(pixmap);
-
-    UpdateButtons();
-    update();
-}
-
 // Set the curve, we only hold a pointer to the original one so the data can be
 // synchronized
 void CVolumeViewerWithCurve::SetSplineCurve(CBSpline& nCurve)
@@ -690,7 +666,7 @@ void CVolumeViewerWithCurve::UpdateButtons(void)
 }
 
 // Disable stuff
-void CVolumeViewerWithCurve::setButtonsEnabled(bool state)
+void CVolumeViewerWithCurve::SetButtonsEnabled(bool state)
 {
     fZoomOutBtn->setEnabled(state);
     fZoomInBtn->setEnabled(state);

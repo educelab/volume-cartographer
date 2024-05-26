@@ -62,10 +62,11 @@ public:
     QPushButton* fPrevBtn;
     CVolumeViewer(QWidget* parent = 0);
     ~CVolumeViewer(void);
-    virtual void setButtonsEnabled(bool state);
+    virtual void SetButtonsEnabled(bool state);
 
     void SetViewState(EViewState nViewState) { fViewState = nViewState; }
     EViewState GetViewState(void) { return fViewState; }
+    void Reset();
 
     virtual void SetImage(const QImage& nSrc);
     void SetImageIndex(int nImageIndex)
@@ -74,7 +75,7 @@ public:
         fImageIndexSpin->setValue(nImageIndex);
         UpdateButtons();
     }
-    void setNumSlices(int num);
+    void SetNumSlices(int num);
     void SetRotation(int degress);
     void Rotate(int delta);
     void ResetRotation();

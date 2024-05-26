@@ -7,15 +7,17 @@ volumetric analysis applications.
 
 ## Changes 2024
 - Merged in latest version from Educelab (state 2024-05-08)
-- Added memory-mapped (`mmap`) TIFF loading which improves loading speed and therefore results in smoother slice scanning plus drastically reducdes RAM usage
+- Added memory-mapped (`mmap`) TIFF loading which improves loading speed and therefore results in smoother slice scanning plus drastically reduces RAM usage
 - Added "Y"/"Z"/"V" shortcut to evenly space points on current curve (in Segmentation tool)
 - Added slice view rotation via "Hold S + Mouse Wheel" and "X"/"I" to reset rotation
 - Added incremental slice rotation via "U" and "O"
-- Added spintbox to see current rotation state and manually adjust
+- Added spin box to see current rotation state and manually adjust
 - Fixed Docker builds to no longer require "export QT_PLUGIN_PATH" in order to find xcb platform library
 - Added user setting to override the default slice view scroll speed
 - Added dark theme support
 - Adjusted slice scanning step sizes on number keys (from 1/2/5/10/100 to 1/5/10/50/100)
+- Fixed bug with incorrect slice view zoom factoring
+- Performance improvements for slice rendering and scanning by preventing internal recreation of graphics scene items plus skipping QPixmap image data conversions
 
 ## Changes 2023
 This fork contains the following changes compared to upstream currently:

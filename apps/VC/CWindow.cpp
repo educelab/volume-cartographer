@@ -262,7 +262,7 @@ void CWindow::CreateWidgets(void)
             currentVolume = newVolume;
             OnLoadAnySlice(0);
             setDefaultWindowWidth(newVolume);
-            fVolumeViewerWidget->setNumSlices(currentVolume->numSlices());
+            fVolumeViewerWidget->SetNumSlices(currentVolume->numSlices());
             ui.spinBackwardSlice->setMaximum(currentVolume->numSlices() - 1);
             ui.spinForwardSlice->setMaximum(currentVolume->numSlices() - 1);
         });
@@ -775,7 +775,7 @@ void CWindow::setWidgetsEnabled(bool state)
     this->findChild<QPushButton*>("btnSegTool")->setEnabled(state);
     this->findChild<QPushButton*>("btnPenTool")->setEnabled(state);
     this->findChild<QGroupBox*>("grpEditing")->setEnabled(state);
-    fVolumeViewerWidget->setButtonsEnabled(state);
+    fVolumeViewerWidget->SetButtonsEnabled(state);
 }
 
 auto CWindow::InitializeVolumePkg(const std::string& nVpkgPath) -> bool
@@ -1790,7 +1790,7 @@ void CWindow::OpenVolume(const QString& path)
             "The selected file is not of the correct type: \".volpkg\"");
         vc::Logger()->error(
             "Selected file is not .volpkg: {}", aVpkgPath.toStdString());
-        fVpkg = nullptr;  // Is need for User Experience, clears screen.
+        fVpkg = nullptr;  // Is needed for User Experience, clears screen.
         return;
     }
 
@@ -1824,7 +1824,9 @@ void CWindow::OpenVolume(const QString& path)
     }
     QStringList volIds;
     for (const auto& id : fVpkg->volumeIDs()) {
-        volSelect->addItem(QString("%1 (%2)").arg(QString::fromStdString(id)).arg(QString::fromStdString(fVpkg->volume(id)->name())), QVariant(QString::fromStdString(id)));
+        volSelect->addItem(
+            QString("%1 (%2)").arg(QString::fromStdString(id)).arg(QString::fromStdString(fVpkg->volume(id)->name())),
+            QVariant(QString::fromStdString(id)));
     }
 
     UpdateRecentVolpkgList(aVpkgPath);
@@ -1840,6 +1842,7 @@ void CWindow::CloseVolume(void)
     fSegTool->setChecked(false);                   // Reset Segmentation Tool Button
     ui.chkDisplayAll->setChecked(false);
     ui.chkComputeAll->setChecked(false);
+    fVolumeViewerWidget->Reset();
     ResetPointCloud();
     OpenSlice();
     InitPathList();
@@ -2832,7 +2835,7 @@ void CWindow::onImpactRangeDown(void)
 // Handle loading any slice
 void CWindow::OnLoadAnySlice(int slice)
 {
-    if (slice >= 0 && slice < currentVolume->numSlices()) {
+    if (slice >= 0 && currentVolume && slice < currentVolume->numSlices()) {
         fPathOnSliceIndex = slice;
         OpenSlice();
         SetCurrentCurve(fPathOnSliceIndex);
