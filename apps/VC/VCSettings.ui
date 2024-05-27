@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
+    <width>622</width>
     <height>495</height>
    </rect>
   </property>
@@ -58,7 +58,7 @@
          <item row="2" column="1">
           <widget class="QLineEdit" name="edtImpactRange">
            <property name="text">
-            <string>1-20</string>
+            <string>1-3, 5, 8, 11, 15, 20, 28, 40, 60, 100, 200</string>
            </property>
           </widget>
          </item>
@@ -92,14 +92,14 @@
          <item row="3" column="1">
           <widget class="QLineEdit" name="edtScanRange">
            <property name="text">
-            <string>1, 2, 5, 10, 20, 50, 100</string>
+            <string>1, 2, 5, 10, 20, 50, 100, 200, 500, 1000</string>
            </property>
           </widget>
          </item>
          <item row="5" column="0">
           <widget class="QCheckBox" name="chkPlaySoundAfterSegRun">
            <property name="text">
-            <string>Play sound when segmenation run finished</string>
+            <string>Play sound when segmentation run finished</string>
            </property>
            <property name="checked">
             <bool>true</bool>

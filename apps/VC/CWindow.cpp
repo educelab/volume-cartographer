@@ -114,20 +114,20 @@ CWindow::CWindow()
     fSegParams.targetIndex = 5;
     fSegParams.purge_cache = false;
     fSegParams.cache_slices = settings.value("perf/preloaded_slices", 200).toInt();
-    fSegParams.smoothen_by_brightness = 180;
-    fSegParams.outside_threshold = 60;
-    fSegParams.optical_flow_pixel_threshold = 80;
+    fSegParams.smoothen_by_brightness = 100;
+    fSegParams.outside_threshold = 80;
+    fSegParams.optical_flow_pixel_threshold = 50;
     fSegParams.optical_flow_displacement_threshold = 10;
     fSegParams.enable_smoothen_outlier = true;
     fSegParams.enable_edge = false;
     fSegParams.edge_jump_distance = 6;
     fSegParams.edge_bounce_distance = 3;
-    fSegParams.smoothness_interpolation_percent = 30;
+    fSegParams.smoothness_interpolation_percent = 40;
     fSegParams.step_size = 1;
 
     // Process the raw impact and scan ranges string and convert to step vectors
-    impactRangeSteps = SettingsDialog::expandSettingToIntRange(settings.value("viewer/impact_range_steps", "1-20").toString());
-    scanRangeSteps = SettingsDialog::expandSettingToIntRange(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100").toString());
+    impactRangeSteps = SettingsDialog::expandSettingToIntRange(settings.value("viewer/impact_range_steps", "1-3, 5, 8, 11, 15, 20, 28, 40, 60, 100, 200").toString());
+    scanRangeSteps = SettingsDialog::expandSettingToIntRange(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100, 200, 500, 1000").toString());
 
     // create UI widgets
     CreateWidgets();
@@ -319,18 +319,18 @@ void CWindow::CreateWidgets(void)
     auto* edtOutsideThreshold = new QSpinBox();
     edtOutsideThreshold->setMinimum(0);
     edtOutsideThreshold->setMaximum(255);
-    edtOutsideThreshold->setValue(60);
+    edtOutsideThreshold->setValue(80);
     auto* edtOpticalFlowPixelThreshold = new QSpinBox();
     edtOpticalFlowPixelThreshold->setMinimum(0);
     edtOpticalFlowPixelThreshold->setMaximum(255);
-    edtOpticalFlowPixelThreshold->setValue(80);
+    edtOpticalFlowPixelThreshold->setValue(50);
     auto* edtOpticalFlowDisplacementThreshold = new QSpinBox();
     edtOpticalFlowDisplacementThreshold->setMinimum(0);
     edtOpticalFlowDisplacementThreshold->setValue(10);
     auto* edtSmoothenPixelThreshold = new QSpinBox();
     edtSmoothenPixelThreshold->setMinimum(0);
     edtSmoothenPixelThreshold->setMaximum(256);
-    edtSmoothenPixelThreshold->setValue(180);
+    edtSmoothenPixelThreshold->setValue(100);
     auto* chkEnableSmoothenOutlier = new QCheckBox(tr("Smoothen Outlier Points"));
     chkEnableSmoothenOutlier->setChecked(true);
     auto* chkEnableEdgeDetection = new QCheckBox(tr("Enable Edge Detection"));
@@ -345,7 +345,7 @@ void CWindow::CreateWidgets(void)
     edtInterpolationPercent = new QSpinBox();
     edtInterpolationPercent->setMinimum(0);
     edtInterpolationPercent->setMaximum(100);
-    edtInterpolationPercent->setValue(30);
+    edtInterpolationPercent->setValue(40);
     auto* chkPurgeCache = new QCheckBox(tr("Purge Cache"));
     chkPurgeCache->setChecked(false);
     auto* edtCacheSize = new QSpinBox();
@@ -376,18 +376,18 @@ void CWindow::CreateWidgets(void)
     opticalFlowParamsLayout->addWidget(edtOutsideThreshold);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Smoothen Curve at Bright Points")));
     opticalFlowParamsLayout->addWidget(edtSmoothenPixelThreshold);
-    opticalFlowParamsLayout->addWidget(chkEnableSmoothenOutlier);
-    opticalFlowParamsLayout->addWidget(chkEnableEdgeDetection);
-    opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Max Jump Distance")));
-    opticalFlowParamsLayout->addWidget(edtEdgeJumpDistance);
-    opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Bounce Distance")));
-    opticalFlowParamsLayout->addWidget(edtEdgeBounceDistance);
+    opticalFlowParamsLayout->addWidget(chkEnableSmoothenOutlier);    
     lblInterpolationPercent = new QLabel(tr("Interpolation Percent"));
     opticalFlowParamsLayout->addWidget(lblInterpolationPercent);
     opticalFlowParamsLayout->addWidget(edtInterpolationPercent);
     opticalFlowParamsLayout->addWidget(chkPurgeCache);
     opticalFlowParamsLayout->addWidget(new QLabel(tr("Maximum Cache Size")));
     opticalFlowParamsLayout->addWidget(edtCacheSize);
+    opticalFlowParamsLayout->addWidget(chkEnableEdgeDetection);
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Max Jump Distance")));
+    opticalFlowParamsLayout->addWidget(edtEdgeJumpDistance);
+    opticalFlowParamsLayout->addWidget(new QLabel(tr("Edge Bounce Distance")));
+    opticalFlowParamsLayout->addWidget(edtEdgeBounceDistance);
 
     ui.segParamsStack->addWidget(opticalFlowParamsContainer);
     // set the default segmentation method as Optical Flow Segmentation
@@ -406,25 +406,14 @@ void CWindow::CreateWidgets(void)
     fEdtWindowWidth->setMinimum(3);
     fEdtWindowWidth->setValue(5);
     fOptIncludeMiddle = this->findChild<QCheckBox*>("includeMiddleOpt");
-    connect(
-        fEdtAlpha, SIGNAL(editingFinished()), this,
-        SLOT(OnEdtAlphaValChange()));
-    connect(
-        fEdtBeta, SIGNAL(editingFinished()), this, SLOT(OnEdtBetaValChange()));
-    connect(
-        fEdtDelta, SIGNAL(editingFinished()), this,
-        SLOT(OnEdtDeltaValChange()));
+    connect(fEdtAlpha, SIGNAL(editingFinished()), this, SLOT(OnEdtAlphaValChange()));
+    connect(fEdtBeta, SIGNAL(editingFinished()), this, SLOT(OnEdtBetaValChange()));
+    connect(fEdtDelta, SIGNAL(editingFinished()), this, SLOT(OnEdtDeltaValChange()));
     connect(fEdtK1, SIGNAL(editingFinished()), this, SLOT(OnEdtK1ValChange()));
     connect(fEdtK2, SIGNAL(editingFinished()), this, SLOT(OnEdtK2ValChange()));
-    connect(
-        fEdtDistanceWeight, SIGNAL(editingFinished()), this,
-        SLOT(OnEdtDistanceWeightChange()));
-    connect(
-        fEdtWindowWidth, &QSpinBox::valueChanged, this,
-        &CWindow::OnEdtWindowWidthChange);
-    connect(
-        fOptIncludeMiddle, SIGNAL(clicked(bool)), this,
-        SLOT(OnOptIncludeMiddleClicked(bool)));
+    connect(fEdtDistanceWeight, SIGNAL(editingFinished()), this, SLOT(OnEdtDistanceWeightChange()));
+    connect(fEdtWindowWidth, &QSpinBox::valueChanged, this, &CWindow::OnEdtWindowWidthChange);
+    connect(fOptIncludeMiddle, SIGNAL(clicked(bool)), this, SLOT(OnOptIncludeMiddleClicked(bool)));
 
     ui.spinBackwardSlice->setMinimum(0);
     ui.spinBackwardSlice->setEnabled(false);
