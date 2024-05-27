@@ -15,12 +15,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
     QSettings settings("VC.ini", QSettings::IniFormat);
 
     edtDefaultPathVolpkg->setText(settings.value("volpkg/default_path").toString());
-    chkAutoOpenVolpkg->setChecked(settings.value("volpkg/auto_open", false).toInt() != 0);
+    chkAutoOpenVolpkg->setChecked(settings.value("volpkg/auto_open", true).toInt() != 0);
 
     spinFwdBackStepMs->setValue(settings.value("viewer/fwd_back_step_ms", 25).toInt());
     chkCenterOnZoom->setChecked(settings.value("viewer/center_on_zoom", false).toInt() != 0);
-    edtImpactRange->setText(settings.value("viewer/impact_range_steps", "1-20").toString());
-    edtScanRange->setText(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100").toString());
+    edtImpactRange->setText(settings.value("viewer/impact_range_steps", "1-3, 5, 8, 11, 15, 20, 28, 40, 60, 100, 200").toString());
+    edtScanRange->setText(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100, 200, 500, 1000").toString());
     spinScrollSpeed->setValue(settings.value("viewer/scroll_speed", -1).toInt());
     spinDisplayOpacity->setValue(settings.value("viewer/display_segment_opacity", 70).toInt());
     chkPlaySoundAfterSegRun->setChecked(settings.value("viewer/play_sound_after_seg_run", true).toInt() != 0);
