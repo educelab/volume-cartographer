@@ -85,6 +85,7 @@ private:
     QCheckBox* fShowCurveBox;
     bool showCurve;
     int fwdBackMsJump;
+    float displaySegmentOpacity;
     std::unordered_map<std::string, SegmentationStruct>& fSegStructMapRef;
     CBSpline* fSplineCurveRef;
     std::vector<cv::Vec2f> fControlPoints;

@@ -99,6 +99,7 @@ CVolumeViewerWithCurve::CVolumeViewerWithCurve(std::unordered_map<std::string, S
 
     QSettings settingsJump("VC.ini", QSettings::IniFormat);
     fwdBackMsJump = settingsJump.value("viewer/fwd_back_step_ms", 25).toInt();
+    displaySegmentOpacity = settings.value("viewer/display_segment_opacity", 70).toFloat();
 
     UpdateButtons();
 
@@ -597,8 +598,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         }
         else {
             colorSelector->color().getRgb(&r, &g, &b);
-            QSettings settings("VC.ini", QSettings::IniFormat);
-            a = settings.value("viewer/display_segment_opacity", 70).toFloat() / 100.f * 255;
+            a = displaySegmentOpacity / 100.f * 255;
         }
         if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
             continue;  // Early continue if either object is null or the list is empty
