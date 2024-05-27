@@ -26,6 +26,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
     chkPlaySoundAfterSegRun->setChecked(settings.value("viewer/play_sound_after_seg_run", true).toInt() != 0);
 
     spinPreloadedSlices->setValue(settings.value("perf/preloaded_slices", 200).toInt());
+    chkSkipImageFormatConvExp->setChecked(settings.value("perf/chkSkipImageFormatConvExp", false).toBool());
 
     connect(btnHelpPreloadedSlices, &QPushButton::clicked, this, [this]{ QToolTip::showText(QCursor::pos(), btnHelpPreloadedSlices->toolTip()); });
 }
@@ -47,6 +48,7 @@ void SettingsDialog::accept()
     settings.setValue("viewer/play_sound_after_seg_run", chkPlaySoundAfterSegRun->isChecked() ? "1" : "0");
 
     settings.setValue("perf/preloaded_slices", spinPreloadedSlices->value());
+    settings.setValue("perf/chkSkipImageFormatConvExp", chkSkipImageFormatConvExp->isChecked() ? "1" : "0");
 
     QMessageBox::information(this, tr("Restart required"), tr("Note: Some settings only take effect once you restarted the app."));
 

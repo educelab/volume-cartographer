@@ -192,6 +192,7 @@ CVolumeViewer::CVolumeViewer(QWidget* parent)
     QSettings settings("VC.ini", QSettings::IniFormat);
     fCenterOnZoomEnabled = settings.value("viewer/center_on_zoom", false).toInt() != 0;
     fScrollSpeed = settings.value("viewer/scroll_speed", false).toInt();
+    fSkipImageFormatConv = settings.value("perf/chkSkipImageFormatConvExp", false).toBool();
 
     QVBoxLayout* aWidgetLayout = new QVBoxLayout;
     aWidgetLayout->addWidget(fGraphicsView);
@@ -236,7 +237,7 @@ void CVolumeViewer::SetImage(const QImage& nSrc)
     }
 
     // Create a QPixmap from the QImage
-    QPixmap pixmap = QPixmap::fromImage(*fImgQImage, Qt::NoFormatConversion);
+    QPixmap pixmap = QPixmap::fromImage(*fImgQImage, fSkipImageFormatConv ? Qt::NoFormatConversion : Qt::AutoColor);
 
     // Add the QPixmap to the scene as a QGraphicsPixmapItem
     if (!fBaseImageItem) {

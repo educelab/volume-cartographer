@@ -132,6 +132,7 @@ protected:
     // user settings
     bool fCenterOnZoomEnabled;
     int fScrollSpeed{-1};
+    bool fSkipImageFormatConv;
 
     QGraphicsPixmapItem* fBaseImageItem;
 };  // class CVolumeViewer
