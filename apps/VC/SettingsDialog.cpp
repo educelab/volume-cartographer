@@ -22,6 +22,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
     edtImpactRange->setText(settings.value("viewer/impact_range_steps", "1-20").toString());
     edtScanRange->setText(settings.value("viewer/scan_range_steps", "1, 2, 5, 10, 20, 50, 100").toString());
     spinScrollSpeed->setValue(settings.value("viewer/scroll_speed", -1).toInt());
+    spinDisplayOpacity->setValue(settings.value("viewer/display_segment_opacity", 70).toInt());
     chkPlaySoundAfterSegRun->setChecked(settings.value("viewer/play_sound_after_seg_run", true).toInt() != 0);
 
     spinPreloadedSlices->setValue(settings.value("perf/preloaded_slices", 200).toInt());
@@ -42,6 +43,7 @@ void SettingsDialog::accept()
     settings.setValue("viewer/impact_range_steps", edtImpactRange->text());
     settings.setValue("viewer/scan_range_steps", edtScanRange->text());
     settings.setValue("viewer/scroll_speed", spinScrollSpeed->value());
+    settings.setValue("viewer/display_segment_opacity", spinDisplayOpacity->value());
     settings.setValue("viewer/play_sound_after_seg_run", chkPlaySoundAfterSegRun->isChecked() ? "1" : "0");
 
     settings.setValue("perf/preloaded_slices", spinPreloadedSlices->value());

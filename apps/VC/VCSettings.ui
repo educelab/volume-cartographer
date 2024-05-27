@@ -96,7 +96,30 @@
            </property>
           </widget>
          </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="spinDisplayOpacity">
+           <property name="suffix">
+            <string>%</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>70</number>
+           </property>
+          </widget>
+         </item>
          <item row="5" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Opacity of &quot;Display&quot; mode segments</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
           <widget class="QCheckBox" name="chkPlaySoundAfterSegRun">
            <property name="text">
             <string>Play sound when segmentation run finished</string>

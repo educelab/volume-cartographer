@@ -582,7 +582,7 @@ std::pair<int, std::string> CVolumeViewerWithCurve::SelectPointOnCurves(
 void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
     for (auto& seg : fSegStructMapRef) {
         auto& segStruct = seg.second;
-        int r{0}, g{0}, b{0};
+        int r{0}, g{0}, b{0}, a{255};
         if (segStruct.highlighted && segStruct.compute) {
             colorSelectorHighlight->color().getRgb(&r, &g, &b);
         }
@@ -597,6 +597,8 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         }
         else {
             colorSelector->color().getRgb(&r, &g, &b);
+            QSettings settings("VC.ini", QSettings::IniFormat);
+            a = settings.value("viewer/display_segment_opacity", 70).toFloat() / 100.f * 255;
         }
         if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
             continue;  // Early continue if either object is null or the list is empty
@@ -622,8 +624,8 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
             }
 
             // Determine pen and brush colors
-            auto penColor = manualPoint ? colorSelectorManual->color() : QColor(r, g, b);
-            auto brushColor = QColor(r, g, b);
+            auto penColor = manualPoint ? colorSelectorManual->color() : QColor(r, g, b, a);
+            auto brushColor = QColor(r, g, b, a);
             // Slightly mark every 10th point
             if (i % 20 == 0) {
                 brushColor = gray;
