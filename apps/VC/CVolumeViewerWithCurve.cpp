@@ -599,7 +599,6 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         else {
             colorSelector->color().getRgb(&r, &g, &b);
             a = displaySegmentOpacity / 100.f * 255;
-            std::cout << "Alpha: " << a << std::endl;
         }
         if (!scene || !segStruct.display || segStruct.fIntersectionCurve.GetPointsNum()==0 || !colorSelector) {
             continue;  // Early continue if either object is null or the list is empty
@@ -610,7 +609,7 @@ void CVolumeViewerWithCurve::DrawIntersectionCurve(QGraphicsScene* scene) {
         // Get annotations for current curve
         auto hasAnnotations = !segStruct.fAnnotationCloud.empty();
         auto pointIndex = segStruct.GetAnnotationIndexForSliceIndex(segStruct.fPathOnSliceIndex);
-        auto gray = QColor(180, 180, 180);
+        auto gray = QColor(180, 180, 180, a);
 
         for (int i = 0; i < pointsNum; ++i) {
             // Create new ellipse points

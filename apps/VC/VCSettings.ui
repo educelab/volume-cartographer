@@ -55,6 +55,20 @@
          <string>Segment Viewer</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Scroll speed (-1 = use default)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="edtScanRange">
+           <property name="text">
+            <string>1, 2, 5, 10, 20, 50, 100, 200, 500, 1000</string>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="1">
           <widget class="QLineEdit" name="edtImpactRange">
            <property name="text">
@@ -69,46 +83,13 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="spinFwdBackStepMs">
+         <item row="4" column="1">
+          <widget class="QSpinBox" name="spinScrollSpeed">
            <property name="minimum">
-            <number>25</number>
-           </property>
-           <property name="maximum">
-            <number>1000</number>
+            <number>-1</number>
            </property>
            <property name="value">
-            <number>25</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="chkCenterOnZoom">
-           <property name="text">
-            <string>Center on cursor when zooming via mouse wheel</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="edtScanRange">
-           <property name="text">
-            <string>1, 2, 5, 10, 20, 50, 100, 200, 500, 1000</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QSpinBox" name="spinDisplayOpacity">
-           <property name="suffix">
-            <string>%</string>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>100</number>
-           </property>
-           <property name="value">
-            <number>70</number>
+            <number>-1</number>
            </property>
           </widget>
          </item>
@@ -119,6 +100,29 @@
            </property>
           </widget>
          </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="spinDisplayOpacity">
+           <property name="suffix">
+            <string>%</string>
+           </property>
+           <property name="minimum">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>70</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="chkCenterOnZoom">
+           <property name="text">
+            <string>Center on cursor when zooming via mouse wheel</string>
+           </property>
+          </widget>
+         </item>
          <item row="6" column="0">
           <widget class="QCheckBox" name="chkPlaySoundAfterSegRun">
            <property name="text">
@@ -126,6 +130,19 @@
            </property>
            <property name="checked">
             <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QSpinBox" name="spinFwdBackStepMs">
+           <property name="minimum">
+            <number>25</number>
+           </property>
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+           <property name="value">
+            <number>25</number>
            </property>
           </widget>
          </item>
@@ -143,20 +160,53 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_6">
+         <item row="4" column="2">
+          <widget class="QPushButton" name="btnHelpScrollSpeed">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;-1 and 0 = default speed &lt;/p&gt;&lt;p&gt;1 = very slow/fine scrolling&lt;/p&gt;&lt;p&gt;higher values = faster scrolling&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
-            <string>Scoll speed (-1 = use default)</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset theme="help-contents"/>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QSpinBox" name="spinScrollSpeed">
-           <property name="minimum">
-            <number>-1</number>
+         <item row="5" column="2">
+          <widget class="QPushButton" name="btnHelpDisplayOpacity">
+           <property name="enabled">
+            <bool>true</bool>
            </property>
-           <property name="value">
-            <number>-1</number>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Applies to non highlighted segments in display mode&lt;/p&gt;&lt;p&gt;0% = completely transparent = invisible&lt;/p&gt;&lt;p&gt;100% = completely opaque&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset theme="help-contents"/>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
