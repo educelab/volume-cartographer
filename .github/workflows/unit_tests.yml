@@ -83,6 +83,7 @@ jobs:
     timeout-minutes: 180
     env:
       EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+      MACOSX_DEPLOYMENT_TARGET: "14.4"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
