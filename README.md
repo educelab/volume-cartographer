@@ -101,15 +101,13 @@ documentation.
 * [pybind11](https://github.com/pybind/pybind11): Required to build Python
 bindings.
 
-##### (macOS) Homebrew-provided dependencies
-In principle, Homebrew can be used to install all of Volume Cartographer's
-dependencies. However at the time of this writing, the `vtk` brew package links
-against Qt5 while the Volume Cartographer GUIs link against Qt6. This will lead
-to linking errors when compiling this project. To use the Homebrew version of
-VTK, you must disable compilation of the VC GUI apps with the
-`-DVC_BUILD_GUI=OFF` CMake flag. Otherwise, you must build VTK from source or
-follow the instructions for
-[building vc-deps dependencies](#optional-use-vc-deps-dependencies).
+##### Homebrew-provided dependencies
+Homebrew can be used to install all of Volume Cartographer's dependencies. We 
+provide a `Brewfile` to simplify this process.
+```shell
+cd volume-cartographer/
+brew bundle
+```
 
 #### Compilation
 This project is built and installed using the CMake build system. If you have

@@ -1,4 +1,4 @@
-option(VC_BUILD_ACVD "Build in-source ACVD" off)
+option(VC_BUILD_ACVD "Build in-source ACVD" ON)
 if(VC_BUILD_ACVD)
   # Declare the project
   FetchContent_Declare(

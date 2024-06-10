@@ -6,3 +6,4 @@
 .zenodo.json
 **/*.md
 docs/*
+Brewfile.lock.json

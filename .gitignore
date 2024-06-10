@@ -17,6 +17,7 @@ flycheck*
 # Mac
 .DS_Store
 ._*
+Brewfile.lock.json
 
 # Maven
 log/

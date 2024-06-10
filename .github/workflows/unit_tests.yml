@@ -21,9 +21,7 @@ jobs:
       CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3.3.0
-      with:
-        fetch-depth: 20
+      uses: actions/checkout@v4
 
     - name: Build volume-cartographer
       run: |
@@ -44,9 +42,7 @@ jobs:
       CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3.3.0
-      with:
-        fetch-depth: 20
+      uses: actions/checkout@v4
 
     - name: Build volume-cartographer
       run: |
@@ -55,3 +51,59 @@ jobs:
 
     - name: Run tests
       run: ctest -V --test-dir build/
+
+  macos_13:
+    name: macOS 13
+    runs-on: macos-13
+    if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
+    timeout-minutes: 180
+    env:
+      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use the Command Line Tools
+        run: |
+          sudo xcode-select -s /Library/Developer/CommandLineTools
+
+      - name: Install dependencies
+        run: |
+          brew bundle
+          brew install ninja
+
+      - name: Build volume-cartographer
+        run: |
+          cmake -S . -B build/ -GNinja $EXTRA_CMAKE_FLAGS
+          cmake --build build/
+
+      - name: Run tests
+        run: ctest -V --test-dir build/
+
+  macos_14:
+    name: macOS 14
+    runs-on: macos-14
+    if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
+    timeout-minutes: 180
+    env:
+      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use the Command Line Tools
+        run: |
+          sudo xcode-select -s /Library/Developer/CommandLineTools
+
+      - name: Install dependencies
+        run: |
+          brew bundle
+          brew install ninja
+
+      - name: Build volume-cartographer
+        run: |
+          cmake -S . -B build/ -GNinja $EXTRA_CMAKE_FLAGS
+          cmake --build build/
+
+      - name: Run tests
+        run: ctest -V --test-dir build/
