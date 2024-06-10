@@ -90,7 +90,7 @@ jobs:
 
       - name: Override the macOS SDK
         run: |
-          xcode-select -s /Library/Developer/CommandLineTools
+          sudo xcode-select -s /Library/Developer/CommandLineTools
 #          ls -lha /Library/Developer/CommandLineTools/SDKs/
 #          ls -lha /Applications/Xcode_15.0.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
 
