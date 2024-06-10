@@ -63,6 +63,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Override the macOS SDK
+        run: |
+          echo /Library/Developer/CommandLineTools/SDKs/
+
       - name: Install dependencies
         run: |
           brew bundle
