@@ -63,6 +63,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Use the Command Line Tools
+        run: |
+          sudo xcode-select -s /Library/Developer/CommandLineTools
+
       - name: Install dependencies
         run: |
           brew bundle
@@ -88,11 +92,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Override the macOS SDK
+      - name: Use the Command Line Tools
         run: |
           sudo xcode-select -s /Library/Developer/CommandLineTools
-#          ls -lha /Library/Developer/CommandLineTools/SDKs/
-#          ls -lha /Applications/Xcode_15.0.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
 
       - name: Install dependencies
         run: |
