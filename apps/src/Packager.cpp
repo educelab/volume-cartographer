@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <optional>
 #include <regex>
 #include <vector>
 
@@ -51,10 +52,9 @@ struct VolumeInfo {
 
 static bool DoAnalyze{true};
 
-void ExtractVolumeOptions(
-    po::parsed_options& command_line,
-    std::vector<po::parsed_options>& volumes_command_line,
-    const po::options_description& volume_options);
+auto ExtractVolumeOptions(
+    po::parsed_options& parsed, const po::options_description& volOptDesc)
+    -> std::vector<po::parsed_options>;
 auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo;
 void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info);
 
@@ -103,34 +103,33 @@ auto main(int argc, char* argv[]) -> int
         "analyze", po::value<bool>()->default_value(true), "Analyze volume");
     // clang-format on
 
-    po::parsed_options command_line =
-        po::command_line_parser(argc, argv).options(all).run();
-    std::vector<po::parsed_options> volumes_command_line;
-    ExtractVolumeOptions(command_line, volumes_command_line, volume_options);
+    // Parse the command line and separate out flags for volumes
+    auto parsed = po::command_line_parser(argc, argv).options(all).run();
+    auto parsedVols = ExtractVolumeOptions(parsed, volume_options);
 
-    // parsed will hold the values of the parsed main options as a Map
-    po::variables_map parsed;
-    po::store(command_line, parsed);
+    // args will hold the values of the parsed main options as a Map
+    po::variables_map args;
+    po::store(parsed, args);
 
-    // parsed_volumes will hold the values of the parsed volumes options
-    std::vector<po::variables_map> parsed_volumes;
-    for (const auto& volume_command_line : volumes_command_line) {
-        po::variables_map parsed_volume;
-        po::store(volume_command_line, parsed_volume);
-        parsed_volumes.push_back(parsed_volume);
+    // vargs will hold a list of grouped volume options, one for each volume
+    std::vector<po::variables_map> vargs;
+    for (const auto& p : parsedVols) {
+        po::variables_map arg;
+        po::store(p, arg);
+        vargs.push_back(arg);
     }
 
     // Show the help message
-    if (parsed.count("help") || argc < 2) {
+    if (args.count("help") || argc < 2) {
         std::cout << helpOpts << '\n';
         return EXIT_SUCCESS;
     }
 
     // Warn of missing options
     try {
-        po::notify(parsed);
-        for (auto& parsed_volume : parsed_volumes) {
-            po::notify(parsed_volume);
+        po::notify(args);
+        for (auto& arg : vargs) {
+            po::notify(arg);
         }
     } catch (po::error& e) {
         std::cerr << "ERROR: " << e.what() << '\n';
@@ -138,11 +137,11 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Set global opt
-    DoAnalyze = parsed["analyze"].as<bool>();
+    DoAnalyze = args["analyze"].as<bool>();
 
     ///// New VolumePkg /////
     // Get the output volpkg path
-    fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+    fs::path volpkgPath = args["volpkg"].as<std::string>();
     auto newPackageMode = !fs::exists(volpkgPath);
 
     // Make sure the package doesn't already exist
@@ -153,7 +152,7 @@ auto main(int argc, char* argv[]) -> int
             volpkgPath.replace_extension(".volpkg");
         }
         // Make sure we have the material thickness value
-        if (parsed.count("material-thickness") == 0) {
+        if (args.count("material-thickness") == 0) {
             std::cerr << "ERROR: Making a new volume package but did not "
                          "provide the material thickness."
                       << '\n';
@@ -175,8 +174,8 @@ auto main(int argc, char* argv[]) -> int
 
     // Get volpkg name
     std::string vpkgName;
-    if (parsed.count("name")) {
-        vpkgName = parsed["name"].as<std::string>();
+    if (args.count("name")) {
+        vpkgName = args["name"].as<std::string>();
     } else if (newPackageMode) {
         vpkgName = volpkgPath.stem().string();
     }
@@ -185,8 +184,8 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Get material thickness
-    if (parsed.count("material-thickness")) {
-        auto thickness = parsed["material-thickness"].as<double>();
+    if (args.count("material-thickness")) {
+        auto thickness = args["material-thickness"].as<double>();
         volpkg->setMetadata("materialthickness", thickness);
     }
 
@@ -194,64 +193,61 @@ auto main(int argc, char* argv[]) -> int
     volpkg->saveMetadata();
 
     ///// Add Volumes /////
-    for (const auto& parsed_volume : parsed_volumes) {
-        VolumeInfo info = GetVolumeInfo(parsed_volume);
+    for (const auto& v : vargs) {
+        VolumeInfo info = GetVolumeInfo(v);
         AddVolume(volpkg, info);
     }
 }
 
-void ExtractVolumeOptions(
-    po::parsed_options& command_line,
-    std::vector<po::parsed_options>& volumes_command_line,
-    const po::options_description& volume_options)
+// Extract volume-related options into a separate list
+auto ExtractVolumeOptions(
+    po::parsed_options& parsed, const po::options_description& volOptDesc)
+    -> std::vector<po::parsed_options>
 {
-    // partition options between volumes and others
-    po::parsed_options all_volumes_command_line(&volume_options);
-    po::parsed_options others_command_line(command_line.description);
-
-    for (auto& o : command_line.options) {
-        if (volume_options.find_nothrow(o.string_key, false) != nullptr) {
-            all_volumes_command_line.options.push_back(o);
+    // partition options between volume-related and others
+    po::parsed_options parsedVolOpts(&volOptDesc);
+    po::parsed_options parsedOtherOpts(parsed.description);
+    for (auto& o : parsed.options) {
+        if (volOptDesc.find_nothrow(o.string_key, false) != nullptr) {
+            parsedVolOpts.options.push_back(o);
         } else {
-            others_command_line.options.push_back(o);
+            parsedOtherOpts.options.push_back(o);
         }
     }
+    // replace "parsed" with our extracted "other" opts
+    parsed = std::move(parsedOtherOpts);
 
-    command_line = std::move(others_command_line);
+    // iterate over list of options and split every time we see --slices
+    std::vector<po::parsed_options> volOpts;
+    std::optional<po::parsed_options> volOpt;
+    for (const auto& p : parsedVolOpts.options) {
+        // start a new volOpt when we encounter --slices
+        if (p.string_key == "slices") {
+            // add previous volOpt to output list as needed
+            if (volOpt.has_value()) {
+                volOpts.push_back(volOpt.value());
+            }
+            volOpt = po::parsed_options(&volOptDesc);
+        }
 
-    // get iterators to "slices" options
-    std::vector<std::vector<po::option>::const_iterator> slices_iterators;
-
-    for (auto it = all_volumes_command_line.options.cbegin();
-         it != all_volumes_command_line.options.cend(); it++) {
-        if (it->string_key == "slices") {
-            slices_iterators.push_back(it);
+        // if we've started a volOpt, add this option to it
+        if (volOpt.has_value()) {
+            volOpt.value().options.push_back(p);
         }
     }
-
-    if (slices_iterators.size() == 1) {
-        // only one volume with all options
-        volumes_command_line.push_back(std::move(all_volumes_command_line));
-        return;
+    // Add the final volOpt to our output list
+    if (volOpt.has_value()) {
+        volOpts.push_back(volOpt.value());
     }
 
-    // group individual volumes options together
-    slices_iterators.push_back(all_volumes_command_line.options.cend());
-
-    for (auto it = slices_iterators.cbegin();
-         it != (slices_iterators.cend() - 1); it++) {
-        po::parsed_options volume_command_line(&volume_options);
-        std::copy(
-            *it, *(it + 1), std::back_inserter(volume_command_line.options));
-        volumes_command_line.push_back(std::move(volume_command_line));
-    }
+    return volOpts;
 }
 
 auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
 {
     VolumeInfo info;
 
-    fs::path slicePath = parsed["slices"].as<StringList>().front();
+    const fs::path slicePath = parsed["slices"].as<StringList>().front();
 
     bool voxelFound = false;
 
@@ -338,7 +334,7 @@ auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
     return info;
 }
 
-void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
+void AddVolume(const vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 {
     std::cout << "Adding Volume: " << info.path << std::endl;
 
