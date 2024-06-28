@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <iostream>
-#include <iterator>
 #include <limits>
 #include <optional>
 #include <regex>
