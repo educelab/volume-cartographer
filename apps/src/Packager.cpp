@@ -334,7 +334,7 @@ auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
     return info;
 }
 
-void AddVolume(const vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
+void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
 {
     std::cout << "Adding Volume: " << info.path << std::endl;
 
