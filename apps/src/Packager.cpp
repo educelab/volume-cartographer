@@ -2,7 +2,9 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <regex>
+#include <vector>
 
 #include <boost/program_options.hpp>
 
@@ -17,6 +19,9 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 #include "vc/core/util/String.hpp"
+
+using StringList = std::vector<std::string>;
+using DoubleList = std::vector<double>;
 
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
@@ -46,6 +51,9 @@ struct VolumeInfo {
 
 static bool DoAnalyze{true};
 
+auto ExtractVolumeOptions(
+    po::parsed_options& parsed, const po::options_description& volOptDesc)
+    -> std::vector<po::parsed_options>;
 auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo;
 void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info);
 
@@ -70,16 +78,18 @@ auto main(int argc, char* argv[]) -> int
 
     po::options_description volume_options("Volume");
     volume_options.add_options()
-        ("slices,s", po::value<std::string>(),
+        ("slices,s", po::value<StringList>(),
             "Path to input slice data. Ends with prefix of slice images or log "
-            "file path. Required when making a new volume.")
-        ("volume-name,n", po::value<std::string>(),
+            "file path. Required when making a new volume. If specified "
+            "multiple times, volume options will be associated with the "
+            "previous slices.")
+        ("volume-name,n", po::value<StringList>(),
             "Descriptive name for the volume. Required when making a new "
             "volume.")
-        ("voxel-size-um,u", po::value<double>(),
+        ("voxel-size-um,u", po::value<DoubleList>(),
             "Voxel size of the volume in microns (e.g. 13.546). Required when "
             "making a new volume.")
-        ("flip,f", po::value<std::string>()->default_value("none"),
+        ("flip,f", po::value<StringList>(),
             "Flip options: Vertical flip (vf), horizontal flip (hf), both, "
             "z-flip (zf), all, [none].")
         ("compress,c", "Compress slice images");
@@ -92,30 +102,45 @@ auto main(int argc, char* argv[]) -> int
         "analyze", po::value<bool>()->default_value(true), "Analyze volume");
     // clang-format on
 
-    // parsed will hold the values of all parsed options as a Map
-    po::variables_map parsed;
-    po::store(po::command_line_parser(argc, argv).options(all).run(), parsed);
+    // Parse the command line and separate out flags for volumes
+    auto parsed = po::command_line_parser(argc, argv).options(all).run();
+    auto parsedVols = ExtractVolumeOptions(parsed, volume_options);
+
+    // args will hold the values of the parsed main options as a Map
+    po::variables_map args;
+    po::store(parsed, args);
+
+    // vargs will hold a list of grouped volume options, one for each volume
+    std::vector<po::variables_map> vargs;
+    for (const auto& p : parsedVols) {
+        po::variables_map arg;
+        po::store(p, arg);
+        vargs.push_back(arg);
+    }
 
     // Show the help message
-    if (parsed.count("help") || argc < 2) {
+    if (args.count("help") || argc < 2) {
         std::cout << helpOpts << '\n';
         return EXIT_SUCCESS;
     }
 
     // Warn of missing options
     try {
-        po::notify(parsed);
+        po::notify(args);
+        for (auto& arg : vargs) {
+            po::notify(arg);
+        }
     } catch (po::error& e) {
         std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 
     // Set global opt
-    DoAnalyze = parsed["analyze"].as<bool>();
+    DoAnalyze = args["analyze"].as<bool>();
 
     ///// New VolumePkg /////
     // Get the output volpkg path
-    fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+    fs::path volpkgPath = args["volpkg"].as<std::string>();
     auto newPackageMode = !fs::exists(volpkgPath);
 
     // Make sure the package doesn't already exist
@@ -126,7 +151,7 @@ auto main(int argc, char* argv[]) -> int
             volpkgPath.replace_extension(".volpkg");
         }
         // Make sure we have the material thickness value
-        if (parsed.count("material-thickness") == 0) {
+        if (args.count("material-thickness") == 0) {
             std::cerr << "ERROR: Making a new volume package but did not "
                          "provide the material thickness."
                       << '\n';
@@ -148,8 +173,8 @@ auto main(int argc, char* argv[]) -> int
 
     // Get volpkg name
     std::string vpkgName;
-    if (parsed.count("name")) {
-        vpkgName = parsed["name"].as<std::string>();
+    if (args.count("name")) {
+        vpkgName = args["name"].as<std::string>();
     } else if (newPackageMode) {
         vpkgName = volpkgPath.stem().string();
     }
@@ -158,24 +183,70 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Get material thickness
-    if (parsed.count("material-thickness")) {
-        auto thickness = parsed["material-thickness"].as<double>();
+    if (args.count("material-thickness")) {
+        auto thickness = args["material-thickness"].as<double>();
         volpkg->setMetadata("materialthickness", thickness);
     }
 
     // Update metadata on disk
     volpkg->saveMetadata();
 
-    ///// Add Volume /////
-    auto info = GetVolumeInfo(parsed);
-    AddVolume(volpkg, info);
+    ///// Add Volumes /////
+    for (const auto& v : vargs) {
+        VolumeInfo info = GetVolumeInfo(v);
+        AddVolume(volpkg, info);
+    }
+}
+
+// Extract volume-related options into a separate list
+auto ExtractVolumeOptions(
+    po::parsed_options& parsed, const po::options_description& volOptDesc)
+    -> std::vector<po::parsed_options>
+{
+    // partition options between volume-related and others
+    po::parsed_options parsedVolOpts(&volOptDesc);
+    po::parsed_options parsedOtherOpts(parsed.description);
+    for (auto& o : parsed.options) {
+        if (volOptDesc.find_nothrow(o.string_key, false) != nullptr) {
+            parsedVolOpts.options.push_back(o);
+        } else {
+            parsedOtherOpts.options.push_back(o);
+        }
+    }
+    // replace "parsed" with our extracted "other" opts
+    parsed = std::move(parsedOtherOpts);
+
+    // iterate over list of options and split every time we see --slices
+    std::vector<po::parsed_options> volOpts;
+    std::optional<po::parsed_options> volOpt;
+    for (const auto& p : parsedVolOpts.options) {
+        // start a new volOpt when we encounter --slices
+        if (p.string_key == "slices") {
+            // add previous volOpt to output list as needed
+            if (volOpt.has_value()) {
+                volOpts.push_back(volOpt.value());
+            }
+            volOpt = po::parsed_options(&volOptDesc);
+        }
+
+        // if we've started a volOpt, add this option to it
+        if (volOpt.has_value()) {
+            volOpt.value().options.push_back(p);
+        }
+    }
+    // Add the final volOpt to our output list
+    if (volOpt.has_value()) {
+        volOpts.push_back(volOpt.value());
+    }
+
+    return volOpts;
 }
 
 auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
 {
     VolumeInfo info;
 
-    fs::path slicePath = parsed["slices"].as<std::string>();
+    const fs::path slicePath = parsed["slices"].as<StringList>().front();
 
     bool voxelFound = false;
 
@@ -221,7 +292,7 @@ auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
                   << '\n';
         exit(EXIT_FAILURE);
     }
-    info.name = parsed["volume-name"].as<std::string>();
+    info.name = parsed["volume-name"].as<StringList>().back();
 
     // Get voxel size
     if (!voxelFound) {
@@ -231,27 +302,29 @@ auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
                 << '\n';
             exit(EXIT_FAILURE);
         }
-        info.voxelsize = parsed["voxel-size-um"].as<double>();
+        info.voxelsize = parsed["voxel-size-um"].as<DoubleList>().back();
     }
 
     // Flip options
-    auto flip = parsed["flip"].as<std::string>();
-    vc::to_lower(flip);
+    if (parsed.count("flip") != 0) {
+        auto flip = parsed["flip"].as<StringList>().back();
+        vc::to_lower(flip);
 
-    if (flip == "vf") {
-        info.flipOption = Flip::Vertical;
-    } else if (flip == "hf") {
-        info.flipOption = Flip::Horizontal;
-    } else if (flip == "both") {
-        info.flipOption = Flip::Both;
-    } else if (flip == "zf") {
-        info.flipOption = Flip::ZFlip;
-    } else if (flip == "all") {
-        info.flipOption = Flip::All;
-    } else if (flip == "none") {
-        info.flipOption = Flip::None;
-    } else if (not flip.empty()) {
-        std::cerr << "Ignoring unrecognized flip option: " << flip << "\n";
+        if (flip == "vf") {
+            info.flipOption = Flip::Vertical;
+        } else if (flip == "hf") {
+            info.flipOption = Flip::Horizontal;
+        } else if (flip == "both") {
+            info.flipOption = Flip::Both;
+        } else if (flip == "zf") {
+            info.flipOption = Flip::ZFlip;
+        } else if (flip == "all") {
+            info.flipOption = Flip::All;
+        } else if (flip == "none") {
+            info.flipOption = Flip::None;
+        } else if (not flip.empty()) {
+            std::cerr << "Ignoring unrecognized flip option: " << flip << "\n";
+        }
     }
 
     // Whether to compress
