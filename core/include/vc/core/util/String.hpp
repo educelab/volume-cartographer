@@ -232,10 +232,9 @@ static inline auto partition(std::string_view s, std::string_view sep)
     }
 
     // Split into parts
-    const auto endPos = startPos + sep.size();
     auto pre = std::string(s.substr(0, startPos));
-    auto mid = std::string(s.substr(startPos, endPos));
-    auto post = std::string(s.substr(endPos));
+    auto mid = std::string(s.substr(startPos, sep.size()));
+    auto post = std::string(s.substr(startPos + sep.size()));
 
     // Return the parts
     return {pre, mid, post};
@@ -244,8 +243,9 @@ static inline auto partition(std::string_view s, std::string_view sep)
 /** @brief Convert an Integer to a padded string */
 template <
     typename Integer,
-    std::enable_if_t<std::is_integral<Integer>::value, bool> = true>
-auto to_padded_string(Integer val, int padding, char fill = '0') -> std::string
+    std::enable_if_t<std::is_integral_v<Integer>, bool> = true>
+auto to_padded_string(Integer val, const int padding, const char fill = '0')
+    -> std::string
 {
     std::stringstream stream;
     stream << std::setw(padding) << std::setfill(fill) << val;
