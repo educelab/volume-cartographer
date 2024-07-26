@@ -301,8 +301,14 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     // Load segmentations into the segmentations_
     for (const auto& entry : fs::directory_iterator(::SegsDir(rootDir_))) {
         if (fs::is_directory(entry)) {
-            auto s = Segmentation::New(entry);
-            segmentations_.emplace(s->id(), s);
+            try {
+                auto s = Segmentation::New(entry);
+                segmentations_.emplace(s->id(), s);
+            } catch (const std::exception& e) {
+                Logger()->warn(
+                    "Did not load segmentation \"{}\": {}",
+                    entry.path().filename().string(), e.what());
+            }
         }
     }
 

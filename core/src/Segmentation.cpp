@@ -14,6 +14,9 @@ Segmentation::Segmentation(fs::path path)
     if (metadata_.get<std::string>("type") != "seg") {
         throw std::runtime_error("File not of type: seg");
     }
+    if (metadata_.get<std::string>("vcps").empty()) {
+        throw std::runtime_error("Segmentation has no pointset");
+    }
 }
 
 // Make a new Segmentation file on disk
