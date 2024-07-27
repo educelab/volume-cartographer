@@ -77,6 +77,10 @@ public:
             auto msg = "could not find key '" + key + "' in metadata";
             throw std::runtime_error(msg);
         }
+        if (json_[key].is_null()) {
+            T val;
+            return val;
+        }
         return json_[key].get<T>();
     }
 
