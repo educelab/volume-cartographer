@@ -306,7 +306,7 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
                 segmentations_.emplace(s->id(), s);
             } catch (const std::exception& e) {
                 Logger()->warn(
-                    "Did not load segmentation \"{}\": {}",
+                    "Failed to load segmentation \"{}\": {}",
                     entry.path().filename().string(), e.what());
             }
         }
