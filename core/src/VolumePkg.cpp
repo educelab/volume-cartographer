@@ -228,9 +228,57 @@ auto VolpkgV6ToV7(const Metadata& meta) -> Metadata
     return newMeta;
 }
 
+auto VolpkgV7ToV8(const Metadata& meta) -> Metadata
+{
+    // Nothing to do check
+    if (meta.get<int>("version") != 7) {
+        return meta;
+    }
+    Logger()->info("Performing v8 migrations");
+
+    // VolumePkg path
+    const auto path = meta.path().parent_path();
+
+    // Replace empty strings in Segmentation metadata
+    Logger()->debug("- Updating segmentation metadata");
+    fs::path seg;
+    const auto segsDir = path / "paths";
+    for (const auto& entry : fs::directory_iterator(segsDir)) {
+        if (fs::is_directory(entry)) {
+            // Get the folder as a fs::path
+            seg = entry;
+
+            // Load the metadata
+            Metadata segMeta(seg / "meta.json");
+
+            // Set null on the appropriate values
+            for (auto key : {"vcps", "volume"}) {
+                if (not segMeta.hasKey(key)) {
+                    segMeta.set(key, nlohmann::json::value_t::null);
+                } else {
+                    const auto v = segMeta.get<std::string>(key);
+                    if (v.has_value() and v.value().empty()) {
+                        segMeta.set(key, nlohmann::json::value_t::null);
+                    }
+                }
+            }
+
+            // Save the new metadata
+            segMeta.save();
+        }
+    }
+
+    // Update the version
+    auto newMeta = meta;
+    newMeta.set("version", 8);
+    newMeta.save();
+
+    return newMeta;
+}
+
 using UpgradeFn = std::function<Metadata(const Metadata&)>;
 const std::vector<UpgradeFn> UPGRADE_FNS{
-    VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7};
+    VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7, VolpkgV7ToV8};
 
 }  // namespace
 
@@ -802,8 +850,8 @@ void VolumePkg::Upgrade(const fs::path& path, int version, bool force)
 
     // Plot path to final version
     // UpgradeFns start at v3->v4
-    auto startIdx = currentVersion - 3;
-    auto endIdx = version - 3;
+    const auto startIdx = currentVersion - 3;
+    const auto endIdx = version - 3;
     for (auto idx = startIdx; idx < endIdx; idx++) {
         meta = ::UPGRADE_FNS[idx](meta);
     }

@@ -22,8 +22,8 @@ Segmentation::Segmentation(fs::path path, Identifier uuid, std::string name)
           std::move(path), std::move(uuid), std::move(name))
 {
     metadata_.set("type", "seg");
-    metadata_.set("vcps", std::string{});
-    metadata_.set("volume", Volume::Identifier{});
+    metadata_.set("vcps", nlohmann::json::value_t::null);
+    metadata_.set("volume", nlohmann::json::value_t::null);
     metadata_.save();
 }
 
@@ -89,6 +89,9 @@ auto Segmentation::hasVolumeID() const -> bool
 
 auto Segmentation::getVolumeID() const -> Volume::Identifier
 {
+    if (not hasVolumeID()) {
+        throw std::runtime_error("segmentation has no volume ID");
+    }
     return metadata_.get<Volume::Identifier>("volume").value();
 }
 
