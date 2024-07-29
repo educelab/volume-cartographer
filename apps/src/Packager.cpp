@@ -264,13 +264,12 @@ auto GetVolumeInfo(const po::variables_map& parsed) -> VolumeInfo
         info.sliceRegex = logReader.getSliceRegexString();
 
         // Try to get the voxel size
-        try {
-            info.voxelsize = info.meta.get<double>("voxelSize");
+        if (info.meta.hasKey("voxelSize")) {
+            info.voxelsize = info.meta.get<double>("voxelSize").value();
             voxelFound = true;
-        } catch (const std::exception&) {
+        } else {
             std::cerr << "Warning: Log file does not contain voxel size. Is "
-                         "this a reconstruction log?"
-                      << std::endl;
+                         "this a reconstruction log?\n";
         }
     }
 

@@ -19,10 +19,10 @@ Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
         throw std::runtime_error("File not of type: vol");
     }
 
-    width_ = metadata_.get<int>("width");
-    height_ = metadata_.get<int>("height");
-    slices_ = metadata_.get<int>("slices");
-    numSliceCharacters_ = std::to_string(slices_).size();
+    width_ = metadata_.get<int>("width").value();
+    height_ = metadata_.get<int>("height").value();
+    slices_ = metadata_.get<int>("slices").value();
+    numSliceCharacters_ = static_cast<int>(std::to_string(slices_).size());
 }
 
 // Setup a Volume from a folder of slices
@@ -57,10 +57,16 @@ auto Volume::sliceHeight() const -> int { return height_; }
 auto Volume::numSlices() const -> int { return slices_; }
 auto Volume::voxelSize() const -> double
 {
-    return metadata_.get<double>("voxelsize");
+    return metadata_.get<double>("voxelsize").value();
 }
-auto Volume::min() const -> double { return metadata_.get<double>("min"); }
-auto Volume::max() const -> double { return metadata_.get<double>("max"); }
+auto Volume::min() const -> double
+{
+    return metadata_.get<double>("min").value();
+}
+auto Volume::max() const -> double
+{
+    return metadata_.get<double>("max").value();
+}
 
 void Volume::setSliceWidth(int w)
 {
@@ -76,8 +82,8 @@ void Volume::setSliceHeight(int h)
 
 void Volume::setNumberOfSlices(std::size_t numSlices)
 {
-    slices_ = numSlices;
-    numSliceCharacters_ = std::to_string(numSlices).size();
+    slices_ = static_cast<int>(numSlices);
+    numSliceCharacters_ = static_cast<int>(std::to_string(numSlices).size());
     metadata_.set("slices", numSlices);
 }
 

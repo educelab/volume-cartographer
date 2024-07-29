@@ -1,5 +1,6 @@
 #include "vc/core/types/VolumePkg.hpp"
 
+#include <fstream>
 #include <functional>
 #include <utility>
 
@@ -16,34 +17,31 @@ namespace
 ////// Convenience vars and fns for accessing VolumePkg sub-paths //////
 constexpr auto CONFIG = "config.json";
 
-inline auto VolsDir(const fs::path& baseDir) -> fs::path
+auto VolsDir(const fs::path& baseDir) -> fs::path
 {
     return baseDir / "volumes";
 }
 
-inline auto SegsDir(const fs::path& baseDir) -> fs::path
-{
-    return baseDir / "paths";
-}
+auto SegsDir(const fs::path& baseDir) -> fs::path { return baseDir / "paths"; }
 
-inline auto RendDir(const fs::path& baseDir) -> fs::path
+auto RendDir(const fs::path& baseDir) -> fs::path
 {
     return baseDir / "renders";
 }
 
-inline auto TfmDir(const fs::path& baseDir) -> fs::path
+auto TfmDir(const fs::path& baseDir) -> fs::path
 {
     return baseDir / "transforms";
 }
 
-inline auto ReqDirs(const fs::path& baseDir) -> std::vector<filesystem::path>
+auto ReqDirs(const fs::path& baseDir) -> std::vector<filesystem::path>
 {
     return {
         baseDir, ::VolsDir(baseDir), ::SegsDir(baseDir), ::RendDir(baseDir),
         ::TfmDir(baseDir)};
 }
 
-inline void keep(const fs::path& dir)
+void keep(const fs::path& dir)
 {
     if (not fs::exists(dir / ".vckeep")) {
         std::ofstream(dir / ".vckeep", std::ostream::ate);
@@ -66,8 +64,9 @@ auto VolpkgV3ToV4(const Metadata& meta) -> Metadata
     Logger()->debug("- Creating primary metadata");
     Metadata newMeta;
     newMeta.set("version", 4);
-    newMeta.set("name", meta.get<std::string>("volumepkg name"));
-    newMeta.set("materialthickness", meta.get<double>("materialthickness"));
+    newMeta.set("name", meta.get<std::string>("volumepkg name").value());
+    newMeta.set(
+        "materialthickness", meta.get<double>("materialthickness").value());
     newMeta.save(path / "config.json");
 
     // Make the "volumes" directory
@@ -88,12 +87,12 @@ auto VolpkgV3ToV4(const Metadata& meta) -> Metadata
     Metadata volMeta;
     volMeta.set("uuid", id);
     volMeta.set("name", id);
-    volMeta.set("width", meta.get<int>("width"));
-    volMeta.set("height", meta.get<int>("height"));
-    volMeta.set("slices", meta.get<int>("number of slices"));
-    volMeta.set("voxelsize", meta.get<double>("voxelsize"));
-    volMeta.set("min", meta.get<double>("min"));
-    volMeta.set("max", meta.get<double>("max"));
+    volMeta.set("width", meta.get<int>("width").value());
+    volMeta.set("height", meta.get<int>("height").value());
+    volMeta.set("slices", meta.get<int>("number of slices").value());
+    volMeta.set("voxelsize", meta.get<double>("voxelsize").value());
+    volMeta.set("min", meta.get<double>("min").value());
+    volMeta.set("max", meta.get<double>("max").value());
     volMeta.save(newVolDir / "meta.json");
 
     return newMeta;
@@ -354,19 +353,21 @@ auto VolumePkg::New(fs::path fileLocation) -> VolumePkg::Pointer
 auto VolumePkg::name() const -> std::string
 {
     // Gets the Volume name from the configuration file
-    auto name = config_.get<std::string>("name");
-    if (name != "NULL") {
-        return name;
+    if (const auto name = config_.get<std::string>("name"); name.has_value()) {
+        return name.value();
     }
 
     return "UnnamedVolume";
 }
 
-auto VolumePkg::version() const -> int { return config_.get<int>("version"); }
+auto VolumePkg::version() const -> int
+{
+    return config_.get<int>("version").value();
+}
 
 auto VolumePkg::materialThickness() const -> double
 {
-    return config_.get<double>("materialthickness");
+    return config_.get<double>("materialthickness").value();
 }
 
 auto VolumePkg::metadata() const -> Metadata { return config_; }
@@ -786,7 +787,7 @@ void VolumePkg::Upgrade(const fs::path& path, int version, bool force)
     Metadata meta(path / "config.json");
 
     // Get current version
-    const auto currentVersion = meta.get<int>("version");
+    const auto currentVersion = meta.get<int>("version").value();
 
     // Don't update for versions < 6 unless forced (those migrations are
     // expensive)
