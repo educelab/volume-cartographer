@@ -340,47 +340,76 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     // Load volumes into volumes_
     for (const auto& entry : fs::directory_iterator(::VolsDir(rootDir_))) {
         if (fs::is_directory(entry)) {
-            auto v = Volume::New(entry);
-            volumes_.emplace(v->id(), v);
-        }
-    }
-
-    // Load segmentations into the segmentations_
-    for (const auto& entry : fs::directory_iterator(::SegsDir(rootDir_))) {
-        if (fs::is_directory(entry)) {
+            if (not exists(entry.path() / "meta.json")) {
+                Logger()->warn(
+                    "Ignoring volume '{}': Does not contain metadata file",
+                    entry.path().filename().string());
+                continue;
+            }
             try {
-                auto s = Segmentation::New(entry);
-                segmentations_.emplace(s->id(), s);
+                auto v = Volume::New(entry);
+                volumes_.emplace(v->id(), v);
             } catch (const std::exception& e) {
                 Logger()->warn(
-                    "Failed to load segmentation \"{}\": {}",
+                    "Failed to load volume '{}': {}",
                     entry.path().filename().string(), e.what());
             }
         }
     }
 
-    // Load Renders into the renders_
+    // Load segmentations into segmentations_
+    for (const auto& entry : fs::directory_iterator(::SegsDir(rootDir_))) {
+        if (fs::is_directory(entry)) {
+            if (not exists(entry.path() / "meta.json")) {
+                Logger()->warn(
+                    "Ignoring segmentation '{}': Does not contain metadata "
+                    "file",
+                    entry.path().filename().string());
+                continue;
+            }
+            try {
+                auto s = Segmentation::New(entry);
+                segmentations_.emplace(s->id(), s);
+            } catch (const std::exception& e) {
+                Logger()->warn(
+                    "Failed to load segmentation '{}': {}",
+                    entry.path().filename().string(), e.what());
+            }
+        }
+    }
+
+    // Load Renders into renders_
     for (const auto& entry : fs::directory_iterator(::RendDir(rootDir_))) {
         if (fs::is_directory(entry)) {
-            auto r = Render::New(entry);
-            renders_.emplace(r->id(), r);
+            if (not exists(entry.path() / "meta.json")) {
+                Logger()->warn(
+                    "Ignoring render '{}': Does not contain metadata file",
+                    entry.path().filename().string());
+                continue;
+            }
+            try {
+                auto r = Render::New(entry);
+                renders_.emplace(r->id(), r);
+            } catch (const std::exception& e) {
+                Logger()->warn(
+                    "Failed to load render '{}': {}",
+                    entry.path().filename().string(), e.what());
+            }
         }
     }
 
     // Load the transform files into transforms_
     for (const auto& entry : fs::directory_iterator(::TfmDir(rootDir_))) {
-        auto ep = entry.path();
+        const auto ep = entry.path();
         if (fs::is_regular_file(entry) and ep.extension() == ".json") {
-            Transform3D::Pointer tfm;
             try {
-                tfm = Transform3D::Load(ep);
+                auto tfm = Transform3D::Load(ep);
+                transforms_.emplace(ep.stem(), tfm);
             } catch (const std::exception& e) {
                 Logger()->warn(
-                    "Failed to load transform \"{}\". {}",
-                    ep.filename().string(), e.what());
-                continue;
+                    "Failed to load transform '{}'. {}", ep.filename().string(),
+                    e.what());
             }
-            transforms_.emplace(ep.stem(), tfm);
         }
     }
 }
