@@ -14,12 +14,16 @@ CannyThread::~CannyThread()
     wait();
 }
 
-void CannyThread::runCanny(cv::Mat& mat, volcart::CannySettings settings)
+void CannyThread::runCanny(
+    const cv::Mat& mat,
+    const cv::Mat& displayMat,
+    volcart::CannySettings settings)
 {
     QMutexLocker locker(&mutex_);
 
-    if (!mat.empty()) {
-        mat_ = mat.clone();
+    if (not mat.empty()) {
+        origMat_ = mat.clone();
+        displayMat_ = displayMat.clone();
         settings_ = std::move(settings);
 
         if (!isRunning()) {
@@ -40,17 +44,17 @@ void CannyThread::run()
         }
 
         mutex_.lock();
-        cv::Mat src = mat_;
-        volcart::CannySettings settings = settings_;
+        const cv::Mat src = origMat_;
+        cv::Mat dispSrc = displayMat_;
+        const volcart::CannySettings settings = settings_;
         mutex_.unlock();
 
         if (!restart_) {
-            cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
             // Get the canny edges
             cv::Mat dst = volcart::Canny(src, settings);
             // Draw them on the slice
-            src = volcart::ColorConvertImage(src, dst.channels());
-            cv::addWeighted(src, 0.5, dst, 0.5, 0, dst);
+            dispSrc = volcart::ColorConvertImage(dispSrc, dst.channels());
+            cv::addWeighted(dispSrc, 0.5, dst, 0.5, 0, dst);
             cv::cvtColor(dst, dst, cv::COLOR_GRAY2BGR);
             // Emit that pixmap to be rendered
             emit ranCanny(dst);

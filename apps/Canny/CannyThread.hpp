@@ -16,7 +16,10 @@ public:
     explicit CannyThread(QObject* parent = nullptr);
     ~CannyThread() override;
 
-    void runCanny(cv::Mat& mat, volcart::CannySettings settings);
+    void runCanny(
+        const cv::Mat& mat,
+        const cv::Mat& displayMat,
+        volcart::CannySettings settings);
 
 signals:
     void ranCanny(const cv::Mat& pixmap);
@@ -30,6 +33,7 @@ private:
     bool restart_ = false;
     bool abort_ = false;
 
-    cv::Mat mat_;
+    cv::Mat origMat_;
+    cv::Mat displayMat_;
     volcart::CannySettings settings_;
 };

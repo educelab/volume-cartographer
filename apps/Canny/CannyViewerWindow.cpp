@@ -35,6 +35,7 @@ CannyViewerWindow::CannyViewerWindow(
     , bilateralCheckBox_(new QCheckBox("Bilateral"))
     , projectionEdgeComboBox_(new QComboBox)
     , midpointCheckBox_(new QCheckBox("Midpoint"))
+    , normalizeCheckBox_(new QCheckBox("Normalize preview image"))
     , buttonLayout_(new QHBoxLayout)
     , okButton_(new QPushButton("OK"))
     , cancelButton_(new QPushButton("Cancel"))
@@ -129,6 +130,13 @@ CannyViewerWindow::CannyViewerWindow(
         midpointCheckBox_, &QCheckBox::stateChanged, this,
         &CannyViewerWindow::handle_settings_change_);
 
+    normalizeCheckBox_->setChecked(false);
+    normalizeCheckBox_->setMinimumWidth(20);
+    connect(
+        normalizeCheckBox_, &QCheckBox::checkStateChanged,
+        sliceCannyViewerWidget_,
+        &SliceCannyViewerWidget::handleNormalizeChange);
+
     okButton_->setMinimumWidth(10);
     cancelButton_->setMinimumWidth(10);
     // prevent the OK button from making the parent layout grow
@@ -161,6 +169,7 @@ CannyViewerWindow::CannyViewerWindow(
     sliderLayout_->addWidget(projectionEdgeLabel_);
     sliderLayout_->addWidget(projectionEdgeComboBox_);
     sliderLayout_->addWidget(midpointCheckBox_);
+    sliderLayout_->addWidget(normalizeCheckBox_);
     sliderLayout_->addStretch();
     sliderLayout_->addLayout(buttonLayout_);
     sliderWidget_->setLayout(sliderLayout_);

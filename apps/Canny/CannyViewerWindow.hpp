@@ -64,6 +64,7 @@ private:
     QCheckBox* bilateralCheckBox_;
     QComboBox* projectionEdgeComboBox_;
     QCheckBox* midpointCheckBox_;
+    QCheckBox* normalizeCheckBox_;
 
     QHBoxLayout* buttonLayout_;
     QPushButton* okButton_;

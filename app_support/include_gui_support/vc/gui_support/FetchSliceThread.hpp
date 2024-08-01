@@ -17,7 +17,7 @@ class FetchSliceThread : public QThread
 
 public:
     explicit FetchSliceThread(
-        volcart::Volume::Pointer volume, QObject* parent = nullptr);
+        Volume::Pointer volume, QObject* parent = nullptr);
     ~FetchSliceThread() override;
 
     void fetchSlice(int sliceIdx);
@@ -33,7 +33,7 @@ private:
     QWaitCondition condition_;
     bool restart_ = false;
     bool abort_ = false;
-    volcart::Volume::Pointer volume_;
-    int sliceIdx_;
+    Volume::Pointer volume_;
+    int sliceIdx_{0};
 };
 }  // namespace volcart::gui

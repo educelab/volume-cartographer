@@ -26,14 +26,18 @@ signals:
 
 public slots:
     void handleSliceChange(int sliceIdx);
+    void handleNormalizeChange(Qt::CheckState state);
     void handleSettingsChange(volcart::CannySettings cannySettings);
 
 private slots:
     void update_slice_image_(const cv::Mat& mat);
+    void update_canny_image_(const cv::Mat& mat);
 
 private:
     volcart::gui::FetchSliceThread fetchSliceThread_;
     CannyThread cannyThread_;
 
     cv::Mat originalSliceMat_;
+    cv::Mat displayMat_;
+    bool normalize_;
 };
