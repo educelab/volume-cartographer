@@ -1,9 +1,11 @@
 #include <iostream>
 
 #include <boost/program_options.hpp>
+#include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/MeshIO.hpp"
+#include "vc/core/io/OBJReader.hpp"
+#include "vc/core/io/OBJWriter.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
 
@@ -95,17 +97,28 @@ auto main(int argc, char** argv) -> int
 
     // Load mesh
     fs::path inputPath = parsed["input-mesh"].as<std::string>();
-    auto [mesh, uv, texture] = vc::ReadMesh(inputPath);
+    vc::io::OBJReader reader;
+    reader.setPath(inputPath);
+    auto mesh = reader.read();
 
     // Update the mesh
     for (auto pt = mesh->GetPoints()->Begin(); pt != mesh->GetPoints()->End();
-         ++pt) {
+         pt++) {
         pt->Value()[index] = volBound - pt->Value()[index];
     }
 
     // Write the new mesh
     fs::path outputPath = parsed["output-mesh"].as<std::string>();
-    vc::WriteMesh(outputPath, mesh, uv, texture);
+    vc::io::OBJWriter writer;
+    writer.setPath(outputPath);
+    writer.setMesh(mesh);
+    try {
+        writer.setUVMap(reader.getUVMap());
+        writer.setTexture(reader.getTextureMat());
+    } catch (...) {
+        // Do nothing if there's no UV map or Texture image
+    }
+    writer.write();
 
     return EXIT_SUCCESS;
 }
