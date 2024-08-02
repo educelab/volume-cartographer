@@ -17,7 +17,6 @@
 #include <vtkProbeFilter.h>
 #include <vtkSmartPointer.h>
 
-#include "CannyViewerWindow.hpp"
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
 #include "vc/core/io/MeshIO.hpp"
@@ -29,6 +28,9 @@
 #include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/String.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
+
+#include "CannyThread.hpp"
+#include "CannyViewerWindow.hpp"
 
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
@@ -89,7 +91,7 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Canny values
-    vc::CannySettings cannySettings;
+    CannySettings cannySettings;
 
     // Get options
     const fs::path volpkgPath = parsed["volpkg"].as<std::string>();

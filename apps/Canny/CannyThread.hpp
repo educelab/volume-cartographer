@@ -4,7 +4,12 @@
 #include <QThread>
 #include <QWaitCondition>
 #include <opencv2/core.hpp>
+
 #include "vc/core/util/Canny.hpp"
+
+struct CannySettings : volcart::CannySettings {
+    bool normalize{false};
+};
 
 class CannyThread : public QThread
 {
@@ -16,10 +21,7 @@ public:
     explicit CannyThread(QObject* parent = nullptr);
     ~CannyThread() override;
 
-    void runCanny(
-        const cv::Mat& mat,
-        const cv::Mat& displayMat,
-        volcart::CannySettings settings);
+    void runCanny(cv::Mat& mat, CannySettings settings);
 
 signals:
     void ranCanny(const cv::Mat& pixmap);
@@ -33,7 +35,6 @@ private:
     bool restart_ = false;
     bool abort_ = false;
 
-    cv::Mat origMat_;
-    cv::Mat displayMat_;
-    volcart::CannySettings settings_;
+    cv::Mat mat_;
+    CannySettings settings_;
 };

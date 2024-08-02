@@ -11,7 +11,7 @@
 #include "CannyViewerWindow.hpp"
 
 CannyViewerWindow::CannyViewerWindow(
-    volcart::CannySettings* settings,
+    CannySettings* settings,
     const volcart::Volume::Pointer& volume,
     QWidget* parent)
     : QMainWindow(parent)
@@ -133,9 +133,8 @@ CannyViewerWindow::CannyViewerWindow(
     normalizeCheckBox_->setChecked(false);
     normalizeCheckBox_->setMinimumWidth(20);
     connect(
-        normalizeCheckBox_, &QCheckBox::checkStateChanged,
-        sliceCannyViewerWidget_,
-        &SliceCannyViewerWidget::handleNormalizeChange);
+        normalizeCheckBox_, &QCheckBox::stateChanged, this,
+        &CannyViewerWindow::handle_settings_change_);
 
     okButton_->setMinimumWidth(10);
     cancelButton_->setMinimumWidth(10);
@@ -223,6 +222,7 @@ void CannyViewerWindow::handle_settings_change_()
         settings_->projectionFrom = 'N';
     }
     settings_->midpoint = midpointCheckBox_->isChecked();
+    settings_->normalize = normalizeCheckBox_->isChecked();
 
     blurSizeLabel_->setText(
         "Blur size: " + QString::number(settings_->blurSize));
