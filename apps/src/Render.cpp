@@ -151,7 +151,7 @@ auto GetUVOpts() -> po::options_description
                 "  2 = Orthographic Projection")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
-        ("uv-align-to-axis", po::value<UVMap::AlignmentAxis>()->default_value(UVMap::AlignmentAxis::ZPos, "+Z"),
+        ("uv-align-to-axis",
             "Rotate the UV map so that the specified volume direction is aligned "
             "as well as possible to \'up\' in the texture image (-Y). "
             "Performed before uv-rotate and uv-flip. Options: None, +Z, -Z, "
@@ -725,7 +725,16 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Align to axis
-    auto uvAlignAxis = parsed["uv-align-to-axis"].as<UVMap::AlignmentAxis>();
+    // Default: +Z
+    auto uvAlignAxis{UVMap::AlignmentAxis::ZPos};
+    // --uv-reuse Default: None
+    if (parsed.count("uv-reuse") > 0) {
+        uvAlignAxis = UVMap::AlignmentAxis::None;
+    }
+    // Override both defaults
+    if (parsed.count("uv-align-to-axis") > 0) {
+        uvAlignAxis = parsed["uv-align-to-axis"].as<UVMap::AlignmentAxis>();
+    }
     if (uvAlignAxis != UVMap::AlignmentAxis::None) {
         Logger()->debug("Adding UV align to axis node");
         auto align = graph->insertNode<AlignUVMapToAxisNode>();
