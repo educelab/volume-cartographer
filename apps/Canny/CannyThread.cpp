@@ -8,9 +8,11 @@
 
 namespace
 {
+// 8bpc, single channel percentile calculation
+// Returns the intensity value which corresponds to the N-th percentile
 auto Percentile(const cv::Mat& a, const float perc) -> float
 {
-    const int histSize{256};
+    constexpr int histSize{256};
     float range[] = {0, 256};
     const float* histRange[] = {range};
     const int numPixs = a.rows * a.cols;
@@ -30,11 +32,12 @@ auto Percentile(const cv::Mat& a, const float perc) -> float
     return 255.f;
 }
 
+// Rescale [low, high] to [0, 255] and cast to 8bpc
 auto Window(const cv::Mat& a, const float low, const float high)
 {
     cv::Mat b;
     a.convertTo(
-        b, a.depth(), 255.f / (high - low), -low * 255.f / (high - low));
+        b, CV_8U, 255.f / (high - low), -low * 255.f / (high - low));
     return b;
 }
 }  // namespace
