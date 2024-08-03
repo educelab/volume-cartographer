@@ -57,7 +57,7 @@ test:debian:static:
     needs: []
     image: ghcr.io/educelab/ci-docker:static.12.1
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - docker
@@ -68,7 +68,7 @@ test:debian:dynamic:
     needs: []
     image: ghcr.io/educelab/ci-docker:dynamic.12.1
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - docker
@@ -79,7 +79,7 @@ test:macos:static:
     stage: test
     needs: []
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.9.0b-static-debug:/usr/local/Qt/6.6.1/macos/lib/cmake/"
+        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.9.0-static-debug:/usr/local/Qt/6.7.2/macos/lib/cmake/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - macos
@@ -90,7 +90,7 @@ test:macos:dynamic:
     stage: test
     needs: []
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.9.0b-dynamic-debug:/usr/local/Qt/6.6.1/macos/lib/cmake/"
+        CMAKE_PREFIX_PATH: "/usr/local/educelab/vc-deps-1.9.0-dynamic-debug:/usr/local/Qt/6.7.2/macos/lib/cmake/"
         EXTRA_CMAKE_FLAGS: "-DVC_BUILD_ACVD=ON -DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     tags:
         - macos
@@ -164,7 +164,7 @@ pages:
 .collect:package:macos:
     extends: .build
     variables:
-        CMAKE_PREFIX_PATH: "/usr/local/Qt/6.6.1/macos/lib/cmake/"
+        CMAKE_PREFIX_PATH: "/usr/local/Qt/6.7.2/macos/lib/cmake/"
         CMAKE_INSTALL_PREFIX: "packaged_install/"
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
         MACOSX_DEPLOYMENT_TARGET: "12.7"

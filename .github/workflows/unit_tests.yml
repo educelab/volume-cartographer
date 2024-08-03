@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 180
     env:
       EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
-      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
+      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 180
     env:
       EXTRA_CMAKE_FLAGS: "-DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
-      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
+      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
