@@ -25,7 +25,7 @@ void vctest::ExpectNear(
     double observed, double expected, double pctDiffTolerance)
 {
     double absError =
-        std::fabs(((observed + expected) / 2) + (pctDiffTolerance / 100));
+        std::fabs((observed + expected) / 2 + pctDiffTolerance / 100);
     EXPECT_NEAR(observed, expected, absError);
 }
 
@@ -33,6 +33,6 @@ void vctest::AssertNear(
     double observed, double expected, double pctDiffTolerance)
 {
     double absError =
-        std::fabs(((observed + expected) / 2) + (pctDiffTolerance / 100));
+        std::fabs((observed + expected) / 2 + pctDiffTolerance / 100);
     ASSERT_NEAR(observed, expected, absError);
 }

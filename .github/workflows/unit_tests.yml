@@ -14,12 +14,12 @@ jobs:
   debian_static:
     name: Debian 12 (static libraries)
     runs-on: ubuntu-latest
-    container: ghcr.io/educelab/ci-docker:static.12.0
+    container: ghcr.io/educelab/ci-docker:static.12.1
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
     env:
       EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
-      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
+      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -35,12 +35,12 @@ jobs:
   debian_dynamic:
     name: Debian 12 (shared libraries)
     runs-on: ubuntu-latest
-    container: ghcr.io/educelab/ci-docker:dynamic.12.0
+    container: ghcr.io/educelab/ci-docker:dynamic.12.1
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
     env:
       EXTRA_CMAKE_FLAGS: "-DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
-      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.6.1/"
+      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
