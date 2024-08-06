@@ -1,7 +1,46 @@
 #include "CannyThread.hpp"
 
 #include <utility>
-#include <vc/core/util/ImageConversion.hpp>
+
+#include <opencv2/imgproc.hpp>
+
+#include "vc/core/util/ImageConversion.hpp"
+
+namespace
+{
+// 8bpc, single channel percentile calculation
+// Returns the intensity value which corresponds to the N-th percentile
+auto Percentile(const cv::Mat& a, const float perc) -> float
+{
+    constexpr int histSize{256};
+    float range[] = {0, 256};
+    const float* histRange[] = {range};
+    const int numPixs = a.rows * a.cols;
+    const float pixReq = static_cast<float>(numPixs) * perc;
+    cv::Mat hist;
+
+    cv::calcHist(
+        &a, 1, nullptr, cv::Mat(), hist, 1, &histSize, histRange, true, false);
+
+    float cnt{0};
+    for (int i = 0; i < histSize; i++) {
+        cnt += hist.at<float>(i);
+        if (cnt >= pixReq) {
+            return static_cast<float>(i);
+        }
+    }
+    return 255.f;
+}
+
+// Rescale [low, high] to [0, 255] and cast to 8bpc
+auto Window(const cv::Mat& a, const float low, const float high)
+{
+    cv::Mat b;
+    a.convertTo(
+        b, CV_8U, 255.f / (high - low), -low * 255.f / (high - low));
+    return b;
+}
+}  // namespace
 
 CannyThread::CannyThread(QObject* parent) : QThread(parent) {}
 
@@ -14,7 +53,7 @@ CannyThread::~CannyThread()
     wait();
 }
 
-void CannyThread::runCanny(cv::Mat& mat, volcart::CannySettings settings)
+void CannyThread::runCanny(cv::Mat& mat, CannySettings settings)
 {
     QMutexLocker locker(&mutex_);
 
@@ -41,13 +80,19 @@ void CannyThread::run()
 
         mutex_.lock();
         cv::Mat src = mat_;
-        volcart::CannySettings settings = settings_;
+        const CannySettings settings = settings_;
         mutex_.unlock();
 
         if (!restart_) {
             cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
             // Get the canny edges
             cv::Mat dst = volcart::Canny(src, settings);
+            // Run normalize
+            if (settings.normalize) {
+                const auto low = Percentile(src, 0.01f);
+                const auto high = Percentile(src, 0.99f);
+                src = Window(src, low, high);
+            }
             // Draw them on the slice
             src = volcart::ColorConvertImage(src, dst.channels());
             cv::addWeighted(src, 0.5, dst, 0.5, 0, dst);

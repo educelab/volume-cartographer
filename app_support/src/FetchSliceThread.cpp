@@ -4,8 +4,7 @@
 
 namespace vcg = volcart::gui;
 
-vcg::FetchSliceThread::FetchSliceThread(
-    volcart::Volume::Pointer volume, QObject* parent)
+vcg::FetchSliceThread::FetchSliceThread(Volume::Pointer volume, QObject* parent)
     : QThread(parent), volume_(std::move(volume))
 {
 }

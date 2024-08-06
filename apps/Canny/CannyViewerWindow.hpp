@@ -32,7 +32,7 @@ class CannyViewerWindow : public QMainWindow
 
 public:
     explicit CannyViewerWindow(
-        volcart::CannySettings* settings,
+        CannySettings* settings,
         const volcart::Volume::Pointer& volume,
         QWidget* parent = nullptr);
 
@@ -42,7 +42,7 @@ public slots:
 private:
     SliceCannyViewerWidget* sliceCannyViewerWidget_;
 
-    volcart::CannySettings* settings_;
+    CannySettings* settings_;
 
     int numSlices_;
 
@@ -64,6 +64,7 @@ private:
     QCheckBox* bilateralCheckBox_;
     QComboBox* projectionEdgeComboBox_;
     QCheckBox* midpointCheckBox_;
+    QCheckBox* normalizeCheckBox_;
 
     QHBoxLayout* buttonLayout_;
     QPushButton* okButton_;

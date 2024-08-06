@@ -26,7 +26,7 @@ signals:
 
 public slots:
     void handleSliceChange(int sliceIdx);
-    void handleSettingsChange(volcart::CannySettings cannySettings);
+    void handleSettingsChange(CannySettings cannySettings);
 
 private slots:
     void update_slice_image_(const cv::Mat& mat);

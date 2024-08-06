@@ -2,9 +2,12 @@
 #include <QScrollBar>
 #include <QWheelEvent>
 #include <utility>
+
 #include <opencv2/imgproc.hpp>
 
 #include "SliceCannyViewerWidget.hpp"
+
+#include <vc/core/util/Logging.hpp>
 
 SliceCannyViewerWidget::SliceCannyViewerWidget(
     const volcart::Volume::Pointer& volume)
@@ -23,12 +26,13 @@ void SliceCannyViewerWidget::update_slice_image_(const cv::Mat& mat)
 {
     originalSliceMat_ = mat;
     cv::cvtColor(originalSliceMat_, originalSliceMat_, cv::COLOR_GRAY2BGR);
-    ImageScrollArea::updatePixmap(originalSliceMat_);
+    // It feels like we should update the viewer here, but: this.sliceLoaded ->
+    // CannyViewerWindow::handleSettingsRequest -> this.handleSettingsChange ->
+    // this.updatePixmap, which avoids flickering.
     emit sliceLoaded();
 }
 
-void SliceCannyViewerWidget::handleSettingsChange(
-    volcart::CannySettings cannySettings)
+void SliceCannyViewerWidget::handleSettingsChange(CannySettings cannySettings)
 {
     cannyThread_.runCanny(originalSliceMat_, std::move(cannySettings));
 }
