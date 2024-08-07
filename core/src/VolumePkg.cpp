@@ -690,7 +690,7 @@ auto VolumePkg::hasTransforms() const -> bool
     return not transforms_.empty();
 }
 
-auto VolumePkg::hasTransform(Volume::Identifier id) const -> bool
+auto VolumePkg::hasTransform(Transform3D::Identifier id) const -> bool
 {
     // Don't allow empty IDs
     if (id.empty()) {
@@ -773,7 +773,8 @@ void VolumePkg::setTransform(
     Transform3D::Save(tfmPath, transform);
 }
 
-auto VolumePkg::transform(Transform3D::Identifier id) -> Transform3D::Pointer
+auto VolumePkg::transform(Transform3D::Identifier id) const
+    -> Transform3D::Pointer
 {
     // Don't allow empty IDs
     if (id.empty()) {
@@ -781,7 +782,7 @@ auto VolumePkg::transform(Transform3D::Identifier id) -> Transform3D::Pointer
     }
 
     // Remove the star for inverse transforms
-    auto getInverse = id.back() == '*';
+    const auto getInverse = id.back() == '*';
     if (getInverse) {
         id.pop_back();
     }

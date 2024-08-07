@@ -256,8 +256,7 @@ public:
      * If the provided identifier ends with "*", additionally checks if the
      * transform can be inverted.
      */
-
-    [[nodiscard]] auto hasTransform(Volume::Identifier id) const -> bool;
+    [[nodiscard]] auto hasTransform(Transform3D::Identifier id) const -> bool;
 
     /** @brief Add a transform to the VolPkg */
     auto addTransform(const Transform3D::Pointer& transform)
@@ -273,7 +272,8 @@ public:
      *
      * If the provided identifier ends with "*", returns the inverse transform.
      */
-    auto transform(Transform3D::Identifier id) -> Transform3D::Pointer;
+    [[nodiscard]] auto transform(Transform3D::Identifier id) const
+        -> Transform3D::Pointer;
 
     /**
      * @brief Get a list of transforms which map from a source volume to a

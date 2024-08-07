@@ -4,8 +4,10 @@
 
 #include <cstddef>
 #include <iostream>
+#include <list>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 #include <opencv2/core.hpp>
@@ -185,8 +187,7 @@ protected:
      * Implementing derived classes should set the returned transform's source
      * to this->source() and the target to rhs->target().
      */
-    [[nodiscard]] virtual auto compose_(const Transform3D::Pointer& rhs) const
-        -> Transform3D::Pointer;
+    [[nodiscard]] virtual auto compose_(const Pointer& rhs) const -> Pointer;
 
     /** On-disk metadata type */
     using Metadata = nlohmann::ordered_json;
@@ -312,7 +313,7 @@ public:
      * Convenience function for `cv::Vec` types.
      */
     template <typename Tp, int Cn>
-    void rotate(double angle, cv::Vec<Tp, Cn> axis)
+    void rotate(const double angle, cv::Vec<Tp, Cn> axis)
     {
         static_assert(Cn >= 3, "cv::Vec must have >= 3 values");
         rotate(angle, axis[0], axis[1], axis[2]);
@@ -328,7 +329,7 @@ private:
     /** Don't allow construction on the stack */
     AffineTransform() = default;
     /** Current parameters */
-    Parameters params_{cv::Matx<double, 4, 4>::eye()};
+    Parameters params_{Parameters::eye()};
     /** @copydoc Transform3D::compose_() */
     [[nodiscard]] auto compose_(const Transform3D::Pointer& rhs) const
         -> Transform3D::Pointer final;
@@ -459,6 +460,15 @@ public:
         -> cv::Vec3d final;
 
     /**
+     * @brief Add a transform to the front of the composite transform stack
+     *
+     * The transform is cloned before being added to the transform stack. If
+     * the transform is also a CompositeTransform, its transform stack is
+     * expanded and copied to the front of this transform's stack.
+     */
+    void push_front(const Transform3D::Pointer& t);
+
+    /**
      * @brief Add a transform to the end of the composite transform stack
      *
      * The transform is cloned before being added to the transform stack. If
@@ -479,11 +489,14 @@ public:
      */
     void simplify();
 
+    /** @brief Get a list of the stored transforms */
+    [[nodiscard]] auto transforms() const -> std::vector<Transform3D::Pointer>;
+
 private:
     /** Don't allow construction on the stack */
     CompositeTransform() = default;
     /** Transform list */
-    std::vector<Transform3D::Pointer> tfms_;
+    std::list<Transform3D::Pointer> tfms_;
     /** @copydoc Transform3D::to_meta_() */
     void to_meta_(Metadata& meta) final;
     /** @copydoc Transform3D::from_meta_() */
