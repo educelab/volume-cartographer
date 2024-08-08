@@ -289,9 +289,9 @@ public:
      * map from a source volume to a target volume
      *
      * Runs breadth-first search (BFS) to find the shortest transform paths
-     * from the source to target volume. Single-transform paths will be returned
+     * from the source to target volume. Single-transform paths are returned
      * as their original transform type (e.g. AffineTransform,
-     * IdentityTransform). Multi-transform paths will be returned as a new,
+     * IdentityTransform). Multi-transform paths are returned as a new,
      * unsimplified CompositeTransform. Paths are returned in order of
      * increasing length and may include inverse transforms which satisfy the
      * mapping.
