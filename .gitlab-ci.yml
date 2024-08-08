@@ -7,7 +7,7 @@ stages:
     - release
 
 variables:
-    SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk
+    SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.sdk
     MACOSX_DEPLOYMENT_TARGET: "13.1"
 
 ### Prototype build jobs ###
