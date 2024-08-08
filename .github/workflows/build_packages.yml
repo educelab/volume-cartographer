@@ -28,7 +28,6 @@ jobs:
       - name: Install Homebrew dependencies
         run: |
           brew update
-          brew upgrade
           brew unlink libtiff python
           brew install ninja python@3.11
 
