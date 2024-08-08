@@ -1,6 +1,7 @@
 name: Build packages
 
 on:
+  workflow_dispatch:
   workflow_call:
     outputs:
       package_mac_intel:
@@ -15,24 +16,30 @@ jobs:
       package_name: ${{ steps.name_pkg.outputs.package_name }}
     timeout-minutes: 240
     env:
-      QT_VERSION: "6.6.1"
+      MACOSX_DEPLOYMENT_TARGET: "12.7"
+      QT_VERSION: "6.7.2"
       EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4
         with:
           fetch-depth: 20
+
+      - name: Use the Command Line Tools
+        run: |
+          sudo xcode-select -s /Library/Developer/CommandLineTools
 
       - name: Install Homebrew dependencies
         run: |
           brew update
-          brew unlink libtiff
-          brew install ninja python@3.10
+          brew upgrade
+          brew unlink libtiff python
+          brew install ninja python@3.11
 
       - name: Install Qt6
         run: |
-          python3.10 -m pip install --upgrade pip setuptools wheel
-          python3.10 -m pip install aqtinstall
+          python3.11 -m pip install --upgrade pip setuptools wheel
+          python3.11 -m pip install aqtinstall
           aqt install-qt -O ${{ github.workspace }}/Qt/ mac desktop ${QT_VERSION}
 
       - name: Install vc-deps
@@ -63,7 +70,7 @@ jobs:
       - name: Create package
         run: |
           cmake --install build/ --prefix "${{ env.install_dir }}"
-          python3.10 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
+          python3.11 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
           ditto -c -k "${{ env.install_dir }}" ${{ env.package_name }}
 
       - name: Upload artifacts
