@@ -71,6 +71,12 @@ TEST(VolumePkg, TransformByComplexPath)
     tfm1->target("d");
     auto id1 = vpkg->addTransform(tfm1);
 
+    // Simple transform (inverse)
+    Transform3D::Pointer tfmI = IdentityTransform::New();
+    tfmI->source("d");
+    tfmI->target("a");
+    auto idI = vpkg->addTransform(tfmI) + "*";
+
     // Long path: (a->b) (b->c) (c->d)
     Transform3D::Pointer tfm2 = IdentityTransform::New();
     tfm2->source("a");
@@ -111,8 +117,9 @@ TEST(VolumePkg, TransformByComplexPath)
 
     // Note: Tests are non-overlapping paths
     auto tfms = vpkg->transform("a", "d");
-    EXPECT_EQ(tfms.size(), 3);
+    EXPECT_EQ(tfms.size(), 4);
     EXPECT_EQ(tfms[0].first, id1);
-    EXPECT_EQ(tfms[1].first, id2 + "->" + id3 + "->" + id4);
-    EXPECT_EQ(tfms[2].first, id6 + "->" + id7 + "->" + id8);
+    EXPECT_EQ(tfms[1].first, idI);
+    EXPECT_EQ(tfms[2].first, id2 + "->" + id3 + "->" + id4);
+    EXPECT_EQ(tfms[3].first, id6 + "->" + id7 + "->" + id8);
 }

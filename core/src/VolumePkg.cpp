@@ -2,8 +2,8 @@
 
 #include <fstream>
 #include <functional>
-#include <utility>
 #include <set>
+#include <utility>
 
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -281,14 +281,22 @@ using UpgradeFn = std::function<Metadata(const Metadata&)>;
 const std::vector<UpgradeFn> UPGRADE_FNS{
     VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7, VolpkgV7ToV8};
 
-auto TransformPaths(
+/*
+ * Runs BFS on tfms from src to tgt, returning the shortest paths first. This
+ * implementation does not return every possible transform path, but prunes
+ * cycles and paths with transforms which are already included in shorter paths.
+ */
+auto FindShortestPaths(
     const std::map<Transform3D::Identifier, Transform3D::Pointer>& tfms,
     const Volume::Identifier& src,
     const Volume::Identifier& tgt)
 {
-    using NamedTransform = std::pair<Transform3D::Identifier, Transform3D::Pointer>;
+    // Local short hand for result type
+    using NamedTransform =
+        std::pair<Transform3D::Identifier, Transform3D::Pointer>;
     std::vector<NamedTransform> results;
 
+    // BFS tree node
     struct Node {
         using Ptr = std::shared_ptr<Node>;
         Transform3D::Identifier id;
@@ -296,13 +304,18 @@ auto TransformPaths(
         std::shared_ptr<Node> parent{nullptr};
     };
 
-    // Initialize the queue
+    // Initialize the queue and visited list
     std::set<Transform3D::Identifier> visited;
     std::list<Node::Ptr> queue;
-    for(const auto& [id, val] : tfms) {
-        if(val->source().empty() or val->target().empty()) {
+    for (const auto& [id, val] : tfms) {
+        // Skip transforms without source and target IDs
+        /* Not currently possible to have empty src/tgt in VolPkg
+        if (val->source().empty() or val->target().empty()) {
             continue;
         }
+        */
+
+        // Queue transforms which start at our source
         if (val->source() == src) {
             visited.emplace(id);
             auto p = std::make_shared<Node>();
@@ -310,8 +323,9 @@ auto TransformPaths(
             p->tfm = val;
             queue.push_back(p);
         }
-        // Handle inverse transforms
-        if(val->target() == src and val->invertible()) {
+
+        // Queue invertible transforms which end at our source
+        if (val->invertible() and val->target() == src) {
             visited.emplace(id + "*");
             auto p = std::make_shared<Node>();
             p->id = id + "*";
@@ -321,26 +335,26 @@ auto TransformPaths(
     }
 
     // Iterate over the queue
-    while(not queue.empty()) {
-        // next queue item
+    while (not queue.empty()) {
+        // Pop next queue item
         auto n = queue.front();
         queue.pop_front();
 
-        // if we've reached the target...
-        if(n->tfm->target() == tgt) {
-            // node has no parent, then add original transform
-            if(not n->parent) {
+        // If we've reached the target...
+        if (n->tfm->target() == tgt) {
+            // Node has no parent, so return original transform
+            if (not n->parent) {
                 results.emplace_back(n->id, n->tfm);
             }
 
-            // node has a parent: construct a composite transform
+            // Node has a parent, so return a composite transform
             else {
                 Transform3D::Identifier id;
                 auto c = CompositeTransform::New();
                 c->source(src);
                 c->target(tgt);
-                // iterate path from target to source
-                while(n->parent) {
+                // Iterate path from target to source
+                while (n->parent) {
                     id = "->" + n->id + id;
                     c->push_front(n->tfm);
                     n = n->parent;
@@ -352,14 +366,15 @@ auto TransformPaths(
             continue;
         }
 
-        // get the next set of nodes
-        for(const auto& [id, val] : tfms) {
+        // Find the transforms which extend the path
+        // TODO: Linear in # of transforms
+        for (const auto& [id, val] : tfms) {
             // Skip visited nodes
             if (visited.count(id) > 0 or visited.count(id + "*") > 0) {
                 continue;
             }
 
-            // Handle forward transforms
+            // Queue transforms which start at our local source
             if (val->source() == n->tfm->target()) {
                 visited.emplace(id);
                 auto p = std::make_shared<Node>();
@@ -369,8 +384,8 @@ auto TransformPaths(
                 queue.push_back(p);
             }
 
-            // Handle inverse transforms
-            else if (val->target() == n->tfm->target() and val->invertible()) {
+            // Queue invertible transforms which end at our local source
+            else if (val->invertible() and val->target() == n->tfm->target()) {
                 visited.emplace(id + "*");
                 auto p = std::make_shared<Node>();
                 p->id = id + "*";
@@ -388,16 +403,15 @@ auto TransformPaths(
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(fs::path fileLocation, const int version)
-    : rootDir_{std::move(fileLocation)}
+VolumePkg::VolumePkg(const fs::path& path, const int version) : rootDir_{path}
 {
     // Don't overwrite existing directories
-    if(fs::exists(rootDir_)) {
+    if (fs::exists(rootDir_)) {
         throw std::runtime_error("File exists at path: " + rootDir_.string());
     }
 
     // Lookup the metadata template from our library of versions
-    auto findDict = VERSION_LIBRARY.find(version);
+    const auto findDict = VERSION_LIBRARY.find(version);
     if (findDict == std::end(VERSION_LIBRARY)) {
         throw std::runtime_error("No dictionary found for volpkg");
     }
@@ -421,16 +435,16 @@ VolumePkg::VolumePkg(fs::path fileLocation, const int version)
 }
 
 // Use this when reading a volpkg from a file
-VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
+VolumePkg::VolumePkg(const fs::path& path) : rootDir_{path}
 {
     // Loads the metadata
-    config_ = Metadata(fileLocation / ::CONFIG);
+    config_ = Metadata(path / ::CONFIG);
 
     // Auto-upgrade on load from v
     auto version = config_.get<int>("version");
     if (version >= 6 and version != VOLPKG_VERSION_LATEST) {
-        Upgrade(fileLocation, VOLPKG_VERSION_LATEST);
-        config_ = Metadata(fileLocation / ::CONFIG);
+        Upgrade(path, VOLPKG_VERSION_LATEST);
+        config_ = Metadata(path / ::CONFIG);
     }
 
     // Check directory structure
@@ -890,6 +904,8 @@ auto VolumePkg::transform(Transform3D::Identifier id) const
         throw std::invalid_argument("Transform ID is empty");
     }
 
+    //
+
     // Remove the star for inverse transforms
     const auto getInverse = id.back() == '*';
     if (getInverse) {
@@ -915,7 +931,7 @@ auto VolumePkg::transform(
     const Volume::Identifier& src, const Volume::Identifier& tgt) const
     -> std::vector<std::pair<Transform3D::Identifier, Transform3D::Pointer>>
 {
-    return TransformPaths(transforms_, src, tgt);
+    return FindShortestPaths(transforms_, src, tgt);
 }
 
 auto VolumePkg::transformIDs() const -> std::vector<Transform3D::Identifier>

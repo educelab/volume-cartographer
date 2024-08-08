@@ -45,17 +45,17 @@ public:
      * be written to and accessed. Only metadata keys may be modified before
      * initialize is called.
      *
-     * @param fileLocation The location to store the VolPkg
+     * @param path The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(filesystem::path fileLocation, int version);
+    VolumePkg(const filesystem::path path&, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
      * `fileLocation.`
-     * @param fileLocation The root of the VolumePkg file
+     * @param path The root of the VolumePkg file
      */
-    explicit VolumePkg(const filesystem::path& fileLocation);
+    explicit VolumePkg(const filesystem::path& path);
 
     /** VolumePkg shared pointer */
     using Pointer = std::shared_ptr<VolumePkg>;
@@ -65,7 +65,8 @@ public:
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static auto New(const filesystem::path& fileLocation, int version) -> Pointer;
+    static auto New(const filesystem::path& fileLocation, int version)
+        -> Pointer;
 
     /**
      * @copybrief VolumePkg(filesystem::path fileLocation)
@@ -276,13 +277,24 @@ public:
         -> Transform3D::Pointer;
 
     /**
-     * @brief Get a list of transforms which map from a source volume to a
-     * target volume
+     * @brief Get a list of transforms (possibly composite transforms) which
+     * map from a source volume to a target volume
      *
-     * The list also includes inverse transforms which satisfy the mapping.
+     * Runs breadth-first search (BFS) to find the shortest transform paths
+     * from the source to target volume. Single-transform paths will be returned
+     * as their original transform type (e.g. AffineTransform,
+     * IdentityTransform). Multi-transform paths will be returned as a new,
+     * unsimplified CompositeTransform. Paths are returned in order of
+     * increasing length and may include inverse transforms which satisfy the
+     * mapping.
+     *
+     * The current implementation does not return _all_ transform paths, but
+     * prunes cycles and paths which would use transforms that are already part
+     * of a shorter path.
      */
-    auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
-        const -> std::vector<
+    [[nodiscard]] auto transform(
+        const Volume::Identifier& src, const Volume::Identifier& tgt) const
+        -> std::vector<
             std::pair<Transform3D::Identifier, Transform3D::Pointer>>;
 
     /** @brief Get the list of transform IDs */
