@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
 
+#include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
-#include "vc/core/types/Transforms.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 namespace fs = filesystem;
@@ -64,11 +65,13 @@ TEST(VolumePkg, TransformByComplexPath)
     fs::remove_all(p);
     auto vpkg = VolumePkg::New(p, VOLPKG_VERSION_LATEST);
 
+    // Simple transform
     Transform3D::Pointer tfm1 = IdentityTransform::New();
     tfm1->source("a");
     tfm1->target("d");
     auto id1 = vpkg->addTransform(tfm1);
 
+    // Long path: (a->b) (b->c) (c->d)
     Transform3D::Pointer tfm2 = IdentityTransform::New();
     tfm2->source("a");
     tfm2->target("b");
@@ -80,20 +83,36 @@ TEST(VolumePkg, TransformByComplexPath)
     auto id3 = vpkg->addTransform(tfm3);
 
     Transform3D::Pointer tfm4 = IdentityTransform::New();
-    tfm4->source("d");
-    tfm4->target("c");
+    tfm4->source("c");
+    tfm4->target("d");
     auto id4 = vpkg->addTransform(tfm4);
 
+    // Skipped path
     Transform3D::Pointer tfm5 = IdentityTransform::New();
-    tfm5->source("e");
+    tfm5->source("z");
     tfm5->target("d");
     vpkg->addTransform(tfm5);
 
+    // Inverted path: (f->a)' (e->f)' (d->e)'
+    Transform3D::Pointer tfm6 = IdentityTransform::New();
+    tfm6->source("f");
+    tfm6->target("a");
+    auto id6 = vpkg->addTransform(tfm6) + "*";
+
+    Transform3D::Pointer tfm7 = IdentityTransform::New();
+    tfm7->source("e");
+    tfm7->target("f");
+    auto id7 = vpkg->addTransform(tfm7) + "*";
+
+    Transform3D::Pointer tfm8 = IdentityTransform::New();
+    tfm8->source("d");
+    tfm8->target("e");
+    auto id8 = vpkg->addTransform(tfm8) + "*";
+
+    // Note: Tests are non-overlapping paths
     auto tfms = vpkg->transform("a", "d");
-    for(const auto& [id, tfm] : tfms) {
-        std::cout << id << ": " << tfm->source() << "->" << tfm->target() << "\n";
-    }
-    EXPECT_EQ(tfms.size(), 2);
+    EXPECT_EQ(tfms.size(), 3);
     EXPECT_EQ(tfms[0].first, id1);
-    EXPECT_EQ(tfms[1].first, id2 + "->" + id3 + "->" + id4 + "*");
+    EXPECT_EQ(tfms[1].first, id2 + "->" + id3 + "->" + id4);
+    EXPECT_EQ(tfms[2].first, id6 + "->" + id7 + "->" + id8);
 }

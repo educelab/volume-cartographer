@@ -341,12 +341,12 @@ auto TransformPaths(
                 c->target(tgt);
                 // iterate path from target to source
                 while(n->parent) {
-                    id = n->id + "->" + id;
+                    id = "->" + n->id + id;
                     c->push_front(n->tfm);
                     n = n->parent;
                 }
                 c->push_front(n->tfm);
-                results.emplace_back(n->id + "->" + id, c);
+                results.emplace_back(n->id + id, c);
             }
             // done with this node
             continue;
@@ -354,8 +354,13 @@ auto TransformPaths(
 
         // get the next set of nodes
         for(const auto& [id, val] : tfms) {
+            // Skip visited nodes
+            if (visited.count(id) > 0 or visited.count(id + "*") > 0) {
+                continue;
+            }
+
             // Handle forward transforms
-            if (val->source() == n->tfm->target() and visited.count(id) == 0) {
+            if (val->source() == n->tfm->target()) {
                 visited.emplace(id);
                 auto p = std::make_shared<Node>();
                 p->id = id;
@@ -365,17 +370,13 @@ auto TransformPaths(
             }
 
             // Handle inverse transforms
-            else if(val->target() == n->tfm->target() and val->invertible() and visited.count(id + "*") > 0) {
+            else if (val->target() == n->tfm->target() and val->invertible()) {
                 visited.emplace(id + "*");
                 auto p = std::make_shared<Node>();
                 p->id = id + "*";
                 p->tfm = val->invert();
                 p->parent = n;
                 queue.push_back(p);
-            }
-
-            else {
-                Logger()->warn("Skipped: {}", id);
             }
         }
     }
