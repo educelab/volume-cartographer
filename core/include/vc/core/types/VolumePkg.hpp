@@ -255,9 +255,13 @@ public:
      * VolumePkg
      *
      * If the provided identifier ends with "*", additionally checks if the
-     * transform can be inverted.
+     * transform can be inverted. Supports transform paths using the `->`
+     * operator.
+     *
+     * @see VolumePkg::transform(Transform3D::Identifier)
      */
-    [[nodiscard]] auto hasTransform(Transform3D::Identifier id) const -> bool;
+    [[nodiscard]] auto hasTransform(const Transform3D::Identifier& id) const
+        -> bool;
 
     /** @brief Add a transform to the VolPkg */
     auto addTransform(const Transform3D::Pointer& transform)
@@ -272,7 +276,7 @@ public:
      * @brief Get a transform by ID
      *
      * If the provided ID ends with `*`, returns the inverse transform.
-     * Transform paths can be constructed with the `->` delimiter and will be
+     * Transform paths can be constructed with the `->` operator and will be
      * returned as a composite transform:
      * ```{.cpp}
      * vpkg->transform("id1->id2->id3*");

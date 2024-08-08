@@ -3,7 +3,6 @@
 #include "vc/core/types/Transforms.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/types/VolumePkgVersion.hpp"
-#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 namespace fs = filesystem;
@@ -24,6 +23,7 @@ TEST(VolumePkg, TransformByID)
     auto id = vpkg->addTransform(tfm);
 
     // Get result
+    EXPECT_TRUE(vpkg->hasTransform(id));
     auto res = vpkg->transform(id);
 
     // Pointer comparison (addTransform does not clone)
@@ -54,6 +54,7 @@ TEST(VolumePkg, TransformByIDPath)
     auto id3 = vpkg->addTransform(tfm3);
 
     // Get result
+    EXPECT_TRUE(vpkg->hasTransform(id1 + id2 + id3));
     auto res = vpkg->transform(id1 + id2 + id3);
 
     // Return type should be composite

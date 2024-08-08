@@ -818,28 +818,42 @@ auto VolumePkg::hasTransforms() const -> bool
     return not transforms_.empty();
 }
 
-auto VolumePkg::hasTransform(Transform3D::Identifier id) const -> bool
+auto VolumePkg::hasTransform(const Transform3D::Identifier& id) const -> bool
 {
     // Don't allow empty IDs
     if (id.empty()) {
         throw std::invalid_argument("Transform ID is empty");
     }
 
-    // Remove the star for inverse transforms
-    auto findInverse = id.back() == '*';
-    if (findInverse) {
-        id.pop_back();
+    // Split by ->
+    const auto ids = el::split(id, "->");
+    const bool isMulti = ids.size() > 1;
+
+    // Iterate over the transform IDs
+    for (auto i : ids) {
+        // Remove the star for inverse transforms
+        const bool findInverse = i.back() == '*';
+        if (findInverse) {
+            i.remove_suffix(1);
+        }
+
+        // Find the forward transform
+        const auto iStr = std::string(i);
+        auto found = transforms_.count(std::string(i)) > 0;
+
+        // Invert if requested
+        if (found and findInverse) {
+            found = transforms_.at(iStr)->invertible();
+        }
+
+        // If ever not found or is single transform, return
+        if (not found or not isMulti) {
+            return found;
+        }
     }
 
-    // Find the forward transform
-    auto found = transforms_.count(id) > 0;
-
-    // See if this transform can be inverted
-    if (found and findInverse) {
-        found = transforms_.at(id)->invertible();
-    }
-
-    return found;
+    // If we've made it here, we've found all parts
+    return true;
 }
 
 auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
@@ -931,7 +945,7 @@ auto VolumePkg::transform(Transform3D::Identifier id) const
 
         // Find the forward transform
         auto iStr = std::string(i);
-        auto t = transforms_.at(std::string(i));
+        auto t = transforms_.at(iStr);
 
         // Invert if requested
         if (getInverse) {

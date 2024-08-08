@@ -521,7 +521,7 @@ auto main(int argc, char* argv[]) -> int
         // Ask the volume package for transforms
         auto tfms = vpkg->transform(srcVolId, tgtVolId);
         useTfm = tfmIdInVpkg = not tfms.empty();
-        tfmId = (tfmIdInVpkg) ? tfms[0].first : "";
+        tfmId = tfmIdInVpkg ? tfms[0].first : "";
 
         // Report no and multiple transforms
         if (tfms.empty()) {
