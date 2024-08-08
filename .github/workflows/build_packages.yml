@@ -16,6 +16,7 @@ jobs:
       package_name: ${{ steps.name_pkg.outputs.package_name }}
     timeout-minutes: 240
     env:
+      SDKROOT: "/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk"
       MACOSX_DEPLOYMENT_TARGET: "13.1"
       QT_VERSION: "6.7.2"
       EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
