@@ -16,7 +16,7 @@ jobs:
       package_name: ${{ steps.name_pkg.outputs.package_name }}
     timeout-minutes: 240
     env:
-      MACOSX_DEPLOYMENT_TARGET: "12.7"
+      MACOSX_DEPLOYMENT_TARGET: "12.3"
       QT_VERSION: "6.7.2"
       EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
     steps:
@@ -25,16 +25,16 @@ jobs:
         with:
           fetch-depth: 20
 
-      - name: Use the Command Line Tools
-        run: |
-          sudo xcode-select -s /Library/Developer/CommandLineTools
-
       - name: Install Homebrew dependencies
         run: |
           brew update
           brew upgrade
           brew unlink libtiff python
           brew install ninja python@3.11
+
+      - name: Use the Command Line Tools
+        run: |
+          sudo xcode-select -s /Library/Developer/CommandLineTools
 
       - name: Install Qt6
         run: |

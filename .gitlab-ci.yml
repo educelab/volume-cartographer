@@ -7,7 +7,7 @@ stages:
     - release
 
 variables:
-    MACOSX_DEPLOYMENT_TARGET: "12.7"
+    MACOSX_DEPLOYMENT_TARGET: "12.3"
 
 ### Prototype build jobs ###
 .build_script: &build_script
