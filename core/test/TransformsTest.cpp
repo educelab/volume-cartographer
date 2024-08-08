@@ -498,6 +498,13 @@ TEST(Transform, CompositeClone)
     EXPECT_EQ(result->source(), tfm->source());
     EXPECT_EQ(result->target(), tfm->target());
     EXPECT_EQ(result->size(), tfm->size());
+
+    // Make sure the transform pointers point to different objects
+    const auto t = tfm->transforms();
+    const auto r = result->transforms();
+    for (const auto i : range(t.size())) {
+        EXPECT_NE(r[i], t[i]);
+    }
 }
 
 TEST(Transforms, CompositeSerialization)
@@ -550,6 +557,7 @@ TEST(Transforms, CompositeApply)
     tfm->simplify();
     EXPECT_NE(tfm->size(), origSize);
     EXPECT_EQ(tfm->size(), 1);
+    EXPECT_EQ(tfm->transforms().size(), 1);
 
     result = tfm->applyPoint({0, 1, 0});
     SmallOrClose(result, {-5., 10., 0.});
@@ -574,7 +582,39 @@ TEST(Transforms, CompositeExplicitInvert)
     SmallOrClose(res, {0, 0, 0});
 }
 
-TEST(Transforms, CompositePushComposite)
+TEST(Transforms, CompositePushFrontComposite)
+{
+    auto outer = CompositeTransform::New();
+    auto inner = CompositeTransform::New();
+    Transform3D::Pointer t = IdentityTransform::New();
+    t->source("3");
+    t->target("4");
+    inner->push_front(t);
+    t = AffineTransform::New();
+    t->source("2");
+    t->target("3");
+    inner->push_front(t);
+    outer->push_front(inner);
+
+    t = AffineTransform::New();
+    t->source("1");
+    t->target("2");
+    outer->push_front(t);
+
+    EXPECT_EQ(outer->size(), 3);
+    using IDPair = std::tuple<std::string, std::string>;
+    std::vector<IDPair> groundTruth{{"1", "2"}, {"2", "3"}, {"3", "4"}};
+    std::vector<IDPair> result;
+    const auto tfms = outer->transforms();
+    std::transform(
+        tfms.begin(), tfms.end(), std::back_inserter(result),
+        [](const Transform3D::Pointer& a) -> IDPair {
+            return {a->source(), a->target()};
+        });
+    EXPECT_EQ(result, groundTruth);
+}
+
+TEST(Transforms, CompositePushBackComposite)
 {
     auto outer = CompositeTransform::New();
 

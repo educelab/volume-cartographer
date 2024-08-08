@@ -82,6 +82,7 @@ add_library(VC::core ALIAS vc_core)
 target_include_directories(vc_core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${libcore_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(vc_core
@@ -177,6 +178,7 @@ set(test_srcs
     test/TIFFIOTest.cpp
     test/TransformsTest.cpp
     test/SegmentationTest.cpp
+    test/VolumePkgTest.cpp
 )
 
 # Add a test executable for each src
