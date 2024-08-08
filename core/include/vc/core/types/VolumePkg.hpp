@@ -65,14 +65,14 @@ public:
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static auto New(filesystem::path fileLocation, int version) -> Pointer;
+    static auto New(const filesystem::path& fileLocation, int version) -> Pointer;
 
     /**
      * @copybrief VolumePkg(filesystem::path fileLocation)
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static auto New(filesystem::path fileLocation) -> Pointer;
+    static auto New(const filesystem::path& fileLocation) -> Pointer;
     /**@}*/
 
     /** @name Metadata */
@@ -132,13 +132,13 @@ public:
     /**
      * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
-    void saveMetadata();
+    void saveMetadata() const;
 
     /**
      * @brief Saves the metadata to a user-specified location.
      * @param filePath Path to output file
      */
-    void saveMetadata(const filesystem::path& filePath);
+    void saveMetadata(const filesystem::path& filePath) const;
     /**@}*/
 
     /** @name Volume Data */
@@ -282,7 +282,7 @@ public:
      * The list also includes inverse transforms which satisfy the mapping.
      */
     auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
-        -> std::vector<
+        const -> std::vector<
             std::pair<Transform3D::Identifier, Transform3D::Pointer>>;
 
     /** @brief Get the list of transform IDs */

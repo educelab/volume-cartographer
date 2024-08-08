@@ -3,6 +3,7 @@
 #include <fstream>
 #include <functional>
 #include <utility>
+#include <set>
 
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -280,13 +281,120 @@ using UpgradeFn = std::function<Metadata(const Metadata&)>;
 const std::vector<UpgradeFn> UPGRADE_FNS{
     VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7, VolpkgV7ToV8};
 
+auto TransformPaths(
+    const std::map<Transform3D::Identifier, Transform3D::Pointer>& tfms,
+    const Volume::Identifier& src,
+    const Volume::Identifier& tgt)
+{
+    using NamedTransform = std::pair<Transform3D::Identifier, Transform3D::Pointer>;
+    std::vector<NamedTransform> results;
+
+    struct Node {
+        using Ptr = std::shared_ptr<Node>;
+        Transform3D::Identifier id;
+        Transform3D::Pointer tfm;
+        std::shared_ptr<Node> parent{nullptr};
+    };
+
+    // Initialize the queue
+    std::set<Transform3D::Identifier> visited;
+    std::list<Node::Ptr> queue;
+    for(const auto& [id, val] : tfms) {
+        if(val->source().empty() or val->target().empty()) {
+            continue;
+        }
+        if (val->source() == src) {
+            visited.emplace(id);
+            auto p = std::make_shared<Node>();
+            p->id = id;
+            p->tfm = val;
+            queue.push_back(p);
+        }
+        // Handle inverse transforms
+        if(val->target() == src and val->invertible()) {
+            visited.emplace(id + "*");
+            auto p = std::make_shared<Node>();
+            p->id = id + "*";
+            p->tfm = val->invert();
+            queue.push_back(p);
+        }
+    }
+
+    // Iterate over the queue
+    while(not queue.empty()) {
+        // next queue item
+        auto n = queue.front();
+        queue.pop_front();
+
+        // if we've reached the target...
+        if(n->tfm->target() == tgt) {
+            // node has no parent, then add original transform
+            if(not n->parent) {
+                results.emplace_back(n->id, n->tfm);
+            }
+
+            // node has a parent: construct a composite transform
+            else {
+                Transform3D::Identifier id;
+                auto c = CompositeTransform::New();
+                c->source(src);
+                c->target(tgt);
+                // iterate path from target to source
+                while(n->parent) {
+                    id = n->id + "->" + id;
+                    c->push_front(n->tfm);
+                    n = n->parent;
+                }
+                c->push_front(n->tfm);
+                results.emplace_back(n->id + "->" + id, c);
+            }
+            // done with this node
+            continue;
+        }
+
+        // get the next set of nodes
+        for(const auto& [id, val] : tfms) {
+            // Handle forward transforms
+            if (val->source() == n->tfm->target() and visited.count(id) == 0) {
+                visited.emplace(id);
+                auto p = std::make_shared<Node>();
+                p->id = id;
+                p->tfm = val;
+                p->parent = n;
+                queue.push_back(p);
+            }
+
+            // Handle inverse transforms
+            else if(val->target() == n->tfm->target() and val->invertible() and visited.count(id + "*") > 0) {
+                visited.emplace(id + "*");
+                auto p = std::make_shared<Node>();
+                p->id = id + "*";
+                p->tfm = val->invert();
+                p->parent = n;
+                queue.push_back(p);
+            }
+
+            else {
+                Logger()->warn("Skipped: {}", id);
+            }
+        }
+    }
+
+    return results;
+}
+
 }  // namespace
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(fs::path fileLocation, int version)
+VolumePkg::VolumePkg(fs::path fileLocation, const int version)
     : rootDir_{std::move(fileLocation)}
 {
+    // Don't overwrite existing directories
+    if(fs::exists(rootDir_)) {
+        throw std::runtime_error("File exists at path: " + rootDir_.string());
+    }
+
     // Lookup the metadata template from our library of versions
     auto findDict = VERSION_LIBRARY.find(version);
     if (findDict == std::end(VERSION_LIBRARY)) {
@@ -414,13 +522,13 @@ VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
     }
 }
 
-auto VolumePkg::New(fs::path fileLocation, int version) -> VolumePkg::Pointer
+auto VolumePkg::New(const fs::path& fileLocation, int version) -> Pointer
 {
     return std::make_shared<VolumePkg>(fileLocation, version);
 }
 
 // Shared pointer volumepkg construction
-auto VolumePkg::New(fs::path fileLocation) -> VolumePkg::Pointer
+auto VolumePkg::New(const fs::path& fileLocation) -> Pointer
 {
     return std::make_shared<VolumePkg>(fileLocation);
 }
@@ -449,9 +557,9 @@ auto VolumePkg::materialThickness() const -> double
 
 auto VolumePkg::metadata() const -> Metadata { return config_; }
 
-void VolumePkg::saveMetadata() { config_.save(); }
+void VolumePkg::saveMetadata() const { config_.save(); }
 
-void VolumePkg::saveMetadata(const fs::path& filePath)
+void VolumePkg::saveMetadata(const fs::path& filePath) const
 {
     config_.save(filePath);
 }
@@ -741,7 +849,7 @@ auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
 
     // Add to the internal ID map
     auto r = transforms_.insert({uuid, transform});
-    if (!r.second) {
+    if (not r.second) {
         auto msg = "Transform already exists with id " + uuid;
         throw std::runtime_error(msg);
     }
@@ -803,22 +911,10 @@ auto VolumePkg::transform(Transform3D::Identifier id) const
 }
 
 auto VolumePkg::transform(
-    const Volume::Identifier& src, const Volume::Identifier& tgt)
+    const Volume::Identifier& src, const Volume::Identifier& tgt) const
     -> std::vector<std::pair<Transform3D::Identifier, Transform3D::Pointer>>
 {
-    std::vector<std::pair<Transform3D::Identifier, Transform3D::Pointer>> tfms;
-    for (const auto& [id, tfm] : transforms_) {
-        if (tfm->source() == src and tfm->target() == tgt) {
-            tfms.emplace_back(id, tfm);
-        } else if (
-            tfm->invertible() and tfm->source() == tgt and
-            tfm->target() == src) {
-            auto idI = id + "*";
-            tfms.emplace_back(idI, tfm->invert());
-        }
-    }
-
-    return tfms;
+    return TransformPaths(transforms_, src, tgt);
 }
 
 auto VolumePkg::transformIDs() const -> std::vector<Transform3D::Identifier>
