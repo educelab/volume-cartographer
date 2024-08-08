@@ -48,7 +48,7 @@ public:
      * @param path The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(const filesystem::path path&, int version);
+    VolumePkg(filesystem::path path, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
@@ -271,7 +271,15 @@ public:
     /**
      * @brief Get a transform by ID
      *
-     * If the provided identifier ends with "*", returns the inverse transform.
+     * If the provided ID ends with `*`, returns the inverse transform.
+     * Transform paths can be constructed with the `->` delimiter and will be
+     * returned as a composite transform:
+     * ```{.cpp}
+     * vpkg->transform("id1->id2->id3*");
+     * ```
+     * The source and target properties of the returned CompositeTransform is
+     * set to the source of the first transform and the target of the final
+     * transform (post-inversion), but the intermediate path is not verified.
      */
     [[nodiscard]] auto transform(Transform3D::Identifier id) const
         -> Transform3D::Pointer;

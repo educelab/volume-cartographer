@@ -5,12 +5,14 @@
 #include <set>
 #include <utility>
 
+#include <educelab/core/utils/String.hpp>
+
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
-#include "vc/core/util/String.hpp"
 
 using namespace volcart;
 
+namespace el = educelab;
 namespace fs = volcart::filesystem;
 
 namespace
@@ -403,7 +405,8 @@ auto FindShortestPaths(
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(const fs::path& path, const int version) : rootDir_{path}
+VolumePkg::VolumePkg(fs::path path, const int version)
+    : rootDir_{std::move(path)}
 {
     // Don't overwrite existing directories
     if (fs::exists(rootDir_)) {
@@ -441,7 +444,7 @@ VolumePkg::VolumePkg(const fs::path& path) : rootDir_{path}
     config_ = Metadata(path / ::CONFIG);
 
     // Auto-upgrade on load from v
-    auto version = config_.get<int>("version");
+    const auto version = config_.get<int>("version");
     if (version >= 6 and version != VOLPKG_VERSION_LATEST) {
         Upgrade(path, VOLPKG_VERSION_LATEST);
         config_ = Metadata(path / ::CONFIG);
@@ -595,8 +598,9 @@ auto VolumePkg::numberOfVolumes() const -> std::size_t
 auto VolumePkg::volumeIDs() const -> std::vector<Volume::Identifier>
 {
     std::vector<Volume::Identifier> ids;
-    for (const auto& v : volumes_) {
-        ids.emplace_back(v.first);
+    ids.reserve(volumes_.size());
+    for (const auto& [id, _] : volumes_) {
+        ids.emplace_back(id);
     }
     return ids;
 }
@@ -604,8 +608,9 @@ auto VolumePkg::volumeIDs() const -> std::vector<Volume::Identifier>
 auto VolumePkg::volumeNames() const -> std::vector<std::string>
 {
     std::vector<Volume::Identifier> names;
-    for (const auto& v : volumes_) {
-        names.emplace_back(v.second->name());
+    names.reserve(volumes_.size());
+    for (const auto& [_, vol] : volumes_) {
+        names.emplace_back(vol->name());
     }
     return names;
 }
@@ -904,23 +909,53 @@ auto VolumePkg::transform(Transform3D::Identifier id) const
         throw std::invalid_argument("Transform ID is empty");
     }
 
-    //
+    // Split by ->
+    const auto ids = el::split(id, "->");
+    const bool isMulti = ids.size() > 1;
 
-    // Remove the star for inverse transforms
-    const auto getInverse = id.back() == '*';
-    if (getInverse) {
-        id.pop_back();
+    // Result
+    Transform3D::Pointer tfm;
+    CompositeTransform::Pointer cmp;
+    if (isMulti) {
+        cmp = CompositeTransform::New();
+        tfm = cmp;
     }
 
-    // Find the forward transform
-    auto tfm = transforms_.at(id);
+    // Iterate over the transform IDs
+    for (auto i : ids) {
+        // Remove the star for inverse transforms
+        const bool getInverse = i.back() == '*';
+        if (getInverse) {
+            i.remove_suffix(1);
+        }
 
-    // Invert if requested
-    if (getInverse) {
-        if (tfm->invertible()) {
-            tfm = transforms_.at(id)->invert();
+        // Find the forward transform
+        auto iStr = std::string(i);
+        auto t = transforms_.at(std::string(i));
+
+        // Invert if requested
+        if (getInverse) {
+            if (t->invertible()) {
+                t = t->invert();
+            } else {
+                throw std::invalid_argument(
+                    "Transform is not invertible: " + iStr);
+            }
+        }
+
+        // Add to composite if needed
+        if (isMulti) {
+            cmp->push_back(t);
+            // Set the source
+            if (cmp->size() == 1) {
+                cmp->source(t->source());
+            }
+            // Set the target
+            if (cmp->size() == ids.size()) {
+                cmp->target(t->target());
+            }
         } else {
-            throw std::invalid_argument("Transform is not invertible: " + id);
+            tfm = t;
         }
     }
 

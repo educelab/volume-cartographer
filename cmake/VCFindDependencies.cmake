@@ -81,6 +81,9 @@ include(Buildbvh)
 ### smgl ###
 include(Buildsmgl)
 
+### libcore ###
+include(Buildlibcore)
+
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
     find_package(Boost 1.58 REQUIRED COMPONENTS system program_options)

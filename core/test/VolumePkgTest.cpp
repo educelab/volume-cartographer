@@ -17,8 +17,8 @@ TEST(VolumePkg, TransformByID)
 
     // Create transform
     auto tfm = AffineTransform::New();
-    tfm->source("0");
-    tfm->target("1");
+    tfm->source("a");
+    tfm->target("b");
 
     // Add to volpkg and get ID
     auto id = vpkg->addTransform(tfm);
@@ -28,6 +28,47 @@ TEST(VolumePkg, TransformByID)
 
     // Pointer comparison (addTransform does not clone)
     EXPECT_EQ(tfm, res);
+}
+
+TEST(VolumePkg, TransformByIDPath)
+{
+    // Initialize new volpkg
+    fs::path p("TransformByIDPath.volpkg");
+    fs::remove_all(p);
+    auto vpkg = VolumePkg::New(p, VOLPKG_VERSION_LATEST);
+
+    // Long path: (a->b) (b->c) (c->d)
+    Transform3D::Pointer tfm1 = IdentityTransform::New();
+    tfm1->source("a");
+    tfm1->target("b");
+    auto id1 = vpkg->addTransform(tfm1) + "->";
+
+    Transform3D::Pointer tfm2 = IdentityTransform::New();
+    tfm2->source("c");
+    tfm2->target("b");
+    auto id2 = vpkg->addTransform(tfm2) + "*->";
+
+    Transform3D::Pointer tfm3 = IdentityTransform::New();
+    tfm3->source("c");
+    tfm3->target("d");
+    auto id3 = vpkg->addTransform(tfm3);
+
+    // Get result
+    auto res = vpkg->transform(id1 + id2 + id3);
+
+    // Return type should be composite
+    EXPECT_EQ(res->type(), CompositeTransform::TYPE);
+
+    // Check sub-transforms
+    auto tfms =
+        std::dynamic_pointer_cast<CompositeTransform>(res)->transforms();
+    EXPECT_EQ(tfms.size(), 3);
+    EXPECT_EQ(tfms[0]->source(), "a");
+    EXPECT_EQ(tfms[0]->target(), "b");
+    EXPECT_EQ(tfms[1]->source(), "b");
+    EXPECT_EQ(tfms[1]->target(), "c");
+    EXPECT_EQ(tfms[2]->source(), "c");
+    EXPECT_EQ(tfms[2]->target(), "d");
 }
 
 TEST(VolumePkg, TransformBySimplePath)
