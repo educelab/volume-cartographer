@@ -25,21 +25,24 @@ jobs:
         with:
           fetch-depth: 20
 
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew unlink libtiff
+          brew install ninja python@3.12
+
+      - name: Remove conflicting packages
+        run: |
+          sudo rm -rf /Library/Frameworks/Mono.framework/
+
       - name: Use the Command Line Tools
         run: |
           sudo xcode-select -s /Library/Developer/CommandLineTools
 
-      - name: Install Homebrew dependencies
-        run: |
-          brew update
-          brew upgrade
-          brew unlink libtiff python
-          brew install ninja python@3.11
-
       - name: Install Qt6
         run: |
-          python3.11 -m pip install --upgrade pip setuptools wheel
-          python3.11 -m pip install aqtinstall
+          python3.12 -m pip install --upgrade pip setuptools wheel
+          python3.12 -m pip install aqtinstall
           aqt install-qt -O ${{ github.workspace }}/Qt/ mac desktop ${QT_VERSION}
 
       - name: Install vc-deps
@@ -70,7 +73,7 @@ jobs:
       - name: Create package
         run: |
           cmake --install build/ --prefix "${{ env.install_dir }}"
-          python3.11 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
+          python3.12 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
           ditto -c -k "${{ env.install_dir }}" ${{ env.package_name }}
 
       - name: Upload artifacts
