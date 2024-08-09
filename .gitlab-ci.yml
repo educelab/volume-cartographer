@@ -7,8 +7,7 @@ stages:
     - release
 
 variables:
-    SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.sdk
-    MACOSX_DEPLOYMENT_TARGET: "13.1"
+    MACOSX_DEPLOYMENT_TARGET: "12.7"
 
 ### Prototype build jobs ###
 .build_script: &build_script
@@ -168,7 +167,7 @@ pages:
         CMAKE_PREFIX_PATH: "/usr/local/Qt/6.7.2/macos/lib/cmake/"
         CMAKE_INSTALL_PREFIX: "packaged_install/"
         EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
-        MACOSX_DEPLOYMENT_TARGET: "13.1"
+        MACOSX_DEPLOYMENT_TARGET: "12.7"
     before_script:
         - git submodule update --init
         - cmake -S vc-deps/ -B vc-deps/build/ -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF

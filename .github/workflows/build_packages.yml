@@ -31,7 +31,7 @@ jobs:
           brew unlink libtiff
           brew install ninja python@3.12
 
-      - name: Remove conflicts
+      - name: Remove conflicting packages
         run: |
           sudo rm -rf /Library/Frameworks/Mono.framework/
 
