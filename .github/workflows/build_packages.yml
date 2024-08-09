@@ -11,13 +11,12 @@ on:
 jobs:
   build_macos_intel:
     name: Create macOS package (Intel)
-    runs-on: macos-13
+    runs-on: macos-12
     outputs:
       package_name: ${{ steps.name_pkg.outputs.package_name }}
     timeout-minutes: 240
     env:
-      SDKROOT: "/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk"
-      MACOSX_DEPLOYMENT_TARGET: "13.1"
+      MACOSX_DEPLOYMENT_TARGET: "12.3"
       QT_VERSION: "6.7.2"
       EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
     steps:
@@ -29,8 +28,12 @@ jobs:
       - name: Install Homebrew dependencies
         run: |
           brew update
-          brew unlink libtiff mono
+          brew unlink libtiff
           brew install ninja python@3.12
+
+      - name: Remove conflicts
+        run: |
+          rm -rf /Library/Frameworks/Mono.framework/
 
       - name: Use the Command Line Tools
         run: |
