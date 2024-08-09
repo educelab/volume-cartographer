@@ -29,7 +29,7 @@ jobs:
       - name: Install Homebrew dependencies
         run: |
           brew update
-          brew unlink libtiff
+          brew unlink libtiff mono
           brew install ninja python@3.12
 
       - name: Use the Command Line Tools
