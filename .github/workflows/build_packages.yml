@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
   workflow_call:
     outputs:
-      package_mac_intel:
-        description: "The file name of the macOS Intel package"
-        value: ${{ jobs.build_macos_intel.outputs.package_name }}
+      package_mac:
+        description: "The file name of the macOS package"
+        value: ${{ jobs.build_macos.outputs.package_name }}
 
 jobs:
-  build_macos_intel:
-    name: Create macOS package (Intel)
+  build_macos:
+    name: Create macOS package
     runs-on: macos-12
     outputs:
       package_name: ${{ steps.name_pkg.outputs.package_name }}
@@ -18,7 +18,7 @@ jobs:
     env:
       MACOSX_DEPLOYMENT_TARGET: "12.7"
       QT_VERSION: "6.7.2"
-      EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON"
+      EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DCMAKE_OSX_ARCHITECTURES:STRING='x86_64;arm64'"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,7 +48,7 @@ jobs:
       - name: Install vc-deps
         run: |
           git submodule update --init
-          cmake -S vc-deps/ -B vc-deps/build/ -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF
+          cmake -S vc-deps/ -B vc-deps/build/ -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_MESSAGE=NEVER -DVCDEPS_BUILD_ACVD=OFF -DBUILD_MACOS_MULTIARCH=ON
           cmake --build vc-deps/build/
 
       - name: Build volume-cartographer
@@ -61,11 +61,10 @@ jobs:
       - name: Generate package name
         id: name_pkg
         run: |
-          ARCH=$(uname -m)
           if [[ ${{ github.ref }} =~ ^refs/tags/v* ]]; then
-            PKG_NAME="VC-${GITHUB_REF_NAME:1}-Darwin-${ARCH}.zip"
+            PKG_NAME="VC-${GITHUB_REF_NAME:1}-Darwin.zip"
           else
-            PKG_NAME="VC-${GITHUB_REF_NAME}-Darwin-${ARCH}.zip"
+            PKG_NAME="VC-${GITHUB_REF_NAME}-Darwin.zip"
           fi  
           echo "package_name=${PKG_NAME}" >> ${GITHUB_ENV}
           echo "package_name=${PKG_NAME}" >> ${GITHUB_OUTPUT} 
@@ -80,5 +79,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: package-macos-intel
+          name: package-macos
           path: ${{ env.package_name }}

@@ -17,7 +17,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   macos:
-    name: Create macOS package (Intel)
+    name: Create macOS package
     needs: create_release
     uses: ./.github/workflows/build_packages.yml
 
@@ -26,14 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: macos
     steps:
-      - name: Download macOS (Intel) package
+      - name: Download macOS package
         uses: actions/download-artifact@v4
         with:
-          name: package-macos-intel
+          name: package-macos
 
       - name: Upload packages
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          gh release upload ${{ github.ref_name }} "${{ needs.macos.outputs.package_mac_intel }}" -R ${{ github.repository }} --clobber
+          gh release upload ${{ github.ref_name }} "${{ needs.macos.outputs.package_mac }}" -R ${{ github.repository }} --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
