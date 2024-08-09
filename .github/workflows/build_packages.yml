@@ -33,7 +33,7 @@ jobs:
 
       - name: Remove conflicts
         run: |
-          rm -rf /Library/Frameworks/Mono.framework/
+          sudo rm -rf /Library/Frameworks/Mono.framework/
 
       - name: Use the Command Line Tools
         run: |
