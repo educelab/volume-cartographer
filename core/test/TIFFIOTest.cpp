@@ -241,6 +241,29 @@ TEST(TIFFIO, WriteRead16UC1)
     EXPECT_TRUE(equal);
 }
 
+TEST(TIFFIO, WriteRead16UC1_mmap)
+{
+    using ElemT = std::uint16_t;
+    using PixelT = ElemT;
+    auto cvType = CV_16UC1;
+
+    cv::Mat img(::TEST_IMG_SIZE, cvType);
+    ::FillRandom<ElemT, 1>(img);
+
+    const fs::path imgPath(
+        "vc_core_TIFFIO_WriteRead_" + cv::typeToString(cvType) + "_mmap.tif");
+    // Write uncompressed, so we can mmap() it in during reading
+    WriteTIFF(imgPath, img, Compression::NONE);
+    auto result = ReadTIFF(imgPath);
+
+    EXPECT_EQ(result.size, img.size);
+    EXPECT_EQ(result.type(), img.type());
+
+    auto equal = std::equal(
+        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
+    EXPECT_TRUE(equal);
+}
+
 TEST(TIFFIO, WriteRead16UC2)
 {
     using ElemT = std::uint16_t;

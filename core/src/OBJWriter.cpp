@@ -198,7 +198,7 @@ void OBJWriter::write_texture_coordinates_()
     uvMap_->setOrigin(UVMap::Origin::BottomLeft);
 
     // Write mtl path, relative to OBJ
-    auto mtlpath = outputPath_.filename();
+    auto mtlpath = outputPath_.stem();
     mtlpath.replace_extension("mtl");
     outputMesh_ << "# Texture information\n";
     outputMesh_ << "mtllib " << mtlpath.string() << "\n";

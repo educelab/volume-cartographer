@@ -1,18 +1,14 @@
 #include "vc/core/types/VolumePkg.hpp"
 
-#include <fstream>
 #include <functional>
-#include <set>
 #include <utility>
-
-#include <educelab/core/utils/String.hpp>
 
 #include "vc/core/util/DateTime.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/core/util/String.hpp"
 
 using namespace volcart;
 
-namespace el = educelab;
 namespace fs = volcart::filesystem;
 
 namespace
@@ -20,31 +16,34 @@ namespace
 ////// Convenience vars and fns for accessing VolumePkg sub-paths //////
 constexpr auto CONFIG = "config.json";
 
-auto VolsDir(const fs::path& baseDir) -> fs::path
+inline auto VolsDir(const fs::path& baseDir) -> fs::path
 {
     return baseDir / "volumes";
 }
 
-auto SegsDir(const fs::path& baseDir) -> fs::path { return baseDir / "paths"; }
+inline auto SegsDir(const fs::path& baseDir) -> fs::path
+{
+    return baseDir / "paths";
+}
 
-auto RendDir(const fs::path& baseDir) -> fs::path
+inline auto RendDir(const fs::path& baseDir) -> fs::path
 {
     return baseDir / "renders";
 }
 
-auto TfmDir(const fs::path& baseDir) -> fs::path
+inline auto TfmDir(const fs::path& baseDir) -> fs::path
 {
     return baseDir / "transforms";
 }
 
-auto ReqDirs(const fs::path& baseDir) -> std::vector<filesystem::path>
+inline auto ReqDirs(const fs::path& baseDir) -> std::vector<filesystem::path>
 {
     return {
         baseDir, ::VolsDir(baseDir), ::SegsDir(baseDir), ::RendDir(baseDir),
         ::TfmDir(baseDir)};
 }
 
-void keep(const fs::path& dir)
+inline void keep(const fs::path& dir)
 {
     if (not fs::exists(dir / ".vckeep")) {
         std::ofstream(dir / ".vckeep", std::ostream::ate);
@@ -67,9 +66,8 @@ auto VolpkgV3ToV4(const Metadata& meta) -> Metadata
     Logger()->debug("- Creating primary metadata");
     Metadata newMeta;
     newMeta.set("version", 4);
-    newMeta.set("name", meta.get<std::string>("volumepkg name").value());
-    newMeta.set(
-        "materialthickness", meta.get<double>("materialthickness").value());
+    newMeta.set("name", meta.get<std::string>("volumepkg name"));
+    newMeta.set("materialthickness", meta.get<double>("materialthickness"));
     newMeta.save(path / "config.json");
 
     // Make the "volumes" directory
@@ -90,12 +88,12 @@ auto VolpkgV3ToV4(const Metadata& meta) -> Metadata
     Metadata volMeta;
     volMeta.set("uuid", id);
     volMeta.set("name", id);
-    volMeta.set("width", meta.get<int>("width").value());
-    volMeta.set("height", meta.get<int>("height").value());
-    volMeta.set("slices", meta.get<int>("number of slices").value());
-    volMeta.set("voxelsize", meta.get<double>("voxelsize").value());
-    volMeta.set("min", meta.get<double>("min").value());
-    volMeta.set("max", meta.get<double>("max").value());
+    volMeta.set("width", meta.get<int>("width"));
+    volMeta.set("height", meta.get<int>("height"));
+    volMeta.set("slices", meta.get<int>("number of slices"));
+    volMeta.set("voxelsize", meta.get<double>("voxelsize"));
+    volMeta.set("min", meta.get<double>("min"));
+    volMeta.set("max", meta.get<double>("max"));
     volMeta.save(newVolDir / "meta.json");
 
     return newMeta;
@@ -231,190 +229,19 @@ auto VolpkgV6ToV7(const Metadata& meta) -> Metadata
     return newMeta;
 }
 
-auto VolpkgV7ToV8(const Metadata& meta) -> Metadata
-{
-    // Nothing to do check
-    if (meta.get<int>("version") != 7) {
-        return meta;
-    }
-    Logger()->info("Performing v8 migrations");
-
-    // VolumePkg path
-    const auto path = meta.path().parent_path();
-
-    // Replace empty strings in Segmentation metadata
-    Logger()->debug("- Updating segmentation metadata");
-    fs::path seg;
-    const auto segsDir = path / "paths";
-    for (const auto& entry : fs::directory_iterator(segsDir)) {
-        if (fs::is_directory(entry)) {
-            // Get the folder as a fs::path
-            seg = entry;
-
-            // Load the metadata
-            Metadata segMeta(seg / "meta.json");
-
-            // Set null on the appropriate values
-            for (auto key : {"vcps", "volume"}) {
-                if (not segMeta.hasKey(key)) {
-                    segMeta.set(key, nlohmann::json::value_t::null);
-                } else {
-                    const auto v = segMeta.get<std::string>(key);
-                    if (v.has_value() and v.value().empty()) {
-                        segMeta.set(key, nlohmann::json::value_t::null);
-                    }
-                }
-            }
-
-            // Save the new metadata
-            segMeta.save();
-        }
-    }
-
-    // Update the version
-    auto newMeta = meta;
-    newMeta.set("version", 8);
-    newMeta.save();
-
-    return newMeta;
-}
-
 using UpgradeFn = std::function<Metadata(const Metadata&)>;
 const std::vector<UpgradeFn> UPGRADE_FNS{
-    VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7, VolpkgV7ToV8};
-
-/*
- * Runs BFS on tfms from src to tgt, returning the shortest paths first. This
- * implementation does not return every possible transform path, but prunes
- * cycles and paths with transforms which are already included in shorter paths.
- */
-auto FindShortestPaths(
-    const std::map<Transform3D::Identifier, Transform3D::Pointer>& tfms,
-    const Volume::Identifier& src,
-    const Volume::Identifier& tgt)
-{
-    // Local short hand for result type
-    using NamedTransform =
-        std::pair<Transform3D::Identifier, Transform3D::Pointer>;
-    std::vector<NamedTransform> results;
-
-    // BFS tree node
-    struct Node {
-        using Ptr = std::shared_ptr<Node>;
-        Transform3D::Identifier id;
-        Transform3D::Pointer tfm;
-        std::shared_ptr<Node> parent{nullptr};
-    };
-
-    // Initialize the queue and visited list
-    std::set<Transform3D::Identifier> visited;
-    std::list<Node::Ptr> queue;
-    for (const auto& [id, val] : tfms) {
-        // Skip transforms without source and target IDs
-        /* Not currently possible to have empty src/tgt in VolPkg
-        if (val->source().empty() or val->target().empty()) {
-            continue;
-        }
-        */
-
-        // Queue transforms which start at our source
-        if (val->source() == src) {
-            visited.emplace(id);
-            auto p = std::make_shared<Node>();
-            p->id = id;
-            p->tfm = val;
-            queue.push_back(p);
-        }
-
-        // Queue invertible transforms which end at our source
-        if (val->invertible() and val->target() == src) {
-            visited.emplace(id + "*");
-            auto p = std::make_shared<Node>();
-            p->id = id + "*";
-            p->tfm = val->invert();
-            queue.push_back(p);
-        }
-    }
-
-    // Iterate over the queue
-    while (not queue.empty()) {
-        // Pop next queue item
-        auto n = queue.front();
-        queue.pop_front();
-
-        // If we've reached the target...
-        if (n->tfm->target() == tgt) {
-            // Node has no parent, so return original transform
-            if (not n->parent) {
-                results.emplace_back(n->id, n->tfm);
-            }
-
-            // Node has a parent, so return a composite transform
-            else {
-                Transform3D::Identifier id;
-                auto c = CompositeTransform::New();
-                c->source(src);
-                c->target(tgt);
-                // Iterate path from target to source
-                while (n->parent) {
-                    id = "->" + n->id + id;
-                    c->push_front(n->tfm);
-                    n = n->parent;
-                }
-                c->push_front(n->tfm);
-                results.emplace_back(n->id + id, c);
-            }
-            // done with this node
-            continue;
-        }
-
-        // Find the transforms which extend the path
-        // TODO: Linear in # of transforms
-        for (const auto& [id, val] : tfms) {
-            // Skip visited nodes
-            if (visited.count(id) > 0 or visited.count(id + "*") > 0) {
-                continue;
-            }
-
-            // Queue transforms which start at our local source
-            if (val->source() == n->tfm->target()) {
-                visited.emplace(id);
-                auto p = std::make_shared<Node>();
-                p->id = id;
-                p->tfm = val;
-                p->parent = n;
-                queue.push_back(p);
-            }
-
-            // Queue invertible transforms which end at our local source
-            else if (val->invertible() and val->target() == n->tfm->target()) {
-                visited.emplace(id + "*");
-                auto p = std::make_shared<Node>();
-                p->id = id + "*";
-                p->tfm = val->invert();
-                p->parent = n;
-                queue.push_back(p);
-            }
-        }
-    }
-
-    return results;
-}
+    VolpkgV3ToV4, VolpkgV4ToV5, VolpkgV5ToV6, VolpkgV6ToV7};
 
 }  // namespace
 
 // CONSTRUCTORS //
 // Make a volpkg of a particular version number
-VolumePkg::VolumePkg(fs::path path, const int version)
-    : rootDir_{std::move(path)}
+VolumePkg::VolumePkg(fs::path fileLocation, int version)
+    : rootDir_{std::move(fileLocation)}
 {
-    // Don't overwrite existing directories
-    if (fs::exists(rootDir_)) {
-        throw std::runtime_error("File exists at path: " + rootDir_.string());
-    }
-
     // Lookup the metadata template from our library of versions
-    const auto findDict = VERSION_LIBRARY.find(version);
+    auto findDict = VERSION_LIBRARY.find(version);
     if (findDict == std::end(VERSION_LIBRARY)) {
         throw std::runtime_error("No dictionary found for volpkg");
     }
@@ -438,16 +265,16 @@ VolumePkg::VolumePkg(fs::path path, const int version)
 }
 
 // Use this when reading a volpkg from a file
-VolumePkg::VolumePkg(const fs::path& path) : rootDir_{path}
+VolumePkg::VolumePkg(const fs::path& fileLocation) : rootDir_{fileLocation}
 {
     // Loads the metadata
-    config_ = Metadata(path / ::CONFIG);
+    config_ = Metadata(fileLocation / ::CONFIG);
 
     // Auto-upgrade on load from v
-    const auto version = config_.get<int>("version");
+    auto version = config_.get<int>("version");
     if (version >= 6 and version != VOLPKG_VERSION_LATEST) {
-        Upgrade(path, VOLPKG_VERSION_LATEST);
-        config_ = Metadata(path / ::CONFIG);
+        Upgrade(fileLocation, VOLPKG_VERSION_LATEST);
+        config_ = Metadata(fileLocation / ::CONFIG);
     }
 
     // Check directory structure
@@ -466,87 +293,52 @@ VolumePkg::VolumePkg(const fs::path& path) : rootDir_{path}
     // Load volumes into volumes_
     for (const auto& entry : fs::directory_iterator(::VolsDir(rootDir_))) {
         if (fs::is_directory(entry)) {
-            if (not exists(entry.path() / "meta.json")) {
-                Logger()->warn(
-                    "Ignoring volume '{}': Does not contain metadata file",
-                    entry.path().filename().string());
-                continue;
-            }
-            try {
-                auto v = Volume::New(entry);
-                volumes_.emplace(v->id(), v);
-            } catch (const std::exception& e) {
-                Logger()->warn(
-                    "Failed to load volume '{}': {}",
-                    entry.path().filename().string(), e.what());
-            }
+            auto v = Volume::New(entry);
+            volumes_.emplace(v->id(), v);
         }
     }
 
-    // Load segmentations into segmentations_
+    // Load segmentations into the segmentations_
     for (const auto& entry : fs::directory_iterator(::SegsDir(rootDir_))) {
         if (fs::is_directory(entry)) {
-            if (not exists(entry.path() / "meta.json")) {
-                Logger()->warn(
-                    "Ignoring segmentation '{}': Does not contain metadata "
-                    "file",
-                    entry.path().filename().string());
-                continue;
-            }
-            try {
-                auto s = Segmentation::New(entry);
-                segmentations_.emplace(s->id(), s);
-            } catch (const std::exception& e) {
-                Logger()->warn(
-                    "Failed to load segmentation '{}': {}",
-                    entry.path().filename().string(), e.what());
-            }
+            auto s = Segmentation::New(entry);
+            segmentations_.emplace(s->id(), s);
         }
     }
 
-    // Load Renders into renders_
+    // Load Renders into the renders_
     for (const auto& entry : fs::directory_iterator(::RendDir(rootDir_))) {
         if (fs::is_directory(entry)) {
-            if (not exists(entry.path() / "meta.json")) {
-                Logger()->warn(
-                    "Ignoring render '{}': Does not contain metadata file",
-                    entry.path().filename().string());
-                continue;
-            }
-            try {
-                auto r = Render::New(entry);
-                renders_.emplace(r->id(), r);
-            } catch (const std::exception& e) {
-                Logger()->warn(
-                    "Failed to load render '{}': {}",
-                    entry.path().filename().string(), e.what());
-            }
+            auto r = Render::New(entry);
+            renders_.emplace(r->id(), r);
         }
     }
 
     // Load the transform files into transforms_
     for (const auto& entry : fs::directory_iterator(::TfmDir(rootDir_))) {
-        const auto ep = entry.path();
+        auto ep = entry.path();
         if (fs::is_regular_file(entry) and ep.extension() == ".json") {
+            Transform3D::Pointer tfm;
             try {
-                auto tfm = Transform3D::Load(ep);
-                transforms_.emplace(ep.stem(), tfm);
+                tfm = Transform3D::Load(ep);
             } catch (const std::exception& e) {
                 Logger()->warn(
-                    "Failed to load transform '{}'. {}", ep.filename().string(),
-                    e.what());
+                    "Failed to load transform \"{}\". {}",
+                    ep.filename().string(), e.what());
+                continue;
             }
+            transforms_.emplace(ep.stem(), tfm);
         }
     }
 }
 
-auto VolumePkg::New(const fs::path& fileLocation, int version) -> Pointer
+auto VolumePkg::New(fs::path fileLocation, int version) -> VolumePkg::Pointer
 {
     return std::make_shared<VolumePkg>(fileLocation, version);
 }
 
 // Shared pointer volumepkg construction
-auto VolumePkg::New(const fs::path& fileLocation) -> Pointer
+auto VolumePkg::New(fs::path fileLocation) -> VolumePkg::Pointer
 {
     return std::make_shared<VolumePkg>(fileLocation);
 }
@@ -556,28 +348,26 @@ auto VolumePkg::New(const fs::path& fileLocation) -> Pointer
 auto VolumePkg::name() const -> std::string
 {
     // Gets the Volume name from the configuration file
-    if (const auto name = config_.get<std::string>("name"); name.has_value()) {
-        return name.value();
+    auto name = config_.get<std::string>("name");
+    if (name != "NULL") {
+        return name;
     }
 
     return "UnnamedVolume";
 }
 
-auto VolumePkg::version() const -> int
-{
-    return config_.get<int>("version").value();
-}
+auto VolumePkg::version() const -> int { return config_.get<int>("version"); }
 
 auto VolumePkg::materialThickness() const -> double
 {
-    return config_.get<double>("materialthickness").value();
+    return config_.get<double>("materialthickness");
 }
 
 auto VolumePkg::metadata() const -> Metadata { return config_; }
 
-void VolumePkg::saveMetadata() const { config_.save(); }
+void VolumePkg::saveMetadata() { config_.save(); }
 
-void VolumePkg::saveMetadata(const fs::path& filePath) const
+void VolumePkg::saveMetadata(const fs::path& filePath)
 {
     config_.save(filePath);
 }
@@ -598,9 +388,8 @@ auto VolumePkg::numberOfVolumes() const -> std::size_t
 auto VolumePkg::volumeIDs() const -> std::vector<Volume::Identifier>
 {
     std::vector<Volume::Identifier> ids;
-    ids.reserve(volumes_.size());
-    for (const auto& [id, _] : volumes_) {
-        ids.emplace_back(id);
+    for (const auto& v : volumes_) {
+        ids.emplace_back(v.first);
     }
     return ids;
 }
@@ -608,9 +397,8 @@ auto VolumePkg::volumeIDs() const -> std::vector<Volume::Identifier>
 auto VolumePkg::volumeNames() const -> std::vector<std::string>
 {
     std::vector<Volume::Identifier> names;
-    names.reserve(volumes_.size());
-    for (const auto& [_, vol] : volumes_) {
-        names.emplace_back(vol->name());
+    for (const auto& v : volumes_) {
+        names.emplace_back(v.second->name());
     }
     return names;
 }
@@ -636,7 +424,7 @@ auto VolumePkg::newVolume(std::string name) -> Volume::Pointer
     // Make the volume
     auto r = volumes_.emplace(uuid, Volume::New(volDir, uuid, name));
     if (!r.second) {
-        auto msg = "Volume already exists with id " + uuid;
+        auto msg = "Volume already exists with ID " + uuid;
         throw std::runtime_error(msg);
     }
 
@@ -737,12 +525,26 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
     auto r =
         segmentations_.emplace(uuid, Segmentation::New(segDir, uuid, name));
     if (!r.second) {
-        auto msg = "Segmentation already exists with id " + uuid;
+        auto msg = "Segmentation already exists with ID " + uuid;
         throw std::runtime_error(msg);
     }
 
     // Return the Segmentation Pointer
     return r.first->second;
+}
+
+auto VolumePkg::removeSegmentation(const Segmentation::Identifier& id) -> bool
+{
+    if (id.size() == 0)
+        return false;
+
+    // Remove the volume directory
+    auto segDir = ::SegsDir(rootDir_) / id;
+    if (!fs::exists(segDir)) {
+        throw std::runtime_error("Segmentation directory does not exist for ID " + id);
+    } else {
+        return fs::remove_all(segDir);
+    }
 }
 
 // RENDER FUNCTIONS //
@@ -805,7 +607,7 @@ auto VolumePkg::newRender(std::string name) -> Render::Pointer
     // Make the Render
     auto r = renders_.emplace(uuid, Render::New(renDir, uuid, name));
     if (!r.second) {
-        auto msg = "Render already exists with id " + uuid;
+        auto msg = "Render already exists with ID " + uuid;
         throw std::runtime_error(msg);
     }
 
@@ -818,42 +620,28 @@ auto VolumePkg::hasTransforms() const -> bool
     return not transforms_.empty();
 }
 
-auto VolumePkg::hasTransform(const Transform3D::Identifier& id) const -> bool
+auto VolumePkg::hasTransform(Volume::Identifier id) const -> bool
 {
     // Don't allow empty IDs
     if (id.empty()) {
         throw std::invalid_argument("Transform ID is empty");
     }
 
-    // Split by ->
-    const auto ids = el::split(id, "->");
-    const bool isMulti = ids.size() > 1;
-
-    // Iterate over the transform IDs
-    for (auto i : ids) {
-        // Remove the star for inverse transforms
-        const bool findInverse = i.back() == '*';
-        if (findInverse) {
-            i.remove_suffix(1);
-        }
-
-        // Find the forward transform
-        const auto iStr = std::string(i);
-        auto found = transforms_.count(std::string(i)) > 0;
-
-        // Invert if requested
-        if (found and findInverse) {
-            found = transforms_.at(iStr)->invertible();
-        }
-
-        // If ever not found or is single transform, return
-        if (not found or not isMulti) {
-            return found;
-        }
+    // Remove the star for inverse transforms
+    auto findInverse = id.back() == '*';
+    if (findInverse) {
+        id.pop_back();
     }
 
-    // If we've made it here, we've found all parts
-    return true;
+    // Find the forward transform
+    auto found = transforms_.count(id) > 0;
+
+    // See if this transform can be inverted
+    if (found and findInverse) {
+        found = transforms_.at(id)->invertible();
+    }
+
+    return found;
 }
 
 auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
@@ -883,7 +671,7 @@ auto VolumePkg::addTransform(const Transform3D::Pointer& transform)
 
     // Add to the internal ID map
     auto r = transforms_.insert({uuid, transform});
-    if (not r.second) {
+    if (!r.second) {
         auto msg = "Transform already exists with id " + uuid;
         throw std::runtime_error(msg);
     }
@@ -915,61 +703,28 @@ void VolumePkg::setTransform(
     Transform3D::Save(tfmPath, transform);
 }
 
-auto VolumePkg::transform(Transform3D::Identifier id) const
-    -> Transform3D::Pointer
+auto VolumePkg::transform(Transform3D::Identifier id) -> Transform3D::Pointer
 {
     // Don't allow empty IDs
     if (id.empty()) {
         throw std::invalid_argument("Transform ID is empty");
     }
 
-    // Split by ->
-    const auto ids = el::split(id, "->");
-    const bool isMulti = ids.size() > 1;
-
-    // Result
-    Transform3D::Pointer tfm;
-    CompositeTransform::Pointer cmp;
-    if (isMulti) {
-        cmp = CompositeTransform::New();
-        tfm = cmp;
+    // Remove the star for inverse transforms
+    auto getInverse = id.back() == '*';
+    if (getInverse) {
+        id.pop_back();
     }
 
-    // Iterate over the transform IDs
-    for (auto i : ids) {
-        // Remove the star for inverse transforms
-        const bool getInverse = i.back() == '*';
-        if (getInverse) {
-            i.remove_suffix(1);
-        }
+    // Find the forward transform
+    auto tfm = transforms_.at(id);
 
-        // Find the forward transform
-        auto iStr = std::string(i);
-        auto t = transforms_.at(iStr);
-
-        // Invert if requested
-        if (getInverse) {
-            if (t->invertible()) {
-                t = t->invert();
-            } else {
-                throw std::invalid_argument(
-                    "Transform is not invertible: " + iStr);
-            }
-        }
-
-        // Add to composite if needed
-        if (isMulti) {
-            cmp->push_back(t);
-            // Set the source
-            if (cmp->size() == 1) {
-                cmp->source(t->source());
-            }
-            // Set the target
-            if (cmp->size() == ids.size()) {
-                cmp->target(t->target());
-            }
+    // Invert if requested
+    if (getInverse) {
+        if (tfm->invertible()) {
+            tfm = transforms_.at(id)->invert();
         } else {
-            tfm = t;
+            throw std::invalid_argument("Transform is not invertible: " + id);
         }
     }
 
@@ -977,10 +732,22 @@ auto VolumePkg::transform(Transform3D::Identifier id) const
 }
 
 auto VolumePkg::transform(
-    const Volume::Identifier& src, const Volume::Identifier& tgt) const
+    const Volume::Identifier& src, const Volume::Identifier& tgt)
     -> std::vector<std::pair<Transform3D::Identifier, Transform3D::Pointer>>
 {
-    return FindShortestPaths(transforms_, src, tgt);
+    std::vector<std::pair<Transform3D::Identifier, Transform3D::Pointer>> tfms;
+    for (const auto& [id, tfm] : transforms_) {
+        if (tfm->source() == src and tfm->target() == tgt) {
+            tfms.emplace_back(id, tfm);
+        } else if (
+            tfm->invertible() and tfm->source() == tgt and
+            tfm->target() == src) {
+            auto idI = id + "*";
+            tfms.emplace_back(idI, tfm->invert());
+        }
+    }
+
+    return tfms;
 }
 
 auto VolumePkg::transformIDs() const -> std::vector<Transform3D::Identifier>
@@ -1027,7 +794,7 @@ void VolumePkg::Upgrade(const fs::path& path, int version, bool force)
     Metadata meta(path / "config.json");
 
     // Get current version
-    const auto currentVersion = meta.get<int>("version").value();
+    const auto currentVersion = meta.get<int>("version");
 
     // Don't update for versions < 6 unless forced (those migrations are
     // expensive)
@@ -1042,8 +809,8 @@ void VolumePkg::Upgrade(const fs::path& path, int version, bool force)
 
     // Plot path to final version
     // UpgradeFns start at v3->v4
-    const auto startIdx = currentVersion - 3;
-    const auto endIdx = version - 3;
+    auto startIdx = currentVersion - 3;
+    auto endIdx = version - 3;
     for (auto idx = startIdx; idx < endIdx; idx++) {
         meta = ::UPGRADE_FNS[idx](meta);
     }

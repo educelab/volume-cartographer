@@ -2,9 +2,11 @@
 
 /** @file */
 
-#include <optional>
+#include <fstream>
+#include <iostream>
 
 #include <nlohmann/json.hpp>
+#include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/util/Json.hpp"
@@ -36,57 +38,45 @@ public:
      *
      * @throws volcart::IOException
      */
-    explicit Metadata(const filesystem::path& fileLocation);
+    explicit Metadata(volcart::filesystem::path fileLocation);
     /**@}*/
 
     /**@{*/
     /** @brief Get the path where the metadata file will be written */
-    [[nodiscard]] auto path() const -> filesystem::path;
+    volcart::filesystem::path path() const { return path_; }
 
     /** @brief Set the path where the metadata file will be written */
-    void setPath(const filesystem::path& path);
+    void setPath(const volcart::filesystem::path& path) { path_ = path; }
 
     /**
      * @brief Save the metadata file to the stored path
      *
-     * @throws IOException
+     * @throws volcart::IOException 
      */
-    void save() const;
+    void save() { save(path_); }
 
     /** @brief Save the metadata file to a specified path */
-    void save(const filesystem::path& path) const;
+    void save(const volcart::filesystem::path& path);
     /**@}*/
 
     /**@{*/
     /** @brief Return whether the given key is defined */
-    [[nodiscard]] auto hasKey(const std::string& key) const -> bool;
+    bool hasKey(const std::string& key) const { return json_.count(key) > 0; }
 
-    /**
-     * @brief Get a metadata value by key
+    /** @brief Get a metadata value by key
      *
-     * If the stored value is convertible to T, the returned optional will
-     * have an assigned value. If the stored value is `null`, the returned
-     * optional will have no value. This can be checked with
-     * `result.has_value()`, and the value can be retrieved with
-     * `result.value()`.
-     *
-     * @throws std::runtime_error If the key is not present.
+     * Throws an std::runtime_error if the key is not set.
      *
      * @tparam T Value return type. JSON library will attempt to convert to the
      * specified type.
      */
     template <typename T>
-    auto get(const std::string& key) const -> std::optional<T>
+    T get(const std::string& key) const
     {
-        if (not json_.contains(key)) {
-            const auto msg = "could not find key '" + key + "' in metadata";
+        if (json_.find(key) == json_.end()) {
+            auto msg = "could not find key '" + key + "' in metadata";
             throw std::runtime_error(msg);
         }
-
-        if (json_[key].is_null()) {
-            return std::optional<T>();
-        }
-
         return json_[key].get<T>();
     }
 
@@ -103,16 +93,23 @@ public:
 
     /**@{*/
     /**
+     * @brief Print a string representation of the metadata to std::cout
+     *
+     * @warning This should only be used for debugging.
+     */
+    void printString() const { std::cout << json_ << std::endl; }
+
+    /**
      * @brief Print an object representation of the metadata to std::cout
      *
      * @warning This should only be used for debugging.
      */
-    void printObject() const;
+    void printObject() const { std::cout << json_.dump(4) << std::endl; }
     /**@}*/
 protected:
     /** JSON data storage */
     nlohmann::json json_;
     /** Location where the JSON file will be stored*/
-    filesystem::path path_;
+    volcart::filesystem::path path_;
 };
 }  // namespace volcart

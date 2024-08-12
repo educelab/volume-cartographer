@@ -35,32 +35,32 @@ public:
     DiskBasedObjectBaseClass() = delete;
 
     /** @brief Get the "unique" ID for the object */
-    [[nodiscard]] Identifier id() const;
+    Identifier id() const { return metadata_.get<std::string>("uuid"); }
 
     /** @brief Get the path to the object */
-    [[nodiscard]] auto path() const -> filesystem::path;
+    volcart::filesystem::path path() const { return path_; }
 
     /** @brief Get the human-readable name for the object */
-    [[nodiscard]] auto name() const -> std::string;
+    std::string name() const { return metadata_.get<std::string>("name"); }
 
     /** @brief Set the human-readable name of the object */
-    void setName(std::string n);
+    void setName(std::string n) { metadata_.set("name", std::move(n)); }
 
     /** @brief Update metadata on disk */
-    void saveMetadata() const;
+    void saveMetadata() { metadata_.save(); }
 
 protected:
     /** Load the object from file */
-    explicit DiskBasedObjectBaseClass(filesystem::path path);
+    explicit DiskBasedObjectBaseClass(volcart::filesystem::path path);
 
     /** Make a new object */
     DiskBasedObjectBaseClass(
-        filesystem::path path, Identifier uuid, std::string name);
+        volcart::filesystem::path path, Identifier uuid, std::string name);
 
     /** Metadata */
-    Metadata metadata_;
+    volcart::Metadata metadata_;
 
     /** Location for the object on disk */
-    filesystem::path path_;
+    volcart::filesystem::path path_;
 };
 }  // namespace volcart

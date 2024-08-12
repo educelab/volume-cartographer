@@ -53,8 +53,7 @@ auto Render::graph() const -> GraphPtr
 {
     // Lazy load the graph
     if (not graph_ and metadata_.hasKey("graph")) {
-        auto g =
-            Graph::Load(path_ / metadata_.get<std::string>("graph").value());
+        auto g = Graph::Load(path_ / metadata_.get<std::string>("graph"));
         graph_ = std::make_shared<Graph>(g);
     }
     return graph_;

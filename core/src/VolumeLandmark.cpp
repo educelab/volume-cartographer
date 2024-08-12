@@ -21,12 +21,12 @@ VolumeLandmark::VolumeLandmark(
 
 auto VolumeLandmark::id() const -> VolumeLandmark::Identifier
 {
-    return metadata_.get<std::string>("uuid").value();
+    return metadata_.get<std::string>("uuid");
 }
 
 auto VolumeLandmark::name() const -> std::string
 {
-    return metadata_.get<std::string>("name").value();
+    return metadata_.get<std::string>("name");
 }
 
 auto VolumeLandmark::type() const -> Type { return type_; }
@@ -45,34 +45,34 @@ auto VolumeLandmark::Read(const fs::path& path) -> VolumeLandmark::Pointer
     }
 
     // Get basic info
-    auto uuid = meta.get<std::string>("uuid").value();
-    auto name = meta.get<std::string>("name").value();
-    auto ldmType = meta.get<Type>("ldmType").value();
+    auto uuid = meta.get<std::string>("uuid");
+    auto name = meta.get<std::string>("name");
+    auto ldmType = meta.get<Type>("ldmType");
 
     // Construct the actual landmark type
     VolumeLandmark::Pointer result;
     switch (ldmType) {
         // Handle PointLandmark
         case Type::Point: {
-            const auto position = meta.get<Point>("position").value();
-            const auto tmp = PointLandmark::New(uuid, name, position);
+            auto position = meta.get<Point>("position");
+            auto tmp = PointLandmark::New(uuid, name, position);
             result = std::static_pointer_cast<VolumeLandmark>(tmp);
             break;
         }
 
         // Handle PlaneLandmark
         case Type::Plane: {
-            const auto center = meta.get<Point>("center").value();
-            const auto normal = meta.get<Point>("normal").value();
-            const auto tmp = PlaneLandmark::New(uuid, name, center, normal);
+            auto center = meta.get<Point>("center");
+            auto normal = meta.get<Point>("normal");
+            auto tmp = PlaneLandmark::New(uuid, name, center, normal);
             result = std::static_pointer_cast<VolumeLandmark>(tmp);
             break;
         }
 
         // Handle PolylineLandmark
         case Type::Polyline: {
-            const auto pts = meta.get<std::vector<Point>>("position").value();
-            const auto tmp = PolylineLandmark::New(uuid, name, pts);
+            auto pts = meta.get<std::vector<Point>>("position");
+            auto tmp = PolylineLandmark::New(uuid, name, pts);
             result = std::static_pointer_cast<VolumeLandmark>(tmp);
             break;
         }

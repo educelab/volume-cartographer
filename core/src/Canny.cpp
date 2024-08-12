@@ -4,7 +4,7 @@
 
 namespace vc = volcart;
 
-auto vc::Canny(const cv::Mat src, const vc::CannySettings& settings) -> cv::Mat
+auto vc::Canny(const cv::Mat src, const vc::CannySettings settings) -> cv::Mat
 {
     int gaussianKernel = 2 * settings.blurSize + 1;
     int aperture = 2 * settings.apertureSize + 3;

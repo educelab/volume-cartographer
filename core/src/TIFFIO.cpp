@@ -11,6 +11,11 @@
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 // Wrapping in a namespace to avoid define collisions
 namespace lt
 {
@@ -23,7 +28,7 @@ namespace fs = volcart::filesystem;
 
 namespace
 {
-// Return a CV Mat type using TIF type (signed, unsigned, float),
+// Return a CV Mat type using TIFF type (signed, unsigned, float),
 // bit-depth, and number of channels
 auto GetCVMatType(
     const std::uint16_t tifType,
@@ -74,60 +79,104 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     }
 
     // Open the file read-only
-    lt::TIFF* tif = lt::TIFFOpen(path.c_str(), "r");
+    lt::TIFF* tif = lt::TIFFOpen(path.c_str(), "rc");
     if (tif == nullptr) {
-        throw IOException("Failed to open tif");
+        throw IOException("Failed to open TIFF");
     }
 
     // Get metadata
     std::uint32_t width = 0;
     std::uint32_t height = 0;
+    std::uint32_t rowsPerStrip = 0;
     std::uint16_t type = 1;
     std::uint16_t depth = 1;
     std::uint16_t channels = 1;
     std::uint16_t config = 0;
+    Compression compression = Compression::NONE;
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &type);
     TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &depth);
     TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &channels);
     TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
+    TIFFGetField(tif, TIFFTAG_COMPRESSION, &compression);
+    TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsPerStrip);
     auto cvType = ::GetCVMatType(type, depth, channels);
+
+    // We limit ourselved probably a bit more than necessary,
+    // but better safe than sorry
+    auto canMMap =
+        config == PLANARCONFIG_CONTIG and type == SAMPLEFORMAT_UINT and
+        depth == 16 and channels == 1 and compression == Compression::NONE and
+        rowsPerStrip == height;  // important, full image is in a single strip
 
     // Construct the mat
     auto h = static_cast<int>(height);
     auto w = static_cast<int>(width);
-    cv::Mat img = cv::Mat::zeros(h, w, cvType);
+    cv::Mat img;
 
-    // Read the rows
-    auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(tif));
-    std::vector<char> buffer(bufferSize + 4);
-    if (config == PLANARCONFIG_CONTIG) {
-        for (auto row = 0; row < height; row++) {
-            lt::TIFFReadScanline(tif, &buffer[0], row);
-            std::memcpy(img.ptr(row), &buffer[0], bufferSize);
+    if (canMMap) {
+        // Assumes there's only one, i.e. rows == height
+        std::uint32_t* stripOffset = 0;
+        int res = TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, &stripOffset);
+
+        // Open and mmap TIFF file
+        int fd = open(path.c_str(), O_RDONLY);
+        if (fd == -1) {
+            throw IOException("Failed to open TIFF: " + path.string());
         }
-    } else if (config == PLANARCONFIG_SEPARATE) {
-        throw IOException(
-            "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
-    }
+        struct stat sb;
+        if (fstat(fd, &sb) == -1) {
+            throw IOException("Failed to fstat TIFF: " + path.string());
+        }
 
-    // Do channel conversion
-    auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
-    auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
-                        img.depth() != CV_32S;
-    if (cvtNeeded) {
-        if (cvtSupported) {
-            if (img.channels() == 3) {
-                cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
-            } else if (img.channels() == 4) {
-                cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
+        void* data = mmap(nullptr, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
+        if (data == MAP_FAILED) {
+            // Print error code
+            printf("mmap() errno: %d\n", errno);
+            throw IOException("Failed to mmap TIFF: " + path.string());
+        }
+        close(fd);
+
+        img = cv::Mat(h, w, cvType, (char*)data + stripOffset[0]);
+    } else {  
+        // Load the old way via TIFF library
+        vc::Logger()->debug(
+            "Cannot mmap TIFF (width: %d height: %d config: %d type: %d depth: "
+            "%d channel: %d rowsPerStrip: %d compression: %s) => loading the old way",
+            width, height, config, type, depth, channels, rowsPerStrip, (compression != Compression::NONE ? "true" : "false"));
+
+        img = cv::Mat::zeros(h, w, cvType);
+
+        // Read the rows
+        auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(tif));
+        std::vector<char> buffer(bufferSize + 4);
+        if (config == PLANARCONFIG_CONTIG) {
+            for (auto row = 0; row < height; row++) {
+                lt::TIFFReadScanline(tif, &buffer[0], row);
+                std::memcpy(img.ptr(row), &buffer[0], bufferSize);
             }
-        } else {
-            vc::Logger()->warn(
-                "[TIFFIO] RGB->BGR conversion for signed 8-bit and 16-bit "
-                "images is not supported. Image will be loaded with RGB "
-                "element order.");
+        } else if (config == PLANARCONFIG_SEPARATE) {
+            throw IOException("Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
+        }
+
+        // Do channel conversion
+        auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
+        auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
+                            img.depth() != CV_32S;
+        if (cvtNeeded) {
+            if (cvtSupported) {
+                if (img.channels() == 3) {
+                    cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
+                } else if (img.channels() == 4) {
+                    cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
+                }
+            } else {
+                vc::Logger()->warn(
+                    "[TIFFIO] RGB->BGR conversion for signed 8-bit and 16-bit "
+                    "images is not supported. Image will be loaded with RGB "
+                    "element order.");
+            }
         }
     }
 
@@ -280,6 +329,6 @@ void tio::WriteTIFF(
         }
     }
 
-    // Close the tiff
+    // Close the TIFF
     lt::TIFFClose(out);
 }

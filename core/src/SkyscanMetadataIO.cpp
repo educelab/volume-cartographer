@@ -186,9 +186,9 @@ void SkyscanMetadataIO::parse_()
 auto SkyscanMetadataIO::getSliceRegexString() -> std::string
 {
     // Get components
-    const auto prefix = metadata_.get<std::string>("sliceImgPrefix").value();
-    const auto idxLen = metadata_.get<int>("indexLength").value();
-    const auto format = metadata_.get<std::string>("resultFileType").value();
+    auto prefix = metadata_.get<std::string>("sliceImgPrefix");
+    auto idxLen = metadata_.get<int>("indexLength");
+    auto format = metadata_.get<std::string>("resultFileType");
 
     // Build regex string
     auto regexStr = prefix + "\\d{" + std::to_string(idxLen) + "}\\.";

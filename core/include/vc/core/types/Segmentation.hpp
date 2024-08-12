@@ -7,6 +7,8 @@
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
 
+#include <variant>
+
 namespace volcart
 {
 
@@ -31,6 +33,22 @@ public:
     /** Point set type */
     using PointSet = OrderedPointSet<cv::Vec3d>;
 
+    /** Annotation type [long, long, double, double]
+     *  The first long is used to store the slice index and the second as
+     *  a bit flag carrier and the two doubles contain the original point
+     *  position before any manual moves.
+     */
+    using Annotation = cv::Vec<std::variant<long, double>, 4>;
+
+    /** Annotation type (raw = only doubles) */
+    using AnnotationRaw = cv::Vec4d;
+
+    /** Annotation set type */
+    using AnnotationSet = OrderedPointSet<Annotation>;
+
+    /** Annotation set type (raw = only doubles) */
+    using AnnotationSetRaw = OrderedPointSet<AnnotationRaw>;
+
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Segmentation>;
 
@@ -41,22 +59,18 @@ public:
     Segmentation(filesystem::path path, Identifier uuid, std::string name);
 
     /** @copydoc Segmentation(volcart::filesystem::path path) */
-    static auto New(const filesystem::path& path) -> Pointer;
+    static Pointer New(filesystem::path path);
 
     /** @copydoc Segmentation(volcart::filesystem::path path, Identifier uuid,
      * std::string name) */
-    static auto New(
-        const filesystem::path& path,
-        const Identifier& uuid,
-        const std::string& name) -> Pointer;
+    static Pointer New(
+        filesystem::path path, Identifier uuid, std::string name);
 
-    /**
-     * @brief Return if this Segmentation has an associated PointSet file
-     *
-     * Returns false if the metadata file has no `vcps` entry, the `vcps` entry
-     * is `null`, or the `vcps` entry is an empty string.
-     */
-    [[nodiscard]] auto hasPointSet() const -> bool;
+    /** @brief Return if this Segmentation has an associated PointSet file */
+    bool hasPointSet() const
+    {
+        return metadata_.hasKey("vcps") && !metadata_.get<std::string>("vcps").empty();
+    }
 
     /**
      * @brief Save a PointSet to the Segmentation file
@@ -71,20 +85,46 @@ public:
      *
      * PointSet data is never cached in memory and is always loaded from disk.
      */
-    [[nodiscard]] auto getPointSet() const -> PointSet;
+    PointSet getPointSet() const;
+
+    /** @brief Return if this Segmentation has an associated AnnotationSet file */
+    bool hasAnnotations() const
+    {
+        return metadata_.hasKey("vcano") && !metadata_.get<std::string>("vcano").empty();
+    }
 
     /**
-     * @brief Return whether this Segmentation is associated with a Volume
+     * @brief Save AnnotationSet to the Segmentation file
      *
-     * Returns false if the metadata file has no `volume` entry, the
-     * `volume` entry is `null`, or the `volume` entry is an empty string.
+     * @warning This will overwrite the AnnotationSet file associated with this
+     * Segmentation.
      */
-    [[nodiscard]] auto hasVolumeID() const -> bool;
+    void setAnnotationSet(const AnnotationSet& as);
+
+    /**
+     * @brief Load the associated AnnotationSet from the Segmentation file
+     *
+     * AnnotationSet data is never cached in memory and is always loaded from disk.
+     */
+    AnnotationSet getAnnotationSet() const;
+
+    /** @brief Return whether this Segmentation is associated with a Volume */
+    bool hasVolumeID() const
+    {
+        return metadata_.hasKey("volume") && !getVolumeID().empty();
+    }
 
     /** @brief Get the ID of the Volume associated with this Segmentation */
-    [[nodiscard]] auto getVolumeID() const -> Volume::Identifier;
+    Volume::Identifier getVolumeID() const
+    {
+        return metadata_.get<Volume::Identifier>("volume");
+    }
 
     /** @brief Set the ID of the Volume associated with this Segmentation */
-    void setVolumeID(const Volume::Identifier& id);
+    void setVolumeID(const Volume::Identifier& id)
+    {
+        metadata_.set<std::string>("volume", id);
+        metadata_.save();
+    }
 };
 }  // namespace volcart
