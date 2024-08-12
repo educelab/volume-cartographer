@@ -173,7 +173,7 @@ public:
     std::vector<T> getRow(std::size_t i) const
     {
         if (i >= this->height()) {
-            throw std::range_error("get row, i out of range");
+            throw std::range_error("get row: i out of range");
         }
         std::vector<T> row(width_);
         std::copy(
@@ -192,13 +192,16 @@ public:
      */
     OrderedPointSet copyRows(std::size_t i, std::size_t j) const
     {
-        if (i > this->height()) {
-            throw std::range_error("copy row, i out of range");
-        } else if (j > this->height()) {
-            throw std::range_error("copy row, j out of range");
-        } else if (i == j) {
+        if (i >= this->height()) {
+            throw std::range_error("copy row: i out of range");
+        }
+        if (j > this->height()) {
+            throw std::range_error("copy row: j out of range");
+        }
+        if (i == j) {
             return OrderedPointSet(width_);
-        } else if (j < i) {
+        }
+        if (j < i) {
             throw std::logic_error("i must be less than j");
         }
         OrderedPointSet ps(width_);
