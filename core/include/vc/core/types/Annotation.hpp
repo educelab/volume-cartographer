@@ -23,9 +23,6 @@ struct Annotation {
         ANO_MANUAL = 2,
         ANO_USED_IN_RUN = 4
     };
-    using Flag::ANO_ANCHOR;
-    using Flag::ANO_MANUAL;
-    using Flag::ANO_USED_IN_RUN;
 
     Annotation() = default;
     Annotation(std::int32_t i, Flag f, double x, double y);

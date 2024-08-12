@@ -30,9 +30,10 @@ auto ParseHeader(std::ifstream& infile) -> Header
     std::string line;
     while (std::getline(infile, line)) {
         auto l = el::trim(line);
-        auto strs = el::split(l, ':');
-        std::for_each(
-            std::begin(strs), std::end(strs), [](auto& s) { return trim(s); });
+        auto strs = el::split(l, ":");
+        std::for_each(std::begin(strs), std::end(strs), [](auto& s) {
+            return el::trim(s);
+        });
 
         // Comments: look like:
         // # This is a comment
