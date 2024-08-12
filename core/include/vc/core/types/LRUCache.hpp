@@ -1,5 +1,4 @@
 #pragma once
-#include <shared_mutex>
 
 /** @file */
 
@@ -7,12 +6,24 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 
 #include "vc/core/types/Cache.hpp"
 
 namespace volcart
 {
+
+namespace detail
+{
+/** No-op mutex */
+struct NoOpMutex {
+    void lock() {}
+    auto try_lock() -> bool { return true; }
+    void unlock() {}
+};
+}  // namespace detail
+
 /**
  * @class LRUCache
  * @brief Least Recently Used Cache
@@ -33,7 +44,7 @@ namespace volcart
  *
  * @ingroup Types
  */
-template <typename TKey, typename TValue>
+template <typename TKey, typename TValue, class MutexType = detail::NoOpMutex>
 class LRUCache final : public Cache<TKey, TValue>
 {
 public:
@@ -45,7 +56,7 @@ public:
      *
      * Stored in the data list.
      */
-    using TPair = typename std::pair<TKey, TValue>;
+    using TPair = std::pair<TKey, TValue>;
 
     /**
      * @brief Templated Key/Value pair iterator
@@ -81,7 +92,7 @@ public:
     /** @brief Set the maximum number of elements in the cache */
     void setCapacity(std::size_t capacity) override
     {
-        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+        std::unique_lock lock(cache_mutex_);
         if (capacity <= 0) {
             throw std::invalid_argument(
                 "Cannot create cache with capacity <= 0");
@@ -91,7 +102,7 @@ public:
         // Cleanup elements that exceed the capacity
         while (lookup_.size() > capacity_) {
             auto last = std::end(items_);
-            last--;
+            --last;
             lookup_.erase(last->first);
             items_.pop_back();
         }
@@ -108,20 +119,20 @@ public:
     /** @brief Get an item from the cache by key */
     auto get(const TKey& k) -> TValue override
     {
-        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+        std::unique_lock lock(cache_mutex_);
         auto lookupIter = lookup_.find(k);
         if (lookupIter == std::end(lookup_)) {
             throw std::invalid_argument("Key not in cache");
-        } else {
-            items_.splice(std::begin(items_), items_, lookupIter->second);
-            return lookupIter->second->second;
         }
+
+        items_.splice(std::begin(items_), items_, lookupIter->second);
+        return lookupIter->second->second;
     }
 
     /** @brief Put an item into the cache */
     void put(const TKey& k, const TValue& v) override
     {
-        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+        std::unique_lock lock(cache_mutex_);
         // If already in cache, need to refresh it
         auto lookupIter = lookup_.find(k);
         if (lookupIter != std::end(lookup_)) {
@@ -134,7 +145,7 @@ public:
 
         if (lookup_.size() > capacity_) {
             auto last = std::end(items_);
-            last--;
+            --last;
             lookup_.erase(last->first);
             items_.pop_back();
         }
@@ -143,14 +154,14 @@ public:
     /** @brief Check if an item is already in the cache */
     auto contains(const TKey& k) -> bool override
     {
-        std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+        std::shared_lock lock(cache_mutex_);
         return lookup_.find(k) != std::end(lookup_);
     }
 
     /** @brief Clear the cache */
     void purge() override
     {
-        std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+        std::unique_lock lock(cache_mutex_);
         lookup_.clear();
         items_.clear();
     }
@@ -162,6 +173,6 @@ private:
     /** Cache usage information */
     std::unordered_map<TKey, TListIterator> lookup_;
     /** Shared mutex for thread-safe access */
-    mutable std::shared_mutex cache_mutex_;
+    mutable MutexType cache_mutex_;
 };
 }  // namespace volcart

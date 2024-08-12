@@ -185,29 +185,22 @@ public:
 
     /**@{*/
     /** @brief Enable slice caching */
-    void setCacheSlices(bool b) { cacheSlices_ = b; }
+    void setCacheSlices(bool b);
 
     /** @brief Set the slice cache */
-    void setCache(SliceCache::Pointer c) { cache_ = std::move(c); }
+    void setCache(SliceCache::Pointer c) const;
 
     /** @brief Set the maximum number of cached slices */
-    void setCacheCapacity(std::size_t newCacheCapacity)
-    {
-        cache_->setCapacity(newCacheCapacity);
-    }
+    void setCacheCapacity(std::size_t newCacheCapacity) const;
 
     /** @brief Set the maximum size of the cache in bytes */
-    void setCacheMemoryInBytes(std::size_t nbytes)
-    {
-        // x2 because pixels are 16 bits normally. Not a great solution.
-        setCacheCapacity(nbytes / (sliceWidth() * sliceHeight() * 2));
-    }
+    void setCacheMemoryInBytes(std::size_t nbytes) const;
 
     /** @brief Get the maximum number of cached slices */
-    std::size_t getCacheCapacity() const { return cache_->capacity(); }
+    auto getCacheCapacity() const -> std::size_t;
 
     /** @brief Get the current number of cached slices */
-    std::size_t getCacheSize() const { return cache_->size(); }
+    auto getCacheSize() const -> std::size_t;
 
     /** @brief Purge the slice cache */
     void cachePurge() const;
@@ -228,15 +221,13 @@ protected:
     /** Slice cache */
     mutable SliceCache::Pointer cache_{DefaultCache::New(DEFAULT_CAPACITY)};
     /** Cache mutex for thread-safe access */
-    mutable std::mutex cacheMutex_;
-    mutable std::vector<std::mutex> slice_mutexes_;
+    mutable std::shared_mutex cacheMutex_;
+    /** Per-slice mutexes */
+    mutable std::vector<std::mutex> sliceMutexes_;
 
     /** Load slice from disk */
     cv::Mat load_slice_(int index) const;
     /** Load slice from cache */
     cv::Mat cache_slice_(int index) const;
-    /** Shared mutex for thread-safe access */
-    mutable std::shared_mutex cache_mutex_;
-    mutable std::shared_mutex print_mutex_;
 };
 }  // namespace volcart

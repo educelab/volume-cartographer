@@ -6,6 +6,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "vc/core/io/TIFFIO.hpp"
+#include "vc/core/util/Logging.hpp"
 
 namespace fs = volcart::filesystem;
 namespace tio = volcart::tiffio;
@@ -19,16 +20,14 @@ Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
         throw std::runtime_error("File not of type: vol");
     }
 
-    std::vector<std::mutex> init_mutexes(slices_);
-
-    slice_mutexes_.swap(init_mutexes);
     width_ = metadata_.get<int>("width").value();
     height_ = metadata_.get<int>("height").value();
     slices_ = metadata_.get<int>("slices").value();
     numSliceCharacters_ = static_cast<int>(std::to_string(slices_).size());
+    sliceMutexes_ = std::vector<std::mutex>(slices_);
 }
 
-// Setup a Volume from a folder of slices
+// Set up a Volume from a folder of slices
 Volume::Volume(fs::path path, std::string uuid, std::string name)
     : DiskBasedObjectBaseClass(
           std::move(path), std::move(uuid), std::move(name))
@@ -43,14 +42,13 @@ Volume::Volume(fs::path path, std::string uuid, std::string name)
 }
 
 // Load a Volume from disk, return a pointer
-auto Volume::New(fs::path path) -> Volume::Pointer
+auto Volume::New(fs::path path) -> Pointer
 {
     return std::make_shared<Volume>(path);
 }
 
 // Set a Volume from a folder of slices, return a pointer
-auto Volume::New(fs::path path, std::string uuid, std::string name)
-    -> Volume::Pointer
+auto Volume::New(fs::path path, std::string uuid, std::string name) -> Pointer
 {
     return std::make_shared<Volume>(path, uuid, name);
 }
@@ -88,6 +86,7 @@ void Volume::setNumberOfSlices(std::size_t numSlices)
     slices_ = static_cast<int>(numSlices);
     numSliceCharacters_ = static_cast<int>(std::to_string(numSlices).size());
     metadata_.set("slices", numSlices);
+    sliceMutexes_ = std::vector<std::mutex>(slices_);
 }
 
 void Volume::setVoxelSize(double s) { metadata_.set("voxelsize", s); }
@@ -137,14 +136,14 @@ auto Volume::getSliceDataCopy(int index) const -> cv::Mat
 auto Volume::getSliceDataRect(int index, cv::Rect rect) const -> cv::Mat
 {
     auto whole_img = getSliceData(index);
-    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+    std::shared_lock<std::shared_mutex> lock(cacheMutex_);
     return whole_img(rect);
 }
 
 auto Volume::getSliceDataRectCopy(int index, cv::Rect rect) const -> cv::Mat
 {
     auto whole_img = getSliceData(index);
-    std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+    std::shared_lock<std::shared_mutex> lock(cacheMutex_);
     return whole_img(rect).clone();
 }
 
@@ -223,61 +222,85 @@ auto Volume::reslice(
         }
     }
 
-    return Reslice(m, origin, xnorm, ynorm);
+    return {m, origin, xnorm, ynorm};
 }
+void Volume::setCacheSlices(const bool b) { cacheSlices_ = b; }
+
+void Volume::setCache(SliceCache::Pointer c) const
+{
+    std::unique_lock lock(cacheMutex_);
+    cache_ = std::move(c);
+}
+
+void Volume::setCacheCapacity(const std::size_t newCacheCapacity) const
+{
+    std::unique_lock lock(cacheMutex_);
+    cache_->setCapacity(newCacheCapacity);
+}
+
+void Volume::setCacheMemoryInBytes(std::size_t nbytes) const
+{
+    // x2 because pixels are 16 bits normally. Not a great solution.
+    setCacheCapacity(nbytes / (sliceWidth() * sliceHeight() * 2));
+}
+
+auto Volume::getCacheCapacity() const -> std::size_t
+{
+    std::shared_lock lock(cacheMutex_);
+    return cache_->capacity();
+}
+
+auto Volume::getCacheSize() const -> std::size_t { return cache_->size(); }
 
 auto Volume::load_slice_(int index) const -> cv::Mat
 {
-    {
-        std::unique_lock<std::shared_mutex> lock(print_mutex_);
-        std::cout << "Requested to load slice " << index << std::endl;
-    }
-    auto slicePath = getSlicePath(index);
+    Logger()->info("Requested load slice: {}", index);
+    const auto slicePath = getSlicePath(index);
     cv::Mat mat;
     try {
         mat = tio::ReadTIFF(slicePath.string());
-    } catch (std::runtime_error) {
+    } catch (const std::runtime_error& e) {
+        Logger()->warn("Failed to load slice {}: {}", index, e.what());
     }
     return mat;
 }
 
-auto Volume::cache_slice_(int index) const -> cv::Mat
+auto Volume::cache_slice_(const int index) const -> cv::Mat
 {
     // Check if the slice is in the cache.
     {
-        std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+        std::shared_lock lock(cacheMutex_);
         if (cache_->contains(index)) {
             return cache_->get(index);
         }
     }
 
     {
-        // Get the lock for this slice.
-        auto& mutex = slice_mutexes_[index];
-
         // If the slice is not in the cache, get exclusive access to this
-        // slice's mutex.
-        std::unique_lock<std::mutex> lock(mutex);
+        // slice's mutex. This slice can't be set until we're done.
+        // TODO: Is this faster than just getting an unique cache lock?
+        auto& mutex = sliceMutexes_[index];
+        std::unique_lock lockSlice(mutex);
+
         // Check again to ensure the slice has not been added to the cache while
         // waiting for the lock.
         {
-            std::shared_lock<std::shared_mutex> lock(cache_mutex_);
+            std::shared_lock lockCache(cacheMutex_);
             if (cache_->contains(index)) {
                 return cache_->get(index);
             }
         }
-        // Load the slice and add it to the cache.
-        {
-            auto slice = load_slice_(index);
-            std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-            cache_->put(index, slice);
-            return slice;
-        }
+
+        // Load the slice and put it in the cache
+        auto slice = load_slice_(index);
+        std::unique_lock lockCache(cacheMutex_);
+        cache_->put(index, slice);
+        return slice;
     }
 }
 
 void Volume::cachePurge() const
 {
-    std::unique_lock<std::shared_mutex> lock(cache_mutex_);
+    std::unique_lock lock(cacheMutex_);
     cache_->purge();
 }
