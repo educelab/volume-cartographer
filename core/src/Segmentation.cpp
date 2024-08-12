@@ -1,6 +1,7 @@
 #include "vc/core/types/Segmentation.hpp"
 
 #include "vc/core/io/PointSetIO.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 
@@ -103,65 +104,26 @@ void Segmentation::setAnnotationSet(const AnnotationSet& as)
         metadata_.save();
     }
 
-    // TODO: This
-    auto long_to_double = overloaded{
-        [](long l) { return (double)l; },
-        [](double d) { return d; },
-    };
-
-    // Convert from the long and double variant to only double values for
-    // storing
-    AnnotationSetRaw asRaw(as.width());
-    for (std::size_t h = 0; h < as.height(); ++h) {
-        std::vector<Segmentation::AnnotationRaw> asRowRaw(as.width());
-        for (std::size_t w = 0; w < as.width(); ++w) {
-            AnnotationRaw anRaw;
-            for (std::size_t i = 0; i < as[h * as.width() + w].channels; ++i) {
-                anRaw[i] =
-                    std::visit(long_to_double, as[h * as.width() + w](i));
-            }
-            asRowRaw[w] = anRaw;
-        }
-        asRaw.pushRow(asRowRaw);
-    }
-
     // Write the annotation set to the segmentation file
-    auto filepath = path_ / metadata_.get<std::string>("vcano").value();
-    PointSetIO<Segmentation::AnnotationRaw>::WriteOrderedPointSet(
-        filepath, asRaw);
+    const auto filepath = path_ / metadata_.get<std::string>("vcano").value();
+    WriteAnnotationSet(filepath, as);
 }
 
 // Load the AnnotationSet from disk
-Segmentation::AnnotationSet Segmentation::getAnnotationSet() const
+auto Segmentation::getAnnotationSet() const -> AnnotationSet
 {
     // Check if there's an associated annotation set file
-    if (metadata_.get<std::string>("vcano").has_value()) {
-        return Segmentation::AnnotationSet();
+    if (not metadata_.get<std::string>("vcano").has_value()) {
+        return AnnotationSet();
     }
 
     // Load the annotation set
     auto filepath = path_ / metadata_.get<std::string>("vcano").value();
     try {
-        auto raw = PointSetIO<Segmentation::AnnotationRaw>::ReadOrderedPointSet(
-            filepath);
-
-        // Convert from raw (only double values) to long and double variant
-        Segmentation::AnnotationSet as(raw.width());
-        for (std::size_t h = 0; h < raw.height(); ++h) {
-            std::vector<Segmentation::Annotation> asRow(raw.width());
-            for (std::size_t w = 0; w < raw.width(); ++w) {
-                asRow[w] = Annotation(
-                    (long)raw[h * raw.width() + w][0],
-                    (long)raw[h * raw.width() + w][1],
-                    raw[h * raw.width() + w][2], raw[h * raw.width() + w][3]);
-            }
-            as.pushRow(asRow);
-        }
-
-        return as;
-
-    } catch (IOException) {
-        return Segmentation::AnnotationSet();
+        return ReadAnnotationSet(filepath);
+    } catch (const IOException& e) {
+        Logger()->error("Failed to load annotation: {}", e.what());
+        return AnnotationSet();
     }
 }
 

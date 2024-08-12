@@ -3,11 +3,10 @@
 /** @file */
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/types/Annotation.hpp"
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
-
-#include <variant>
 
 namespace volcart
 {
@@ -32,22 +31,6 @@ class Segmentation : public DiskBasedObjectBaseClass
 public:
     /** Point set type */
     using PointSet = OrderedPointSet<cv::Vec3d>;
-
-    /** Annotation type [long, long, double, double]
-     *  The first long is used to store the slice index and the second as
-     *  a bit flag carrier and the two doubles contain the original point
-     *  position before any manual moves.
-     */
-    using Annotation = cv::Vec<std::variant<long, double>, 4>;
-
-    /** Annotation type (raw = only doubles) */
-    using AnnotationRaw = cv::Vec4d;
-
-    /** Annotation set type */
-    using AnnotationSet = OrderedPointSet<Annotation>;
-
-    /** Annotation set type (raw = only doubles) */
-    using AnnotationSetRaw = OrderedPointSet<AnnotationRaw>;
 
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Segmentation>;

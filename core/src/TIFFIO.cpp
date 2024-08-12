@@ -74,7 +74,7 @@ inline auto NeedBigTIFF(
 auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
 {
     // Make sure input file exists
-    if (!fs::exists(path)) {
+    if (not fs::exists(path)) {
         throw IOException("File does not exist");
     }
 

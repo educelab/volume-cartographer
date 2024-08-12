@@ -35,6 +35,7 @@ set(landmark_srcs
 )
 
 set(type_srcs
+    src/Annotation.cpp
     src/DiskBasedObjectBaseClass.cpp
     src/ITKMesh.cpp
     src/Metadata.cpp
