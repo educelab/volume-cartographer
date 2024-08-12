@@ -110,7 +110,8 @@ public:
     /**
      * @brief Load the associated AnnotationSet from the Segmentation file
      *
-     * AnnotationSet data is never cached in memory and is always loaded from disk.
+     * AnnotationSet data is never cached in memory and is always loaded from
+     * disk.
      */
     [[nodiscard]] auto getAnnotationSet() const -> AnnotationSet;
 

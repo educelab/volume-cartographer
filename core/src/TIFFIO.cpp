@@ -139,12 +139,14 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
         close(fd);
 
         img = cv::Mat(h, w, cvType, (char*)data + stripOffset[0]);
-    } else {  
+    } else {
         // Load the old way via TIFF library
         vc::Logger()->debug(
             "Cannot mmap TIFF (width: %d height: %d config: %d type: %d depth: "
-            "%d channel: %d rowsPerStrip: %d compression: %s) => loading the old way",
-            width, height, config, type, depth, channels, rowsPerStrip, (compression != Compression::NONE ? "true" : "false"));
+            "%d channel: %d rowsPerStrip: %d compression: %s) => loading the "
+            "old way",
+            width, height, config, type, depth, channels, rowsPerStrip,
+            (compression != Compression::NONE ? "true" : "false"));
 
         img = cv::Mat::zeros(h, w, cvType);
 
@@ -157,7 +159,8 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
                 std::memcpy(img.ptr(row), &buffer[0], bufferSize);
             }
         } else if (config == PLANARCONFIG_SEPARATE) {
-            throw IOException("Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
+            throw IOException(
+                "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
         }
 
         // Do channel conversion

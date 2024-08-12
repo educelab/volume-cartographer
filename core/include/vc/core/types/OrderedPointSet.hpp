@@ -194,13 +194,11 @@ public:
     {
         if (i > this->height()) {
             throw std::range_error("copy row, i out of range");
-        }
-        else if (j > this->height()) {
+        } else if (j > this->height()) {
             throw std::range_error("copy row, j out of range");
-        } else if  (i == j) {
+        } else if (i == j) {
             return OrderedPointSet(width_);
-        }
-        else if (j < i) {
+        } else if (j < i) {
             throw std::logic_error("i must be less than j");
         }
         OrderedPointSet ps(width_);

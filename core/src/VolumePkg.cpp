@@ -753,7 +753,8 @@ auto VolumePkg::removeSegmentation(const Segmentation::Identifier& id) -> bool
     // Remove the volume directory
     auto segDir = ::SegsDir(rootDir_) / id;
     if (!fs::exists(segDir)) {
-        throw std::runtime_error("Segmentation directory does not exist for ID " + id);
+        throw std::runtime_error(
+            "Segmentation directory does not exist for ID " + id);
     } else {
         return fs::remove_all(segDir);
     }
