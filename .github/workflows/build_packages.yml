@@ -41,8 +41,10 @@ jobs:
 
       - name: Install Qt6
         run: |
-          python3.12 -m pip install --upgrade pip setuptools wheel
-          python3.12 -m pip install aqtinstall
+          python3.12 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install aqtinstall
           aqt install-qt -O ${{ github.workspace }}/Qt/ mac desktop ${QT_VERSION}
 
       - name: Install vc-deps
@@ -72,7 +74,7 @@ jobs:
       - name: Create package
         run: |
           cmake --install build/ --prefix "${{ env.install_dir }}"
-          python3.12 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
+          python3 utils/scripts/macos_codesign_release.py -i "${{ env.install_dir }}"
           ditto -c -k "${{ env.install_dir }}" ${{ env.package_name }}
 
       - name: Upload artifacts
