@@ -21,6 +21,8 @@ struct NoOpMutex {
     void lock() {}
     auto try_lock() -> bool { return true; }
     void unlock() {}
+    void lock_shared() {}
+    void unlock_shared() {}
 };
 }  // namespace detail
 
