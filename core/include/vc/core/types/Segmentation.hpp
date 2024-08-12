@@ -59,18 +59,22 @@ public:
     Segmentation(filesystem::path path, Identifier uuid, std::string name);
 
     /** @copydoc Segmentation(volcart::filesystem::path path) */
-    static Pointer New(filesystem::path path);
+    static auto New(const filesystem::path& path) -> Pointer;
 
     /** @copydoc Segmentation(volcart::filesystem::path path, Identifier uuid,
      * std::string name) */
-    static Pointer New(
-        filesystem::path path, Identifier uuid, std::string name);
+    static auto New(
+        const filesystem::path& path,
+        const Identifier& uuid,
+        const std::string& name) -> Pointer;
 
-    /** @brief Return if this Segmentation has an associated PointSet file */
-    bool hasPointSet() const
-    {
-        return metadata_.hasKey("vcps") && !metadata_.get<std::string>("vcps").empty();
-    }
+    /**
+     * @brief Return if this Segmentation has an associated PointSet file
+     *
+     * Returns false if the metadata file has no `vcps` entry, the `vcps` entry
+     * is `null`, or the `vcps` entry is an empty string.
+     */
+    [[nodiscard]] auto hasPointSet() const -> bool;
 
     /**
      * @brief Save a PointSet to the Segmentation file
@@ -85,13 +89,15 @@ public:
      *
      * PointSet data is never cached in memory and is always loaded from disk.
      */
-    PointSet getPointSet() const;
+    [[nodiscard]] auto getPointSet() const -> PointSet;
 
-    /** @brief Return if this Segmentation has an associated AnnotationSet file */
-    bool hasAnnotations() const
-    {
-        return metadata_.hasKey("vcano") && !metadata_.get<std::string>("vcano").empty();
-    }
+    /**
+     * @brief Return if this Segmentation has an associated AnnotationSet file
+     *
+     * Returns false if the metadata file has no `vcano` entry, the `vcano`
+     * entry is `null`, or the `vcps` entry is an empty string.
+     */
+    [[nodiscard]] auto hasAnnotations() const -> bool;
 
     /**
      * @brief Save AnnotationSet to the Segmentation file
@@ -106,25 +112,20 @@ public:
      *
      * AnnotationSet data is never cached in memory and is always loaded from disk.
      */
-    AnnotationSet getAnnotationSet() const;
+    [[nodiscard]] auto getAnnotationSet() const -> AnnotationSet;
 
-    /** @brief Return whether this Segmentation is associated with a Volume */
-    bool hasVolumeID() const
-    {
-        return metadata_.hasKey("volume") && !getVolumeID().empty();
-    }
+    /**
+     * @brief Return whether this Segmentation is associated with a Volume
+     *
+     * Returns false if the metadata file has no `volume` entry, the
+     * `volume` entry is `null`, or the `volume` entry is an empty string.
+     */
+    [[nodiscard]] auto hasVolumeID() const -> bool;
 
     /** @brief Get the ID of the Volume associated with this Segmentation */
-    Volume::Identifier getVolumeID() const
-    {
-        return metadata_.get<Volume::Identifier>("volume");
-    }
+    [[nodiscard]] auto getVolumeID() const -> Volume::Identifier;
 
     /** @brief Set the ID of the Volume associated with this Segmentation */
-    void setVolumeID(const Volume::Identifier& id)
-    {
-        metadata_.set<std::string>("volume", id);
-        metadata_.save();
-    }
+    void setVolumeID(const Volume::Identifier& id);
 };
 }  // namespace volcart

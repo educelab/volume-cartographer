@@ -45,17 +45,17 @@ public:
      * be written to and accessed. Only metadata keys may be modified before
      * initialize is called.
      *
-     * @param fileLocation The location to store the VolPkg
+     * @param path The location to store the VolPkg
      * @param version Version of VolumePkg you wish to construct
      */
-    VolumePkg(filesystem::path fileLocation, int version);
+    VolumePkg(filesystem::path path, int version);
 
     /**
      * @brief Construct a VolumePkg from a .volpkg file stored at
      * `fileLocation.`
-     * @param fileLocation The root of the VolumePkg file
+     * @param path The root of the VolumePkg file
      */
-    explicit VolumePkg(const filesystem::path& fileLocation);
+    explicit VolumePkg(const filesystem::path& path);
 
     /** VolumePkg shared pointer */
     using Pointer = std::shared_ptr<VolumePkg>;
@@ -65,14 +65,15 @@ public:
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static auto New(filesystem::path fileLocation, int version) -> Pointer;
+    static auto New(const filesystem::path& fileLocation, int version)
+        -> Pointer;
 
     /**
      * @copybrief VolumePkg(filesystem::path fileLocation)
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static auto New(filesystem::path fileLocation) -> Pointer;
+    static auto New(const filesystem::path& fileLocation) -> Pointer;
     /**@}*/
 
     /** @name Metadata */
@@ -132,13 +133,13 @@ public:
     /**
      * @brief Saves the metadata to the VolumePkg (.volpkg) file.
      */
-    void saveMetadata();
+    void saveMetadata() const;
 
     /**
      * @brief Saves the metadata to a user-specified location.
      * @param filePath Path to output file
      */
-    void saveMetadata(const filesystem::path& filePath);
+    void saveMetadata(const filesystem::path& filePath) const;
     /**@}*/
 
     /** @name Volume Data */
@@ -260,10 +261,13 @@ public:
      * VolumePkg
      *
      * If the provided identifier ends with "*", additionally checks if the
-     * transform can be inverted.
+     * transform can be inverted. Supports transform paths using the `->`
+     * operator.
+     *
+     * @see VolumePkg::transform(Transform3D::Identifier)
      */
-
-    [[nodiscard]] auto hasTransform(Volume::Identifier id) const -> bool;
+    [[nodiscard]] auto hasTransform(const Transform3D::Identifier& id) const
+        -> bool;
 
     /** @brief Add a transform to the VolPkg */
     auto addTransform(const Transform3D::Pointer& transform)
@@ -277,17 +281,37 @@ public:
     /**
      * @brief Get a transform by ID
      *
-     * If the provided identifier ends with "*", returns the inverse transform.
+     * If the provided ID ends with `*`, returns the inverse transform.
+     * Transform paths can be constructed with the `->` operator and will be
+     * returned as a composite transform:
+     * ```{.cpp}
+     * vpkg->transform("id1->id2->id3*");
+     * ```
+     * The source and target properties of the returned CompositeTransform is
+     * set to the source of the first transform and the target of the final
+     * transform (post-inversion), but the intermediate path is not verified.
      */
-    auto transform(Transform3D::Identifier id) -> Transform3D::Pointer;
+    [[nodiscard]] auto transform(Transform3D::Identifier id) const
+        -> Transform3D::Pointer;
 
     /**
-     * @brief Get a list of transforms which map from a source volume to a
-     * target volume
+     * @brief Get a list of transforms (possibly composite transforms) which
+     * map from a source volume to a target volume
      *
-     * The list also includes inverse transforms which satisfy the mapping.
+     * Runs breadth-first search (BFS) to find the shortest transform paths
+     * from the source to target volume. Single-transform paths are returned
+     * as their original transform type (e.g. AffineTransform,
+     * IdentityTransform). Multi-transform paths are returned as a new,
+     * unsimplified CompositeTransform. Paths are returned in order of
+     * increasing length and may include inverse transforms which satisfy the
+     * mapping.
+     *
+     * The current implementation does not return _all_ transform paths, but
+     * prunes cycles and paths which would use transforms that are already part
+     * of a shorter path.
      */
-    auto transform(const Volume::Identifier& src, const Volume::Identifier& tgt)
+    [[nodiscard]] auto transform(
+        const Volume::Identifier& src, const Volume::Identifier& tgt) const
         -> std::vector<
             std::pair<Transform3D::Identifier, Transform3D::Pointer>>;
 

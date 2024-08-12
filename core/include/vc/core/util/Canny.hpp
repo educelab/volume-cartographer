@@ -34,7 +34,7 @@ struct CannySettings {
  *
  * @ingroup Util
  */
-auto Canny(cv::Mat src, CannySettings settings) -> cv::Mat;
+auto Canny(cv::Mat src, const CannySettings& settings) -> cv::Mat;
 
 }  // namespace volcart
 

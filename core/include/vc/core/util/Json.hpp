@@ -6,6 +6,7 @@
  */
 
 #include <nlohmann/json.hpp>
+#include <opencv2/core.hpp>
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
 /* cv::Vec */

@@ -46,7 +46,7 @@ auto Transform3D::applyUnitVector(const cv::Vec3d& vector) const -> cv::Vec3d
 }
 
 auto Transform3D::applyPointAndNormal(
-    const cv::Vec6d& ptN, bool normalize) const -> cv::Vec6d
+    const cv::Vec6d& ptN, const bool normalize) const -> cv::Vec6d
 {
     auto p = applyPoint({ptN[0], ptN[1], ptN[2]});
     auto n = (normalize) ? applyUnitVector({ptN[3], ptN[4], ptN[5]})
@@ -99,7 +99,7 @@ auto Transform3D::Deserialize(const Metadata& meta) -> Pointer
         throw std::runtime_error("Unspecified transform type");
     }
 
-    auto tfmType = meta["transform-type"].get<std::string>();
+    const auto tfmType = meta["transform-type"].get<std::string>();
     Pointer result;
     if (tfmType == AffineTransform::TYPE) {
         result = AffineTransform::New();
@@ -124,7 +124,7 @@ void Transform3D::Save(const filesystem::path& path, const Pointer& transform)
 
 auto Transform3D::Load(const filesystem::path& path) -> Pointer
 {
-    auto meta = ::LoadMetadata(path);
+    const auto meta = ::LoadMetadata(path);
     return Deserialize(meta);
 }
 
@@ -227,7 +227,7 @@ auto AffineTransform::compose_(const Transform3D::Pointer& rhs) const
         res->params_ = params_;
     } else if (rhs->type() == AffineTransform::TYPE) {
         // Compose the parameters
-        auto affRhs = std::dynamic_pointer_cast<AffineTransform>(rhs);
+        const auto affRhs = std::dynamic_pointer_cast<AffineTransform>(rhs);
         if (not affRhs) {
             throw std::invalid_argument("rhs argument is not AffineTransform");
         }
@@ -249,7 +249,7 @@ auto AffineTransform::clone() const -> Transform3D::Pointer
     return std::make_shared<AffineTransform>(*this);
 }
 
-void AffineTransform::translate(double x, double y, double z)
+void AffineTransform::translate(const double x, const double y, const double z)
 {
     Parameters p = Parameters::eye();
     p(0, 3) = x;
@@ -258,40 +258,41 @@ void AffineTransform::translate(double x, double y, double z)
     params_ = p * params_;
 }
 
-void AffineTransform::rotate(double theta, double x, double y, double z)
+void AffineTransform::rotate(
+    const double angle, double ax, double ay, double az)
 {
     static constexpr double PI{
         3.141592653589793238462643383279502884198716939937510582097164L};
 
-    auto norm = std::sqrt(x * x + y * y + z * z);
-    x /= norm;
-    y /= norm;
-    z /= norm;
+    const auto norm = std::sqrt(ax * ax + ay * ay + az * az);
+    ax /= norm;
+    ay /= norm;
+    az /= norm;
 
-    auto radians = theta * PI / 180.;
-    auto s = std::sin(radians);
-    auto c = std::cos(radians);
+    const auto radians = angle * PI / 180.;
+    const auto s = std::sin(radians);
+    const auto c = std::cos(radians);
 
     Parameters p = Parameters::eye();
-    p(0, 0) = x * x * (1 - c) + c;
-    p(0, 1) = x * y * (1 - c) - z * s;
-    p(0, 2) = x * z * (1 - c) + y * s;
-    p(1, 0) = y * x * (1 - c) + z * s;
-    p(1, 1) = y * y * (1 - c) + c;
-    p(1, 2) = y * z * (1 - c) - x * s;
-    p(2, 0) = x * z * (1 - c) - y * s;
-    p(2, 1) = y * z * (1 - c) + x * s;
-    p(2, 2) = z * z * (1 - c) + c;
+    p(0, 0) = ax * ax * (1 - c) + c;
+    p(0, 1) = ax * ay * (1 - c) - az * s;
+    p(0, 2) = ax * az * (1 - c) + ay * s;
+    p(1, 0) = ay * ax * (1 - c) + az * s;
+    p(1, 1) = ay * ay * (1 - c) + c;
+    p(1, 2) = ay * az * (1 - c) - ax * s;
+    p(2, 0) = ax * az * (1 - c) - ay * s;
+    p(2, 1) = ay * az * (1 - c) + ax * s;
+    p(2, 2) = az * az * (1 - c) + c;
     params_ = p * params_;
 }
 
-void AffineTransform::scale(double sx, double sy, double sz)
+void AffineTransform::scale(const double sx, const double sy, const double sz)
 {
     const Parameters p{sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, 0, 0, 0, 1};
     params_ = p * params_;
 }
 
-void AffineTransform::scale(double s) { scale(s, s, s); }
+void AffineTransform::scale(const double s) { scale(s, s, s); }
 
 auto operator<<(std::ostream& os, const AffineTransform& t) -> std::ostream&
 {
@@ -381,7 +382,11 @@ auto CompositeTransform::type() const -> std::string_view { return TYPE; }
 
 auto CompositeTransform::clone() const -> Transform3D::Pointer
 {
-    return std::make_shared<CompositeTransform>(*this);
+    auto t = std::make_shared<CompositeTransform>(*this);
+    std::transform(
+        t->tfms_.begin(), t->tfms_.end(), t->tfms_.begin(),
+        [](const Transform3D::Pointer& a) { return a->clone(); });
+    return t;
 }
 
 void CompositeTransform::reset() { tfms_.clear(); }
@@ -404,6 +409,35 @@ auto CompositeTransform::applyVector(const cv::Vec3d& vector) const -> cv::Vec3d
     return vector;
 }
 
+void CompositeTransform::push_front(const Transform3D::Pointer& t)
+{
+    // Easy case: Not a composite transform
+    if (t->type() != CompositeTransform::TYPE) {
+        tfms_.push_front(t->clone());
+        return;
+    }
+
+    // Hard case: Composite transforms should be expanded
+    std::vector<Transform3D::Pointer> expanded;
+    std::list<Transform3D::Pointer> queue{t};
+    while (not queue.empty()) {
+        // Get the next transform
+        const auto tfm = queue.front();
+        queue.pop_front();
+
+        // If a composite transform, push its stack to the front of the queue
+        if (tfm->type() == CompositeTransform::TYPE) {
+            const auto cmp = std::dynamic_pointer_cast<CompositeTransform>(t);
+            queue.insert(queue.begin(), cmp->tfms_.begin(), cmp->tfms_.end());
+        }
+        // Otherwise, add this tfm to the queue
+        else {
+            expanded.push_back(tfm->clone());
+        }
+    }
+    tfms_.insert(tfms_.begin(), expanded.begin(), expanded.end());
+}
+
 void CompositeTransform::push_back(const Transform3D::Pointer& t)
 {
     // Easy case: Not a composite transform
@@ -416,17 +450,17 @@ void CompositeTransform::push_back(const Transform3D::Pointer& t)
     std::list<Transform3D::Pointer> queue{t};
     while (not queue.empty()) {
         // Get the next transform
-        auto tfm = queue.front();
+        const auto tfm = queue.front();
         queue.pop_front();
 
         // If a composite transform, push its stack to the front of the queue
         if (tfm->type() == CompositeTransform::TYPE) {
-            auto cmp = std::dynamic_pointer_cast<CompositeTransform>(t);
+            const auto cmp = std::dynamic_pointer_cast<CompositeTransform>(t);
             queue.insert(queue.begin(), cmp->tfms_.begin(), cmp->tfms_.end());
         }
         // Otherwise, add this tfm to the queue
         else {
-            tfms_.push_back(t->clone());
+            tfms_.push_back(tfm->clone());
         }
     }
 }
@@ -438,7 +472,7 @@ auto CompositeTransform::size() const noexcept -> std::size_t
 
 void CompositeTransform::simplify()
 {
-    std::vector<Transform3D::Pointer> newTfms;
+    std::list<Transform3D::Pointer> newTfms;
     Transform3D::Pointer lhs;
     Transform3D::Pointer rhs;
     for (const auto& tfm : tfms_) {
@@ -463,6 +497,10 @@ void CompositeTransform::simplify()
 
     // replace the current list
     tfms_ = newTfms;
+}
+auto CompositeTransform::transforms() const -> std::vector<Transform3D::Pointer>
+{
+    return {tfms_.begin(), tfms_.end()};
 }
 
 void CompositeTransform::to_meta_(Metadata& meta)
@@ -489,7 +527,7 @@ void CompositeTransform::from_meta_(const Metadata& meta)
 auto vc::ApplyTransform(
     const ITKMesh::Pointer& mesh,
     const Transform3D::Pointer& transform,
-    bool normalize) -> ITKMesh::Pointer
+    const bool normalize) -> ITKMesh::Pointer
 {
     // Generate a new mesh
     auto out = ITKMesh::New();
@@ -531,7 +569,7 @@ auto vc::ApplyTransform(
 auto vc::ApplyTransform(
     const PerPixelMap& ppm,
     const Transform3D::Pointer& transform,
-    bool normalize) -> PerPixelMap
+    const bool normalize) -> PerPixelMap
 {
     PerPixelMap output(ppm);
 
@@ -546,7 +584,7 @@ auto vc::ApplyTransform(
 auto vc::ApplyTransform(
     const PerPixelMap::Pointer& ppm,
     const Transform3D::Pointer& transform,
-    bool normalize) -> PerPixelMap::Pointer
+    const bool normalize) -> PerPixelMap::Pointer
 {
     return PerPixelMap::New(ApplyTransform(*ppm, transform, normalize));
 }
