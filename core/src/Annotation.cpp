@@ -113,7 +113,7 @@ void volcart::WriteAnnotationSet(
     ss << "version: 1" << std::endl;
     ss << "width: " << as.width() << std::endl;
     ss << "height: " << as.height() << std::endl;
-    ss << "type: int32,int32,double,double" << std::endl;
+    ss << "type: int32,uint8,double,double" << std::endl;
     ss << "ordered: true" << std::endl;
     ss << "<>" << std::endl;
     auto header = ss.str();
@@ -162,7 +162,7 @@ auto volcart::ReadAnnotationSet(const filesystem::path& path) -> AnnotationSet
             if (isLegacy) {
                 infile.read(reinterpret_cast<char*>(&idx), sizeof(double));
                 infile.read(reinterpret_cast<char*>(&flags), sizeof(double));
-                tmp.index = static_cast<std::int32_t>(idx);
+                tmp.index = static_cast<decltype(Annotation::index)>(idx);
                 tmp.flags = static_cast<AnnotationFlag>(flags);
             } else {
                 infile.read(

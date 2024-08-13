@@ -12,7 +12,7 @@ namespace volcart
 {
 
 /** Annotation flags */
-using AnnotationFlag = std::int32_t;
+using AnnotationFlag = std::uint8_t;
 static constexpr AnnotationFlag ANNO_NONE = 0x0000;
 static constexpr AnnotationFlag ANNO_ANCHOR = 0x0001;
 static constexpr AnnotationFlag ANNO_MANUAL = 0x0002;
