@@ -167,6 +167,11 @@ auto Volume::intensityAt(int x, int y, int z) const -> std::uint16_t
     return getSliceData(z).at<std::uint16_t>(y, x);
 }
 
+auto Volume::intensityAt(const cv::Vec3d& v) const -> std::uint16_t
+{
+    return intensityAt(static_cast<int>(v[0]), static_cast<int>(v[1]), static_cast<int>(v[2]));
+}
+
 // Trilinear Interpolation
 // From: https://en.wikipedia.org/wiki/Trilinear_interpolation
 auto Volume::interpolateAt(double x, double y, double z) const -> std::uint16_t
@@ -201,6 +206,11 @@ auto Volume::interpolateAt(double x, double y, double z) const -> std::uint16_t
 
     auto c = c0 * (1 - dz) + c1 * dz;
     return static_cast<std::uint16_t>(cvRound(c));
+}
+
+auto Volume::interpolateAt(const cv::Vec3d& v) const -> std::uint16_t
+{
+    return interpolateAt(v[0], v[1], v[2]);
 }
 
 auto Volume::reslice(

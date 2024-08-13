@@ -52,32 +52,32 @@ public:
     Volume() = delete;
 
     /** @brief Load the Volume from a directory path */
-    explicit Volume(volcart::filesystem::path path);
+    explicit Volume(filesystem::path path);
 
     /** @brief Make a new Volume at the specified path */
-    Volume(volcart::filesystem::path path, Identifier uuid, std::string name);
+    Volume(filesystem::path path, Identifier uuid, std::string name);
 
     /** @overload Volume(volcart::filesystem::path) */
-    static Pointer New(volcart::filesystem::path path);
+    static auto New(filesystem::path path) -> Pointer;
 
     /** @overload Volume(volcart::filesystem::path, Identifier, std::string) */
-    static Pointer New(
-        volcart::filesystem::path path, Identifier uuid, std::string name);
+    static auto New(filesystem::path path, Identifier uuid, std::string name)
+        -> Pointer;
     /**@}*/
 
     /**@{*/
     /** @brief Get the slice width */
-    int sliceWidth() const;
+    auto sliceWidth() const -> int;
     /** @brief Get the slice height */
-    int sliceHeight() const;
+    auto sliceHeight() const -> int;
     /** @brief Get the number of slices */
-    int numSlices() const;
+    auto numSlices() const -> int;
     /** @brief Get the voxel size (in microns) */
-    double voxelSize() const;
+    auto voxelSize() const -> double;
     /** @brief Get the minimum intensity value in the Volume */
-    double min() const;
+    auto min() const -> double;
     /** @brief Get the maximum intensity value in the Volume */
-    double max() const;
+    auto max() const -> double;
     /**@}*/
 
     /**@{*/
@@ -97,11 +97,11 @@ public:
 
     /**@{*/
     /** @brief Get the bounding box */
-    Bounds bounds() const;
+    auto bounds() const -> Bounds;
     /** @brief Return whether a position is within the volume bounds */
-    bool isInBounds(double x, double y, double z) const;
+    auto isInBounds(double x, double y, double z) const -> bool;
     /** @overload isInBounds(double, double, double) const */
-    bool isInBounds(const cv::Vec3d& v) const;
+    auto isInBounds(const cv::Vec3d& v) const -> bool;
     /**@}*/
 
     /**@{*/
@@ -112,16 +112,16 @@ public:
      * the slice returned by getSliceData() will modify the cached slice as
      * well. Use getSliceDataCopy() if the slice is to be modified.
      */
-    cv::Mat getSliceData(int index) const;
+    auto getSliceData(int index) const -> cv::Mat;
 
     /** @copydoc getSliceData(int) const */
-    cv::Mat getSliceDataCopy(int index) const;
+    auto getSliceDataCopy(int index) const -> cv::Mat;
 
     /** @brief Get slice by index and cut out a rect to return */
-    cv::Mat getSliceDataRect(int index, cv::Rect rect) const;
+    auto getSliceDataRect(int index, cv::Rect rect) const -> cv::Mat;
 
     /** @brief Copy a slice by index and cut out a rect to return */
-    cv::Mat getSliceDataRectCopy(int index, cv::Rect rect) const;
+    auto getSliceDataRectCopy(int index, cv::Rect rect) const -> cv::Mat;
 
     /**
      * @brief Set a slice by index number
@@ -133,18 +133,15 @@ public:
     void setSliceData(int index, const cv::Mat& slice, bool compress = true);
 
     /** @brief Get the file path of a slice by index */
-    volcart::filesystem::path getSlicePath(int index) const;
+    auto getSlicePath(int index) const -> filesystem::path;
     /**@}*/
 
     /**@{*/
     /** @brief Get the intensity value at a voxel position */
-    std::uint16_t intensityAt(int x, int y, int z) const;
+    auto intensityAt(int x, int y, int z) const -> std::uint16_t;
 
     /** @copydoc intensityAt() */
-    std::uint16_t intensityAt(const cv::Vec3d& v) const
-    {
-        return intensityAt(int(v[0]), int(v[1]), int(v[2]));
-    }
+    auto intensityAt(const cv::Vec3d& v) const -> std::uint16_t;
 
     /**
      * @brief Get the intensity value at a subvoxel position
@@ -154,13 +151,10 @@ public:
      * Trilinear interpolation equation from
      * <a href = "http://paulbourke.net/miscellaneous/interpolation/"> here</a>.
      */
-    std::uint16_t interpolateAt(double x, double y, double z) const;
+    auto interpolateAt(double x, double y, double z) const -> std::uint16_t;
 
     /** @copydoc interpolateAt(double, double, double) const */
-    std::uint16_t interpolateAt(const cv::Vec3d& v) const
-    {
-        return interpolateAt(v[0], v[1], v[2]);
-    }
+    auto interpolateAt(const cv::Vec3d& v) const -> std::uint16_t;
 
     /**
      * @brief Create a Reslice image by intersecting the volume with a plane
@@ -175,12 +169,12 @@ public:
      * @param height Height of the Reslice image
      * @param width Width of the Reslice image
      */
-    Reslice reslice(
+    auto reslice(
         const cv::Vec3d& center,
         const cv::Vec3d& xvec,
         const cv::Vec3d& yvec,
         int width = 64,
-        int height = 64) const;
+        int height = 64) const -> Reslice;
     /**@}*/
 
     /**@{*/
