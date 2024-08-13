@@ -747,17 +747,47 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
 
 auto VolumePkg::removeSegmentation(const Segmentation::Identifier& id) -> bool
 {
-    if (id.size() == 0)
+    // Ignore empty IDs
+    if (id.empty()) {
+        Logger()->warn("Not removing segmentation with empty ID");
         return false;
-
-    // Remove the volume directory
-    auto segDir = ::SegsDir(rootDir_) / id;
-    if (!fs::exists(segDir)) {
-        throw std::runtime_error(
-            "Segmentation directory does not exist for ID " + id);
-    } else {
-        return fs::remove_all(segDir);
     }
+
+    // Check that the segmentation is in the map
+    if (segmentations_.count(id) == 0) {
+        Logger()->warn(
+            "Cannot remove segmentation with ID {}. Item does not exist in "
+            "internal map",
+            id);
+        return false;
+    }
+
+    // Remove the segmentation directory
+    bool success{true};
+    if (const auto segDir = SegsDir(rootDir_) / id; not fs::exists(segDir)) {
+        Logger()->warn(
+            "Segmentation directory does not exist for ID {}. No items will be "
+            "deleted from disk",
+            id);
+        success = false;
+    } else {
+        std::error_code ec;
+        fs::remove_all(segDir, ec);
+        if (ec) {
+            Logger()->error(
+                "Failed to remove segmentation directory from disk: {}",
+                ec.message());
+            success = false;
+        }
+    }
+
+    // Remove the segmentation from the internal map
+    const bool res = segmentations_.erase(id);
+    if (not res) {
+        Logger()->error("Failed to remove segmentation from internal map");
+    }
+
+    return success & res;
 }
 
 // RENDER FUNCTIONS //

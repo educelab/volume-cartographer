@@ -145,13 +145,13 @@ public:
     /** @name Volume Data */
     /**@{*/
     /** @brief Return whether there are Volumes */
-    auto hasVolumes() const -> bool;
+    [[nodiscard]] auto hasVolumes() const -> bool;
 
     /** @brief Whether a volume with the given identifier is in the VolumePkg */
     [[nodiscard]] auto hasVolume(const Volume::Identifier& id) const -> bool;
 
     /** @brief Get the number of Volumes */
-    auto numberOfVolumes() const -> std::size_t;
+    [[nodiscard]] auto numberOfVolumes() const -> std::size_t;
 
     /** @brief Get the list of volume IDs */
     [[nodiscard]] auto volumeIDs() const -> std::vector<Volume::Identifier>;
@@ -206,8 +206,19 @@ public:
     auto newSegmentation(std::string name = "") -> Segmentation::Pointer;
 
     /**
-     * @brief Removes an existing segmentation.
-     * @return Indicates if removal was successful
+     * @brief Removes an existing segmentation
+     *
+     * Returns `false` and prints to Logger() if removal fails for any reason:
+     *  - Warning
+     *    - Empty ID
+     *    - ID not in internal map
+     *    - Segmentation directory does not exist
+     *  - Error
+     *    - Filsystem error when deleting the segmentation directory.
+     *      Segmentation directory may have been partially removed.
+     *    - Failed to remove segmentation from internal map.
+     *
+     * @return If removal was successful
      */
     auto removeSegmentation(const Segmentation::Identifier& id) -> bool;
 
@@ -224,10 +235,10 @@ public:
     /** @name Render Data */
     /**@{*/
     /** @brief Return whether there are Renders */
-    auto hasRenders() const -> bool;
+    [[nodiscard]] auto hasRenders() const -> bool;
 
     /** @brief Get the number of Renders */
-    auto numberOfRenders() const -> std::size_t;
+    [[nodiscard]] auto numberOfRenders() const -> std::size_t;
 
     /** @brief Get the list of Render IDs */
     [[nodiscard]] auto renderIDs() const -> std::vector<Render::Identifier>;
