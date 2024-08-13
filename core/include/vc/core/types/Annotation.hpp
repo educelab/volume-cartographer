@@ -1,21 +1,22 @@
 #pragma once
 
+/** @file */
+
 #include <cstdint>
 
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
-
 namespace volcart
 {
 
 /** Annotation flags */
-enum AnnotationFlags : std::int32_t {
-    ANNO_ANCHOR = 1,
-    ANNO_MANUAL = 2,
-    ANNO_USED_IN_RUN = 4
-};
+using AnnotationFlags = std::int32_t;
+static constexpr AnnotationFlags ANNO_NONE = 0x0000;
+static constexpr AnnotationFlags ANNO_ANCHOR = 0x0001;
+static constexpr AnnotationFlags ANNO_MANUAL = 0x0002;
+static constexpr AnnotationFlags ANNO_USED_IN_RUN = 0x0004;
 
 /**
  *  @brief Segmentation annotation
