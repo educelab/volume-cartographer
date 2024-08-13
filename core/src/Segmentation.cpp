@@ -93,7 +93,7 @@ void Segmentation::setAnnotationSet(const AnnotationSet& as)
 {
     // Set a name into the metadata if we haven't set one already
     if (not hasAnnotationSet()) {
-        metadata_.set("vcano", "pointset.vcano");
+        metadata_.set("vcano", "annotation.vcano");
         metadata_.save();
     }
 
