@@ -11,10 +11,15 @@
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
+#ifdef _MSC_VER
+// TODO: Implement memmap for Windows
+#else
+// For memmaping
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#endif
 
 // Wrapping in a namespace to avoid define collisions
 namespace lt
@@ -36,24 +41,24 @@ auto GetCVMatType(
     const std::uint16_t channels) -> int
 {
     switch (depth) {
-        case 8:
+        case 8: {
             if (tifType == SAMPLEFORMAT_INT) {
                 return CV_MAKETYPE(CV_8S, channels);
-            } else {
-                return CV_MAKETYPE(CV_8U, channels);
             }
-        case 16:
+            return CV_MAKETYPE(CV_8U, channels);
+        }
+        case 16: {
             if (tifType == SAMPLEFORMAT_INT) {
                 return CV_MAKETYPE(CV_16S, channels);
-            } else {
-                return CV_MAKETYPE(CV_16U, channels);
             }
-        case 32:
+            return CV_MAKETYPE(CV_16U, channels);
+        }
+        case 32: {
             if (tifType == SAMPLEFORMAT_INT) {
                 return CV_MAKETYPE(CV_32S, channels);
-            } else {
-                return CV_MAKETYPE(CV_32F, channels);
             }
+            return CV_MAKETYPE(CV_32F, channels);
+        }
         default:
             return CV_8UC3;
     }
@@ -62,16 +67,140 @@ auto GetCVMatType(
 constexpr std::size_t MAX_TIFF_BYTES{4'294'967'296};
 constexpr std::size_t BITS_PER_BYTE{8};
 
-inline auto NeedBigTIFF(
-    std::size_t w, std::size_t h, std::size_t cns, std::size_t bps) -> bool
+auto NeedBigTIFF(
+    const std::size_t w,
+    const std::size_t h,
+    const std::size_t cns,
+    const std::size_t bps) -> bool
 {
     const std::size_t bytes = w * h * cns * bps / BITS_PER_BYTE;
     return bytes >= MAX_TIFF_BYTES;
 }
 
+struct TIFFHeader {
+    std::uint32_t width = 0;
+    std::uint32_t height = 0;
+    std::uint32_t rowsPerStrip = 0;
+    std::uint16_t type = 1;
+    std::uint16_t depth = 1;
+    std::uint16_t channels = 1;
+    std::uint16_t config = 0;
+    std::vector<std::uint64_t> stripOffsets;
+    tio::Compression compression{tio::Compression::NONE};
+};
+
+auto ReadHeader(lt::TIFF* tif)
+{
+    // Get metadata
+    TIFFHeader hdr;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &hdr.width);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &hdr.height);
+    TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &hdr.type);
+    TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &hdr.depth);
+    TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &hdr.channels);
+    TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &hdr.config);
+    TIFFGetField(tif, TIFFTAG_COMPRESSION, &hdr.compression);
+    TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &hdr.rowsPerStrip);
+    // TODO: This is wrong and isn't loading the correct offsets
+    hdr.stripOffsets =
+        std::vector<std::uint64_t>(hdr.height / hdr.rowsPerStrip, 0);
+    TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, hdr.stripOffsets.data());
+    return hdr;
+}
+
+auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
+{
+    // Construct the mat
+    const auto h = static_cast<int>(hdr.height);
+    const auto w = static_cast<int>(hdr.width);
+    const auto cvType = GetCVMatType(hdr.type, hdr.depth, hdr.channels);
+    cv::Mat img = cv::Mat::zeros(h, w, cvType);
+
+    // Read the rows
+    const auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(tif));
+    std::vector<char> buffer(bufferSize + 4);
+    if (hdr.config == PLANARCONFIG_CONTIG) {
+        for (auto row = 0; row < hdr.height; row++) {
+            lt::TIFFReadScanline(tif, &buffer[0], row);
+            std::memcpy(img.ptr(row), &buffer[0], bufferSize);
+        }
+    } else if (hdr.config == PLANARCONFIG_SEPARATE) {
+        throw volcart::IOException(
+            "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
+    }
+
+    // Do channel conversion
+    const auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
+    const auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
+                              img.depth() != CV_32S;
+    if (cvtNeeded) {
+        if (cvtSupported) {
+            if (img.channels() == 3) {
+                cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
+            } else if (img.channels() == 4) {
+                cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
+            }
+        } else {
+            volcart::Logger()->warn(
+                "[TIFFIO] RGB->BGR conversion for signed 8-bit and 16-bit "
+                "images is not supported. Image will be loaded with RGB "
+                "element order.");
+        }
+    }
+
+    return img;
+}
+
+#ifdef _MSC_VER
+// TODO: Implement memmap for Windows
+#else
+auto CanMMap(const TIFFHeader& hdr) -> bool
+{
+    auto res = hdr.config == PLANARCONFIG_CONTIG;
+    res &= hdr.type == SAMPLEFORMAT_UINT;
+    res &= hdr.depth == 16 and hdr.channels == 1;
+    res &= hdr.compression == tio::Compression::NONE;
+    // important: full image is in a single strip
+    res &= hdr.rowsPerStrip == hdr.height;
+    return res;
+}
+
+// Memory maps the TIF image found at path
+// File must pass CanMMap first
+auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
+    -> std::pair<cv::Mat, tio::mmap_info>
+{
+    vc::Logger()->trace("[TIFFIO] Memory mapping file: {}", path.string());
+    // Open and mmap TIFF file
+    const int fd = open(path.c_str(), O_RDONLY);
+    if (fd == -1) {
+        throw vc::IOException("Failed to open TIFF: " + path.string());
+    }
+
+    struct stat sb {
+    };
+    if (fstat(fd, &sb) == -1) {
+        throw vc::IOException("Failed to fstat TIFF: " + path.string());
+    }
+
+    auto* data = mmap(nullptr, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    if (data == MAP_FAILED) {
+        vc::Logger()->error("[TIFFIO] mmap() errno: {}", errno);
+        throw vc::IOException("Failed to mmap TIFF: " + path.string());
+    }
+    close(fd);
+
+    const auto h = static_cast<int>(hdr.height);
+    const auto w = static_cast<int>(hdr.width);
+    const auto cvType = GetCVMatType(hdr.type, hdr.depth, hdr.channels);
+    cv::Mat img(h, w, cvType, static_cast<char*>(data) + hdr.stripOffsets[0]);
+    return {img, {.addr = data, .size = sb.st_size}};
+}
+#endif
+
 }  // namespace
 
-auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
+auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
 {
     // Make sure input file exists
     if (not fs::exists(path)) {
@@ -85,113 +214,58 @@ auto tio::ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat
     }
 
     // Get metadata
-    std::uint32_t width = 0;
-    std::uint32_t height = 0;
-    std::uint32_t rowsPerStrip = 0;
-    std::uint16_t type = 1;
-    std::uint16_t depth = 1;
-    std::uint16_t channels = 1;
-    std::uint16_t config = 0;
-    Compression compression = Compression::NONE;
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-    TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &type);
-    TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &depth);
-    TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &channels);
-    TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
-    TIFFGetField(tif, TIFFTAG_COMPRESSION, &compression);
-    TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsPerStrip);
-    auto cvType = ::GetCVMatType(type, depth, channels);
-
-    // We limit ourselved probably a bit more than necessary,
-    // but better safe than sorry
-    auto canMMap =
-        config == PLANARCONFIG_CONTIG and type == SAMPLEFORMAT_UINT and
-        depth == 16 and channels == 1 and compression == Compression::NONE and
-        rowsPerStrip == height;  // important, full image is in a single strip
-
-    // Construct the mat
-    auto h = static_cast<int>(height);
-    auto w = static_cast<int>(width);
+    const auto hdr = ReadHeader(tif);
     cv::Mat img;
 
-    if (canMMap) {
-        // Assumes there's only one, i.e. rows == height
-        std::uint32_t* stripOffset = 0;
-        int res = TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, &stripOffset);
-
-        // Open and mmap TIFF file
-        int fd = open(path.c_str(), O_RDONLY);
-        if (fd == -1) {
-            throw IOException("Failed to open TIFF: " + path.string());
-        }
-        struct stat sb;
-        if (fstat(fd, &sb) == -1) {
-            throw IOException("Failed to fstat TIFF: " + path.string());
-        }
-
-        void* data = mmap(nullptr, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
-        if (data == MAP_FAILED) {
-            // Print error code
-            printf("mmap() errno: %d\n", errno);
-            throw IOException("Failed to mmap TIFF: " + path.string());
-        }
-        close(fd);
-
-        img = cv::Mat(h, w, cvType, (char*)data + stripOffset[0]);
+#ifdef _MSC_VER
+    // Read into the mat
+    if (memmap) {
+        Logger()->debug("[TIFFIO] Memmap is not supported on this platform");
+    }
+    img = ReadImage(tif, hdr);
+#else
+    // Load memmap'd image
+    const auto canMMap = CanMMap(hdr);
+    if (mmap_info and canMMap) {
+        std::tie(img, *mmap_info) = MMapImage(path, hdr);
     } else {
-        // Load the old way via TIFF library
-        vc::Logger()->debug(
-            "Cannot mmap TIFF (width: %d height: %d config: %d type: %d depth: "
-            "%d channel: %d rowsPerStrip: %d compression: %s) => loading the "
-            "old way",
-            width, height, config, type, depth, channels, rowsPerStrip,
-            (compression != Compression::NONE ? "true" : "false"));
-
-        img = cv::Mat::zeros(h, w, cvType);
-
-        // Read the rows
-        auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(tif));
-        std::vector<char> buffer(bufferSize + 4);
-        if (config == PLANARCONFIG_CONTIG) {
-            for (auto row = 0; row < height; row++) {
-                lt::TIFFReadScanline(tif, &buffer[0], row);
-                std::memcpy(img.ptr(row), &buffer[0], bufferSize);
-            }
-        } else if (config == PLANARCONFIG_SEPARATE) {
-            throw IOException(
-                "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
+        if (not canMMap) {
+            Logger()->debug(
+                "[TIFFIO] Cannot memory map TIFF: {}. Image will be "
+                "read into memory instead.",
+                path.string());
         }
+        img = ReadImage(tif, hdr);
+    }
+#endif
 
-        // Do channel conversion
-        auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
-        auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
-                            img.depth() != CV_32S;
-        if (cvtNeeded) {
-            if (cvtSupported) {
-                if (img.channels() == 3) {
-                    cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
-                } else if (img.channels() == 4) {
-                    cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
-                }
-            } else {
-                vc::Logger()->warn(
-                    "[TIFFIO] RGB->BGR conversion for signed 8-bit and 16-bit "
-                    "images is not supported. Image will be loaded with RGB "
-                    "element order.");
-            }
-        }
+    // Close the tif file
+    lt::TIFFClose(tif);
+    return img;
+}
+
+auto tio::UnmapTIFF(const mmap_info& mmap_info)
+{
+#ifdef _MSC_VER
+    return;
+#else
+    if (not mmap_info.addr) {
+        Logger()->debug("Empty address");
+        return;
+    }
+    if (mmap_info.size < 1) {
+        Logger()->debug("Invalid mapping size: {}", mmap_info.size);
+        return;
     }
 
-    lt::TIFFClose(tif);
-
-    return img;
+    munmap(mmap_info.addr, mmap_info.size);
+#endif
 }
 
 // Write a TIFF to a file. This implementation heavily borrows from how OpenCV's
 // TIFFEncoder writes to the TIFF
 void tio::WriteTIFF(
-    const fs::path& path, const cv::Mat& img, Compression compression)
+    const fs::path& path, const cv::Mat& img, const Compression compression)
 {
     // Safety checks
     if (img.channels() < 1 or img.channels() > 4) {

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
@@ -18,7 +20,7 @@ namespace volcart::tiffio
 {
 
 /** TIFF compression schemes */
-enum class Compression {
+enum class Compression : std::uint16_t {
     NONE = 1,
     CCITTRLE = 2,
     CCITTFAX3 = 3,
@@ -47,6 +49,14 @@ enum class Compression {
     JP2000 = 34712
 };
 
+/** mmap record */
+struct mmap_info {
+    /** Address of mapped memory */
+    void* addr{nullptr};
+    /** Size of mapped mempory */
+    std::int64_t size{-1};
+};
+
 /**
  * @brief Read a TIFF file
  *
@@ -60,14 +70,23 @@ enum class Compression {
  * WriteTIFF). Unless you need to read some obscure image type (e.g. 32-bit
  * float or signed integer images), it's generally preferable to use cv::imread.
  *
- * If the raw size of the image (width x height x channels x bytes-per-sample)
- * is >= 4GB, the TIFF will be written using the BigTIFF extension to the TIFF
- * format.
+ * If `mmap_info` is provided, this function will attempt to memory map the
+ * TIFF file rather than reading it into memory. If successful, mmap_info will
+ * contain the address and file size required to `munmap` the TIFF file.
+ *
+ * @warning Memory mapped files will not be unmapped automatically and memory
+ * will be leaked when the cv::Mat is deleted if you do not call `munmap()`.
+ *
+ * @note Memory mapping is not implemented for MSVC.
  *
  * @param path Path to TIFF file
+ * @param mmap_info mmap info needed to unmap the file
  * @throws volcart::IOException Unrecoverable read errors
  */
-auto ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat;
+auto ReadTIFF(const filesystem::path& path, mmap_info* mmap_info = nullptr)
+    -> cv::Mat;
+
+auto UnmapTIFF(const mmap_info& mmap_info);
 
 /**
  * @brief Write a TIFF image to file
@@ -77,10 +96,14 @@ auto ReadTIFF(const volcart::filesystem::path& path) -> cv::Mat;
  * are assumed to have a BGR channel order, except for 8-bit and 16-bit signed
  * integer types which are not supported.
  *
+ * If the raw size of the image (width x height x channels x bytes-per-sample)
+ * is >= 4GB, the TIFF will be written using the BigTIFF extension to the TIFF
+ * format.
+ *
  * @throws volcart::IOException All writing errors
  */
 void WriteTIFF(
-    const volcart::filesystem::path& path,
+    const filesystem::path& path,
     const cv::Mat& img,
     Compression compression = Compression::LZW);
 }  // namespace volcart::tiffio

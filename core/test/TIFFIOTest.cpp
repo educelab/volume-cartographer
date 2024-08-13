@@ -7,6 +7,9 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/io/TIFFIO.hpp"
+
+#include "vc/core/util/Logging.hpp"
+
 #include "vc/core/types/Exceptions.hpp"
 
 using namespace volcart;
@@ -241,7 +244,7 @@ TEST(TIFFIO, WriteRead16UC1)
     EXPECT_TRUE(equal);
 }
 
-TEST(TIFFIO, WriteRead16UC1_mmap)
+TEST(TIFFIO, WriteRead16UC1MMap)
 {
     using ElemT = std::uint16_t;
     using PixelT = ElemT;
@@ -249,13 +252,19 @@ TEST(TIFFIO, WriteRead16UC1_mmap)
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 1>(img);
-
+    logging::SetLogLevel("trace");
     const fs::path imgPath(
-        "vc_core_TIFFIO_WriteRead_" + cv::typeToString(cvType) + "_mmap.tif");
+        "vc_core_TIFFIO_WriteRead_" + cv::typeToString(cvType) + "_MMap.tif");
     // Write uncompressed, so we can mmap() it in during reading
     WriteTIFF(imgPath, img, Compression::NONE);
-    auto result = ReadTIFF(imgPath);
 
+    // Mmap
+    mmap_info mmap_info;
+
+    auto result = ReadTIFF(imgPath, &mmap_info);
+
+    EXPECT_NE(mmap_info.addr, nullptr);
+    EXPECT_GT(mmap_info.size, 0);
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
