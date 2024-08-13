@@ -42,7 +42,7 @@ public:
     using SliceCache = Cache<int, cv::Mat>;
 
     /** Default slice cache type */
-    using DefaultCache = LRUCache<int, cv::Mat>;
+    using DefaultCache = LRUCache<int, cv::Mat, NoOpMutex>;
 
     /** Default slice cache capacity */
     static constexpr std::size_t DEFAULT_CAPACITY = 200;

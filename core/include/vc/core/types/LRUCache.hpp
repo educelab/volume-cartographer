@@ -14,8 +14,6 @@
 namespace volcart
 {
 
-namespace detail
-{
 /** No-op mutex */
 struct NoOpMutex {
     void lock() {}
@@ -24,7 +22,6 @@ struct NoOpMutex {
     void lock_shared() {}
     void unlock_shared() {}
 };
-}  // namespace detail
 
 /**
  * @class LRUCache
@@ -46,7 +43,7 @@ struct NoOpMutex {
  *
  * @ingroup Types
  */
-template <typename TKey, typename TValue, class MutexType = detail::NoOpMutex>
+template <typename TKey, typename TValue, class TMutex = std::shared_mutex>
 class LRUCache final : public Cache<TKey, TValue>
 {
 public:
@@ -175,6 +172,6 @@ private:
     /** Cache usage information */
     std::unordered_map<TKey, TListIterator> lookup_;
     /** Shared mutex for thread-safe access */
-    mutable MutexType cache_mutex_;
+    mutable TMutex cache_mutex_;
 };
 }  // namespace volcart
