@@ -42,7 +42,7 @@ using AnnotationSet = OrderedPointSet<Annotation>;
 /** @brief Write an AnnotationSet to disk */
 void WriteAnnotationSet(const filesystem::path& path, const AnnotationSet& as);
 
-/** @brief Load an Annotation set from disk */
+/** @brief Load an AnnotationSet from disk */
 auto ReadAnnotationSet(const filesystem::path& path) -> AnnotationSet;
 
 }  // namespace volcart

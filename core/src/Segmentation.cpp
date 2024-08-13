@@ -1,11 +1,10 @@
 #include "vc/core/types/Segmentation.hpp"
 
 #include "vc/core/io/PointSetIO.hpp"
-#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 
-namespace fs = volcart::filesystem;
+namespace fs = filesystem;
 
 // Load a Segmentation directory from disk
 // Reads and verifies metadata
@@ -68,7 +67,7 @@ void Segmentation::setPointSet(const PointSet& ps)
 }
 
 // Load the PointSet from disk
-auto Segmentation::getPointSet() const -> Segmentation::PointSet
+auto Segmentation::getPointSet() const -> PointSet
 {
     // Make sure there's an associated pointset file
     if (not hasPointSet()) {
@@ -80,51 +79,40 @@ auto Segmentation::getPointSet() const -> Segmentation::PointSet
     return PointSetIO<cv::Vec3d>::ReadOrderedPointSet(path);
 }
 
-auto Segmentation::hasAnnotations() const -> bool
+auto Segmentation::hasAnnotationSet() const -> bool
 {
-    // TODO: Review
-    return metadata_.hasKey("vcano") and
-           metadata_.get<std::string>("vcano").has_value();
+    if (not metadata_.hasKey("vcano")) {
+        return false;
+    }
+    const auto res = metadata_.get<std::string>("vcano");
+    return res.has_value() and not res.value().empty();
 }
-
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
 
 // Save the AnnotationSet to disk
 void Segmentation::setAnnotationSet(const AnnotationSet& as)
 {
     // Set a name into the metadata if we haven't set one already
-    if (not metadata_.hasKey("vcano") or
-        not metadata_.get<std::string>("vcano").has_value()) {
+    if (not hasAnnotationSet()) {
         metadata_.set("vcano", "pointset.vcano");
         metadata_.save();
     }
 
     // Write the annotation set to the segmentation file
-    const auto filepath = path_ / metadata_.get<std::string>("vcano").value();
-    WriteAnnotationSet(filepath, as);
+    const auto p = path_ / metadata_.get<std::string>("vcano").value();
+    WriteAnnotationSet(p, as);
 }
 
 // Load the AnnotationSet from disk
 auto Segmentation::getAnnotationSet() const -> AnnotationSet
 {
     // Check if there's an associated annotation set file
-    if (not metadata_.get<std::string>("vcano").has_value()) {
-        return AnnotationSet();
+    if (not hasAnnotationSet()) {
+        throw std::runtime_error("Segmentation has no annotation set");
     }
 
     // Load the annotation set
-    auto filepath = path_ / metadata_.get<std::string>("vcano").value();
-    try {
-        return ReadAnnotationSet(filepath);
-    } catch (const IOException& e) {
-        Logger()->error("Failed to load annotation: {}", e.what());
-        return AnnotationSet();
-    }
+    const auto p = path_ / metadata_.get<std::string>("vcano").value();
+    return ReadAnnotationSet(p);
 }
 
 auto Segmentation::hasVolumeID() const -> bool
@@ -136,15 +124,15 @@ auto Segmentation::hasVolumeID() const -> bool
     return res.has_value() and not res.value().empty();
 }
 
-auto Segmentation::getVolumeID() const -> Volume::Identifier
+auto Segmentation::getVolumeID() const -> Identifier
 {
     if (not hasVolumeID()) {
         throw std::runtime_error("segmentation has no volume ID");
     }
-    return metadata_.get<Volume::Identifier>("volume").value();
+    return metadata_.get<Identifier>("volume").value();
 }
 
-void Segmentation::setVolumeID(const Volume::Identifier& id)
+void Segmentation::setVolumeID(const Identifier& id)
 {
     metadata_.set<std::string>("volume", id);
     metadata_.save();

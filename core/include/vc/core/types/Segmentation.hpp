@@ -80,7 +80,7 @@ public:
      * Returns false if the metadata file has no `vcano` entry, the `vcano`
      * entry is `null`, or the `vcps` entry is an empty string.
      */
-    [[nodiscard]] auto hasAnnotations() const -> bool;
+    [[nodiscard]] auto hasAnnotationSet() const -> bool;
 
     /**
      * @brief Save AnnotationSet to the Segmentation file
