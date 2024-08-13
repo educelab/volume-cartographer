@@ -180,8 +180,7 @@ set(test_srcs
     test/TransformsTest.cpp
     test/SegmentationTest.cpp
     test/VolumePkgTest.cpp
-    test/FlagsTest.cpp
-    test/AnnotationTest.cpp
+        test/AnnotationTest.cpp
 )
 
 # Add a test executable for each src

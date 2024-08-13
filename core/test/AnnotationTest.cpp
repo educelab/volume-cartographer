@@ -1,14 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <educelab/core/utils/Flags.hpp>
 #include <educelab/core/utils/Iteration.hpp>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/Annotation.hpp"
-#include "vc/core/util/Flags.hpp"
 
 using namespace volcart;
 namespace fs = filesystem;
 namespace el = educelab;
+namespace flag = el::flag;
 
 TEST(Annotation, WriteReadSet)
 {
