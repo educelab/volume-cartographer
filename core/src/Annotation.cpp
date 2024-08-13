@@ -90,7 +90,10 @@ auto ParseHeader(std::ifstream& infile) -> Header
 }  // namespace
 
 Annotation::Annotation(
-    const std::int32_t i, const Flag f, const double x, const double y)
+    const std::int32_t i,
+    const AnnotationFlags f,
+    const double x,
+    const double y)
     : index{i}, flags{f}, pt{x, y}
 {
 }
@@ -162,7 +165,7 @@ auto volcart::ReadAnnotationSet(const filesystem::path& path) -> AnnotationSet
                 infile.read(reinterpret_cast<char*>(&idx), sizeof(double));
                 infile.read(reinterpret_cast<char*>(&flags), sizeof(double));
                 tmp.index = static_cast<std::int32_t>(idx);
-                tmp.flags = static_cast<Annotation::Flag>(flags);
+                tmp.flags = static_cast<AnnotationFlags>(flags);
             } else {
                 infile.read(
                     reinterpret_cast<char*>(&tmp.index), sizeof(tmp.index));

@@ -10,32 +10,39 @@
 namespace volcart
 {
 
+/** Annotation flags */
+enum AnnotationFlags : std::int32_t {
+    ANNO_ANCHOR = 1,
+    ANNO_MANUAL = 2,
+    ANNO_USED_IN_RUN = 4
+};
+
 /**
- *  Annotation type
+ *  @brief Segmentation annotation
  *
- *  The first long is used to store the slice index and the second as
- *  a bit flag carrier and the two doubles contain the original point
- *  position before any manual moves.
+ *  A structure for tracking the state of segmentation points in VC GUI.
  */
 struct Annotation {
-    enum Flag : std::int32_t {
-        ANO_ANCHOR = 1,
-        ANO_MANUAL = 2,
-        ANO_USED_IN_RUN = 4
-    };
-
+    /** Default constructor */
     Annotation() = default;
-    Annotation(std::int32_t i, Flag f, double x, double y);
+    /** Constructor with members */
+    Annotation(std::int32_t i, AnnotationFlags f, double x, double y);
 
-    std::int32_t index;
-    Flag flags;
+    /** @brief Slice index */
+    std::int32_t index{};
+    /** @see AnnotationFlags */
+    AnnotationFlags flags{};
+    /** @brief The original point position before manual moves */
     cv::Vec2d pt;
 };
 
+/** @brief Ordered annotation collection */
 using AnnotationSet = OrderedPointSet<Annotation>;
 
+/** @brief Write an AnnotationSet to disk */
 void WriteAnnotationSet(const filesystem::path& path, const AnnotationSet& as);
 
+/** @brief Load an Annotation set from disk */
 auto ReadAnnotationSet(const filesystem::path& path) -> AnnotationSet;
 
 }  // namespace volcart
