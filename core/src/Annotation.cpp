@@ -31,9 +31,9 @@ auto ParseHeader(std::ifstream& infile) -> Header
     while (std::getline(infile, line)) {
         auto l = el::trim(line);
         auto strs = el::split(l, ":");
-        std::for_each(std::begin(strs), std::end(strs), [](auto& s) {
-            return el::trim(s);
-        });
+        std::transform(
+            std::begin(strs), std::end(strs), std::begin(strs),
+            [](const auto& s) { return el::trim(s); });
 
         // Comments: look like:
         // # This is a comment
@@ -91,7 +91,7 @@ auto ParseHeader(std::ifstream& infile) -> Header
 
 Annotation::Annotation(
     const std::int32_t i,
-    const AnnotationFlags f,
+    const AnnotationFlag f,
     const double x,
     const double y)
     : index{i}, flags{f}, pt{x, y}
@@ -120,7 +120,6 @@ void volcart::WriteAnnotationSet(
     of.write(header.c_str(), static_cast<std::streamsize>(header.size()));
 
     // Write the annotation points
-    // TODO: Probably could write all values at once
     for (const auto& a : as) {
         of.write(reinterpret_cast<const char*>(&a.index), sizeof(a.index));
         of.write(reinterpret_cast<const char*>(&a.flags), sizeof(a.flags));
@@ -153,7 +152,6 @@ auto volcart::ReadAnnotationSet(const filesystem::path& path) -> AnnotationSet
     AnnotationSet as{header.width};
 
     // Have to go point-by-point
-    // TODO: If not legacy, could probably read all row points in one call
     std::vector<Annotation> row;
     Annotation tmp;
     double idx, flags;
@@ -165,7 +163,7 @@ auto volcart::ReadAnnotationSet(const filesystem::path& path) -> AnnotationSet
                 infile.read(reinterpret_cast<char*>(&idx), sizeof(double));
                 infile.read(reinterpret_cast<char*>(&flags), sizeof(double));
                 tmp.index = static_cast<std::int32_t>(idx);
-                tmp.flags = static_cast<AnnotationFlags>(flags);
+                tmp.flags = static_cast<AnnotationFlag>(flags);
             } else {
                 infile.read(
                     reinterpret_cast<char*>(&tmp.index), sizeof(tmp.index));

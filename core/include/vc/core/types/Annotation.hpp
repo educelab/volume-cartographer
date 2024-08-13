@@ -12,11 +12,11 @@ namespace volcart
 {
 
 /** Annotation flags */
-using AnnotationFlags = std::int32_t;
-static constexpr AnnotationFlags ANNO_NONE = 0x0000;
-static constexpr AnnotationFlags ANNO_ANCHOR = 0x0001;
-static constexpr AnnotationFlags ANNO_MANUAL = 0x0002;
-static constexpr AnnotationFlags ANNO_USED_IN_RUN = 0x0004;
+using AnnotationFlag = std::int32_t;
+static constexpr AnnotationFlag ANNO_NONE = 0x0000;
+static constexpr AnnotationFlag ANNO_ANCHOR = 0x0001;
+static constexpr AnnotationFlag ANNO_MANUAL = 0x0002;
+static constexpr AnnotationFlag ANNO_USED_IN_RUN = 0x0004;
 
 /**
  *  @brief Segmentation annotation
@@ -27,12 +27,12 @@ struct Annotation {
     /** Default constructor */
     Annotation() = default;
     /** Constructor with members */
-    Annotation(std::int32_t i, AnnotationFlags f, double x, double y);
+    Annotation(std::int32_t i, AnnotationFlag f, double x, double y);
 
     /** @brief Slice index */
     std::int32_t index{};
     /** @see AnnotationFlags */
-    AnnotationFlags flags{};
+    AnnotationFlag flags{};
     /** @brief The original point position before manual moves */
     cv::Vec2d pt;
 };
