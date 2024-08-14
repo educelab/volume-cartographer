@@ -271,6 +271,8 @@ TEST(TIFFIO, WriteRead16UC1MMap)
     auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
+
+    UnmapTIFF(mmap_info);
 }
 
 TEST(TIFFIO, WriteRead16UC2)

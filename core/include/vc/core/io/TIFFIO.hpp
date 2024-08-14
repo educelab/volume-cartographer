@@ -86,7 +86,7 @@ struct mmap_info {
 auto ReadTIFF(const filesystem::path& path, mmap_info* mmap_info = nullptr)
     -> cv::Mat;
 
-auto UnmapTIFF(const mmap_info& mmap_info);
+void UnmapTIFF(const mmap_info& mmap_info);
 
 /**
  * @brief Write a TIFF image to file

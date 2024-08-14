@@ -85,7 +85,7 @@ struct TIFFHeader {
     std::uint16_t depth = 1;
     std::uint16_t channels = 1;
     std::uint16_t config = 0;
-    std::vector<std::uint64_t> stripOffsets;
+    std::uint64_t* stripOffsets{nullptr};
     tio::Compression compression{tio::Compression::NONE};
 };
 
@@ -101,10 +101,7 @@ auto ReadHeader(lt::TIFF* tif)
     TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &hdr.config);
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &hdr.compression);
     TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &hdr.rowsPerStrip);
-    // TODO: This is wrong and isn't loading the correct offsets
-    hdr.stripOffsets =
-        std::vector<std::uint64_t>(hdr.height / hdr.rowsPerStrip, 0);
-    TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, hdr.stripOffsets.data());
+    TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, &hdr.stripOffsets);
     return hdr;
 }
 
@@ -244,11 +241,11 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
     return img;
 }
 
-auto tio::UnmapTIFF(const mmap_info& mmap_info)
-{
 #ifdef _MSC_VER
-    return;
+void tio::UnmapTIFF(const mmap_info& mmap_info) {}
 #else
+void tio::UnmapTIFF(const mmap_info& mmap_info)
+{
     if (not mmap_info.addr) {
         Logger()->debug("Empty address");
         return;
@@ -259,6 +256,7 @@ auto tio::UnmapTIFF(const mmap_info& mmap_info)
     }
 
     munmap(mmap_info.addr, mmap_info.size);
+    // TODO: Check that this works
 #endif
 }
 
