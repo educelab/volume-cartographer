@@ -571,9 +571,9 @@ TEST(TIFFIO, WriteRead16UC1MMap)
     UnmapTIFF(mmap_info);
 
     // cv::Mat memory should be invalidated
-    EXPECT_EXIT(
-        ElemT _ = result.at<ElemT>(0, 0), ::testing::KilledBySignal(SIGSEGV),
-        "");
+    ElemT a{};
+    EXPECT_EXIT(a = result.at<ElemT>(0, 0), ::testing::KilledBySignal(SIGSEGV), "");
+    EXPECT_EQ(a, 0);
 }
 
 TEST(TIFFIO, CannotWriteToMMap)
