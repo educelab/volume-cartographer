@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <cstdlib>
 #include <limits>
 #include <random>
 
@@ -8,9 +9,8 @@
 
 #include "vc/core/io/TIFFIO.hpp"
 
-#include "vc/core/util/Logging.hpp"
-
 #include "vc/core/types/Exceptions.hpp"
+#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 using namespace volcart::tiffio;
@@ -68,7 +68,7 @@ TEST(TIFFIO, WriteRead8UC1)
 {
     using ElemT = std::uint8_t;
     using PixelT = ElemT;
-    auto cvType = CV_8UC1;
+    constexpr auto cvType = CV_8UC1;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT>(img);
@@ -81,7 +81,7 @@ TEST(TIFFIO, WriteRead8UC1)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -90,7 +90,7 @@ TEST(TIFFIO, WriteRead8UC2)
 {
     using ElemT = std::uint8_t;
     using PixelT = cv::Vec<ElemT, 2>;
-    auto cvType = CV_8UC2;
+    constexpr auto cvType = CV_8UC2;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 2>(img);
@@ -103,7 +103,7 @@ TEST(TIFFIO, WriteRead8UC2)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -112,7 +112,7 @@ TEST(TIFFIO, WriteRead8UC3)
 {
     using ElemT = std::uint8_t;
     using PixelT = cv::Vec<ElemT, 3>;
-    auto cvType = CV_8UC3;
+    constexpr auto cvType = CV_8UC3;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 3>(img);
@@ -125,7 +125,7 @@ TEST(TIFFIO, WriteRead8UC3)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -134,7 +134,7 @@ TEST(TIFFIO, WriteRead8UC4)
 {
     using ElemT = std::uint8_t;
     using PixelT = cv::Vec<ElemT, 4>;
-    auto cvType = CV_8UC4;
+    constexpr auto cvType = CV_8UC4;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 4>(img);
@@ -147,7 +147,7 @@ TEST(TIFFIO, WriteRead8UC4)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -156,7 +156,7 @@ TEST(TIFFIO, WriteRead8SC1)
 {
     using ElemT = std::int8_t;
     using PixelT = ElemT;
-    auto cvType = CV_8SC1;
+    constexpr auto cvType = CV_8SC1;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 1>(img);
@@ -169,7 +169,7 @@ TEST(TIFFIO, WriteRead8SC1)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -178,7 +178,7 @@ TEST(TIFFIO, WriteRead8SC2)
 {
     using ElemT = std::int8_t;
     using PixelT = cv::Vec<ElemT, 2>;
-    auto cvType = CV_8SC2;
+    constexpr auto cvType = CV_8SC2;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 2>(img);
@@ -191,7 +191,7 @@ TEST(TIFFIO, WriteRead8SC2)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -226,7 +226,7 @@ TEST(TIFFIO, WriteRead16UC1)
 {
     using ElemT = std::uint16_t;
     using PixelT = ElemT;
-    auto cvType = CV_16UC1;
+    constexpr auto cvType = CV_16UC1;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 1>(img);
@@ -239,7 +239,7 @@ TEST(TIFFIO, WriteRead16UC1)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -248,11 +248,10 @@ TEST(TIFFIO, WriteRead16UC1MMap)
 {
     using ElemT = std::uint16_t;
     using PixelT = ElemT;
-    auto cvType = CV_16UC1;
+    constexpr auto cvType = CV_16UC1;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 1>(img);
-    logging::SetLogLevel("trace");
     const fs::path imgPath(
         "vc_core_TIFFIO_WriteRead_" + cv::typeToString(cvType) + "_MMap.tif");
     // Write uncompressed, so we can mmap() it in during reading
@@ -268,18 +267,76 @@ TEST(TIFFIO, WriteRead16UC1MMap)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 
+    // Cleanup the memory map
     UnmapTIFF(mmap_info);
+}
+
+TEST(TIFFIO, CannotWriteToMMap)
+{
+    using ElemT = std::uint16_t;
+    using PixelT = ElemT;
+    constexpr auto cvType = CV_16UC1;
+
+    cv::Mat img(::TEST_IMG_SIZE, cvType);
+    ::FillRandom<ElemT, 1>(img);
+    const fs::path imgPath("vc_core_TIFFIO_CannotWriteToMMap.tif");
+    // Write uncompressed, so we can mmap() it in during reading
+    WriteTIFF(imgPath, img, Compression::NONE);
+
+    // Mmap
+    mmap_info mmap_info;
+    auto result = ReadTIFF(imgPath, &mmap_info);
+
+    // Should fail
+    EXPECT_EXIT(
+        result = cv::Scalar(65535), ::testing::KilledBySignal(SIGBUS), "");
+
+    // Make sure nothing has changed
+    const auto equal = std::equal(
+        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
+    EXPECT_TRUE(equal);
+
+    // Cleanup the memory map
+    UnmapTIFF(mmap_info);
+}
+
+TEST(TIFFIO, MemMapUnsupportedType)
+{
+    using ElemT = std::uint8_t;
+    using PixelT = cv::Vec<ElemT, 3>;
+    constexpr auto cvType = CV_8UC3;
+
+    cv::Mat img(::TEST_IMG_SIZE, cvType);
+    ::FillRandom<ElemT, 3>(img);
+
+    const fs::path imgPath("vc_core_TIFFIO_MemMapUnsupportedType.tif");
+    WriteTIFF(imgPath, img);
+
+    logging::SetLogLevel("debug");
+    mmap_info mmap_info;
+    auto result = ReadTIFF(imgPath, &mmap_info);
+
+    // Memmap should have failed
+    EXPECT_FALSE(mmap_info);
+
+    // Make sure we've still loaded the image
+    EXPECT_EQ(result.size, img.size);
+    EXPECT_EQ(result.type(), img.type());
+
+    const auto equal = std::equal(
+        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
+    EXPECT_TRUE(equal);
 }
 
 TEST(TIFFIO, WriteRead16UC2)
 {
     using ElemT = std::uint16_t;
     using PixelT = cv::Vec<ElemT, 2>;
-    auto cvType = CV_16UC2;
+    constexpr auto cvType = CV_16UC2;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 2>(img);
@@ -292,7 +349,7 @@ TEST(TIFFIO, WriteRead16UC2)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -301,7 +358,7 @@ TEST(TIFFIO, WriteRead16UC3)
 {
     using ElemT = std::uint16_t;
     using PixelT = cv::Vec<ElemT, 3>;
-    auto cvType = CV_16UC3;
+    constexpr auto cvType = CV_16UC3;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 3>(img);
@@ -314,7 +371,7 @@ TEST(TIFFIO, WriteRead16UC3)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -323,7 +380,7 @@ TEST(TIFFIO, WriteRead16UC4)
 {
     using ElemT = std::uint16_t;
     using PixelT = cv::Vec<ElemT, 4>;
-    auto cvType = CV_16UC4;
+    constexpr auto cvType = CV_16UC4;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 4>(img);
@@ -336,7 +393,7 @@ TEST(TIFFIO, WriteRead16UC4)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -345,7 +402,7 @@ TEST(TIFFIO, WriteRead16SC1)
 {
     using ElemT = std::int16_t;
     using PixelT = ElemT;
-    auto cvType = CV_16SC1;
+    constexpr auto cvType = CV_16SC1;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 1>(img);
@@ -358,7 +415,7 @@ TEST(TIFFIO, WriteRead16SC1)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -367,7 +424,7 @@ TEST(TIFFIO, WriteRead16SC2)
 {
     using ElemT = std::int16_t;
     using PixelT = cv::Vec<ElemT, 2>;
-    auto cvType = CV_16SC2;
+    constexpr auto cvType = CV_16SC2;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 2>(img);
@@ -380,7 +437,7 @@ TEST(TIFFIO, WriteRead16SC2)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -415,7 +472,7 @@ TEST(TIFFIO, WriteRead32SC1)
 {
     using ElemT = std::int32_t;
     using PixelT = ElemT;
-    auto cvType = CV_32SC1;
+    constexpr auto cvType = CV_32SC1;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 1>(img);
@@ -428,7 +485,7 @@ TEST(TIFFIO, WriteRead32SC1)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -437,7 +494,7 @@ TEST(TIFFIO, WriteRead32SC2)
 {
     using ElemT = std::int32_t;
     using PixelT = cv::Vec<ElemT, 2>;
-    auto cvType = CV_32SC2;
+    constexpr auto cvType = CV_32SC2;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 2>(img);
@@ -450,7 +507,7 @@ TEST(TIFFIO, WriteRead32SC2)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -485,7 +542,7 @@ TEST(TIFFIO, WriteRead32FC1)
 {
     using ElemT = std::float_t;
     using PixelT = ElemT;
-    auto cvType = CV_32FC1;
+    constexpr auto cvType = CV_32FC1;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 1>(img);
@@ -498,7 +555,7 @@ TEST(TIFFIO, WriteRead32FC1)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -507,7 +564,7 @@ TEST(TIFFIO, WriteRead32FC2)
 {
     using ElemT = std::float_t;
     using PixelT = cv::Vec<ElemT, 2>;
-    auto cvType = CV_32FC2;
+    constexpr auto cvType = CV_32FC2;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 2>(img);
@@ -520,7 +577,7 @@ TEST(TIFFIO, WriteRead32FC2)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -529,7 +586,7 @@ TEST(TIFFIO, WriteRead32FC3)
 {
     using ElemT = std::float_t;
     using PixelT = cv::Vec<ElemT, 3>;
-    auto cvType = CV_32FC3;
+    constexpr auto cvType = CV_32FC3;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 3>(img);
@@ -542,7 +599,7 @@ TEST(TIFFIO, WriteRead32FC3)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
@@ -551,7 +608,7 @@ TEST(TIFFIO, WriteRead32FC4)
 {
     using ElemT = std::float_t;
     using PixelT = cv::Vec<ElemT, 4>;
-    auto cvType = CV_32FC4;
+    constexpr auto cvType = CV_32FC4;
 
     cv::Mat img(::TEST_IMG_SIZE, cvType);
     ::FillRandom<ElemT, 4>(img);
@@ -564,7 +621,7 @@ TEST(TIFFIO, WriteRead32FC4)
     EXPECT_EQ(result.size, img.size);
     EXPECT_EQ(result.type(), img.type());
 
-    auto equal = std::equal(
+    const auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }

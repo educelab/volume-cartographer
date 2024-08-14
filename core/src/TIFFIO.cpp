@@ -15,6 +15,8 @@
 // TODO: Implement memmap for Windows
 #else
 // For memmaping
+#include <cerrno>
+#include <cstring>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -139,7 +141,7 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
             }
         } else {
             volcart::Logger()->warn(
-                "[TIFFIO] RGB->BGR conversion for signed 8-bit and 16-bit "
+                "RGB->BGR conversion for signed 8-bit and 16-bit "
                 "images is not supported. Image will be loaded with RGB "
                 "element order.");
         }
@@ -148,9 +150,6 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
     return img;
 }
 
-#ifdef _MSC_VER
-// TODO: Implement memmap for Windows
-#else
 auto CanMMap(const TIFFHeader& hdr) -> bool
 {
     auto res = hdr.config == PLANARCONFIG_CONTIG;
@@ -162,31 +161,49 @@ auto CanMMap(const TIFFHeader& hdr) -> bool
     return res;
 }
 
-// Memory maps the TIF image found at path
-// File must pass CanMMap first
+#ifdef _MSC_VER
+// TODO: Implement memory mapping for Windows
+#pragma message("TIFF memory mapping is not implemented on Windows")
+#else
+// Memory maps the TIF image found at path. If memory mapping fails for any
+// reason, an error is logged and an empty cv::Mat and mmap_info is returned.
 auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
     -> std::pair<cv::Mat, tio::mmap_info>
 {
-    vc::Logger()->trace("[TIFFIO] Memory mapping file: {}", path.string());
-    // Open and mmap TIFF file
+    vc::Logger()->trace("Memory mapping file: {}", path.string());
+
+    // Open file descriptor
     const int fd = open(path.c_str(), O_RDONLY);
     if (fd == -1) {
-        throw vc::IOException("Failed to open TIFF: " + path.string());
+        vc::Logger()->debug(
+            "Failed to open file descriptor for TIFF: {}. {}", path.string(),
+            std::strerror(errno));
+        return {{}, {}};
     }
 
+    // Get file stats (namely size)
     struct stat sb {
     };
     if (fstat(fd, &sb) == -1) {
-        throw vc::IOException("Failed to fstat TIFF: " + path.string());
+        vc::Logger()->debug(
+            "Failed to fstat TIFF: {}. {}", path.string(),
+            std::strerror(errno));
+        close(fd);
+        return {{}, {}};
     }
 
+    // Memory map the file
     auto* data = mmap(nullptr, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
     if (data == MAP_FAILED) {
-        vc::Logger()->error("[TIFFIO] mmap() errno: {}", errno);
-        throw vc::IOException("Failed to mmap TIFF: " + path.string());
+        vc::Logger()->debug(
+            "Failed to mmap TIFF: {}. {}", path.string(), std::strerror(errno));
+        close(fd);
+        return {{}, {}};
     }
+    // Descriptor no longer needed
     close(fd);
 
+    // Construct a Mat
     const auto h = static_cast<int>(hdr.height);
     const auto w = static_cast<int>(hdr.width);
     const auto cvType = GetCVMatType(hdr.type, hdr.depth, hdr.channels);
@@ -217,19 +234,26 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
 #ifdef _MSC_VER
     // Read into the mat
     if (memmap) {
-        Logger()->debug("[TIFFIO] Memmap is not supported on this platform");
+        Logger()->debug("Memmap is not supported on this platform");
     }
     img = ReadImage(tif, hdr);
 #else
     // Load memmap'd image
     const auto canMMap = CanMMap(hdr);
     if (mmap_info and canMMap) {
+        // Try to mmap
         std::tie(img, *mmap_info) = MMapImage(path, hdr);
-    } else {
-        if (not canMMap) {
+        if (img.empty()) {
             Logger()->debug(
-                "[TIFFIO] Cannot memory map TIFF: {}. Image will be "
-                "read into memory instead.",
+                "Falling back to reading TIFF into memory: {}", path.string());
+            img = ReadImage(tif, hdr);
+        }
+    } else {
+        // If we requested memory mapping, log that the
+        if (mmap_info) {
+            Logger()->debug(
+                "TIFF cannot be memory mapped: {}. Image will be read into "
+                "memory instead",
                 path.string());
         }
         img = ReadImage(tif, hdr);
@@ -256,9 +280,9 @@ void tio::UnmapTIFF(const mmap_info& mmap_info)
     }
 
     munmap(mmap_info.addr, mmap_info.size);
-    // TODO: Check that this works
-#endif
+    // TODO: Check the error codes
 }
+#endif
 
 // Write a TIFF to a file. This implementation heavily borrows from how OpenCV's
 // TIFFEncoder writes to the TIFF

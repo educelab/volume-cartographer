@@ -51,6 +51,8 @@ enum class Compression : std::uint16_t {
 
 /** mmap record */
 struct mmap_info {
+    /** Whether this is a valid mapping */
+    explicit operator bool() const { return addr and size > 0; }
     /** Address of mapped memory */
     void* addr{nullptr};
     /** Size of mapped mempory */
