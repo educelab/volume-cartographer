@@ -73,22 +73,43 @@ struct mmap_info {
  * float or signed integer images), it's generally preferable to use cv::imread.
  *
  * If `mmap_info` is provided, this function will attempt to memory map the
- * TIFF file rather than reading it into memory. If successful, mmap_info will
- * contain the address and file size required to `munmap` the TIFF file.
+ * TIFF file rather than reading it into memory. If successful, `mmap_info` will
+ * contain the address and size required to unmap the file with UnmapTIFF. If
+ * memory mapping fails for any reason, this function will fallback to loading
+ * the image into memory, and `mmap_info` will be empty. This can be checked
+ * with `mmap_info::operator bool()`:
  *
- * @warning Memory mapped files will not be unmapped automatically and memory
- * will be leaked when the cv::Mat is deleted if you do not call `munmap()`.
+ * ```{.cpp}
+ * tiffio::mmap_info info;
+ * auto img = tiffio::ReadTIFF("image.tif", &info);
+ * if(not info) {
+ *   // handle memory mapping failed
+ * }
+ * ```
  *
- * @note Memory mapping is not implemented for MSVC.
+ * @warning Memory mapped files will not be unmapped automatically. When done
+ * with a memory mapped TIFF, call UnmapTIFF to unmap the file. Failing to do
+ * so will result in memory leaks.
+ *
+ * @note Memory mapping is currently implemented for Linux and macOS systems.
  *
  * @param path Path to TIFF file
- * @param mmap_info mmap info needed to unmap the file
+ * @param mmap_info mmap_info needed to unmap the file
  * @throws volcart::IOException Unrecoverable read errors
  */
 auto ReadTIFF(const filesystem::path& path, mmap_info* mmap_info = nullptr)
     -> cv::Mat;
 
-void UnmapTIFF(const mmap_info& mmap_info);
+/**
+ * @brief Unmap a memory mapped TIFF file
+ *
+ * On success, returns 0. If `mmap_info.addr == nullptr`, `mmap_info.size <= 0`,
+ * or memory mapping is unsupported by the platform, does nothing and returns
+ * -1. If unmapping fails, logs an error and returns a platform-specific error
+ * code:
+ *  - (Linux/macOS) Returns errno set by munmap.
+ */
+auto UnmapTIFF(const mmap_info& mmap_info) -> int;
 
 /**
  * @brief Write a TIFF image to file

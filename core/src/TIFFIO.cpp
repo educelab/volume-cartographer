@@ -11,18 +11,6 @@
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
 
-#ifdef _MSC_VER
-// TODO: Implement memmap for Windows
-#else
-// For memmaping
-#include <cerrno>
-#include <cstring>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
-
 // Wrapping in a namespace to avoid define collisions
 namespace lt
 {
@@ -150,6 +138,7 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
     return img;
 }
 
+// Returns whether this TIFF file is encoded for memory mapping
 auto CanMMap(const TIFFHeader& hdr) -> bool
 {
     auto res = hdr.config == PLANARCONFIG_CONTIG;
@@ -160,11 +149,23 @@ auto CanMMap(const TIFFHeader& hdr) -> bool
     res &= hdr.rowsPerStrip == hdr.height;
     return res;
 }
+}  // namespace
 
-#ifdef _MSC_VER
-// TODO: Implement memory mapping for Windows
-#pragma message("TIFF memory mapping is not implemented on Windows")
-#else
+///// Platform-specific memory mapping /////
+// Linux/macOS
+#if defined(__linux__) || defined(__APPLE__) && defined(__MACH__)
+#include <cerrno>
+#include <cstring>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+namespace
+{
+// mmap is available on this platform
+constexpr bool MEMMAP_AVAILABLE = true;
+
 // Memory maps the TIF image found at path. If memory mapping fails for any
 // reason, an error is logged and an empty cv::Mat and mmap_info is returned.
 auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
@@ -210,9 +211,43 @@ auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
     cv::Mat img(h, w, cvType, static_cast<char*>(data) + hdr.stripOffsets[0]);
     return {img, {.addr = data, .size = sb.st_size}};
 }
-#endif
-
 }  // namespace
+
+auto tio::UnmapTIFF(const mmap_info& mmap_info) -> int
+{
+    if (not mmap_info.addr) {
+        Logger()->debug("Empty address");
+        return -1;
+    }
+    if (mmap_info.size < 1) {
+        Logger()->debug("Invalid mapping size: {}", mmap_info.size);
+        return -1;
+    }
+
+    const auto err = munmap(mmap_info.addr, mmap_info.size);
+    int res{0};
+    if (err == -1) {
+        res = errno;
+        Logger()->error("Failed to unmap file: {}", std::strerror(res));
+    }
+    return res;
+}
+
+#else
+// All unsupported platforms
+#pragma message("TIFF memory mapping is not implemented on this plaform")
+namespace
+{
+constexpr bool MEMMAP_AVAILABLE = false;
+auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
+    -> std::pair<cv::Mat, tio::mmap_info>
+{
+    return {{}, {}};
+}
+}  // namespace
+auto tio::UnmapTIFF(const mmap_info& mmap_info) -> int { return -1; }
+#endif
+////////////////////////////////////////////////
 
 auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
 {
@@ -231,16 +266,8 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
     const auto hdr = ReadHeader(tif);
     cv::Mat img;
 
-#ifdef _MSC_VER
-    // Read into the mat
-    if (memmap) {
-        Logger()->debug("Memmap is not supported on this platform");
-    }
-    img = ReadImage(tif, hdr);
-#else
     // Load memmap'd image
-    const auto canMMap = CanMMap(hdr);
-    if (mmap_info and canMMap) {
+    if (MEMMAP_AVAILABLE and mmap_info and CanMMap(hdr)) {
         // Try to mmap
         std::tie(img, *mmap_info) = MMapImage(path, hdr);
         if (img.empty()) {
@@ -249,8 +276,8 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
             img = ReadImage(tif, hdr);
         }
     } else {
-        // If we requested memory mapping, log that the
-        if (mmap_info) {
+        // If we requested memory mapping (and it's available), log the failure
+        if (MEMMAP_AVAILABLE and mmap_info) {
             Logger()->debug(
                 "TIFF cannot be memory mapped: {}. Image will be read into "
                 "memory instead",
@@ -258,31 +285,11 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
         }
         img = ReadImage(tif, hdr);
     }
-#endif
 
     // Close the tif file
     lt::TIFFClose(tif);
     return img;
 }
-
-#ifdef _MSC_VER
-void tio::UnmapTIFF(const mmap_info& mmap_info) {}
-#else
-void tio::UnmapTIFF(const mmap_info& mmap_info)
-{
-    if (not mmap_info.addr) {
-        Logger()->debug("Empty address");
-        return;
-    }
-    if (mmap_info.size < 1) {
-        Logger()->debug("Invalid mapping size: {}", mmap_info.size);
-        return;
-    }
-
-    munmap(mmap_info.addr, mmap_info.size);
-    // TODO: Check the error codes
-}
-#endif
 
 // Write a TIFF to a file. This implementation heavily borrows from how OpenCV's
 // TIFFEncoder writes to the TIFF

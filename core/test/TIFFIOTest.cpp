@@ -244,94 +244,6 @@ TEST(TIFFIO, WriteRead16UC1)
     EXPECT_TRUE(equal);
 }
 
-TEST(TIFFIO, WriteRead16UC1MMap)
-{
-    using ElemT = std::uint16_t;
-    using PixelT = ElemT;
-    constexpr auto cvType = CV_16UC1;
-
-    cv::Mat img(::TEST_IMG_SIZE, cvType);
-    ::FillRandom<ElemT, 1>(img);
-    const fs::path imgPath(
-        "vc_core_TIFFIO_WriteRead_" + cv::typeToString(cvType) + "_MMap.tif");
-    // Write uncompressed, so we can mmap() it in during reading
-    WriteTIFF(imgPath, img, Compression::NONE);
-
-    // Mmap
-    mmap_info mmap_info;
-
-    auto result = ReadTIFF(imgPath, &mmap_info);
-
-    EXPECT_NE(mmap_info.addr, nullptr);
-    EXPECT_GT(mmap_info.size, 0);
-    EXPECT_EQ(result.size, img.size);
-    EXPECT_EQ(result.type(), img.type());
-
-    const auto equal = std::equal(
-        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
-    EXPECT_TRUE(equal);
-
-    // Cleanup the memory map
-    UnmapTIFF(mmap_info);
-}
-
-TEST(TIFFIO, CannotWriteToMMap)
-{
-    using ElemT = std::uint16_t;
-    using PixelT = ElemT;
-    constexpr auto cvType = CV_16UC1;
-
-    cv::Mat img(::TEST_IMG_SIZE, cvType);
-    ::FillRandom<ElemT, 1>(img);
-    const fs::path imgPath("vc_core_TIFFIO_CannotWriteToMMap.tif");
-    // Write uncompressed, so we can mmap() it in during reading
-    WriteTIFF(imgPath, img, Compression::NONE);
-
-    // Mmap
-    mmap_info mmap_info;
-    auto result = ReadTIFF(imgPath, &mmap_info);
-
-    // Should fail
-    EXPECT_EXIT(
-        result = cv::Scalar(65535), ::testing::KilledBySignal(SIGBUS), "");
-
-    // Make sure nothing has changed
-    const auto equal = std::equal(
-        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
-    EXPECT_TRUE(equal);
-
-    // Cleanup the memory map
-    UnmapTIFF(mmap_info);
-}
-
-TEST(TIFFIO, MemMapUnsupportedType)
-{
-    using ElemT = std::uint8_t;
-    using PixelT = cv::Vec<ElemT, 3>;
-    constexpr auto cvType = CV_8UC3;
-
-    cv::Mat img(::TEST_IMG_SIZE, cvType);
-    ::FillRandom<ElemT, 3>(img);
-
-    const fs::path imgPath("vc_core_TIFFIO_MemMapUnsupportedType.tif");
-    WriteTIFF(imgPath, img);
-
-    logging::SetLogLevel("debug");
-    mmap_info mmap_info;
-    auto result = ReadTIFF(imgPath, &mmap_info);
-
-    // Memmap should have failed
-    EXPECT_FALSE(mmap_info);
-
-    // Make sure we've still loaded the image
-    EXPECT_EQ(result.size, img.size);
-    EXPECT_EQ(result.type(), img.type());
-
-    const auto equal = std::equal(
-        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
-    EXPECT_TRUE(equal);
-}
-
 TEST(TIFFIO, WriteRead16UC2)
 {
     using ElemT = std::uint16_t;
@@ -625,3 +537,126 @@ TEST(TIFFIO, WriteRead32FC4)
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 }
+
+//// Memory mapping tests ////
+#if defined(__linux__) || defined(__APPLE__) && defined(__MACH__)
+TEST(TIFFIO, WriteRead16UC1MMap)
+{
+    using ElemT = std::uint16_t;
+    using PixelT = ElemT;
+    constexpr auto cvType = CV_16UC1;
+
+    cv::Mat img(::TEST_IMG_SIZE, cvType);
+    ::FillRandom<ElemT, 1>(img);
+    const fs::path imgPath(
+        "vc_core_TIFFIO_WriteRead_" + cv::typeToString(cvType) + "_MMap.tif");
+    // Write uncompressed, so we can mmap() it in during reading
+    WriteTIFF(imgPath, img, Compression::NONE);
+
+    // Mmap
+    mmap_info mmap_info;
+
+    auto result = ReadTIFF(imgPath, &mmap_info);
+
+    EXPECT_NE(mmap_info.addr, nullptr);
+    EXPECT_GT(mmap_info.size, 0);
+    EXPECT_EQ(result.size, img.size);
+    EXPECT_EQ(result.type(), img.type());
+
+    const auto equal = std::equal(
+        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
+    EXPECT_TRUE(equal);
+
+    // Cleanup the memory map
+    UnmapTIFF(mmap_info);
+
+    // cv::Mat memory should be invalidated
+    EXPECT_EXIT(
+        ElemT _ = result.at<ElemT>(0, 0), ::testing::KilledBySignal(SIGSEGV),
+        "");
+}
+
+TEST(TIFFIO, CannotWriteToMMap)
+{
+    using ElemT = std::uint16_t;
+    using PixelT = ElemT;
+    constexpr auto cvType = CV_16UC1;
+
+    cv::Mat img(::TEST_IMG_SIZE, cvType);
+    ::FillRandom<ElemT, 1>(img);
+    const fs::path imgPath("vc_core_TIFFIO_CannotWriteToMMap.tif");
+    // Write uncompressed, so we can mmap() it in during reading
+    WriteTIFF(imgPath, img, Compression::NONE);
+
+    // Mmap
+    mmap_info mmap_info;
+    auto result = ReadTIFF(imgPath, &mmap_info);
+
+    // Should fail
+    EXPECT_EXIT(
+        result = cv::Scalar(65535), ::testing::KilledBySignal(SIGBUS), "");
+
+    // Make sure nothing has changed
+    const auto equal = std::equal(
+        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
+    EXPECT_TRUE(equal);
+
+    // Cleanup the memory map
+    UnmapTIFF(mmap_info);
+}
+
+TEST(TIFFIO, MemMapUnsupportedType)
+{
+    using ElemT = std::uint8_t;
+    using PixelT = cv::Vec<ElemT, 3>;
+    constexpr auto cvType = CV_8UC3;
+
+    cv::Mat img(::TEST_IMG_SIZE, cvType);
+    ::FillRandom<ElemT, 3>(img);
+
+    const fs::path imgPath("vc_core_TIFFIO_MemMapUnsupportedType.tif");
+    WriteTIFF(imgPath, img);
+
+    mmap_info mmap_info;
+    auto result = ReadTIFF(imgPath, &mmap_info);
+
+    // Memmap should have failed
+    EXPECT_FALSE(mmap_info);
+
+    // Make sure we've still loaded the image
+    EXPECT_EQ(result.size, img.size);
+    EXPECT_EQ(result.type(), img.type());
+
+    const auto equal = std::equal(
+        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
+    EXPECT_TRUE(equal);
+}
+#else
+TEST(TIFFIO, MemMapUnsupportedPlatform)
+{
+    using ElemT = std::uint8_t;
+    using PixelT = cv::Vec<ElemT, 3>;
+    constexpr auto cvType = CV_8UC3;
+
+    cv::Mat img(::TEST_IMG_SIZE, cvType);
+    ::FillRandom<ElemT, 3>(img);
+
+    const fs::path imgPath("vc_core_TIFFIO_MemMapUnsupportedPlatform.tif");
+    WriteTIFF(imgPath, img);
+
+    logging::SetLogLevel("debug");
+    mmap_info mmap_info;
+    auto result = ReadTIFF(imgPath, &mmap_info);
+
+    // Memmap should have failed
+    EXPECT_FALSE(mmap_info);
+
+    // Make sure we've still loaded the image
+    EXPECT_EQ(result.size, img.size);
+    EXPECT_EQ(result.type(), img.type());
+
+    const auto equal = std::equal(
+        result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
+    EXPECT_TRUE(equal);
+}
+#endif
