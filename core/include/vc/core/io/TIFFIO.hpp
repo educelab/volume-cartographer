@@ -15,6 +15,7 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/util/Memmap.hpp"
 
 namespace volcart::tiffio
 {
@@ -47,16 +48,6 @@ enum class Compression : std::uint16_t {
     SGILOG = 34676,
     SGILOG24 = 34677,
     JP2000 = 34712
-};
-
-/** mmap record */
-struct mmap_info {
-    /** Whether this is a valid mapping */
-    explicit operator bool() const { return addr and size > 0; }
-    /** Address of mapped memory */
-    void* addr{nullptr};
-    /** Size of mapped mempory */
-    std::int64_t size{-1};
 };
 
 /**

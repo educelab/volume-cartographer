@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
+#include <utility>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/BoundingBox.hpp"
@@ -12,6 +14,7 @@
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 #include "vc/core/types/LRUCache.hpp"
 #include "vc/core/types/Reslice.hpp"
+#include "vc/core/util/Memmap.hpp"
 
 namespace volcart
 {
@@ -38,11 +41,14 @@ public:
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Volume>;
 
+    /** Slice item type */
+    using SliceItem = std::pair<cv::Mat, std::optional<mmap_info>>;
+
     /** Slice cache type */
-    using SliceCache = Cache<int, cv::Mat>;
+    using SliceCache = Cache<int, SliceItem>;
 
     /** Default slice cache type */
-    using DefaultCache = LRUCache<int, cv::Mat, NoOpMutex>;
+    using DefaultCache = LRUCache<int, SliceItem, NoOpMutex>;
 
     /** Default slice cache capacity */
     static constexpr std::size_t DEFAULT_CAPACITY = 200;
@@ -107,6 +113,15 @@ public:
     /**@}*/
 
     /**@{*/
+    /**
+     * @brief Whether to memory map slices rather than loading into memory
+     *
+     * When enabled, the Volume will attempt to memory map slice images rather
+     * than reading them into memory. This is currently only supported when
+     * slice caching is enabled as well.
+     */
+    void setMemoryMapSlices(bool b);
+
     /**
      * @brief Get a slice by index number
      *
@@ -222,8 +237,10 @@ protected:
     /** Per-slice mutexes */
     mutable std::vector<std::mutex> sliceMutexes_;
 
+    /** Whether to memmap slices */
+    bool memmap_{true};
     /** Load slice from disk */
-    cv::Mat load_slice_(int index) const;
+    cv::Mat load_slice_(int index, mmap_info* mmap_info = nullptr) const;
     /** Load slice from cache */
     cv::Mat cache_slice_(int index) const;
 };

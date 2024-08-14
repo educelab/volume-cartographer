@@ -13,6 +13,26 @@ namespace tio = volcart::tiffio;
 
 using namespace volcart;
 
+namespace
+{
+auto OnEject(int& key, Volume::SliceItem& value) -> bool
+{
+    auto& [img, mmapInfo] = value;
+
+    // Can't eject if there are still references
+    if (img.u and img.u->refcount > 0) {
+        Logger()->trace("Slice {} still has references", key);
+        return false;
+    }
+    // Unmap the file
+    Logger()->trace("Unmapping slice {}", key);
+    if (mmapInfo.has_value() and mmapInfo.value()) {
+        tio::UnmapTIFF(mmapInfo.value());
+    }
+    return true;
+}
+}  // namespace
+
 // Load a Volume from disk
 Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
 {
@@ -25,6 +45,7 @@ Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
     slices_ = metadata_.get<int>("slices").value();
     numSliceCharacters_ = static_cast<int>(std::to_string(slices_).size());
     sliceMutexes_ = std::vector<std::mutex>(slices_);
+    cache_->onEject(OnEject);
 }
 
 // Set up a Volume from a folder of slices
@@ -39,6 +60,7 @@ Volume::Volume(fs::path path, std::string uuid, std::string name)
     metadata_.set("voxelsize", double{});
     metadata_.set("min", double{});
     metadata_.set("max", double{});
+    cache_->onEject(OnEject);
 }
 
 // Load a Volume from disk, return a pointer
@@ -116,6 +138,8 @@ auto Volume::isInBounds(const cv::Vec3d& v) const -> bool
     return isInBounds(v(0), v(1), v(2));
 }
 
+void Volume::setMemoryMapSlices(const bool b) { memmap_ = b; }
+
 auto Volume::getSlicePath(const int index) const -> fs::path
 {
     std::stringstream ss;
@@ -129,6 +153,8 @@ auto Volume::getSliceData(const int index) const -> cv::Mat
     if (cacheSlices_) {
         return cache_slice_(index);
     }
+    // Never memory map if caching is disabled. This is mostly because there's
+    // currently not a good way to clean up the mmap_info when not caching.
     return load_slice_(index);
 }
 
@@ -141,7 +167,7 @@ auto Volume::getSliceDataRect(const int index, const cv::Rect rect) const
     -> cv::Mat
 {
     const auto whole_img = getSliceData(index);
-    std::shared_lock<std::shared_mutex> lock(cacheMutex_);
+    std::shared_lock lock(cacheMutex_);
     return whole_img(rect);
 }
 
@@ -149,7 +175,7 @@ auto Volume::getSliceDataRectCopy(const int index, const cv::Rect rect) const
     -> cv::Mat
 {
     const auto whole_img = getSliceData(index);
-    std::shared_lock<std::shared_mutex> lock(cacheMutex_);
+    std::shared_lock lock(cacheMutex_);
     return whole_img(rect).clone();
 }
 
@@ -159,7 +185,7 @@ void Volume::setSliceData(
     const auto slicePath = getSlicePath(index);
     tio::WriteTIFF(
         slicePath.string(), slice,
-        (compress) ? tiffio::Compression::LZW : tiffio::Compression::NONE);
+        compress ? tiffio::Compression::LZW : tiffio::Compression::NONE);
 }
 
 auto Volume::intensityAt(const int x, const int y, const int z) const
@@ -249,6 +275,7 @@ void Volume::setCache(SliceCache::Pointer c) const
 {
     std::unique_lock lock(cacheMutex_);
     cache_ = std::move(c);
+    cache_->onEject(OnEject);
 }
 
 void Volume::setCacheCapacity(const std::size_t newCacheCapacity) const
@@ -271,13 +298,13 @@ auto Volume::getCacheCapacity() const -> std::size_t
 
 auto Volume::getCacheSize() const -> std::size_t { return cache_->size(); }
 
-auto Volume::load_slice_(int index) const -> cv::Mat
+auto Volume::load_slice_(int index, mmap_info* mmap_info) const -> cv::Mat
 {
     Logger()->info("Requested load slice: {}", index);
     const auto slicePath = getSlicePath(index);
     cv::Mat mat;
     try {
-        mat = tio::ReadTIFF(slicePath.string());
+        mat = tio::ReadTIFF(slicePath.string(), mmap_info);
     } catch (const std::runtime_error& e) {
         Logger()->warn("Failed to load slice {}: {}", index, e.what());
     }
@@ -290,7 +317,7 @@ auto Volume::cache_slice_(const int index) const -> cv::Mat
     {
         std::shared_lock lock(cacheMutex_);
         if (cache_->contains(index)) {
-            return cache_->get(index);
+            return cache_->get(index).first;
         }
     }
 
@@ -306,14 +333,23 @@ auto Volume::cache_slice_(const int index) const -> cv::Mat
         {
             std::shared_lock lockCache(cacheMutex_);
             if (cache_->contains(index)) {
-                return cache_->get(index);
+                return cache_->get(index).first;
             }
         }
 
         // Load the slice and put it in the cache
-        auto slice = load_slice_(index);
+        cv::Mat slice;
+        std::optional<mmap_info> mmapInfo;
+        // If memory mapping, get the mmap_info too
+        if (memmap_) {
+            mmap_info i;
+            slice = load_slice_(index, &i);
+            mmapInfo = i;
+        } else {
+            slice = load_slice_(index);
+        }
         std::unique_lock lockCache(cacheMutex_);
-        cache_->put(index, slice);
+        cache_->put(index, {slice, mmapInfo});
         return slice;
     }
 }

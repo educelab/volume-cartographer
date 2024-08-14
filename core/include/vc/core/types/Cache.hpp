@@ -3,6 +3,7 @@
 /** @file */
 
 #include <cstddef>
+#include <functional>
 
 namespace volcart
 {
@@ -43,6 +44,9 @@ public:
     /** @brief Check if an item is already in the cache */
     virtual auto contains(const TKey& k) -> bool = 0;
 
+    /** @brief Optional callback function to cleanup ejected items */
+    auto onEject(std::function<bool(TKey&, TValue&)> fn) { on_eject_ = fn; }
+
     /** @brief Clear the cache */
     virtual auto purge() -> void = 0;
     /**@}*/
@@ -56,5 +60,8 @@ protected:
 
     /** Maximum number of elements in the cache */
     std::size_t capacity_{200};
+
+    /** Callback to verify if an entry can be ejected */
+    std::function<bool(TKey&, TValue&)> on_eject_;
 };
 }  // namespace volcart

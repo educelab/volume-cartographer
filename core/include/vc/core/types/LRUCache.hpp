@@ -16,11 +16,6 @@ namespace volcart
 
 /** No-op mutex */
 struct NoOpMutex {
-    void lock() {}
-    auto try_lock() -> bool { return true; }
-    void unlock() {}
-    void lock_shared() {}
-    void unlock_shared() {}
 };
 
 /**
@@ -97,14 +92,7 @@ public:
                 "Cannot create cache with capacity <= 0");
         }
         capacity_ = capacity;
-
-        // Cleanup elements that exceed the capacity
-        while (lookup_.size() > capacity_) {
-            auto last = std::end(items_);
-            --last;
-            lookup_.erase(last->first);
-            items_.pop_back();
-        }
+        ejectToCapacity_();
     }
 
     /** @brief Get the maximum number of elements in the cache */
@@ -141,13 +129,7 @@ public:
 
         items_.push_front(TPair(k, v));
         lookup_[k] = std::begin(items_);
-
-        if (lookup_.size() > capacity_) {
-            auto last = std::end(items_);
-            --last;
-            lookup_.erase(last->first);
-            items_.pop_back();
-        }
+        ejectToCapacity_();
     }
 
     /** @brief Check if an item is already in the cache */
@@ -161,8 +143,24 @@ public:
     void purge() override
     {
         std::unique_lock lock(cache_mutex_);
-        lookup_.clear();
-        items_.clear();
+        // If we have an on_eject_ function, check every item
+        std::size_t cnt{0};
+        if (BaseClass::on_eject_) {
+            for (auto& [key, value] : items_) {
+                if (BaseClass::on_eject_(key, value)) {
+                    lookup_.erase(key);
+                    items_.pop_front();
+                    ++cnt;
+                }
+            }
+        }
+
+        // Otherwise, remove everything
+        else {
+            cnt = items_.size();
+            lookup_.clear();
+            items_.clear();
+        }
     }
     /**@}*/
 
@@ -173,5 +171,34 @@ private:
     std::unordered_map<TKey, TListIterator> lookup_;
     /** Shared mutex for thread-safe access */
     mutable TMutex cache_mutex_;
+    /** Eject items until capacity is reached */
+    void ejectToCapacity_()
+    {
+        // Count of ejected items
+        std::size_t cnt{0};
+        for (auto it = items_.rbegin(); it != items_.rend();) {
+            // Check if this item can be ejected
+            auto& [key, value] = *it;
+            bool canEject{true};
+            if (BaseClass::on_eject_) {
+                canEject = BaseClass::on_eject_(key, value);
+            }
+
+            // Eject this item
+            if (canEject) {
+                lookup_.erase(key);
+                it = std::next(it);
+                items_.erase(it.base());  // TODO: Verify this
+                ++cnt;
+            } else {
+                ++it;
+            }
+
+            // Stop when we've reset to capacity
+            if (lookup_.size() < capacity_) {
+                break;
+            }
+        }
+    }
 };
 }  // namespace volcart

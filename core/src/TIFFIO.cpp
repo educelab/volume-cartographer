@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <utility>
 
 #include <opencv2/imgproc.hpp>
 
@@ -169,7 +170,7 @@ constexpr bool MEMMAP_AVAILABLE = true;
 // Memory maps the TIF image found at path. If memory mapping fails for any
 // reason, an error is logged and an empty cv::Mat and mmap_info is returned.
 auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
-    -> std::pair<cv::Mat, tio::mmap_info>
+    -> std::pair<cv::Mat, vc::mmap_info>
 {
     vc::Logger()->trace("Memory mapping file: {}", path.string());
 
