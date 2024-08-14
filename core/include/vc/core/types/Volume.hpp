@@ -58,11 +58,13 @@ public:
     Volume(filesystem::path path, Identifier uuid, std::string name);
 
     /** @overload Volume(volcart::filesystem::path) */
-    static auto New(filesystem::path path) -> Pointer;
+    static auto New(const filesystem::path& path) -> Pointer;
 
     /** @overload Volume(volcart::filesystem::path, Identifier, std::string) */
-    static auto New(filesystem::path path, Identifier uuid, std::string name)
-        -> Pointer;
+    static auto New(
+        const filesystem::path& path,
+        const Identifier& uuid,
+        const std::string& name) -> Pointer;
     /**@}*/
 
     /**@{*/
@@ -130,7 +132,8 @@ public:
      *
      * @warning This will overwrite any existing slice data on disk.
      */
-    void setSliceData(int index, const cv::Mat& slice, bool compress = true);
+    void setSliceData(
+        int index, const cv::Mat& slice, bool compress = true) const;
 
     /** @brief Get the file path of a slice by index */
     auto getSlicePath(int index) const -> filesystem::path;
