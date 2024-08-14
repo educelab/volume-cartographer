@@ -104,7 +104,7 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
     cv::Mat img = cv::Mat::zeros(h, w, cvType);
 
     // Read the rows
-    const auto bufferSize = static_cast<size_t>(lt::TIFFScanlineSize(tif));
+    const auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(tif));
     std::vector<char> buffer(bufferSize + 4);
     if (hdr.config == PLANARCONFIG_CONTIG) {
         for (auto row = 0; row < hdr.height; row++) {
@@ -112,7 +112,7 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
             std::memcpy(img.ptr(row), &buffer[0], bufferSize);
         }
     } else if (hdr.config == PLANARCONFIG_SEPARATE) {
-        throw volcart::IOException(
+        throw vc::IOException(
             "Unsupported TIFF planar configuration: PLANARCONFIG_SEPARATE");
     }
 
@@ -128,7 +128,7 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
                 cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
             }
         } else {
-            volcart::Logger()->warn(
+            vc::Logger()->warn(
                 "RGB->BGR conversion for signed 8-bit and 16-bit "
                 "images is not supported. Image will be loaded with RGB "
                 "element order.");
