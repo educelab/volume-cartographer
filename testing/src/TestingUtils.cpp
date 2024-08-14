@@ -36,3 +36,12 @@ void vctest::AssertNear(
         std::fabs((observed + expected) / 2 + pctDiffTolerance / 100);
     ASSERT_NEAR(observed, expected, absError);
 }
+
+auto vctest::KilledByAnyOfSignal::operator()(int exit_status) const -> bool
+{
+    bool res{false};
+    for (const auto& s : signals_) {
+        res = res or ::testing::KilledBySignal(s)(exit_status);
+    }
+    return res;
+}

@@ -11,9 +11,11 @@
 
 #include "vc/core/types/Exceptions.hpp"
 #include "vc/core/util/Logging.hpp"
+#include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart;
 using namespace volcart::tiffio;
+using namespace volcart::testing;
 namespace fs = volcart::filesystem;
 
 namespace
@@ -594,7 +596,7 @@ TEST(TIFFIO, CannotWriteToMMap)
 
     // Should fail
     EXPECT_EXIT(
-        result = cv::Scalar(65535), ::testing::KilledBySignal(SIGBUS), "");
+        result = cv::Scalar(65535), KilledByAnyOfSignal(SIGBUS, SIGSEGV), "");
 
     // Make sure nothing has changed
     const auto equal = std::equal(
