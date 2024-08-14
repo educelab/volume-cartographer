@@ -65,15 +65,14 @@ public:
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static auto New(const filesystem::path& fileLocation, int version)
-        -> Pointer;
+    static auto New(const filesystem::path& path, int version) -> Pointer;
 
     /**
      * @copybrief VolumePkg(filesystem::path fileLocation)
      *
      * Returns a shared pointer to the VolumePkg.
      */
-    static auto New(const filesystem::path& fileLocation) -> Pointer;
+    static auto New(const filesystem::path& path) -> Pointer;
     /**@}*/
 
     /** @name Metadata */
@@ -168,14 +167,14 @@ public:
     auto newVolume(std::string name = "") -> Volume::Pointer;
 
     /** @brief Get the first Volume */
-    [[nodiscard]] auto volume() const -> const Volume::Pointer;
+    [[nodiscard]] auto volume() const -> Volume::Pointer;
 
     /** @copydoc volume() const */
     auto volume() -> Volume::Pointer;
 
     /** @brief Get a Volume by uuid */
     [[nodiscard]] auto volume(const Volume::Identifier& id) const
-        -> const Volume::Pointer;
+        -> Volume::Pointer;
 
     /** @copydoc VolumePkg::volume(const Volume::Identifier&) const */
     auto volume(const Volume::Identifier& id) -> Volume::Pointer;
@@ -184,10 +183,10 @@ public:
     /** @name Segmentation Data */
     /**@{*/
     /** @brief Return whether there are Segmentations */
-    auto hasSegmentations() const -> bool;
+    [[nodiscard]] auto hasSegmentations() const -> bool;
 
     /** @brief Get the number of Segmentations */
-    auto numberOfSegmentations() const -> std::size_t;
+    [[nodiscard]] auto numberOfSegmentations() const -> std::size_t;
 
     /** @brief Get the list of Segmentation IDs */
     [[nodiscard]] auto segmentationIDs() const
@@ -224,7 +223,7 @@ public:
 
     /** @brief Get a Segmentation by uuid */
     [[nodiscard]] auto segmentation(const Segmentation::Identifier& id) const
-        -> const Segmentation::Pointer;
+        -> Segmentation::Pointer;
 
     /** @copydoc VolumePkg::segmentation(const Segmentation::Identifier&) const
      */
@@ -256,7 +255,7 @@ public:
 
     /** @brief Get a Render by uuid */
     [[nodiscard]] auto render(const Render::Identifier& id) const
-        -> const Render::Pointer;
+        -> Render::Pointer;
 
     /** @copydoc VolumePkg::render(const Render::Identifier&) const */
     auto render(const Render::Identifier& id) -> Render::Pointer;
