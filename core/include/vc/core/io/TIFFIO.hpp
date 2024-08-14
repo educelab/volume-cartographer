@@ -65,7 +65,7 @@ enum class Compression : std::uint16_t {
  *
  * If `mmap_info` is provided, this function will attempt to memory map the
  * TIFF file rather than reading it into memory. If successful, `mmap_info` will
- * contain the address and size required to unmap the file with UnmapTIFF. If
+ * contain the address and size required to unmap the file with UnmapFile. If
  * memory mapping fails for any reason, this function will fallback to loading
  * the image into memory, and `mmap_info` will be empty. This can be checked
  * with `mmap_info::operator bool()`:
@@ -79,7 +79,7 @@ enum class Compression : std::uint16_t {
  * ```
  *
  * @warning Memory mapped files will not be unmapped automatically. When done
- * with a memory mapped TIFF, call UnmapTIFF to unmap the file. Failing to do
+ * with a memory mapped TIFF, call UnmapFile to unmap the file. Failing to do
  * so will result in memory leaks.
  *
  * @note Memory mapping is currently implemented for Linux and macOS systems.
@@ -90,17 +90,6 @@ enum class Compression : std::uint16_t {
  */
 auto ReadTIFF(const filesystem::path& path, mmap_info* mmap_info = nullptr)
     -> cv::Mat;
-
-/**
- * @brief Unmap a memory mapped TIFF file
- *
- * On success, returns 0. If `mmap_info.addr == nullptr`, `mmap_info.size <= 0`,
- * or memory mapping is unsupported by the platform, does nothing and returns
- * -1. If unmapping fails, logs an error and returns a platform-specific error
- * code:
- *  - (Linux/macOS) Returns errno set by munmap.
- */
-auto UnmapTIFF(const mmap_info& mmap_info) -> int;
 
 /**
  * @brief Write a TIFF image to file

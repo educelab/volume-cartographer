@@ -541,7 +541,7 @@ TEST(TIFFIO, WriteRead32FC4)
 }
 
 //// Memory mapping tests ////
-#if defined(__linux__) || defined(__APPLE__) && defined(__MACH__)
+#ifdef VC_MEMMAP_SUPPORTED
 TEST(TIFFIO, WriteRead16UC1MMap)
 {
     using ElemT = std::uint16_t;
@@ -570,7 +570,7 @@ TEST(TIFFIO, WriteRead16UC1MMap)
     EXPECT_TRUE(equal);
 
     // Cleanup the memory map
-    UnmapTIFF(mmap_info);
+    UnmapFile(mmap_info);
 
     // cv::Mat memory should be invalidated
     ElemT a{};
@@ -604,7 +604,7 @@ TEST(TIFFIO, CannotWriteToMMap)
     EXPECT_TRUE(equal);
 
     // Cleanup the memory map
-    UnmapTIFF(mmap_info);
+    UnmapFile(mmap_info);
 }
 
 TEST(TIFFIO, MemMapUnsupportedType)

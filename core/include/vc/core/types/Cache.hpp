@@ -44,8 +44,8 @@ public:
     /** @brief Check if an item is already in the cache */
     virtual auto contains(const TKey& k) -> bool = 0;
 
-    /** @brief Optional callback function to cleanup ejected items */
-    auto onEject(std::function<bool(TKey&, TValue&)> fn) { on_eject_ = fn; }
+    /** @brief Callback function when items are ejected */
+    virtual void onEject(std::function<bool(TKey&, TValue&)> fn) = 0;
 
     /** @brief Clear the cache */
     virtual auto purge() -> void = 0;

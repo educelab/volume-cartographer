@@ -139,6 +139,13 @@ public:
         return lookup_.find(k) != std::end(lookup_);
     }
 
+    /** @brief Set a callback function for validating if an item can be ejected
+     */
+    void onEject(std::function<bool(TKey&, TValue&)> fn) override
+    {
+        BaseClass::on_eject_ = fn;
+    }
+
     /** @brief Clear the cache */
     void purge() override
     {

@@ -60,6 +60,7 @@ set(util_srcs
     src/ImageConversion.cpp
     src/ApplyLUT.cpp
     src/ColorMaps.cpp
+    src/Memmap.cpp
 )
 
 set(logging_srcs

@@ -24,10 +24,10 @@ auto OnEject(int& key, Volume::SliceItem& value) -> bool
         Logger()->trace("Slice {} still has references", key);
         return false;
     }
-    // Unmap the file
+    // Explicitly unmap the file
     Logger()->trace("Unmapping slice {}", key);
     if (mmapInfo.has_value() and mmapInfo.value()) {
-        tio::UnmapTIFF(mmapInfo.value());
+        UnmapFile(mmapInfo.value());
     }
     return true;
 }

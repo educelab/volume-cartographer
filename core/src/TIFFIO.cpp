@@ -150,105 +150,31 @@ auto CanMMap(const TIFFHeader& hdr) -> bool
     res &= hdr.rowsPerStrip == hdr.height;
     return res;
 }
-}  // namespace
 
-///// Platform-specific memory mapping /////
-// Linux/macOS
-#if defined(__linux__) || defined(__APPLE__) && defined(__MACH__)
-#include <cerrno>
-#include <cstring>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-namespace
-{
-// mmap is available on this platform
-constexpr bool MEMMAP_AVAILABLE = true;
-
-// Memory maps the TIF image found at path. If memory mapping fails for any
-// reason, an error is logged and an empty cv::Mat and mmap_info is returned.
+// Memory mapp the tiff
 auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
     -> std::pair<cv::Mat, vc::mmap_info>
 {
-    vc::Logger()->trace("Memory mapping file: {}", path.string());
+    if (vc::MEMMAP_SUPPORTED) {
+        // Memmap the file
+        auto mmap = vc::MemmapFile(path);
+        if (not mmap) {
+            return {};
+        }
 
-    // Open file descriptor
-    const int fd = open(path.c_str(), O_RDONLY);
-    if (fd == -1) {
-        vc::Logger()->debug(
-            "Failed to open file descriptor for TIFF: {}. {}", path.string(),
-            std::strerror(errno));
-        return {{}, {}};
+        // Construct a Mat
+        const auto h = static_cast<int>(hdr.height);
+        const auto w = static_cast<int>(hdr.width);
+        const auto cvType = GetCVMatType(hdr.type, hdr.depth, hdr.channels);
+        cv::Mat img(
+            h, w, cvType, static_cast<char*>(mmap.addr) + hdr.stripOffsets[0]);
+        return {img, mmap};
+    } else {
+        return {};
     }
-
-    // Get file stats (namely size)
-    struct stat sb {
-    };
-    if (fstat(fd, &sb) == -1) {
-        vc::Logger()->debug(
-            "Failed to fstat TIFF: {}. {}", path.string(),
-            std::strerror(errno));
-        close(fd);
-        return {{}, {}};
-    }
-
-    // Memory map the file
-    auto* data = mmap(nullptr, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
-    if (data == MAP_FAILED) {
-        vc::Logger()->debug(
-            "Failed to mmap TIFF: {}. {}", path.string(), std::strerror(errno));
-        close(fd);
-        return {{}, {}};
-    }
-    // Descriptor no longer needed
-    close(fd);
-
-    // Construct a Mat
-    const auto h = static_cast<int>(hdr.height);
-    const auto w = static_cast<int>(hdr.width);
-    const auto cvType = GetCVMatType(hdr.type, hdr.depth, hdr.channels);
-    cv::Mat img(h, w, cvType, static_cast<char*>(data) + hdr.stripOffsets[0]);
-    return {img, {.addr = data, .size = sb.st_size}};
 }
+
 }  // namespace
-
-auto tio::UnmapTIFF(const mmap_info& mmap_info) -> int
-{
-    if (not mmap_info.addr) {
-        Logger()->debug("Empty address");
-        return -1;
-    }
-    if (mmap_info.size < 1) {
-        Logger()->debug("Invalid mapping size: {}", mmap_info.size);
-        return -1;
-    }
-
-    const auto err = munmap(mmap_info.addr, mmap_info.size);
-    int res{0};
-    if (err == -1) {
-        res = errno;
-        Logger()->error("Failed to unmap file: {}", std::strerror(res));
-    }
-    return res;
-}
-
-#else
-// All unsupported platforms
-#pragma message("TIFF memory mapping is not implemented on this plaform")
-namespace
-{
-constexpr bool MEMMAP_AVAILABLE = false;
-auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
-    -> std::pair<cv::Mat, tio::mmap_info>
-{
-    return {{}, {}};
-}
-}  // namespace
-auto tio::UnmapTIFF(const mmap_info& mmap_info) -> int { return -1; }
-#endif
-////////////////////////////////////////////////
 
 auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
 {
@@ -268,7 +194,7 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
     cv::Mat img;
 
     // Load memmap'd image
-    if (MEMMAP_AVAILABLE and mmap_info and CanMMap(hdr)) {
+    if (MEMMAP_SUPPORTED and mmap_info and CanMMap(hdr)) {
         // Try to mmap
         std::tie(img, *mmap_info) = MMapImage(path, hdr);
         if (img.empty()) {
@@ -278,7 +204,7 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
         }
     } else {
         // If we requested memory mapping (and it's available), log the failure
-        if (MEMMAP_AVAILABLE and mmap_info) {
+        if (MEMMAP_SUPPORTED and mmap_info) {
             Logger()->debug(
                 "TIFF cannot be memory mapped: {}. Image will be read into "
                 "memory instead",
@@ -308,10 +234,10 @@ void tio::WriteTIFF(
     }
 
     // Image metadata
-    auto channels = img.channels();
-    auto width = static_cast<unsigned>(img.cols);
-    auto height = static_cast<unsigned>(img.rows);
-    auto rowsPerStrip = height;
+    const auto channels = img.channels();
+    const auto width = static_cast<unsigned>(img.cols);
+    const auto height = static_cast<unsigned>(img.rows);
+    const auto rowsPerStrip = height;
 
     // Sample format
     int bitsPerSample;
@@ -365,9 +291,9 @@ void tio::WriteTIFF(
     }
 
     // Get working copy with converted channels if an RGB-type image
-    auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
-    auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
-                        img.depth() != CV_32S;
+    const auto cvtNeeded = img.channels() == 3 or img.channels() == 4;
+    const auto cvtSupported = img.depth() != CV_8S and img.depth() != CV_16S and
+                              img.depth() != CV_32S;
     cv::Mat imgCopy;
     if (cvtNeeded and cvtSupported) {
         if (img.channels() == 3) {
@@ -384,7 +310,8 @@ void tio::WriteTIFF(
     }
 
     // Estimated file size in bytes
-    auto useBigTIFF = ::NeedBigTIFF(width, height, channels, bitsPerSample);
+    const auto useBigTIFF =
+        ::NeedBigTIFF(width, height, channels, bitsPerSample);
     if (useBigTIFF) {
         Logger()->warn("File estimate >= 4GB. Writing as BigTIFF.");
     }
@@ -422,16 +349,16 @@ void tio::WriteTIFF(
 
     // Row buffer. OpenCV documentation mentions that TIFFWriteScanline
     // modifies its read buffer, so we can't use the cv::Mat directly
-    auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(out));
+    const auto bufferSize = static_cast<std::size_t>(lt::TIFFScanlineSize(out));
     std::vector<char> buffer(bufferSize + 32);
 
     // For each row
     for (unsigned row = 0; row < height; row++) {
         std::memcpy(&buffer[0], imgCopy.ptr(row), bufferSize);
-        auto result = lt::TIFFWriteScanline(out, &buffer[0], row, 0);
+        const auto result = lt::TIFFWriteScanline(out, &buffer[0], row, 0);
         if (result == -1) {
             lt::TIFFClose(out);
-            auto msg = "Failed to write row " + std::to_string(row);
+            const auto msg = "Failed to write row " + std::to_string(row);
             throw IOException(msg);
         }
     }
