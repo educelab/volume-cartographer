@@ -186,9 +186,11 @@ public:
 
         // If we don't have an onEject callback, fast remove the last element
         if (not BaseClass::on_eject_) {
-            auto& [key, _] = items_.back();
-            lookup_.erase(key);
-            items_.pop_back();
+            while (lookup_.size() > capacity_) {
+                auto& [key, _] = items_.back();
+                lookup_.erase(key);
+                items_.pop_back();
+            }
             return;
         }
 
