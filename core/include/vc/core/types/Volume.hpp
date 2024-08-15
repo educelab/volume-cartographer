@@ -229,6 +229,7 @@ protected:
     /** Cache mutex for thread-safe access */
     mutable std::shared_mutex cacheMutex_;
     /** Per-slice mutexes */
+    // TODO: This seems excessive but I'll leave it until it can be tested
     mutable std::vector<std::mutex> sliceMutexes_;
 
     /** Whether to memmap slices */
