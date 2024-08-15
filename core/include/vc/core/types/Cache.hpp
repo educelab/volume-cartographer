@@ -44,10 +44,16 @@ public:
     /** @brief Check if an item is already in the cache */
     virtual auto contains(const TKey& k) -> bool = 0;
 
-    /** @brief Callback function when items are ejected */
-    virtual void onEject(std::function<bool(TKey&, TValue&)> fn) = 0;
+    /** @brief Callback function when items are evicted */
+    virtual void onEvict(std::function<bool(TKey&, TValue&)> fn) = 0;
 
-    /** @brief Clear the cache */
+    /** @brief Remove the validation callback function */
+    virtual void resetOnEvict() = 0;
+
+    /** @brief Evict items following the cache policy */
+    virtual auto evict() -> void = 0;
+
+    /** @brief Evict all items ignoring cache policy */
     virtual auto purge() -> void = 0;
     /**@}*/
 

@@ -15,7 +15,7 @@ using namespace volcart;
 
 namespace
 {
-auto OnEject(int& key, Volume::SliceItem& value) -> bool
+auto OnEvict(int& key, Volume::SliceItem& value) -> bool
 {
     auto& [img, mmapInfo] = value;
 
@@ -45,7 +45,7 @@ Volume::Volume(fs::path path) : DiskBasedObjectBaseClass(std::move(path))
     slices_ = metadata_.get<int>("slices").value();
     numSliceCharacters_ = static_cast<int>(std::to_string(slices_).size());
     sliceMutexes_ = std::vector<std::mutex>(slices_);
-    cache_->onEject(OnEject);
+    cache_->onEvict(OnEvict);
 }
 
 // Set up a Volume from a folder of slices
@@ -60,7 +60,7 @@ Volume::Volume(fs::path path, std::string uuid, std::string name)
     metadata_.set("voxelsize", double{});
     metadata_.set("min", double{});
     metadata_.set("max", double{});
-    cache_->onEject(OnEject);
+    cache_->onEvict(OnEvict);
 }
 
 // Load a Volume from disk, return a pointer
@@ -275,7 +275,7 @@ void Volume::setCache(SliceCache::Pointer c) const
 {
     std::unique_lock lock(cacheMutex_);
     cache_ = std::move(c);
-    cache_->onEject(OnEject);
+    cache_->onEvict(OnEvict);
 }
 
 void Volume::setCacheCapacity(const std::size_t newCacheCapacity) const

@@ -1,16 +1,22 @@
 #include <cstddef>
 #include <iostream>
+#include <vector>
 
 #include <gtest/gtest.h>
 
+#include <opencv2/core.hpp>
+
 #include "vc/core/types/LRUCache.hpp"
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 
+using namespace volcart;
+
 ///// FIXTURES /////
-class LRUCache_Empty : public ::testing::Test
+class LRUCache_Empty : public testing::Test
 {
 public:
-    volcart::LRUCache<std::size_t, int> cache;
+    LRUCache<std::size_t, int> cache;
 };
 
 class LRUCache_Filled : public LRUCache_Empty
@@ -64,16 +70,16 @@ TEST_F(LRUCache_Filled, CheckReferenceToOutOfBoundsKey)
     } catch (std::exception& e) {
         // exception output message
         // casting negative size_t value to int
-        volcart::Logger()->debug("{}", e.what());
-        volcart::Logger()->debug("Key Tried: {}", idx);
+        Logger()->debug("{}", e.what());
+        Logger()->debug("Key Tried: {}", idx);
         EXPECT_TRUE(true);
     }
 
     try {
         EXPECT_ANY_THROW(cache.get(cache.capacity()));
     } catch (std::exception& e) {
-        volcart::Logger()->debug("{}", e.what());
-        volcart::Logger()->debug("Key Tried: {}", cache.capacity());
+        Logger()->debug("{}", e.what());
+        Logger()->debug("Key Tried: {}", cache.capacity());
     }
 }
 
@@ -163,7 +169,7 @@ TEST_F(LRUCache_Empty, TryToInsertIntoZeroCapacityCache)
     try {
         EXPECT_ANY_THROW(cache.setCapacity(0));
     } catch (std::exception& e) {
-        volcart::Logger()->debug("{}", e.what());
+        Logger()->debug("{}", e.what());
     }
 
     EXPECT_EQ(cache.capacity(), 200);
@@ -178,4 +184,75 @@ TEST_F(LRUCache_Filled, PurgeTheCache)
     cache.purge();
     EXPECT_EQ(cache.size(), 0);
     EXPECT_EQ(cache.contains(1), false);
+}
+
+TEST(LRUCache, OnEvict)
+{
+    // On evict test function:
+    // Returns true if the Mat doesn't point to anything OR the refcount is <= 1
+    // (i.e. the cache entry is the only remaining ref)
+    auto onEvict = [](int& key, cv::Mat& i) -> bool {
+        return not i.u or i.u->refcount <= 1;
+    };
+
+    // Set up cache
+    LRUCache<int, cv::Mat> cache;
+    cache.setCapacity(10);
+    cache.onEvict(onEvict);
+
+    // Create some images
+    std::vector<cv::Mat> imgs;
+    for (auto key : range(10)) {
+        cv::Mat img = cv::Mat::zeros(10, 10, CV_8UC1);
+        imgs.push_back(img);
+        cache.put(key, img);
+    }
+
+    // Check sizes
+    EXPECT_EQ(cache.capacity(), 10);
+    EXPECT_EQ(cache.size(), 10);
+
+    // Change capacity
+    cache.setCapacity(9);
+
+    // Shouldn't have changed (all keys still have reference)
+    EXPECT_EQ(cache.capacity(), 9);
+    EXPECT_EQ(cache.size(), 10);
+
+    // Try eviction
+    cache.evict();
+
+    // Shouldn't have changed (all keys still have reference)
+    EXPECT_EQ(cache.capacity(), 9);
+    EXPECT_EQ(cache.size(), 10);
+
+    // Remove reference to one of the Mats and evict the cache
+    imgs.erase(imgs.begin());
+    cache.evict();
+
+    // Should have changed
+    EXPECT_EQ(cache.capacity(), 9);
+    EXPECT_EQ(cache.size(), 9);
+    EXPECT_FALSE(cache.contains(0));
+    EXPECT_ANY_THROW(cache.get(0));
+    for (const auto key : range(1, 10)) {
+        EXPECT_TRUE(cache.contains(key));
+        EXPECT_NO_THROW(cache.get(key));
+    }
+
+    // Remove references to some Mats and purge the cache
+    imgs.erase(imgs.begin(), std::next(imgs.begin(), 3));
+    cache.purge();
+
+    // Should still have items that don't pass test
+    EXPECT_EQ(cache.capacity(), 9);
+    EXPECT_EQ(cache.size(), 6);
+
+    // Remove references to all Mats and purge the cache
+    imgs.clear();
+    cache.purge();
+
+    // Should still have items that don't pass test
+    EXPECT_EQ(cache.capacity(), 9);
+    EXPECT_EQ(cache.size(), 0);
 }

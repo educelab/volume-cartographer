@@ -28,10 +28,12 @@ struct NoOpMutex {
  * elements are popped from the end of the cache and replacement elements are
  * added to the front.
  *
- * Usage information is tracked in a std::unordered_map since its performance
- * will likely be the fastest of the STL classes. This should be profiled. Data
- * elements are stored in insertion order in a std::list and are pointed to
- * by the elements in the usage map.
+ * Data elements are stored in a std::list, ordered from most to least recently
+ * used. A key-value map into this list is stored in a std::unordered_map.
+ *
+ * If a function is provided to onEvict(), cache entries are only removed if
+ * the function returns `true` for the given entry. See the documentation of
+ * onEvict() for more details.
  *
  * Design mostly taken from
  * <a href = "https://github.com/lamerman/cpp-lru-cache">here</a>.
@@ -92,7 +94,7 @@ public:
                 "Cannot create cache with capacity <= 0");
         }
         capacity_ = capacity;
-        ejectToCapacity_();
+        evict();
     }
 
     /** @brief Get the maximum number of elements in the cache */
@@ -133,7 +135,7 @@ public:
 
         items_.push_front(TPair(k, v));
         lookup_[k] = std::begin(items_);
-        ejectToCapacity_();
+        evict();
     }
 
     /** @brief Check if an item is already in the cache */
@@ -143,32 +145,93 @@ public:
         return lookup_.find(k) != std::end(lookup_);
     }
 
-    /** @brief Set a callback function for validating if an item can be ejected
+    /**
+     * @brief Set a callback function for validating if an item can be evicted
+     *
+     * This optional function is called whenever a cache entry is about to be
+     * evicted. Minimally, it should return `true` if it is safe to remove the
+     * cache entry and `false` otherwise. Optionally, it may also perform
+     * cleanup operations for the stored item, such as manual deallocation.
+     * Entries are only tested for eviction when calling setCapacity(), put(),
+     * evict(), and purge().
+     *
+     * @note Depending upon the function provided, the cache may temporarily
+     * store more entries than the capacity suggests.
      */
-    void onEject(std::function<bool(TKey&, TValue&)> fn) override
+    void onEvict(std::function<bool(TKey&, TValue&)> fn) override
     {
         BaseClass::on_eject_ = fn;
     }
 
-    /** @brief Clear the cache */
+    /**
+     * @brief Remove the validation callback function
+     *
+     * @see onEvict()
+     */
+    void resetOnEvict() override { BaseClass::on_eject_ = {}; }
+
+    /**
+     * @brief Evict items following the cache policy
+     *
+     * Automatically called whenever the cache size is expected to exceed the
+     * current capacity. Normally should not need to be called directly except
+     * when using onEvict() to conditionally keep items which would otherwise
+     * be evicted.
+     */
+    void evict() override
+    {  // Already below capacity
+        if (lookup_.size() <= capacity_) {
+            return;
+        }
+
+        // If we don't have an onEject callback, fast remove the last element
+        if (not BaseClass::on_eject_) {
+            auto& [key, _] = items_.back();
+            lookup_.erase(key);
+            items_.pop_back();
+            return;
+        }
+
+        // Else iterate the items in reverse until we find one we can remove
+        for (auto it = items_.rbegin(); it != items_.rend();) {
+            // Get the key and value
+            auto& [key, value] = *it;
+
+            // Eject this item
+            if (BaseClass::on_eject_(key, value)) {
+                lookup_.erase(key);
+                it = std::next(it);
+                it = std::reverse_iterator(items_.erase(it.base()));
+            } else {
+                ++it;
+            }
+
+            // Stop when we've reset to capacity
+            if (lookup_.size() <= capacity_) {
+                break;
+            }
+        }
+    }
+
+    /** @brief Evict all items ignoring cache policy */
     void purge() override
     {
         std::unique_lock lock(cache_mutex_);
         // If we have an on_eject_ function, check every item
-        std::size_t cnt{0};
         if (BaseClass::on_eject_) {
-            for (auto& [key, value] : items_) {
+            for (auto it = items_.begin(); it != items_.end();) {
+                auto& [key, value] = *it;
                 if (BaseClass::on_eject_(key, value)) {
                     lookup_.erase(key);
-                    items_.pop_front();
-                    ++cnt;
+                    it = items_.erase(it);
+                } else {
+                    ++it;
                 }
             }
         }
 
         // Otherwise, remove everything
         else {
-            cnt = items_.size();
             lookup_.clear();
             items_.clear();
         }
@@ -182,38 +245,5 @@ private:
     std::unordered_map<TKey, TListIterator> lookup_;
     /** Shared mutex for thread-safe access */
     mutable TMutex cache_mutex_;
-    /** Eject items until capacity is reached */
-    void ejectToCapacity_()
-    {
-        if (lookup_.size() <= capacity_) {
-            return;
-        }
-
-        // Count of ejected items
-        std::size_t cnt{0};
-        for (auto it = items_.rbegin(); it != items_.rend();) {
-            // Check if this item can be ejected
-            auto& [key, value] = *it;
-            bool canEject{true};
-            if (BaseClass::on_eject_) {
-                canEject = BaseClass::on_eject_(key, value);
-            }
-
-            // Eject this item
-            if (canEject) {
-                lookup_.erase(key);
-                it = std::next(it);
-                it = std::reverse_iterator(items_.erase(it.base()));
-                ++cnt;
-            } else {
-                ++it;
-            }
-
-            // Stop when we've reset to capacity
-            if (lookup_.size() <= capacity_) {
-                break;
-            }
-        }
-    }
 };
 }  // namespace volcart
