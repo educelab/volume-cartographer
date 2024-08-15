@@ -56,7 +56,8 @@ TEST(Memmap, AutoUnmap)
             EXPECT_TRUE(infoInner);
 
             // Check the contents
-            str = std::string_view(static_cast<char*>(infoInner.addr), infoInner.size);
+            str = std::string_view(
+                static_cast<char*>(infoInner.addr), infoInner.size);
             EXPECT_EQ(str, "BAR");
             testChar = str[0];
             EXPECT_EQ(testChar, 'B');

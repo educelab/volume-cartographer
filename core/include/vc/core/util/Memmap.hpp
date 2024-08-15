@@ -43,8 +43,12 @@ struct auto_mmap_info : mmap_info {
 
     /** Cannot copy construct from another auto_mmap_info */
     explicit auto_mmap_info(auto_mmap_info&) = delete;
+    /** Cannot copy construct from another auto_mmap_info */
+    explicit auto_mmap_info(const auto_mmap_info&) = delete;
     /** Cannot copy assign from another auto_mmap_info */
     auto operator=(auto_mmap_info&) -> auto_mmap_info& = delete;
+    /** Cannot copy construct from another auto_mmap_info */
+    auto operator=(const auto_mmap_info&) -> auto_mmap_info& = delete;
 
     /** Auto-unmapping destructor */
     ~auto_mmap_info();
