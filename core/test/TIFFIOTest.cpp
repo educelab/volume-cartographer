@@ -541,7 +541,7 @@ TEST(TIFFIO, WriteRead32FC4)
 }
 
 //// Memory mapping tests ////
-#ifdef VC_MEMMAP_SUPPORTED
+#if (VC_MEMMAP_SUPPORTED == true)
 TEST(TIFFIO, WriteRead16UC1MMap)
 {
     using ElemT = std::uint16_t;

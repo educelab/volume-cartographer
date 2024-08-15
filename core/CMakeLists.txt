@@ -1,5 +1,8 @@
 project(libvc_core VERSION ${VC_VERSION} LANGUAGES CXX)
 
+# Check for memory mapping support
+include(CheckMemMap)
+
 set(io_srcs
     src/OBJReader.cpp
     src/OBJWriter.cpp
@@ -182,7 +185,7 @@ set(test_srcs
     test/SegmentationTest.cpp
     test/VolumePkgTest.cpp
     test/AnnotationTest.cpp
-    test/MemmapTest.cpp
+    test/MemMapTest.cpp
 )
 
 # Add a test executable for each src

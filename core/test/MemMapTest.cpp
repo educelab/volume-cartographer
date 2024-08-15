@@ -1,10 +1,11 @@
+#if (VC_MEMMAP_SUPPORTED == true)
 #include <gtest/gtest.h>
 
 #include <fstream>
 #include <string_view>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/util/Memmap.hpp"
+#include "vc/core/util/MemMap.hpp"
 
 using namespace volcart;
 namespace fs = filesystem;
@@ -75,3 +76,4 @@ TEST(Memmap, AutoUnmap)
     EXPECT_EXIT(testChar = str[2], ::testing::KilledBySignal(SIGSEGV), "");
     EXPECT_EQ(testChar, 'A');
 }
+#endif

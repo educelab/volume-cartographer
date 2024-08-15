@@ -1,4 +1,4 @@
-#include "vc/core/util/Memmap.hpp"
+#include "vc/core/util/MemMap.hpp"
 
 #include "vc/core/util/Logging.hpp"
 
@@ -44,9 +44,11 @@ vc::auto_mmap_info::~auto_mmap_info()
     }
 }
 
+auto vc::memmap_supported() -> bool { return VC_MEMMAP_SUPPORTED; }
+
 ///// Platform-specific memory mapping /////
 // Linux/macOS
-#if defined(__linux__) || defined(__APPLE__) && defined(__MACH__)
+#if defined(VC_MEMMAP_MMAP)
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
@@ -112,9 +114,10 @@ auto vc::UnmapFile(mmap_info& mmap_info) -> int
     mmap_info.size = -1;
     return res;
 }
+
 #else
 // All unsupported platforms
 #pragma message("Memory mapping is not implemented on this plaform")
 auto vc::MemmapFile(const fs::path& path) -> mmap_info { return {}; }
-auto vc::UnmapFile()(mmap_info& mmap_info) -> int { return -1; }
+auto vc::UnmapFile(mmap_info& mmap_info) -> int { return -1; }
 #endif

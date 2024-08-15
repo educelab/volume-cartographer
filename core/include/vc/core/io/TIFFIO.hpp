@@ -15,7 +15,7 @@
 #include <opencv2/core.hpp>
 
 #include "vc/core/filesystem.hpp"
-#include "vc/core/util/Memmap.hpp"
+#include "vc/core/util/MemMap.hpp"
 
 namespace volcart::tiffio
 {

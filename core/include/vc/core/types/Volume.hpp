@@ -14,7 +14,7 @@
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 #include "vc/core/types/LRUCache.hpp"
 #include "vc/core/types/Reslice.hpp"
-#include "vc/core/util/Memmap.hpp"
+#include "vc/core/util/MemMap.hpp"
 
 namespace volcart
 {

@@ -83,11 +83,5 @@ auto MemmapFile(const filesystem::path& path) -> mmap_info;
 auto UnmapFile(mmap_info& mmap_info) -> int;
 
 /** Whether memory mapping is available on this platform */
-// TODO: Define this macro using CMake
-#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
-#define VC_MEMMAP_SUPPORTED
-constexpr auto MEMMAP_SUPPORTED = true;
-#else
-constexpr auto MEMMAP_SUPPORTED = false;
-#endif
+auto memmap_supported() -> bool;
 }  // namespace volcart

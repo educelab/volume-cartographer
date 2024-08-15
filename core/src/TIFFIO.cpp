@@ -24,6 +24,8 @@ namespace fs = volcart::filesystem;
 
 namespace
 {
+constexpr bool MEMMAP_SUPPORTED = VC_MEMMAP_SUPPORTED;
+
 // Return a CV Mat type using TIFF type (signed, unsigned, float),
 // bit-depth, and number of channels
 auto GetCVMatType(
@@ -155,7 +157,7 @@ auto CanMMap(const TIFFHeader& hdr) -> bool
 auto MMapImage(const fs::path& path, const TIFFHeader& hdr)
     -> std::pair<cv::Mat, vc::mmap_info>
 {
-    if (vc::MEMMAP_SUPPORTED) {
+    if (MEMMAP_SUPPORTED) {
         // Memmap the file
         auto mmap = vc::MemmapFile(path);
         if (not mmap) {
