@@ -7,6 +7,43 @@ namespace fs = vc::filesystem;
 
 vc::mmap_info::operator bool() const { return addr and size > 0; }
 
+vc::auto_mmap_info::auto_mmap_info(const mmap_info& rhs) : mmap_info(rhs) {}
+
+vc::auto_mmap_info::auto_mmap_info(mmap_info&& rhs) : mmap_info(rhs)
+{
+    rhs.addr = nullptr;
+    rhs.size = -1;
+}
+
+auto vc::auto_mmap_info::operator=(const mmap_info& rhs) -> auto_mmap_info&
+{
+    mmap_info::operator=(rhs);
+    return *this;
+}
+
+auto vc::auto_mmap_info::operator=(mmap_info&& rhs) -> auto_mmap_info&
+{
+    mmap_info::operator=(rhs);
+    return *this;
+}
+
+auto vc::auto_mmap_info::operator=(auto_mmap_info&& rhs) noexcept
+    -> auto_mmap_info&
+{
+    addr = rhs.addr;
+    size = rhs.size;
+    rhs.addr = nullptr;
+    rhs.size = -1;
+    return *this;
+}
+
+vc::auto_mmap_info::~auto_mmap_info()
+{
+    if (*this) {
+        UnmapFile(*this);
+    }
+}
+
 ///// Platform-specific memory mapping /////
 // Linux/macOS
 #if defined(__linux__) || defined(__APPLE__) && defined(__MACH__)

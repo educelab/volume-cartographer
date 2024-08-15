@@ -182,6 +182,7 @@ set(test_srcs
     test/SegmentationTest.cpp
     test/VolumePkgTest.cpp
     test/AnnotationTest.cpp
+    test/MemmapTest.cpp
 )
 
 # Add a test executable for each src

@@ -1,5 +1,7 @@
 #pragma once
 
+/** @file */
+
 #include <cstdint>
 
 #include "vc/core/filesystem.hpp"
@@ -7,7 +9,7 @@
 namespace volcart
 {
 
-/** mmap record */
+/** @brief Memmap record */
 struct mmap_info {
     /** Whether this is a valid mapping */
     explicit operator bool() const;
@@ -15,6 +17,37 @@ struct mmap_info {
     void* addr{nullptr};
     /** Size of mapped memory */
     std::int64_t size{-1};
+};
+
+/**
+ * @brief Memmap record which automatically unmaps the file on destruction
+ *
+ * The same as mmap_info but automatically calls UnmapFile() on destruction.
+ * To avoid unintended unmapping, this class cannot be copied but can be moved.
+ */
+struct auto_mmap_info : mmap_info {
+    /** Default constructor */
+    auto_mmap_info() = default;
+
+    /** Copy construct from mmap_info */
+    explicit auto_mmap_info(const mmap_info& rhs);
+    /** Move construct from mmap_info */
+    explicit auto_mmap_info(mmap_info&& rhs);
+    /** Copy assign from mmap_info */
+    auto operator=(const mmap_info& rhs) -> auto_mmap_info&;
+    /** Move assign from mmap_info */
+    auto operator=(mmap_info&& rhs) -> auto_mmap_info&;
+
+    /** Move assign from another auto_mmap_info */
+    auto operator=(auto_mmap_info&& rhs) noexcept -> auto_mmap_info&;
+
+    /** Cannot copy construct from another auto_mmap_info */
+    explicit auto_mmap_info(auto_mmap_info&) = delete;
+    /** Cannot copy assign from another auto_mmap_info */
+    auto operator=(auto_mmap_info&) -> auto_mmap_info& = delete;
+
+    /** Auto-unmapping destructor */
+    ~auto_mmap_info();
 };
 
 /**
