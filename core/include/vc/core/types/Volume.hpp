@@ -134,12 +134,6 @@ public:
     /** @copydoc getSliceData(int) const */
     auto getSliceDataCopy(int index) const -> cv::Mat;
 
-    /** @brief Get slice by index and cut out a rect to return */
-    auto getSliceDataRect(int index, cv::Rect rect) const -> cv::Mat;
-
-    /** @brief Copy a slice by index and cut out a rect to return */
-    auto getSliceDataRectCopy(int index, cv::Rect rect) const -> cv::Mat;
-
     /**
      * @brief Set a slice by index number
      *

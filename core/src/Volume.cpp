@@ -163,22 +163,6 @@ auto Volume::getSliceDataCopy(const int index) const -> cv::Mat
     return getSliceData(index).clone();
 }
 
-auto Volume::getSliceDataRect(const int index, const cv::Rect rect) const
-    -> cv::Mat
-{
-    const auto whole_img = getSliceData(index);
-    std::shared_lock lock(cacheMutex_);
-    return whole_img(rect);
-}
-
-auto Volume::getSliceDataRectCopy(const int index, const cv::Rect rect) const
-    -> cv::Mat
-{
-    const auto whole_img = getSliceData(index);
-    std::shared_lock lock(cacheMutex_);
-    return whole_img(rect).clone();
-}
-
 void Volume::setSliceData(
     const int index, const cv::Mat& slice, const bool compress) const
 {
