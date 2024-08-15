@@ -599,12 +599,19 @@ TEST(TIFFIO, CannotWriteToMMap)
         result = cv::Scalar(65535), KilledByAnyOfSignal(SIGBUS, SIGSEGV), "");
 
     // Make sure nothing has changed
-    const auto equal = std::equal(
+    auto equal = std::equal(
         result.begin<PixelT>(), result.end<PixelT>(), img.begin<PixelT>());
     EXPECT_TRUE(equal);
 
+    // Create a clone
+    cv::Mat clone = result.clone();
+    clone = cv::Scalar(65535);
+
     // Cleanup the memory map
     UnmapFile(mmap_info);
+
+    // Modify the clone
+    clone = cv::Scalar(0);
 }
 
 TEST(TIFFIO, MemMapUnsupportedType)

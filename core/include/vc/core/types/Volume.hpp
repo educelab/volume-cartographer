@@ -119,6 +119,8 @@ public:
      * When enabled, the Volume will attempt to memory map slice images rather
      * than reading them into memory. This is currently only supported when
      * slice caching is enabled as well.
+     *
+     * Slices which are already cached will not be affected by this change.
      */
     void setMemoryMapSlices(bool b);
 
