@@ -123,6 +123,10 @@ public:
         // If already in cache, need to refresh it
         auto lookupIter = lookup_.find(k);
         if (lookupIter != std::end(lookup_)) {
+            auto& [key, val] = *lookupIter->second;
+            if (BaseClass::on_eject_) {
+                BaseClass::on_eject_(key, val);
+            }
             items_.erase(lookupIter->second);
             lookup_.erase(lookupIter);
         }
@@ -181,6 +185,10 @@ private:
     /** Eject items until capacity is reached */
     void ejectToCapacity_()
     {
+        if (lookup_.size() <= capacity_) {
+            return;
+        }
+
         // Count of ejected items
         std::size_t cnt{0};
         for (auto it = items_.rbegin(); it != items_.rend();) {
@@ -195,14 +203,14 @@ private:
             if (canEject) {
                 lookup_.erase(key);
                 it = std::next(it);
-                items_.erase(it.base());  // TODO: Verify this
+                it = std::reverse_iterator(items_.erase(it.base()));
                 ++cnt;
             } else {
                 ++it;
             }
 
             // Stop when we've reset to capacity
-            if (lookup_.size() < capacity_) {
+            if (lookup_.size() <= capacity_) {
                 break;
             }
         }

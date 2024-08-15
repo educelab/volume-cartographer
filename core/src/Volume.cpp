@@ -20,7 +20,7 @@ auto OnEject(int& key, Volume::SliceItem& value) -> bool
     auto& [img, mmapInfo] = value;
 
     // Can't eject if there are still references
-    if (img.u and img.u->refcount > 0) {
+    if (img.u and img.u->refcount > 1) {
         Logger()->trace("Slice {} still has references", key);
         return false;
     }
@@ -300,7 +300,7 @@ auto Volume::getCacheSize() const -> std::size_t { return cache_->size(); }
 
 auto Volume::load_slice_(int index, mmap_info* mmap_info) const -> cv::Mat
 {
-    Logger()->info("Requested load slice: {}", index);
+    Logger()->trace("Requested load slice: {}", index);
     const auto slicePath = getSlicePath(index);
     cv::Mat mat;
     try {

@@ -13,7 +13,7 @@ struct mmap_info {
     explicit operator bool() const;
     /** Address of mapped memory */
     void* addr{nullptr};
-    /** Size of mapped mempory */
+    /** Size of mapped memory */
     std::int64_t size{-1};
 };
 
