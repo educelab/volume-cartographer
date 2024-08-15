@@ -3,6 +3,7 @@
 /** @file */
 
 #include "vc/core/filesystem.hpp"
+#include "vc/core/types/Annotation.hpp"
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 #include "vc/core/types/OrderedPointSet.hpp"
 #include "vc/core/types/Volume.hpp"
@@ -72,6 +73,30 @@ public:
      * PointSet data is never cached in memory and is always loaded from disk.
      */
     [[nodiscard]] auto getPointSet() const -> PointSet;
+
+    /**
+     * @brief Return if this Segmentation has an associated AnnotationSet file
+     *
+     * Returns false if the metadata file has no `vcano` entry, the `vcano`
+     * entry is `null`, or the `vcps` entry is an empty string.
+     */
+    [[nodiscard]] auto hasAnnotationSet() const -> bool;
+
+    /**
+     * @brief Save AnnotationSet to the Segmentation file
+     *
+     * @warning This will overwrite the AnnotationSet file associated with this
+     * Segmentation.
+     */
+    void setAnnotationSet(const AnnotationSet& as);
+
+    /**
+     * @brief Load the associated AnnotationSet from the Segmentation file
+     *
+     * AnnotationSet data is never cached in memory and is always loaded from
+     * disk.
+     */
+    [[nodiscard]] auto getAnnotationSet() const -> AnnotationSet;
 
     /**
      * @brief Return whether this Segmentation is associated with a Volume

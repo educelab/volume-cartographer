@@ -540,15 +540,15 @@ VolumePkg::VolumePkg(const fs::path& path) : rootDir_{path}
     }
 }
 
-auto VolumePkg::New(const fs::path& fileLocation, int version) -> Pointer
+auto VolumePkg::New(const fs::path& path, int version) -> Pointer
 {
-    return std::make_shared<VolumePkg>(fileLocation, version);
+    return std::make_shared<VolumePkg>(path, version);
 }
 
 // Shared pointer volumepkg construction
-auto VolumePkg::New(const fs::path& fileLocation) -> Pointer
+auto VolumePkg::New(const fs::path& path) -> Pointer
 {
-    return std::make_shared<VolumePkg>(fileLocation);
+    return std::make_shared<VolumePkg>(path);
 }
 
 // METADATA RETRIEVAL //
@@ -644,7 +644,7 @@ auto VolumePkg::newVolume(std::string name) -> Volume::Pointer
     return r.first->second;
 }
 
-auto VolumePkg::volume() const -> const Volume::Pointer
+auto VolumePkg::volume() const -> Volume::Pointer
 {
     if (volumes_.empty()) {
         throw std::out_of_range("No volumes in VolPkg");
@@ -660,8 +660,7 @@ auto VolumePkg::volume() -> Volume::Pointer
     return volumes_.begin()->second;
 }
 
-auto VolumePkg::volume(const Volume::Identifier& id) const
-    -> const Volume::Pointer
+auto VolumePkg::volume(const Volume::Identifier& id) const -> Volume::Pointer
 {
     return volumes_.at(id);
 }
@@ -683,7 +682,7 @@ auto VolumePkg::numberOfSegmentations() const -> std::size_t
 }
 
 auto VolumePkg::segmentation(const DiskBasedObjectBaseClass::Identifier& id)
-    const -> const Segmentation::Pointer
+    const -> Segmentation::Pointer
 {
     return segmentations_.at(id);
 }
@@ -697,8 +696,9 @@ auto VolumePkg::segmentation(const DiskBasedObjectBaseClass::Identifier& id)
 auto VolumePkg::segmentationIDs() const -> std::vector<Segmentation::Identifier>
 {
     std::vector<Segmentation::Identifier> ids;
-    for (const auto& s : segmentations_) {
-        ids.emplace_back(s.first);
+    ids.reserve(segmentations_.size());
+    for (const auto& [id, _] : segmentations_) {
+        ids.emplace_back(id);
     }
     return ids;
 }
@@ -706,8 +706,9 @@ auto VolumePkg::segmentationIDs() const -> std::vector<Segmentation::Identifier>
 auto VolumePkg::segmentationNames() const -> std::vector<std::string>
 {
     std::vector<std::string> names;
-    for (const auto& s : segmentations_) {
-        names.emplace_back(s.second->name());
+    names.reserve(segmentations_.size());
+    for (const auto& [_, seg] : segmentations_) {
+        names.emplace_back(seg->name());
     }
     return names;
 }
@@ -745,14 +746,59 @@ auto VolumePkg::newSegmentation(std::string name) -> Segmentation::Pointer
     return r.first->second;
 }
 
+auto VolumePkg::removeSegmentation(const Segmentation::Identifier& id) -> bool
+{
+    // Ignore empty IDs
+    if (id.empty()) {
+        Logger()->warn("Not removing segmentation with empty ID");
+        return false;
+    }
+
+    // Check that the segmentation is in the map
+    if (segmentations_.count(id) == 0) {
+        Logger()->warn(
+            "Cannot remove segmentation with ID {}. Item does not exist in "
+            "internal map",
+            id);
+        return false;
+    }
+
+    // Remove the segmentation directory
+    bool success{true};
+    if (const auto segDir = SegsDir(rootDir_) / id; not fs::exists(segDir)) {
+        Logger()->warn(
+            "Segmentation directory does not exist for ID {}. No items will be "
+            "deleted from disk",
+            id);
+        success = false;
+    } else {
+        std::error_code ec;
+        fs::remove_all(segDir, ec);
+        if (ec) {
+            Logger()->error(
+                "Failed to remove segmentation directory from disk: {}",
+                ec.message());
+            success = false;
+        }
+    }
+
+    // Remove the segmentation from the internal map
+    const bool res = segmentations_.erase(id);
+    if (not res) {
+        Logger()->error("Failed to remove segmentation from internal map");
+    }
+
+    return success and res;
+}
+
 // RENDER FUNCTIONS //
 auto VolumePkg::hasRenders() const -> bool { return !renders_.empty(); }
 auto VolumePkg::numberOfRenders() const -> std::size_t
 {
     return renders_.size();
 }
-auto VolumePkg::render(const Render::Identifier& id) const
-    -> const Render::Pointer
+
+auto VolumePkg::render(const Render::Identifier& id) const -> Render::Pointer
 {
     return renders_.at(id);
 }
@@ -764,8 +810,9 @@ auto VolumePkg::render(const Render::Identifier& id) -> Render::Pointer
 auto VolumePkg::renderIDs() const -> std::vector<Render::Identifier>
 {
     std::vector<Render::Identifier> ids;
-    for (const auto& r : renders_) {
-        ids.emplace_back(r.first);
+    ids.reserve(renders_.size());
+    for (const auto& [id, _] : renders_) {
+        ids.emplace_back(id);
     }
     return ids;
 }
@@ -773,8 +820,9 @@ auto VolumePkg::renderIDs() const -> std::vector<Render::Identifier>
 auto VolumePkg::renderNames() const -> std::vector<std::string>
 {
     std::vector<std::string> names;
-    for (const auto& r : renders_) {
-        names.emplace_back(r.second->name());
+    names.reserve(renders_.size());
+    for (const auto& [_, r] : renders_) {
+        names.emplace_back(r->name());
     }
     return names;
 }

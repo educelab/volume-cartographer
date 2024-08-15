@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
+#include <utility>
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/types/BoundingBox.hpp"
@@ -12,6 +14,7 @@
 #include "vc/core/types/DiskBasedObjectBaseClass.hpp"
 #include "vc/core/types/LRUCache.hpp"
 #include "vc/core/types/Reslice.hpp"
+#include "vc/core/util/MemMap.hpp"
 
 namespace volcart
 {
@@ -38,11 +41,14 @@ public:
     /** Shared pointer type */
     using Pointer = std::shared_ptr<Volume>;
 
+    /** Slice item type */
+    using SliceItem = std::pair<cv::Mat, std::optional<mmap_info>>;
+
     /** Slice cache type */
-    using SliceCache = Cache<int, cv::Mat>;
+    using SliceCache = Cache<int, SliceItem>;
 
     /** Default slice cache type */
-    using DefaultCache = LRUCache<int, cv::Mat>;
+    using DefaultCache = LRUCache<int, SliceItem, NoOpMutex>;
 
     /** Default slice cache capacity */
     static constexpr std::size_t DEFAULT_CAPACITY = 200;
@@ -52,32 +58,34 @@ public:
     Volume() = delete;
 
     /** @brief Load the Volume from a directory path */
-    explicit Volume(volcart::filesystem::path path);
+    explicit Volume(filesystem::path path);
 
     /** @brief Make a new Volume at the specified path */
-    Volume(volcart::filesystem::path path, Identifier uuid, std::string name);
+    Volume(filesystem::path path, Identifier uuid, std::string name);
 
     /** @overload Volume(volcart::filesystem::path) */
-    static Pointer New(volcart::filesystem::path path);
+    static auto New(const filesystem::path& path) -> Pointer;
 
     /** @overload Volume(volcart::filesystem::path, Identifier, std::string) */
-    static Pointer New(
-        volcart::filesystem::path path, Identifier uuid, std::string name);
+    static auto New(
+        const filesystem::path& path,
+        const Identifier& uuid,
+        const std::string& name) -> Pointer;
     /**@}*/
 
     /**@{*/
     /** @brief Get the slice width */
-    int sliceWidth() const;
+    auto sliceWidth() const -> int;
     /** @brief Get the slice height */
-    int sliceHeight() const;
+    auto sliceHeight() const -> int;
     /** @brief Get the number of slices */
-    int numSlices() const;
+    auto numSlices() const -> int;
     /** @brief Get the voxel size (in microns) */
-    double voxelSize() const;
+    auto voxelSize() const -> double;
     /** @brief Get the minimum intensity value in the Volume */
-    double min() const;
+    auto min() const -> double;
     /** @brief Get the maximum intensity value in the Volume */
-    double max() const;
+    auto max() const -> double;
     /**@}*/
 
     /**@{*/
@@ -97,14 +105,25 @@ public:
 
     /**@{*/
     /** @brief Get the bounding box */
-    Bounds bounds() const;
+    auto bounds() const -> Bounds;
     /** @brief Return whether a position is within the volume bounds */
-    bool isInBounds(double x, double y, double z) const;
+    auto isInBounds(double x, double y, double z) const -> bool;
     /** @overload isInBounds(double, double, double) const */
-    bool isInBounds(const cv::Vec3d& v) const;
+    auto isInBounds(const cv::Vec3d& v) const -> bool;
     /**@}*/
 
     /**@{*/
+    /**
+     * @brief Whether to memory map slices rather than loading into memory
+     *
+     * When enabled, the Volume will attempt to memory map slice images rather
+     * than reading them into memory. This is currently only supported when
+     * slice caching is enabled as well.
+     *
+     * Slices which are already cached will not be affected by this change.
+     */
+    void setMemoryMapSlices(bool b);
+
     /**
      * @brief Get a slice by index number
      *
@@ -112,10 +131,10 @@ public:
      * the slice returned by getSliceData() will modify the cached slice as
      * well. Use getSliceDataCopy() if the slice is to be modified.
      */
-    cv::Mat getSliceData(int index) const;
+    auto getSliceData(int index) const -> cv::Mat;
 
     /** @copydoc getSliceData(int) const */
-    cv::Mat getSliceDataCopy(int index) const;
+    auto getSliceDataCopy(int index) const -> cv::Mat;
 
     /**
      * @brief Set a slice by index number
@@ -124,21 +143,19 @@ public:
      *
      * @warning This will overwrite any existing slice data on disk.
      */
-    void setSliceData(int index, const cv::Mat& slice, bool compress = true);
+    void setSliceData(
+        int index, const cv::Mat& slice, bool compress = true) const;
 
     /** @brief Get the file path of a slice by index */
-    volcart::filesystem::path getSlicePath(int index) const;
+    auto getSlicePath(int index) const -> filesystem::path;
     /**@}*/
 
     /**@{*/
     /** @brief Get the intensity value at a voxel position */
-    std::uint16_t intensityAt(int x, int y, int z) const;
+    auto intensityAt(int x, int y, int z) const -> std::uint16_t;
 
     /** @copydoc intensityAt() */
-    std::uint16_t intensityAt(const cv::Vec3d& v) const
-    {
-        return intensityAt(int(v[0]), int(v[1]), int(v[2]));
-    }
+    auto intensityAt(const cv::Vec3d& v) const -> std::uint16_t;
 
     /**
      * @brief Get the intensity value at a subvoxel position
@@ -148,13 +165,10 @@ public:
      * Trilinear interpolation equation from
      * <a href = "http://paulbourke.net/miscellaneous/interpolation/"> here</a>.
      */
-    std::uint16_t interpolateAt(double x, double y, double z) const;
+    auto interpolateAt(double x, double y, double z) const -> std::uint16_t;
 
     /** @copydoc interpolateAt(double, double, double) const */
-    std::uint16_t interpolateAt(const cv::Vec3d& v) const
-    {
-        return interpolateAt(v[0], v[1], v[2]);
-    }
+    auto interpolateAt(const cv::Vec3d& v) const -> std::uint16_t;
 
     /**
      * @brief Create a Reslice image by intersecting the volume with a plane
@@ -169,42 +183,35 @@ public:
      * @param height Height of the Reslice image
      * @param width Width of the Reslice image
      */
-    Reslice reslice(
+    auto reslice(
         const cv::Vec3d& center,
         const cv::Vec3d& xvec,
         const cv::Vec3d& yvec,
         int width = 64,
-        int height = 64) const;
+        int height = 64) const -> Reslice;
     /**@}*/
 
     /**@{*/
     /** @brief Enable slice caching */
-    void setCacheSlices(bool b) { cacheSlices_ = b; }
+    void setCacheSlices(bool b);
 
     /** @brief Set the slice cache */
-    void setCache(SliceCache::Pointer c) { cache_ = std::move(c); }
+    void setCache(SliceCache::Pointer c) const;
 
     /** @brief Set the maximum number of cached slices */
-    void setCacheCapacity(std::size_t newCacheCapacity)
-    {
-        cache_->setCapacity(newCacheCapacity);
-    }
+    void setCacheCapacity(std::size_t newCacheCapacity) const;
 
     /** @brief Set the maximum size of the cache in bytes */
-    void setCacheMemoryInBytes(std::size_t nbytes)
-    {
-        // x2 because pixels are 16 bits normally. Not a great solution.
-        setCacheCapacity(nbytes / (sliceWidth() * sliceHeight() * 2));
-    }
+    void setCacheMemoryInBytes(std::size_t nbytes) const;
 
     /** @brief Get the maximum number of cached slices */
-    std::size_t getCacheCapacity() const { return cache_->capacity(); }
+    auto getCacheCapacity() const -> std::size_t;
 
     /** @brief Get the current number of cached slices */
-    std::size_t getCacheSize() const { return cache_->size(); }
+    auto getCacheSize() const -> std::size_t;
 
     /** @brief Purge the slice cache */
-    void cachePurge() { cache_->purge(); }
+    void cachePurge() const;
     /**@}*/
 
 protected:
@@ -222,10 +229,15 @@ protected:
     /** Slice cache */
     mutable SliceCache::Pointer cache_{DefaultCache::New(DEFAULT_CAPACITY)};
     /** Cache mutex for thread-safe access */
-    mutable std::mutex cacheMutex_;
+    mutable std::shared_mutex cacheMutex_;
+    /** Per-slice mutexes */
+    // TODO: This seems excessive but I'll leave it until it can be tested
+    mutable std::vector<std::mutex> sliceMutexes_;
 
+    /** Whether to memmap slices */
+    bool memmap_{true};
     /** Load slice from disk */
-    cv::Mat load_slice_(int index) const;
+    cv::Mat load_slice_(int index, mmap_info* mmap_info = nullptr) const;
     /** Load slice from cache */
     cv::Mat cache_slice_(int index) const;
 };

@@ -50,4 +50,17 @@ bool CvMatEqual(const cv::Mat& a, const cv::Mat& b)
         a.template begin<T>(), a.template end<T>(), b.template begin<T>());
 }
 
+class KilledByAnyOfSignal
+{
+public:
+    template <class... Signals>
+    explicit KilledByAnyOfSignal(Signals... signals) : signals_{signals...}
+    {
+    }
+    auto operator()(int exit_status) const -> bool;
+
+private:
+    std::vector<int> signals_;
+};
+
 }  // namespace volcart::testing
