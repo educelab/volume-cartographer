@@ -16,7 +16,6 @@
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/math/StructureTensor.hpp"
-#include "vc/core/util/Debug.hpp"
 #include "vc/segmentation/OpticalFlowSegmentation.hpp"
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
@@ -29,7 +28,7 @@ namespace fs = volcart::filesystem;
 using std::begin;
 using std::end;
 
-std::size_t OpticalFlowSegmentationClass::progressIterations() const
+std::size_t OpticalFlowSegmentation::progressIterations() const
 {
     auto minZPoint = std::min_element(
         startingChain_.begin(), startingChain_.end(),
@@ -45,7 +44,7 @@ static std::ostream& operator<<(std::ostream& os, const Voxel& voxel) {
 }
 
 // Estimating the 2D normal to the curve in the z plane
-cv::Vec2f OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(const FittedCurve& curve, int index) {
+cv::Vec2f OpticalFlowSegmentation::estimate_2d_normal_at_index_(const FittedCurve& curve, int index) {
     int prevIndex = index - 1;
     int nextIndex = index + 1;
 
@@ -77,7 +76,7 @@ cv::Vec2f OpticalFlowSegmentationClass::estimate_2d_normal_at_index_(const Fitte
 }
 
 // fast method to get mean pixel value of window_size by using an integral image
-float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral_img, const cv::Point& pt, int window_size) {
+float OpticalFlowSegmentation::get_mean_pixel_value(const cv::Mat& integral_img, const cv::Point& pt, int window_size) {
     int x_min = std::max(pt.x - window_size / 2, 0);
     int x_max = std::min(pt.x + window_size / 2, integral_img.cols - 2);
     int y_min = std::max(pt.y - window_size / 2, 0);
@@ -95,7 +94,7 @@ float OpticalFlowSegmentationClass::get_mean_pixel_value(const cv::Mat& integral
 }
 
 // Function to compute the moving average of a specific point in a vector of Voxel points
-Voxel OpticalFlowSegmentationClass::compute_moving_average(const std::vector<Voxel>& points, int index, int window_size) {
+Voxel OpticalFlowSegmentation::compute_moving_average(const std::vector<Voxel>& points, int index, int window_size) {
     int count = 0;
     cv::Vec3f sum(0, 0, 0);
 
@@ -111,7 +110,7 @@ Voxel OpticalFlowSegmentationClass::compute_moving_average(const std::vector<Vox
     return Voxel(sum[0] / count, sum[1] / count, sum[2] / count);
 }
 
-std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolateWithMasterCloud(std::vector<std::vector<Voxel>> points, int window_size, bool backwards) {
+std::vector<std::vector<Voxel>> OpticalFlowSegmentation::interpolateWithMasterCloud(std::vector<std::vector<Voxel>> points, int window_size, bool backwards) {
 
     if (points.size() == 0) {
         return points;
@@ -176,7 +175,7 @@ std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolateWithMas
     return points;
 }
 
-std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolateGaps(std::vector<std::vector<Voxel>> points) {
+std::vector<std::vector<Voxel>> OpticalFlowSegmentation::interpolateGaps(std::vector<std::vector<Voxel>> points) {
 
     if (points.empty()) {
         return points;
@@ -238,7 +237,7 @@ std::vector<std::vector<Voxel>> OpticalFlowSegmentationClass::interpolateGaps(st
 }
 
 // Multithreaded computation of splitted curve segment
-std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
+std::vector<Voxel> OpticalFlowSegmentation::computeCurve(
     FittedCurve currentCurve,
     Chain& currentVs,
     int zIndex,
@@ -276,9 +275,9 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
     cv::Rect roi(x_min, y_min, x_max - x_min + 1, y_max - y_min + 1);
 
     cv::Mat roiSlice1;
-    roiSlice1 = vol_->getSliceDataRect(zIndex, roi);
+    roiSlice1 = vol_->getSliceData(zIndex)(roi);
     // Select the next slice depending on backwards and step size
-    cv::Mat roiSlice2 = vol_->getSliceDataRect(nextZIndex, roi);
+    cv::Mat roiSlice2 = vol_->getSliceData(nextZIndex)(roi);
 
     // Convert to grayscale and normalize the slices
     cv::Mat gray1, gray2;
@@ -695,7 +694,7 @@ std::vector<Voxel> OpticalFlowSegmentationClass::computeCurve(
     return smoothedVs;
 }
 
-OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
+OpticalFlowSegmentation::PointSet OpticalFlowSegmentation::compute()
 {
     // Max cache size
     if (nr_cache_slices_ >= 0 && vol_->getCacheCapacity() != nr_cache_slices_) {
@@ -950,7 +949,7 @@ OpticalFlowSegmentationClass::PointSet OpticalFlowSegmentationClass::compute()
     return output;
 }
 
-ChainSegmentationAlgorithm::Status OpticalFlowSegmentationClass::computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startChainIndex, int endChainIndex, int endIndex, int initialStepAdjustment, bool backwards,
+ChainSegmentationAlgorithm::Status OpticalFlowSegmentation::computeSub(std::vector<std::vector<Voxel>>& points, Chain currentVs, int startChainIndex, int endChainIndex, int endIndex, int initialStepAdjustment, bool backwards,
     std::size_t& iteration, bool insertFront, const fs::path outputDir, const fs::path wholeChainDir)
 {
     int loopCounter = 0;
@@ -1114,7 +1113,7 @@ ChainSegmentationAlgorithm::Status OpticalFlowSegmentationClass::computeSub(std:
     return status_;
 }
 
-cv::Vec3d OpticalFlowSegmentationClass::estimate_normal_at_index_(
+cv::Vec3d OpticalFlowSegmentation::estimate_normal_at_index_(
     const FittedCurve& currentCurve, int index)
 {
     auto currentVoxel = currentCurve(index);
@@ -1140,8 +1139,8 @@ cv::Vec3d OpticalFlowSegmentationClass::estimate_normal_at_index_(
     return normal;
 }
 
-OpticalFlowSegmentationClass::PointSet
-OpticalFlowSegmentationClass::create_final_pointset_(
+OpticalFlowSegmentation::PointSet
+OpticalFlowSegmentation::create_final_pointset_(
     const std::vector<std::vector<Voxel>>& points)
 {
     if (points.empty()) {
@@ -1168,7 +1167,7 @@ OpticalFlowSegmentationClass::create_final_pointset_(
     return result_;
 }
 
-cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
+cv::Mat OpticalFlowSegmentation::draw_particle_on_slice_(
     const FittedCurve& curve,
     int sliceIndex,
     int particleIndex,
@@ -1209,7 +1208,7 @@ cv::Mat OpticalFlowSegmentationClass::draw_particle_on_slice_(
     return pkgSlice;
 }
 
-cv::Mat OpticalFlowSegmentationClass::draw_particle_on_image_(
+cv::Mat OpticalFlowSegmentation::draw_particle_on_image_(
     const FittedCurve& curve,
     cv::Mat pkgSlice,
     int particleIndex,

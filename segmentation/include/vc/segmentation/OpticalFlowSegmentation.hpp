@@ -1,18 +1,15 @@
-// Author: Julian Shilliger, contribution to Volume Cartographer as part of the 2023 "Vesuvius Challenge", MIT License
-
 #pragma once
-#include <shared_mutex>
 
 /** @file */
 
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <shared_mutex>
 
 #include "vc/core/types/OrderedPointSet.hpp"
-#include "vc/core/types/VolumePkg.hpp"
+#include "vc/core/types/Volume.hpp"
 #include "vc/segmentation/ChainSegmentationAlgorithm.hpp"
-#include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/FittedCurve.hpp"
 
 namespace fs = volcart::filesystem;
@@ -20,35 +17,42 @@ namespace fs = volcart::filesystem;
 namespace volcart::segmentation
 {
 /**
- * @class OpticalFlowSegmentationClass
- * @brief Multithreaded Optical Flow Segmentation
+ * @brief Optical Flow Segmentation
  *
- * This algorithm propagates a chain of points forward through a volume from
- * a starting z-index to an ending z-index. Each point is assumed to start
- * within a page layer.
- * The ending index is inclusive.
+ * @author    Julian Schilliger
+ * @date      May 2023
+ * @copyright 2023 Julian Schilliger, MIT License.
  *
- * Warning: This Algorithm is not deterministic and yields slightly different results each run.
  *
- * @ingroup ofsc
+ * This algorithm propagates a chain of points forward through a volume from a
+ * starting z-index to an ending z-index (inclusive). It uses optical flow to
+ * track the shape of the layer. Each seed point is assumed to be placed within
+ * the layer rather than on its surface boundary.
+ *
+ * Contribution as part of the _Vesuvius Challenge 2023_.
+ *
+ * @warning This algorithm is non-deterministic and yields slightly different
+ * results each run.
+ *
+ * @ingroup Segmentation
  */
-class OpticalFlowSegmentationClass : public ChainSegmentationAlgorithm
+class OpticalFlowSegmentation : public ChainSegmentationAlgorithm
 {
 public:
     /** Pointer */
-    using Pointer = std::shared_ptr<OpticalFlowSegmentationClass>;
+    using Pointer = std::shared_ptr<OpticalFlowSegmentation>;
 
     /** @brief Default constructor */
-    OpticalFlowSegmentationClass() = default;
+    OpticalFlowSegmentation() = default;
 
     /** Default destructor */
-    ~OpticalFlowSegmentationClass() override = default;
+    ~OpticalFlowSegmentation() override = default;
 
     /** Make a new shared instance */
     template <typename... Args>
     static auto New(Args... args) -> Pointer
     {
-        return std::make_shared<OpticalFlowSegmentationClass>(
+        return std::make_shared<OpticalFlowSegmentation>(
             std::forward<Args>(args)...);
     }
 
@@ -118,7 +122,7 @@ public:
 
     /** @brief
      */
-    void setLineSmoothenByBrightness(int brightness) { smoothen_by_brightness_ = brightness; }
+    void setSmoothBrightnessThreshold(int brightness) { smoothen_by_brightness_ = brightness; }
 
     /** @brief Set how wide the interpolation window should be
      */

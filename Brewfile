@@ -1,6 +1,7 @@
 brew 'boost'
 brew 'cmake'
 brew 'eigen'
+brew 'gsl'
 brew 'itk'
 brew 'libtiff'
 brew 'opencv@4'
