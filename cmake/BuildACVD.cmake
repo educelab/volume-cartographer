@@ -4,7 +4,7 @@ if(VC_BUILD_ACVD)
   FetchContent_Declare(
       acvd
       GIT_REPOSITORY https://gitlab.com/educelab/acvd.git
-      GIT_TAG 9efaeb4d
+      GIT_TAG codeql-fix-bad-upcast
   )
 
   # Populate the project but exclude from all
