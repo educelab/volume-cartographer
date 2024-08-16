@@ -10,8 +10,8 @@ namespace vc = volcart;
 using VolumeMask = vc::VolumeMask;
 using State = vc::VolumeMask::State;
 
-const int XY_SIZE = 3000;
-const int Z_SIZE = 3000;
+constexpr int XY_SIZE = 3000;
+constexpr int Z_SIZE = 3000;
 
 TEST(VolumeMask, BasicAssignment)
 {
@@ -19,7 +19,7 @@ TEST(VolumeMask, BasicAssignment)
     VolumeMask mask(5, 5, 5);
 
     // Assignment
-    cv::Vec3i voxel(1, 2, 3);
+    const cv::Vec3i voxel(1, 2, 3);
     mask.setVoxelState(voxel, State::Segmented);
 
     // Retrieval
@@ -38,7 +38,7 @@ TEST(VolumeMask, Performance_LargeSlice)
     VolumeMask mask(XY_SIZE, XY_SIZE, Z_SIZE);
 
     // Assignment
-    cv::Vec3i voxel(XY_SIZE / 10, XY_SIZE / 10, Z_SIZE / 10);
+    const cv::Vec3i voxel(XY_SIZE / 10, XY_SIZE / 10, Z_SIZE / 10);
 
     mask.setVoxelState(voxel, State::Segmented);
 
@@ -58,8 +58,10 @@ TEST(VolumeMask, Performance_ThousandVoxelSubvolume)
 
     // Retrieval
     auto subvolume = mask.getSubvolumeState(origin, dims);
-    std::vector<State> key(dims[0] * dims[1] * dims[2]);
-    std::fill(key.begin(), key.end(), State::Segmented);
+    const auto count = static_cast<std::size_t>(dims[0]) *
+                       static_cast<std::size_t>(dims[1]) *
+                       static_cast<std::size_t>(dims[2]);
+    std::vector key(count, State::Segmented);
 
     // Retrieval
     EXPECT_THAT(subvolume.as_vector(), testing::ContainerEq(key));
@@ -85,8 +87,10 @@ TEST(VolumeMask, Performance_EightThousandVoxelSubvolume)
 
     // Retrieval
     auto subvolume = mask.getSubvolumeState(origin, dims);
-    std::vector<State> key(dims[0] * dims[1] * dims[2]);
-    std::fill(key.begin(), key.end(), State::Segmented);
+    const auto count = static_cast<std::size_t>(dims[0]) *
+                       static_cast<std::size_t>(dims[1]) *
+                       static_cast<std::size_t>(dims[2]);
+    std::vector key(count, State::Segmented);
 
     // Retrieval
     EXPECT_THAT(subvolume.as_vector(), testing::ContainerEq(key));
