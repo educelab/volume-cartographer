@@ -18,7 +18,7 @@ endif()
 
 if(VC_USE_BOOSTFS)
     add_compile_definitions(VC_USE_BOOSTFS)
-    find_package(Boost 1.58 REQUIRED COMPONENTS system filesystem)
+    find_package(Boost 1.7 CONFIG REQUIRED COMPONENTS system filesystem)
     set(VC_FS_LIB Boost::filesystem)
 else()
     set(VC_FS_LIB std::filesystem)
@@ -89,7 +89,7 @@ include(Buildlibcore)
 
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
-    find_package(Boost 1.58 REQUIRED COMPONENTS system program_options)
+    find_package(Boost 1.7 CONFIG REQUIRED COMPONENTS system program_options)
     include(BuildIndicators)
 endif()
 
