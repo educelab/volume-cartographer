@@ -14,7 +14,10 @@
 #include "vc/meshing/ITK2VTK.hpp"
 #include "vc/meshing/OrderedPointSetMesher.hpp"
 
-auto main(int argc, char** argv) -> int
+using namespace volcart;
+using namespace volcart::meshing;
+
+auto main(const int argc, char** argv) -> int
 {
     if (argc < 3) {
         std::cout << "Usage: vc_area volpkg (seg-id | mesh)" << '\n';
@@ -22,45 +25,44 @@ auto main(int argc, char** argv) -> int
     }
 
     // Load the VolumePkg
-    volcart::VolumePkg vpkg(argv[1]);
+    VolumePkg vpkg(argv[1]);
 
-    volcart::ITKMesh::Pointer mesh;
+    ITKMesh::Pointer mesh;
     std::string segID;
-    if (volcart::IsFileType(argv[2], {"obj", "ply"})) {
+    if (IsFileType(argv[2], {"obj", "ply"})) {
         // Load the mesh
-        auto meshReaderResult = volcart::ReadMesh(argv[2]);
-        mesh = meshReaderResult.mesh;
+        const auto [mesh, uv, texture] = ReadMesh(argv[2]);
     } else {
         // Get the segmentation
         segID = argv[2];
-        auto seg = vpkg.segmentation(segID);
+        const auto seg = vpkg.segmentation(segID);
 
         // Mesh the point cloud
-        volcart::meshing::OrderedPointSetMesher mesher;
+        OrderedPointSetMesher mesher;
         mesher.setPointSet(seg->getPointSet());
         mesh = mesher.compute();
     }
 
-    auto smoothVTK = vtkPolyData::New();
-    volcart::meshing::ITK2VTK(mesh, smoothVTK);
+    const auto smoothVTK = vtkPolyData::New();
+    ITK2VTK(mesh, smoothVTK);
 
-    auto smooth = vtkSmoothPolyDataFilter::New();
+    const auto smooth = vtkSmoothPolyDataFilter::New();
     smooth->SetInputData(smoothVTK);
     smooth->SetBoundarySmoothing(1);
     smooth->SetNumberOfIterations(10);
     smooth->SetRelaxationFactor(0.3);
     smooth->Update();
 
-    auto massProperties = vtkMassProperties::New();
+    const auto massProperties = vtkMassProperties::New();
     massProperties->AddInputData(smooth->GetOutput());
 
-    auto areaVoxels = massProperties->GetSurfaceArea();
-    auto voxelSize = vpkg.volume()->voxelSize();
+    const auto areaVoxels = massProperties->GetSurfaceArea();
+    const auto voxelSize = vpkg.volume()->voxelSize();
 
-    long double umArea = areaVoxels * std::pow(voxelSize, 2);
-    long double mmArea = umArea * std::pow(0.001, 2);
-    long double cmArea = umArea * std::pow(0.0001, 2);
-    long double inArea = umArea * std::pow(3.93700787e-5, 2);
+    const auto umArea = areaVoxels * std::pow(voxelSize, 2);
+    const auto mmArea = umArea * std::pow(0.001, 2);
+    const auto cmArea = umArea * std::pow(0.0001, 2);
+    const auto inArea = umArea * std::pow(3.93700787e-5, 2);
 
     std::cout << std::endl;
     std::cout << "Area: " << segID << std::endl;
