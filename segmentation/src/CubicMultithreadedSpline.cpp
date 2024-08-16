@@ -29,6 +29,8 @@
  * SOFTWARE.
  */
 
+#include "vc/segmentation/lrps/CubicMultithreadedSpline.hpp"
+
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
@@ -40,9 +42,6 @@
 #include <mutex>
 
 #include <gsl/gsl_integration.h>
-
-
-#include "vc/segmentation/lrps/CubicMultithreadedSpline.hpp"
 
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
