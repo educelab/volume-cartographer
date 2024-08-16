@@ -5,14 +5,9 @@ if(VC_BUILD_ACVD)
       acvd
       GIT_REPOSITORY https://gitlab.com/educelab/acvd.git
       GIT_TAG v1.2.1
+      EXCLUDE_FROM_ALL
   )
-
-  # Populate the project but exclude from all
-  FetchContent_GetProperties(acvd)
-  if(NOT acvd_POPULATED)
-    FetchContent_Populate(acvd)
-    add_subdirectory(${acvd_SOURCE_DIR} ${acvd_BINARY_DIR} EXCLUDE_FROM_ALL)
-  endif()
+  FetchContent_MakeAvailable(acvd)
 else()
   find_package(ACVD 1.2 REQUIRED)
 endif()
