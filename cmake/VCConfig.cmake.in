@@ -44,6 +44,9 @@ find_dependency(spdlog CONFIG QUIET REQUIRED)
 
 ### smgl ###
 find_dependency(smgl @smgl_VERSION@ CONFIG QUIET REQUIRED)
+
+### GNU Scientific Library ###
+find_dependency(GSL QUIET REQUIRED)
 #####################################################################
 
 ### Include VC targets ###
