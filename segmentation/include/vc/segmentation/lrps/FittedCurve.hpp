@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "vc/segmentation/lrps/Common.hpp"
-#include "vc/segmentation/lrps/CubicMultithreadedSpline.hpp"
+#include "vc/segmentation/lrps/CubicSplineMT.hpp"
 
 namespace volcart::segmentation
 {
@@ -28,7 +28,7 @@ private:
     /** List of sampled points */
     std::vector<Voxel> points_;
     /** Spline representation of curve */
-    CubicMultithreadedSpline spline_;
+    CubicSplineMT spline_;
 
 public:
     /** @name Constructors */

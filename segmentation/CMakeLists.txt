@@ -14,7 +14,7 @@ set(srcs
     src/StructureTensorParticleSim.cpp
     src/ThinnedFloodFillSegmentation.cpp
     src/ComputeVolumetricMask.cpp
-    src/CubicMultithreadedSpline.cpp
+    src/CubicSplineMT.cpp
 )
 
 add_library(vc_segmentation ${srcs})
