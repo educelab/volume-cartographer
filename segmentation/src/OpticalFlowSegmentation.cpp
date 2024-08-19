@@ -1,4 +1,5 @@
-// Author: Julian Shilliger, contribution to Volume Cartographer as part of the 2023 "Vesuvius Challenge", MIT License
+/* This file is licensed under the MIT license. Please see
+ * OpticalFlowSegmentation.hpp. */
 
 #include <deque>
 #include <iomanip>

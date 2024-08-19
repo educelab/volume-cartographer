@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
-#include <iostream>
 #include <numeric>
 
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"

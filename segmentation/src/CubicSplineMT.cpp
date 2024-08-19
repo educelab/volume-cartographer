@@ -1,34 +1,4 @@
-/*
- * File: CubicSplineMT.cpp
- * Author: Julian Schilliger
- *
- * Created on: September 2023
- *
- * Description: CubicSplineMT class implementation for scalar spline
- * interpolation.
- *
- * License: MIT License
- *
- * Copyright (c) 2023 Julian Schilliger
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+/* This file is licensed under the MIT license. Please see CubicSplineMT.hpp. */
 
 #include "vc/segmentation/lrps/CubicSplineMT.hpp"
 
@@ -44,13 +14,18 @@
 #include <Eigen/Dense>
 #include <gsl/gsl_integration.h>
 
+#include "vc/core/util/Logging.hpp"
+
+using namespace volcart;
 using namespace volcart::segmentation;
 using namespace Eigen;
+
+using Index = Eigen::Index;
 
 namespace
 {
 
-void cubic_spline_interpolation(
+void Interpolate(
     const VectorXd& x,
     const VectorXd& y,
     VectorXd& a,
@@ -58,7 +33,7 @@ void cubic_spline_interpolation(
     VectorXd& c,
     VectorXd& d)
 {
-    int n = x.size() - 1;
+    const auto n = x.size() - 1;
     VectorXd h = x.segment(1, n) - x.segment(0, n);
 
     for (int i = 0; i < h.size(); ++i) {
@@ -94,79 +69,87 @@ void cubic_spline_interpolation(
     c.conservativeResize(n);
 }
 
-void windowed_spline_worker(
+void FitSplineWindow(
     const VectorXd& x,
     const VectorXd& y,
-    std::mutex& mtx,
-    std::vector<double>& a_vec,
-    std::vector<double>& b_vec,
-    std::vector<double>& c_vec,
-    std::vector<double>& d_vec,
-    int start_idx,
-    int end_idx,
-    int window_size,
-    int buffer_size)
+    std::vector<double>& aVec,
+    std::vector<double>& bVec,
+    std::vector<double>& cVec,
+    std::vector<double>& dVec,
+    const Index startIdx,
+    const Index endIdx,
+    const Index winSize,
+    const Index bufSize,
+    std::mutex& mtx)
 {
 
-    for (int i = start_idx; i < end_idx; i += window_size) {
-        int wnd_end_idx =
-            std::min(i + window_size + buffer_size, (int)x.size());
-        int wnd_start_idx =
-            std::max(wnd_end_idx - window_size - 2 * buffer_size, 0);
+    for (auto i = startIdx; i < endIdx; i += winSize) {
+        const auto winEnd = std::min(i + winSize + bufSize, x.size());
+        const auto winStart =
+            std::max(winEnd - winSize - 2 * bufSize, Index{0});
 
-        VectorXd x_window =
-            x.segment(wnd_start_idx, wnd_end_idx - wnd_start_idx);
-        VectorXd y_window =
-            y.segment(wnd_start_idx, wnd_end_idx - wnd_start_idx);
+        VectorXd xWin = x.segment(winStart, winEnd - winStart);
+        VectorXd yWin = y.segment(winStart, winEnd - winStart);
 
         VectorXd a, b, c, d;
-        cubic_spline_interpolation(x_window, y_window, a, b, c, d);
+        Interpolate(xWin, yWin, a, b, c, d);
 
-        int idx_start = i - wnd_start_idx;
-        int idx_end = std::min(i + window_size, (int)x.size()) - wnd_start_idx;
+        const auto updateStart = i - winStart;
+        const auto updateEnd = std::min(i + winSize, x.size()) - winStart;
 
         std::lock_guard lock(mtx);
-        std::copy(a.data() + idx_start, a.data() + idx_end, a_vec.begin() + i);
-        std::copy(b.data() + idx_start, b.data() + idx_end, b_vec.begin() + i);
-        std::copy(c.data() + idx_start, c.data() + idx_end, c_vec.begin() + i);
-        std::copy(d.data() + idx_start, d.data() + idx_end, d_vec.begin() + i);
+        std::copy(
+            a.data() + updateStart, a.data() + updateEnd, aVec.begin() + i);
+        std::copy(
+            b.data() + updateStart, b.data() + updateEnd, bVec.begin() + i);
+        std::copy(
+            c.data() + updateStart, c.data() + updateEnd, cVec.begin() + i);
+        std::copy(
+            d.data() + updateStart, d.data() + updateEnd, dVec.begin() + i);
     }
 }
 
-void windowed_spline_with_buffer_multithreaded(
-    const VectorXd& x,
-    const VectorXd& y,
-    std::mutex& mtx,
+void FitSplineMT(
+    const VectorXd& range,
+    const VectorXd& val,
     VectorXd& a_total,
     VectorXd& b_total,
     VectorXd& c_total,
     VectorXd& d_total,
-    int window_size = 100,
-    int buffer_size = 10,
-    int num_threads = -1)
+    std::mutex& mtx,
+    const Index winSize = 100,
+    const Index bufSize = 10,
+    int numThreads = -1)
 {
+    // Init output params
+    auto n = range.size();
+    std::vector aVec(n, 0.0);
+    std::vector bVec(n, 0.0);
+    std::vector cVec(n, 0.0);
+    std::vector dVec(n, 0.0);
 
-    int n = x.size();
-    std::vector<double> a_vec(n, 0.0), b_vec(n, 0.0), c_vec(n, 0.0),
-        d_vec(n, 0.0);
-
+    // TODO: There should be a thread pool for this
     std::vector<std::thread> threads;
 
-    if (num_threads == -1) {
-        int num_available_threads =
-            static_cast<int>(std::thread::hardware_concurrency());
-        num_threads = num_available_threads;
+    // Auto-determine the number of threads
+    if (numThreads < 0) {
+        numThreads = static_cast<int>(std::thread::hardware_concurrency());
+        // TODO: Handle no threads
+        assert(numThreads != 0);
     }
+    Logger()->debug("Using {} threads", numThreads);
+    threads.reserve(numThreads);
 
-    int steps = std::ceil(((double)n) / ((double)window_size));
-    int steps_per_thread = steps / num_threads;
-    int remainder = steps % num_threads;
-    int current_step = 0;
-    for (int i = 0; i < num_threads; ++i) {
-        int start_idx = current_step * window_size;
-        int end_idx = (current_step + steps_per_thread) * window_size;
+    // TODO: Start here
+    int steps = std::ceil(((double)n) / ((double)winSize));
+    int steps_per_thread = steps / numThreads;
+    int remainder = steps % numThreads;
+    auto current_step = 0;
+    for (auto i = 0; i < numThreads; ++i) {
+        auto start_idx = current_step * winSize;
+        auto end_idx = (current_step + steps_per_thread) * winSize;
         if (i < remainder) {
-            end_idx += window_size;
+            end_idx += winSize;
             current_step += 1;
         }
         end_idx = std::min(end_idx, n);
@@ -177,19 +160,19 @@ void windowed_spline_with_buffer_multithreaded(
         }
 
         threads.emplace_back(
-            &windowed_spline_worker, std::ref(x), std::ref(y), std::ref(mtx),
-            std::ref(a_vec), std::ref(b_vec), std::ref(c_vec), std::ref(d_vec),
-            start_idx, end_idx, window_size, buffer_size);
+            &FitSplineWindow, std::ref(range), std::ref(val), std::ref(aVec),
+            std::ref(bVec), std::ref(cVec), std::ref(dVec), start_idx, end_idx,
+            winSize, bufSize, std::ref(mtx));
     }
 
     for (auto& t : threads) {
         t.join();
     }
 
-    a_total = Eigen::Map<VectorXd>(a_vec.data(), a_vec.size());
-    b_total = Eigen::Map<VectorXd>(b_vec.data(), b_vec.size());
-    c_total = Eigen::Map<VectorXd>(c_vec.data(), c_vec.size());
-    d_total = Eigen::Map<VectorXd>(d_vec.data(), d_vec.size());
+    a_total = Eigen::Map<VectorXd>(aVec.data(), aVec.size());
+    b_total = Eigen::Map<VectorXd>(bVec.data(), bVec.size());
+    c_total = Eigen::Map<VectorXd>(cVec.data(), cVec.size());
+    d_total = Eigen::Map<VectorXd>(dVec.data(), dVec.size());
 }
 
 double integrand2D(double t, void* params)
@@ -326,12 +309,11 @@ std::pair<double, double> evaluate_spline_at_t_2D(
 // Constructor implementation
 CubicSplineMT::CubicSplineMT(const VectorXd& x, const VectorXd& y)
 {
-    range_xy_ = VectorXd::LinSpaced((int)x.size(), 0, x.size() - 1);
+    range_xy_ =
+        VectorXd::LinSpaced(x.size(), 0., static_cast<double>(x.size()) - 1.);
     npoints_ = x.size();
-    windowed_spline_with_buffer_multithreaded(
-        range_xy_, x, mtx_, a_x_, b_x_, c_x_, d_x_);
-    windowed_spline_with_buffer_multithreaded(
-        range_xy_, y, mtx_, a_y_, b_y_, c_y_, d_y_);
+    FitSplineMT(range_xy_, x, a_x_, b_x_, c_x_, d_x_, mtx_);
+    FitSplineMT(range_xy_, y, a_y_, b_y_, c_y_, d_y_, mtx_);
     std::tie(subsegment_lengths_, cumulative_lengths_) =
         compute_subsegment_lengths_2D(
             range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
@@ -347,10 +329,8 @@ CubicSplineMT::CubicSplineMT(const std::vector<Voxel>& vs)
 
     range_xy_ = VectorXd::LinSpaced((int)xsEigen.size(), 0, xsEigen.size() - 1);
     npoints_ = xs.size();
-    windowed_spline_with_buffer_multithreaded(
-        range_xy_, xsEigen, mtx_, a_x_, b_x_, c_x_, d_x_);
-    windowed_spline_with_buffer_multithreaded(
-        range_xy_, ysEigen, mtx_, a_y_, b_y_, c_y_, d_y_);
+    FitSplineMT(range_xy_, xsEigen, a_x_, b_x_, c_x_, d_x_, mtx_);
+    FitSplineMT(range_xy_, ysEigen, a_y_, b_y_, c_y_, d_y_, mtx_);
     std::tie(subsegment_lengths_, cumulative_lengths_) =
         compute_subsegment_lengths_2D(
             range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
