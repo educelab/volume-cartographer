@@ -35,11 +35,10 @@ public:
     auto operator()(double t) const -> Pixel;
 
 private:
-    std::vector<double> a_x_, b_x_, c_x_, d_x_;
-    std::vector<double> a_y_, b_y_, c_y_, d_y_;
-    std::vector<double> range_xy_;
-    std::vector<double> subsegment_lengths_;
-    std::vector<double> cumulative_lengths_;
+    std::vector<double> aX_, bX_, cX_, dX_;
+    std::vector<double> aY_, bY_, cY_, dY_;
+    std::vector<double> rangeXY_;
+    std::vector<double> subsegLens_;
+    std::vector<double> cumuLens_;
     std::mutex mtx_;
-    std::size_t npoints_{0};
 };

@@ -22,7 +22,6 @@ using namespace volcart;
 using namespace volcart::segmentation;
 using namespace Eigen;
 
-using Index = Eigen::Index;
 using Params = std::vector<double>;
 
 namespace
@@ -207,15 +206,15 @@ double Integrand2D(const double t, void* params)
 }
 
 double SplineLength(
-    double bX,
-    double cX,
-    double dX,
-    double bY,
-    double cY,
-    double dY,
-    double t0,
-    double tSub0,
-    double tSub1)
+    const double bX,
+    const double cX,
+    const double dX,
+    const double bY,
+    const double cY,
+    const double dY,
+    const double t0,
+    const double tSub0,
+    const double tSub1)
 {
     auto* w = gsl_integration_workspace_alloc(1000);
     double result{0};
@@ -238,7 +237,7 @@ auto SubsegmentLengths(
     const Params& bY,
     const Params& cY,
     const Params& dY,
-    const int nSegs = 10) -> std::tuple<Params, Params>
+    const std::size_t nSegs = 10) -> std::tuple<Params, Params>
 {
     const auto numLengths = nSegs * (t.size() - 1);
     Params subsegLengths;
@@ -249,10 +248,11 @@ auto SubsegmentLengths(
     for (const auto& [i, j] : range2D(t.size() - 1, nSegs)) {
         const auto t0 = t[i];
         const auto t1 = t[i + 1];
-        const auto tSub0 = t0 + (t1 - t0) * (static_cast<double>(j) / nSegs);
-        const auto tSub1 =
-            t0 + (t1 - t0) * (static_cast<double>(j + 1) / nSegs);
-        double length = SplineLength(
+        const auto tS = static_cast<double>(j) / static_cast<double>(nSegs);
+        const auto tE = static_cast<double>(j + 1) / static_cast<double>(nSegs);
+        const auto tSub0 = t0 + (t1 - t0) * tS;
+        const auto tSub1 = t0 + (t1 - t0) * tE;
+        auto length = SplineLength(
             bX[i], cX[i], dX[i], bY[i], cY[i], dY[i], t0, tSub0, tSub1);
         subsegLengths.emplace_back(length);
         cumulativeLengths.emplace_back(cumulativeLengths.back() + length);
@@ -266,40 +266,37 @@ auto SubsegmentLengths(
 // Constructor implementation
 CubicSplineMT::CubicSplineMT(const Params& x, const Params& y)
 {
-    range_xy_ = linspace(x.size(), 0., static_cast<double>(x.size() - 1));
-    npoints_ = x.size();
-    std::tie(a_x_, b_x_, c_x_, d_x_) = FitSplineMT(range_xy_, x, mtx_);
-    std::tie(a_y_, b_y_, c_y_, d_y_) = FitSplineMT(range_xy_, y, mtx_);
-    std::tie(subsegment_lengths_, cumulative_lengths_) =
-        SubsegmentLengths(range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
+    rangeXY_ = linspace(x.size(), 0., static_cast<double>(x.size() - 1));
+    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, x, mtx_);
+    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, y, mtx_);
+    std::tie(subsegLens_, cumuLens_) =
+        SubsegmentLengths(rangeXY_, bX_, cX_, dX_, bY_, cY_, dY_);
 }
 
 CubicSplineMT::CubicSplineMT(const std::vector<Voxel>& vs)
 {
     auto [xs, ys] = Unzip(vs);
 
-    range_xy_ = linspace(xs.size(), 0., static_cast<double>(xs.size() - 1));
-    npoints_ = xs.size();
-    std::tie(a_x_, b_x_, c_x_, d_x_) = FitSplineMT(range_xy_, xs, mtx_);
-    std::tie(a_y_, b_y_, c_y_, d_y_) = FitSplineMT(range_xy_, ys, mtx_);
-    std::tie(subsegment_lengths_, cumulative_lengths_) =
-        SubsegmentLengths(range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
+    rangeXY_ = linspace(xs.size(), 0., static_cast<double>(xs.size() - 1));
+    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, xs, mtx_);
+    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, ys, mtx_);
+    std::tie(subsegLens_, cumuLens_) =
+        SubsegmentLengths(rangeXY_, bX_, cX_, dX_, bY_, cY_, dY_);
 }
 
 CubicSplineMT::CubicSplineMT(const CubicSplineMT& other)
 {
-    a_x_ = other.a_x_;
-    b_x_ = other.b_x_;
-    c_x_ = other.c_x_;
-    d_x_ = other.d_x_;
-    a_y_ = other.a_y_;
-    b_y_ = other.b_y_;
-    c_y_ = other.c_y_;
-    d_y_ = other.d_y_;
-    range_xy_ = other.range_xy_;
-    subsegment_lengths_ = other.subsegment_lengths_;
-    cumulative_lengths_ = other.cumulative_lengths_;
-    npoints_ = other.npoints_;
+    aX_ = other.aX_;
+    bX_ = other.bX_;
+    cX_ = other.cX_;
+    dX_ = other.dX_;
+    aY_ = other.aY_;
+    bY_ = other.bY_;
+    cY_ = other.cY_;
+    dY_ = other.dY_;
+    rangeXY_ = other.rangeXY_;
+    subsegLens_ = other.subsegLens_;
+    cumuLens_ = other.cumuLens_;
 
     // mtx is deliberately not copied
 }
@@ -307,18 +304,17 @@ CubicSplineMT::CubicSplineMT(const CubicSplineMT& other)
 auto CubicSplineMT::operator=(const CubicSplineMT& other) -> CubicSplineMT&
 {
     if (this != &other) {
-        a_x_ = other.a_x_;
-        b_x_ = other.b_x_;
-        c_x_ = other.c_x_;
-        d_x_ = other.d_x_;
-        a_y_ = other.a_y_;
-        b_y_ = other.b_y_;
-        c_y_ = other.c_y_;
-        d_y_ = other.d_y_;
-        range_xy_ = other.range_xy_;
-        subsegment_lengths_ = other.subsegment_lengths_;
-        cumulative_lengths_ = other.cumulative_lengths_;
-        npoints_ = other.npoints_;
+        aX_ = other.aX_;
+        bX_ = other.bX_;
+        cX_ = other.cX_;
+        dX_ = other.dX_;
+        aY_ = other.aY_;
+        bY_ = other.bY_;
+        cY_ = other.cY_;
+        dY_ = other.dY_;
+        rangeXY_ = other.rangeXY_;
+        subsegLens_ = other.subsegLens_;
+        cumuLens_ = other.cumuLens_;
         // mtx is deliberately not copied
     }
 
@@ -329,47 +325,46 @@ auto CubicSplineMT::operator=(const CubicSplineMT& other) -> CubicSplineMT&
 auto CubicSplineMT::operator()(const double t) const -> Pixel
 {
     // Total length
-    const auto totalLen = cumulative_lengths_.back();
+    const auto totalLen = cumuLens_.back();
     const auto targetLen = totalLen * t;
 
     // Find the correct subsegment using binary search
-    const auto it = std::lower_bound(
-        cumulative_lengths_.begin(), cumulative_lengths_.end(), targetLen);
+    const auto it =
+        std::lower_bound(cumuLens_.begin(), cumuLens_.end(), targetLen);
     std::size_t idx{0};
-    if (it != cumulative_lengths_.begin()) {
-        idx = std::distance(cumulative_lengths_.begin(), it) - 1;
+    if (it != cumuLens_.begin()) {
+        idx = std::distance(cumuLens_.begin(), it) - 1;
     }
 
-    const auto seg_count = range_xy_.size() - 1;
-    const auto subseg_count = subsegment_lengths_.size() / seg_count;
-    const auto segment_idx = idx / subseg_count;
-    const auto subseg_idx = idx % subseg_count;
+    const auto segCount = rangeXY_.size() - 1;
+    const auto subsegCount = subsegLens_.size() / segCount;
+    const auto segIdx = idx / subsegCount;
+    const auto subsegIdx = idx % subsegCount;
+    const auto subsegStart =
+        static_cast<double>(subsegIdx) / static_cast<double>(subsegCount);
+    const auto subsegEnd =
+        static_cast<double>(subsegIdx + 1) / static_cast<double>(subsegCount);
 
     // Calculate the remaining length to target within this subsegment
-    const auto remaining_length = targetLen - cumulative_lengths_[idx];
+    const auto remaining = targetLen - cumuLens_[idx];
 
     // Compute the x position at t
-    auto range_xy0 = range_xy_[segment_idx];
-    auto range_xy1 = range_xy_[segment_idx + 1];
-    const auto range_xy_sub0 =
-        range_xy0 + (range_xy1 - range_xy0) *
-                        (static_cast<double>(subseg_idx) / subseg_count);
-    const auto range_xy_sub1 =
-        range_xy0 + (range_xy1 - range_xy0) *
-                        (static_cast<double>(subseg_idx + 1) / subseg_count);
-    const auto range_xy_t =
-        range_xy_sub0 + (range_xy_sub1 - range_xy_sub0) *
-                            (remaining_length / subsegment_lengths_[idx]);
+    const auto range0 = rangeXY_[segIdx];
+    const auto range1 = rangeXY_[segIdx + 1];
+    const auto rangeSub0 = range0 + (range1 - range0) * subsegStart;
+    const auto rangeSub1 = range0 + (range1 - range0) * subsegEnd;
+    const auto rangeT =
+        rangeSub0 + (rangeSub1 - rangeSub0) * (remaining / subsegLens_[idx]);
 
-    const double d_range_xy = range_xy_t - range_xy0;
-    // Compute the x position at range_xy_t
-    double x_t = a_x_[segment_idx] + b_x_[segment_idx] * d_range_xy +
-                 c_x_[segment_idx] * std::pow(d_range_xy, 2) +
-                 d_x_[segment_idx] * std::pow(d_range_xy, 3);
-    // Compute the y position at range_xy_t
-    double y_t = a_y_[segment_idx] + b_y_[segment_idx] * d_range_xy +
-                 c_y_[segment_idx] * pow(d_range_xy, 2) +
-                 d_y_[segment_idx] * pow(d_range_xy, 3);
+    const double dRange = rangeT - range0;
+    // Compute the x position at rangeT
+    double xT = aX_[segIdx] + bX_[segIdx] * dRange +
+                cX_[segIdx] * std::pow(dRange, 2) +
+                dX_[segIdx] * std::pow(dRange, 3);
+    // Compute the y position at rangeT
+    double yT = aY_[segIdx] + bY_[segIdx] * dRange +
+                cY_[segIdx] * std::pow(dRange, 2) +
+                dY_[segIdx] * std::pow(dRange, 3);
 
-    return {x_t, y_t};
+    return {xT, yT};
 }
