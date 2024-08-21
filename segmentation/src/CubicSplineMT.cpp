@@ -8,12 +8,14 @@
 #include <mutex>
 #include <numeric>
 #include <thread>
+#include <tuple>
 #include <utility>
 #include <vector>
 
 #include <Eigen/Dense>
 #include <gsl/gsl_integration.h>
 
+#include "vc/core/util/Iteration.hpp"
 #include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
@@ -21,30 +23,43 @@ using namespace volcart::segmentation;
 using namespace Eigen;
 
 using Index = Eigen::Index;
+using Params = std::vector<double>;
 
 namespace
 {
 
-void Interpolate(
-    const VectorXd& x,
-    const VectorXd& y,
-    VectorXd& a,
-    VectorXd& b,
-    VectorXd& c,
-    VectorXd& d)
+template <typename T>
+auto linspace(const std::size_t num, const T low, const T high)
+    -> std::vector<T>
 {
+    std::vector<T> v(num);
+    auto step = (high - low) / static_cast<T>(num);
+    std::generate(
+        v.begin(), v.end(), [n = std::size_t{0}, &low, &step]() mutable {
+            return low + step * n++;
+        });
+    return v;
+}
+
+auto Interpolate(const VectorXd& x, const VectorXd& y)
+    -> std::tuple<VectorXd, VectorXd, VectorXd, VectorXd>
+{
+    // Result size
     const auto n = x.size() - 1;
     VectorXd h = x.segment(1, n) - x.segment(0, n);
 
+    // Value must be non-zero
     for (int i = 0; i < h.size(); ++i) {
-        if (h(i) == 0)
+        if (h(i) == 0) {
             h(i) = 1e-8;
+        }
     }
 
-    a = y.segment(0, n);
-    b = VectorXd::Zero(n);
-    c = VectorXd::Zero(n + 1);
-    d = VectorXd::Zero(n);
+    // Result params
+    const VectorXd a = y.segment(0, n);
+    VectorXd b = VectorXd::Zero(n);
+    VectorXd c = VectorXd::Zero(n + 1);
+    VectorXd d = VectorXd::Zero(n);
 
     MatrixXd A = MatrixXd::Zero(n + 1, n + 1);
     VectorXd B = VectorXd::Zero(n + 1);
@@ -67,32 +82,34 @@ void Interpolate(
     }
 
     c.conservativeResize(n);
+
+    return {a, b, c, d};
 }
 
 void FitSplineWindow(
-    const VectorXd& x,
-    const VectorXd& y,
-    std::vector<double>& aVec,
-    std::vector<double>& bVec,
-    std::vector<double>& cVec,
-    std::vector<double>& dVec,
-    const Index startIdx,
-    const Index endIdx,
-    const Index winSize,
-    const Index bufSize,
-    std::mutex& mtx)
+    const Params& x,
+    const Params& y,
+    const std::size_t startIdx,
+    const std::size_t endIdx,
+    const std::size_t winSize,
+    const std::size_t bufSize,
+    std::mutex& mtx,
+    Params& aVec,
+    Params& bVec,
+    Params& cVec,
+    Params& dVec)
 {
 
     for (auto i = startIdx; i < endIdx; i += winSize) {
         const auto winEnd = std::min(i + winSize + bufSize, x.size());
         const auto winStart =
-            std::max(winEnd - winSize - 2 * bufSize, Index{0});
+            std::max(winEnd - winSize - 2 * bufSize, std::size_t{0});
+        const auto winStride = static_cast<Index>(winEnd - winStart);
 
-        VectorXd xWin = x.segment(winStart, winEnd - winStart);
-        VectorXd yWin = y.segment(winStart, winEnd - winStart);
+        auto xWin = Eigen::Map<const VectorXd>(&x[winStart], winStride);
+        auto yWin = Eigen::Map<const VectorXd>(&y[winStart], winStride);
 
-        VectorXd a, b, c, d;
-        Interpolate(xWin, yWin, a, b, c, d);
+        auto [a, b, c, d] = Interpolate(xWin, yWin);
 
         const auto updateStart = i - winStart;
         const auto updateEnd = std::min(i + winSize, x.size()) - winStart;
@@ -109,20 +126,16 @@ void FitSplineWindow(
     }
 }
 
-void FitSplineMT(
-    const VectorXd& range,
-    const VectorXd& val,
-    VectorXd& a_total,
-    VectorXd& b_total,
-    VectorXd& c_total,
-    VectorXd& d_total,
+auto FitSplineMT(
+    const Params& range,
+    const Params& val,
     std::mutex& mtx,
-    const Index winSize = 100,
-    const Index bufSize = 10,
-    int numThreads = -1)
+    const std::size_t winSize = 100,
+    const std::size_t bufSize = 10,
+    int numThreads = -1) -> std::tuple<Params, Params, Params, Params>
 {
     // Init output params
-    auto n = range.size();
+    const auto n = range.size();
     std::vector aVec(n, 0.0);
     std::vector bVec(n, 0.0);
     std::vector cVec(n, 0.0);
@@ -140,200 +153,137 @@ void FitSplineMT(
     Logger()->debug("Using {} threads", numThreads);
     threads.reserve(numThreads);
 
-    // TODO: Start here
-    int steps = std::ceil(((double)n) / ((double)winSize));
-    int steps_per_thread = steps / numThreads;
-    int remainder = steps % numThreads;
-    auto current_step = 0;
-    for (auto i = 0; i < numThreads; ++i) {
-        auto start_idx = current_step * winSize;
-        auto end_idx = (current_step + steps_per_thread) * winSize;
-        if (i < remainder) {
-            end_idx += winSize;
-            current_step += 1;
-        }
-        end_idx = std::min(end_idx, n);
+    // Fit spline windows on multiple threads
+    const auto steps = static_cast<std::size_t>(
+        std::ceil(static_cast<double>(n) / static_cast<double>(winSize)));
+    const auto stepsPerThread = steps / numThreads;
+    const auto remainder = steps % numThreads;
+    std::size_t currentStep = 0;
+    for (std::size_t i = 0; i < numThreads; ++i) {
+        auto startIdx = currentStep * winSize;
+        auto endIdx = (currentStep + stepsPerThread) * winSize;
 
-        current_step += steps_per_thread;
-        if (start_idx >= end_idx) {
+        // Add one window from the remainder to every thread
+        if (i < remainder) {
+            endIdx += winSize;
+            currentStep += 1;
+        }
+        endIdx = std::min(endIdx, n);
+
+        // Update the step index
+        currentStep += stepsPerThread;
+        if (startIdx >= endIdx) {
             continue;
         }
 
+        // Queue the job
         threads.emplace_back(
-            &FitSplineWindow, std::ref(range), std::ref(val), std::ref(aVec),
-            std::ref(bVec), std::ref(cVec), std::ref(dVec), start_idx, end_idx,
-            winSize, bufSize, std::ref(mtx));
+            &FitSplineWindow, std::ref(range), std::ref(val), startIdx, endIdx,
+            winSize, bufSize, std::ref(mtx), std::ref(aVec), std::ref(bVec),
+            std::ref(cVec), std::ref(dVec));
     }
 
+    // Wait for all threads to complete
     for (auto& t : threads) {
         t.join();
     }
 
-    a_total = Eigen::Map<VectorXd>(aVec.data(), aVec.size());
-    b_total = Eigen::Map<VectorXd>(bVec.data(), bVec.size());
-    c_total = Eigen::Map<VectorXd>(cVec.data(), cVec.size());
-    d_total = Eigen::Map<VectorXd>(dVec.data(), dVec.size());
+    return {aVec, bVec, cVec, dVec};
 }
 
-double integrand2D(double t, void* params)
+double Integrand2D(const double t, void* params)
 {
-    double* coeffs = (double*)params;
-    double b_x = coeffs[0], c_x = coeffs[1], d_x = coeffs[2];
-    double b_y = coeffs[3], c_y = coeffs[4], d_y = coeffs[5];
-    double t0 = coeffs[6];
-    double ds_dx = b_x + 2 * c_x * (t - t0) + 3 * d_x * (t - t0) * (t - t0);
-    double ds_dy = b_y + 2 * c_y * (t - t0) + 3 * d_y * (t - t0) * (t - t0);
-    return sqrt(ds_dx * ds_dx + ds_dy * ds_dy);
+    const auto* coeffs = static_cast<double*>(params);
+    const double bX = coeffs[0];
+    const double cX = coeffs[1];
+    const double dX = coeffs[2];
+    const double bY = coeffs[3];
+    const double cY = coeffs[4];
+    const double dY = coeffs[5];
+    const double t0 = coeffs[6];
+    const double dsdx = bX + 2 * cX * (t - t0) + 3 * dX * (t - t0) * (t - t0);
+    const double dsdy = bY + 2 * cY * (t - t0) + 3 * dY * (t - t0) * (t - t0);
+    return std::sqrt(dsdx * dsdx + dsdy * dsdy);
 }
 
-double spline_length_2D(
-    double b_x,
-    double c_x,
-    double d_x,
-    double b_y,
-    double c_y,
-    double d_y,
+double SplineLength(
+    double bX,
+    double cX,
+    double dX,
+    double bY,
+    double cY,
+    double dY,
     double t0,
-    double t_sub0,
-    double t_sub1)
+    double tSub0,
+    double tSub1)
 {
-    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
-    double result, error;
-    double coeffs[7] = {b_x, c_x, d_x, b_y, c_y, d_y, t0};
+    auto* w = gsl_integration_workspace_alloc(1000);
+    double result{0};
+    double error{0};
+    double coeffs[7] = {bX, cX, dX, bY, cY, dY, t0};
     gsl_function F;
-    F.function = &integrand2D;
+    F.function = &Integrand2D;
     F.params = &coeffs;
-    gsl_integration_qags(&F, t_sub0, t_sub1, 0, 1e-8, 1000, w, &result, &error);
+    gsl_integration_qags(&F, tSub0, tSub1, 0, 1e-8, 1000, w, &result, &error);
     gsl_integration_workspace_free(w);
-    return fabs(result);
+    return std::abs(result);
 }
 
 // Compute lengths of 2D spline segments
-std::pair<VectorXd, VectorXd> compute_subsegment_lengths_2D(
-    const VectorXd& t,
-    const VectorXd& b_x,
-    const VectorXd& c_x,
-    const VectorXd& d_x,
-    const VectorXd& b_y,
-    const VectorXd& c_y,
-    const VectorXd& d_y,
-    int subseg_count = 10)
+auto SubsegmentLengths(
+    const Params& t,
+    const Params& bX,
+    const Params& cX,
+    const Params& dX,
+    const Params& bY,
+    const Params& cY,
+    const Params& dY,
+    const int nSegs = 10) -> std::tuple<Params, Params>
 {
-    std::vector<double> subsegment_lengths;
-    std::vector<double> cumulative_lengths = {0.0};
+    const auto numLengths = nSegs * (t.size() - 1);
+    Params subsegLengths;
+    subsegLengths.reserve(numLengths);
+    Params cumulativeLengths = {0.0};
+    cumulativeLengths.reserve(numLengths + 1);
 
-    for (int i = 0; i < t.size() - 1; ++i) {
-        double t0 = t[i], t1 = t[i + 1];
-        for (int j = 0; j < subseg_count; ++j) {
-            double t_sub0 =
-                t0 + (t1 - t0) * (static_cast<double>(j) / subseg_count);
-            double t_sub1 =
-                t0 + (t1 - t0) * (static_cast<double>(j + 1) / subseg_count);
-            double length = spline_length_2D(
-                b_x[i], c_x[i], d_x[i], b_y[i], c_y[i], d_y[i], t0, t_sub0,
-                t_sub1);
-            subsegment_lengths.push_back(length);
-            cumulative_lengths.push_back(cumulative_lengths.back() + length);
-        }
-    }
-    return {
-        Eigen::Map<VectorXd>(
-            subsegment_lengths.data(), subsegment_lengths.size()),
-        Eigen::Map<VectorXd>(
-            cumulative_lengths.data(), cumulative_lengths.size())};
-}
-
-std::pair<double, double> evaluate_spline_at_t_2D(
-    double t,
-    const VectorXd& range_xy,
-    const VectorXd& a_x,
-    const VectorXd& b_x,
-    const VectorXd& c_x,
-    const VectorXd& d_x,
-    const VectorXd& a_y,
-    const VectorXd& b_y,
-    const VectorXd& c_y,
-    const VectorXd& d_y,
-    const VectorXd& subsegment_lengths,
-    const VectorXd& cumulative_lengths)
-{
-
-    double total_length = cumulative_lengths[cumulative_lengths.size() - 1];
-    double target_length = total_length * t;
-
-    // Find the correct subsegment using binary search
-    auto it = std::lower_bound(
-        cumulative_lengths.data(),
-        cumulative_lengths.data() + cumulative_lengths.size(), target_length);
-    int idx = std::distance(cumulative_lengths.data(), it) - 1;
-    if (idx == -1) {
-        idx = 0;
+    for (const auto& [i, j] : range2D(t.size() - 1, nSegs)) {
+        const auto t0 = t[i];
+        const auto t1 = t[i + 1];
+        const auto tSub0 = t0 + (t1 - t0) * (static_cast<double>(j) / nSegs);
+        const auto tSub1 =
+            t0 + (t1 - t0) * (static_cast<double>(j + 1) / nSegs);
+        double length = SplineLength(
+            bX[i], cX[i], dX[i], bY[i], cY[i], dY[i], t0, tSub0, tSub1);
+        subsegLengths.emplace_back(length);
+        cumulativeLengths.emplace_back(cumulativeLengths.back() + length);
     }
 
-    int seg_count = range_xy.size() - 1;
-    int subseg_count = subsegment_lengths.size() / seg_count;
-    int segment_idx = idx / subseg_count;
-    int subseg_idx = idx % subseg_count;
-
-    // Calculate the remaining length to target within this subsegment
-    double remaining_length = target_length - cumulative_lengths[idx];
-
-    // Compute the x position at t
-    double range_xy0 = range_xy[segment_idx],
-           range_xy1 = range_xy[segment_idx + 1];
-    double range_xy_sub0 =
-        range_xy0 + (range_xy1 - range_xy0) *
-                        (static_cast<double>(subseg_idx) / subseg_count);
-    double range_xy_sub1 =
-        range_xy0 + (range_xy1 - range_xy0) *
-                        (static_cast<double>(subseg_idx + 1) / subseg_count);
-    double range_xy_t =
-        range_xy_sub0 + (range_xy_sub1 - range_xy_sub0) *
-                            (remaining_length / subsegment_lengths[idx]);
-
-    double d_range_xy = range_xy_t - range_xy0;
-    // Compute the x position at range_xy_t
-    double x_t = a_x[segment_idx] + b_x[segment_idx] * d_range_xy +
-                 c_x[segment_idx] * pow(d_range_xy, 2) +
-                 d_x[segment_idx] * pow(d_range_xy, 3);
-    // Compute the y position at range_xy_t
-    double y_t = a_y[segment_idx] + b_y[segment_idx] * d_range_xy +
-                 c_y[segment_idx] * pow(d_range_xy, 2) +
-                 d_y[segment_idx] * pow(d_range_xy, 3);
-
-    return {x_t, y_t};
+    return {subsegLengths, cumulativeLengths};
 }
 
 }  // namespace
 
 // Constructor implementation
-CubicSplineMT::CubicSplineMT(const VectorXd& x, const VectorXd& y)
+CubicSplineMT::CubicSplineMT(const Params& x, const Params& y)
 {
-    range_xy_ =
-        VectorXd::LinSpaced(x.size(), 0., static_cast<double>(x.size()) - 1.);
+    range_xy_ = linspace(x.size(), 0., static_cast<double>(x.size() - 1));
     npoints_ = x.size();
-    FitSplineMT(range_xy_, x, a_x_, b_x_, c_x_, d_x_, mtx_);
-    FitSplineMT(range_xy_, y, a_y_, b_y_, c_y_, d_y_, mtx_);
+    std::tie(a_x_, b_x_, c_x_, d_x_) = FitSplineMT(range_xy_, x, mtx_);
+    std::tie(a_y_, b_y_, c_y_, d_y_) = FitSplineMT(range_xy_, y, mtx_);
     std::tie(subsegment_lengths_, cumulative_lengths_) =
-        compute_subsegment_lengths_2D(
-            range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
+        SubsegmentLengths(range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
 }
 
 CubicSplineMT::CubicSplineMT(const std::vector<Voxel>& vs)
 {
     auto [xs, ys] = Unzip(vs);
 
-    // Convert to VectorXd
-    VectorXd xsEigen = VectorXd::Map(xs.data(), xs.size());
-    VectorXd ysEigen = VectorXd::Map(ys.data(), ys.size());
-
-    range_xy_ = VectorXd::LinSpaced((int)xsEigen.size(), 0, xsEigen.size() - 1);
+    range_xy_ = linspace(xs.size(), 0., static_cast<double>(xs.size() - 1));
     npoints_ = xs.size();
-    FitSplineMT(range_xy_, xsEigen, a_x_, b_x_, c_x_, d_x_, mtx_);
-    FitSplineMT(range_xy_, ysEigen, a_y_, b_y_, c_y_, d_y_, mtx_);
+    std::tie(a_x_, b_x_, c_x_, d_x_) = FitSplineMT(range_xy_, xs, mtx_);
+    std::tie(a_y_, b_y_, c_y_, d_y_) = FitSplineMT(range_xy_, ys, mtx_);
     std::tie(subsegment_lengths_, cumulative_lengths_) =
-        compute_subsegment_lengths_2D(
-            range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
+        SubsegmentLengths(range_xy_, b_x_, c_x_, d_x_, b_y_, c_y_, d_y_);
 }
 
 CubicSplineMT::CubicSplineMT(const CubicSplineMT& other)
@@ -376,10 +326,50 @@ auto CubicSplineMT::operator=(const CubicSplineMT& other) -> CubicSplineMT&
 }
 
 // Evaluate the spline at a given value of t
-auto CubicSplineMT::operator()(double t) const -> Pixel
+auto CubicSplineMT::operator()(const double t) const -> Pixel
 {
-    auto [x, y] = evaluate_spline_at_t_2D(
-        t, range_xy_, a_x_, b_x_, c_x_, d_x_, a_y_, b_y_, c_y_, d_y_,
-        subsegment_lengths_, cumulative_lengths_);
-    return {x, y};
+    // Total length
+    const auto totalLen = cumulative_lengths_.back();
+    const auto targetLen = totalLen * t;
+
+    // Find the correct subsegment using binary search
+    const auto it = std::lower_bound(
+        cumulative_lengths_.begin(), cumulative_lengths_.end(), targetLen);
+    std::size_t idx{0};
+    if (it != cumulative_lengths_.begin()) {
+        idx = std::distance(cumulative_lengths_.begin(), it) - 1;
+    }
+
+    const auto seg_count = range_xy_.size() - 1;
+    const auto subseg_count = subsegment_lengths_.size() / seg_count;
+    const auto segment_idx = idx / subseg_count;
+    const auto subseg_idx = idx % subseg_count;
+
+    // Calculate the remaining length to target within this subsegment
+    const auto remaining_length = targetLen - cumulative_lengths_[idx];
+
+    // Compute the x position at t
+    auto range_xy0 = range_xy_[segment_idx];
+    auto range_xy1 = range_xy_[segment_idx + 1];
+    const auto range_xy_sub0 =
+        range_xy0 + (range_xy1 - range_xy0) *
+                        (static_cast<double>(subseg_idx) / subseg_count);
+    const auto range_xy_sub1 =
+        range_xy0 + (range_xy1 - range_xy0) *
+                        (static_cast<double>(subseg_idx + 1) / subseg_count);
+    const auto range_xy_t =
+        range_xy_sub0 + (range_xy_sub1 - range_xy_sub0) *
+                            (remaining_length / subsegment_lengths_[idx]);
+
+    const double d_range_xy = range_xy_t - range_xy0;
+    // Compute the x position at range_xy_t
+    double x_t = a_x_[segment_idx] + b_x_[segment_idx] * d_range_xy +
+                 c_x_[segment_idx] * std::pow(d_range_xy, 2) +
+                 d_x_[segment_idx] * std::pow(d_range_xy, 3);
+    // Compute the y position at range_xy_t
+    double y_t = a_y_[segment_idx] + b_y_[segment_idx] * d_range_xy +
+                 c_y_[segment_idx] * pow(d_range_xy, 2) +
+                 d_y_[segment_idx] * pow(d_range_xy, 3);
+
+    return {x_t, y_t};
 }

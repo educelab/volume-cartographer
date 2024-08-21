@@ -6,8 +6,6 @@
 #include <vector>
 #include <cstddef>
 
-#include <Eigen/Dense>
-
 #include "vc/segmentation/lrps/Common.hpp"
 
 /**
@@ -21,7 +19,7 @@ class CubicSplineMT
 {
 public:
     CubicSplineMT() = default;
-    CubicSplineMT(const Eigen::VectorXd& x, const Eigen::VectorXd& y);
+    CubicSplineMT(const std::vector<double>&(x), const std::vector<double>&(y));
     explicit CubicSplineMT(const std::vector<Voxel>& vs);
     ~CubicSplineMT() = default;
 
@@ -37,11 +35,11 @@ public:
     auto operator()(double t) const -> Pixel;
 
 private:
-    Eigen::VectorXd a_x_, b_x_, c_x_, d_x_;
-    Eigen::VectorXd a_y_, b_y_, c_y_, d_y_;
-    Eigen::VectorXd range_xy_;
-    Eigen::VectorXd subsegment_lengths_;
-    Eigen::VectorXd cumulative_lengths_;
+    std::vector<double> a_x_, b_x_, c_x_, d_x_;
+    std::vector<double> a_y_, b_y_, c_y_, d_y_;
+    std::vector<double> range_xy_;
+    std::vector<double> subsegment_lengths_;
+    std::vector<double> cumulative_lengths_;
     std::mutex mtx_;
     std::size_t npoints_{0};
 };
