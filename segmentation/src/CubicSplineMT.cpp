@@ -105,14 +105,16 @@ void FitSplineWindow(
             std::max(winEnd - winSize - 2 * bufSize, std::size_t{0});
         const auto winStride = static_cast<Index>(winEnd - winStart);
 
+        // Map vectors to Eigen vectors for interp
         auto xWin = Eigen::Map<const VectorXd>(&x[winStart], winStride);
         auto yWin = Eigen::Map<const VectorXd>(&y[winStart], winStride);
 
+        // Interpolate
         auto [a, b, c, d] = Interpolate(xWin, yWin);
 
+        // Copy results to vectors
         const auto updateStart = i - winStart;
         const auto updateEnd = std::min(i + winSize, x.size()) - winStart;
-
         std::lock_guard lock(mtx);
         std::copy(
             a.data() + updateStart, a.data() + updateEnd, aVec.begin() + i);
