@@ -12,7 +12,7 @@
 using namespace volcart::segmentation;
 
 // Global float comparison percent tolerance
-static const double floatComparePercentTolerance = 0.01;  // %
+static constexpr double floatComparePercentTolerance = 0.01;  // %
 
 auto generateTVals(std::size_t count) -> std::vector<double>;
 

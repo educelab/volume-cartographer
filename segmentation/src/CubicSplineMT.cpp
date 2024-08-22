@@ -98,11 +98,12 @@ void FitSplineWindow(
     Params& cVec,
     Params& dVec)
 {
-
     for (auto i = startIdx; i < endIdx; i += winSize) {
         const auto winEnd = std::min(i + winSize + bufSize, x.size());
-        const auto winStart =
-            std::max(winEnd - winSize - 2 * bufSize, std::size_t{0});
+        std::size_t winStart{0};
+        if (winEnd > winSize and winEnd - winSize > 2 * bufSize) {
+            winStart = winEnd - winSize - 2 * bufSize;
+        }
         const auto winStride = static_cast<Index>(winEnd - winStart);
 
         // Map vectors to Eigen vectors for interp
