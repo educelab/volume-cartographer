@@ -4,10 +4,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <future>
 #include <iostream>
 #include <mutex>
 #include <numeric>
-#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
