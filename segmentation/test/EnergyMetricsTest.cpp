@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <numeric>
+#include <vector>
 
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"
 #include "vc/testing/TestingUtils.hpp"

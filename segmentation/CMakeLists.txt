@@ -22,6 +22,7 @@ add_library(VC::segmentation ALIAS "vc_segmentation")
 target_include_directories(vc_segmentation
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${threadpool_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 target_compile_options(vc_segmentation

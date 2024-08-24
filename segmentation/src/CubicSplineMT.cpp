@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <Eigen/Dense>
+#include <BS_thread_pool.hpp>
 #include <gsl/gsl_integration.h>
 
 #include "vc/core/util/Iteration.hpp"
@@ -26,6 +27,10 @@ using Params = std::vector<double>;
 
 namespace
 {
+
+// Compilation-unit local thread pool so threads are shared across runs
+// TODO: At some point, this should become a singleton in vc::core.
+BS::thread_pool POOL;
 
 template <typename T>
 auto linspace(const std::size_t num, const T low, const T high)
@@ -143,17 +148,19 @@ auto FitSplineMT(
     std::vector cVec(n, 0.0);
     std::vector dVec(n, 0.0);
 
-    // TODO: There should be a thread pool for this
-    std::vector<std::thread> threads;
+    // Thread futures
+    std::vector<std::future<void>> futures;
 
-    // Auto-determine the number of threads
-    if (numThreads < 0) {
-        numThreads = static_cast<int>(std::thread::hardware_concurrency());
-        // TODO: Handle no threads
-        assert(numThreads != 0);
+    // Reset pool to the requested number of threads
+    if (numThreads < 1 and
+        POOL.get_thread_count() != std::thread::hardware_concurrency()) {
+        POOL.reset();
+    } else if (numThreads >= 1 and POOL.get_thread_count() != numThreads) {
+        POOL.reset(numThreads);
     }
+    numThreads = static_cast<int>(POOL.get_thread_count());
     Logger()->debug("Using {} threads", numThreads);
-    threads.reserve(numThreads);
+    futures.reserve(numThreads);
 
     // Fit spline windows on multiple threads
     const auto steps = static_cast<std::size_t>(
@@ -179,15 +186,18 @@ auto FitSplineMT(
         }
 
         // Queue the job
-        threads.emplace_back(
-            &FitSplineWindow, std::ref(range), std::ref(val), startIdx, endIdx,
-            winSize, bufSize, std::ref(mtx), std::ref(aVec), std::ref(bVec),
-            std::ref(cVec), std::ref(dVec));
+        futures.emplace_back(
+            POOL.submit_task([&range, &val, startIdx, endIdx, winSize, bufSize,
+                              &mtx, &aVec, &bVec, &cVec, &dVec] {
+                FitSplineWindow(
+                    range, val, startIdx, endIdx, winSize, bufSize, mtx, aVec,
+                    bVec, cVec, dVec);
+            }));
     }
 
     // Wait for all threads to complete
-    for (auto& t : threads) {
-        t.join();
+    for (const auto& t : futures) {
+        t.wait();
     }
 
     return {aVec, bVec, cVec, dVec};
