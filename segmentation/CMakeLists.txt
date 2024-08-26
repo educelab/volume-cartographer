@@ -30,7 +30,6 @@ target_compile_options(vc_segmentation
         -Wno-c++11-narrowing
 )
 
-include_directories(${GSL_INCLUDE_DIRS})
 target_link_libraries(vc_segmentation
     PUBLIC
         VC::core

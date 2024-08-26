@@ -36,7 +36,7 @@ else()
     message(STATUS "MemMap support: none")
 endif()
 
-set(VC_MEMMAP_SUPPORTED VC_MEMMAP_SUPPORTED CACHE BOOL "Memory mapping is supported on this platform")
+set(VC_MEMMAP_SUPPORTED VC_MEMMAP_SUPPORTED BOOL "Memory mapping is supported on this platform")
 if(VC_MEMMAP_SUPPORTED)
     add_compile_definitions(VC_MEMMAP_SUPPORTED=true)
 else()
