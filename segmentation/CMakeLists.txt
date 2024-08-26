@@ -29,7 +29,6 @@ target_compile_options(vc_segmentation
     PUBLIC
         -Wno-c++11-narrowing
 )
-
 target_link_libraries(vc_segmentation
     PUBLIC
         VC::core

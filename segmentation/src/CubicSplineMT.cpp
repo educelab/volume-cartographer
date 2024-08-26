@@ -204,7 +204,7 @@ auto FitSplineMT(
     return {aVec, bVec, cVec, dVec};
 }
 
-double Integrand2D(const double t, void* params)
+auto Integrand2D(const double t, void* params) -> double
 {
     const auto* coeffs = static_cast<double*>(params);
     const double bX = coeffs[0];
@@ -219,7 +219,7 @@ double Integrand2D(const double t, void* params)
     return std::sqrt(dsdx * dsdx + dsdy * dsdy);
 }
 
-double SplineLength(
+auto SplineLength(
     const double bX,
     const double cX,
     const double dX,
@@ -228,7 +228,7 @@ double SplineLength(
     const double dY,
     const double t0,
     const double tSub0,
-    const double tSub1)
+    const double tSub1) -> double
 {
     auto* w = gsl_integration_workspace_alloc(1000);
     double result{0};
