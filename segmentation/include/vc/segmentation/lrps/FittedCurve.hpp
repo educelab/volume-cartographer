@@ -2,7 +2,6 @@
 
 /** @file */
 
-#include <cassert>
 #include <cstddef>
 #include <vector>
 
@@ -18,19 +17,10 @@ namespace volcart::segmentation
  */
 class FittedCurve
 {
-private:
-    /** Number of points in the curve*/
-    std::size_t npoints_{0};
-    /** z-position of the curve */
-    int zIndex_{0};
-    /** Parameterized nodes */
-    std::vector<double> ts_;
-    /** List of sampled points */
-    std::vector<Voxel> points_;
-    /** Spline representation of curve */
-    CubicSplineMT spline_;
-
 public:
+    /** Spline type */
+    using Spline = CubicSplineMT;
+
     /** @name Constructors */
     /**@{*/
     FittedCurve() = default;
@@ -47,42 +37,56 @@ public:
     /**@}*/
 
     /** @brief Return the current number of resampled points in the spline */
-    std::size_t size() const { return npoints_; }
+    [[nodiscard]] auto size() const -> std::size_t;
 
     /** @brief Return the current list of resampled points */
-    const std::vector<Voxel>& points() const { return points_; }
+    [[nodiscard]] auto points() const -> const std::vector<Voxel>&;
 
     /** @brief Return the spline created from the input points */
-    const decltype(spline_)& spline() const { return spline_; }
+    [[nodiscard]] auto spline() const -> const Spline&;
 
     /** @brief Resample the curve at a given t-value in [0.0, 1.0] */
-    Pixel eval(double t) const { 
-        return spline_(t); 
-        }
+    [[nodiscard]] auto eval(double t) const -> Pixel;
 
     /** @brief Evenly resample the curve with the same number of points as the
      * input set */
-    std::vector<Voxel> evenlySpacePoints() { return resample(1.0); }
+    [[nodiscard]] auto evenlySpacePoints() -> std::vector<Voxel>;
 
-    /** @brief Resample the curve at a t-interval of resamplePerc
-     *  @param resamplePerc Sampling interval, in percent of original number
-     *  of points
+    /**
+     * @brief Resamples the curve at a t-interval of resamplePerc
+     * @param resamplePerc Sampling interval, in percent of original number
+     * of points
+     *
+     * @return List of newly resampled points on the curve
      */
-    std::vector<Voxel> resample(double resamplePerc = 1.0);
+    auto resample(double resamplePerc = 1.0) -> std::vector<Voxel>;
 
-    /** @brief Resample the curve to have numPoints of evenly spaced points */
-    std::vector<Voxel> sample(std::size_t numPoints) const;
+    /** @brief Sample the curve into numPoints of evenly spaced points */
+    [[nodiscard]] auto sample(std::size_t numPoints) const
+        -> std::vector<Voxel>;
 
     /** @brief Returns the voxel located at index */
-    Voxel operator()(int index) const;
+    auto operator()(int index) const -> Voxel;
 
     /**@brief Calculate the local curvature along the spline
      * @param hstep How much to move by each time you move
      *              Default: 1 point
      */
-    std::vector<double> curvature(int hstep = 1) const;
+    [[nodiscard]] auto curvature(int hstep = 1) const -> std::vector<double>;
 
     /**@brief Calculate the arc length of the curve  */
-    double arclength() const;
+    [[nodiscard]] auto arclength() const -> double;
+
+private:
+    /** Number of points in the curve*/
+    std::size_t npoints_{0};
+    /** z-position of the curve */
+    int zIndex_{0};
+    /** Parameterized nodes */
+    std::vector<double> ts_;
+    /** List of sampled points */
+    std::vector<Voxel> points_;
+    /** Spline representation of curve */
+    Spline spline_;
 };
 }  // namespace volcart::segmentation
