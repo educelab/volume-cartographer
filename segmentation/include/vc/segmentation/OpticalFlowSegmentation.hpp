@@ -50,8 +50,20 @@ public:
             std::forward<Args>(args)...);
     }
 
+    /** @brief Set the start z-index */
+    void setStartZIndex(int z);
+
+    /** @brief Get the start z-index */
+    [[nodiscard]] auto getStartZIndex() const -> int;
+
     /** @brief Set the target z-index */
     void setTargetZIndex(int z);
+
+    /** @brief Get the target z-index */
+    [[nodiscard]] auto getTargetZIndex() const -> int;
+
+    /** @brief Set the number of curve optimization iterations per step */
+    void setOptimizationIterations(std::size_t n);
 
     /**
      * @brief Set the threshold of what pixel brightness is considered inside a
@@ -79,6 +91,53 @@ public:
      * the sheet again.
      */
     void setSmoothBrightnessThreshold(std::uint8_t brightness);
+
+    /** @brief Set whether to enable outlier points smoothening */
+    void setEnableSmoothOutliers(bool enable);
+    /**@}*/
+
+    /** @brief Set whether to enable edge detection */
+    void setEnableEdgeDetection(bool enable);
+    /**@}*/
+
+    /**
+     * @brief Set the threshold of what pixel brightness is considered while
+     * calculating optical flow, darker pixels OF is interpolated from brighter
+     * ones in the area
+     */
+    void setEdgeJumpDistance(std::uint32_t distance);
+
+    /**
+     * @brief Set the threshold of what pixel brightness is considered while
+     * calculating optical flow, darker pixels OF is interpolated from brighter
+     * ones in the area
+     */
+    void setEdgeBounceDistance(std::uint32_t distance);
+
+    /** @brief Set how wide the interpolation window should be
+     */
+    void setInterpolationWindow(std::uint32_t window);
+
+    /** @brief Get how wide the interpolation window should be
+     */
+    [[nodiscard]] auto getInterpolationWindow() const -> std::uint32_t;
+
+    /** @brief Set how many slices the interpolation center is away from the
+     * start slice
+     */
+    void setInterpolationDistance(std::uint32_t distance);
+
+    /** @brief Get how many slices the interpolation center is away from the
+     * start slice
+     */
+    [[nodiscard]] auto getInterpolationDistance() const -> std::uint32_t;
+
+    /** @brief Set the already computed masterCloud OrderedPointSet
+     */
+    void setOrderedPointSet(PointSet masterCloud);
+
+    /** @brief Set the input chain of re-segmentation points */
+    void setReSegmentationChain(Chain c);
 
     /**
      * @brief Set the estimated thickness of the substrate (in um)
@@ -130,8 +189,12 @@ private:
     auto create_final_pointset_(const std::vector<std::vector<Voxel>>& points)
         -> PointSet;
 
+    /** Start z-index */
+    int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
+    /** Number of curve optimization iterations */
+    std::size_t numIters_{15};
     /**
      * Darker pixels are considered outside the sheet. This parameter sets the
      * threshold of what pixel brightness is considered too deep inside a sheet
@@ -149,7 +212,7 @@ private:
      */
     std::uint8_t opticalFlowPixelThreshold_{80};
     /**
-     * Threshold of how many pixel optical flow can displace a point, if
+     * Threshold of how many pixels optical flow can displace a point, if
      * higher, recompute optical flow with region's average flow. This
      * parameter sets the maximum single pixel optical flow displacement before
      * interpolating a pixel region. Range minimum: 0. Higher values allow more
@@ -164,6 +227,18 @@ private:
      * Range: 0-255. Smooth curve at pixels above this threshold.
      */
     std::uint8_t smoothByBrightness_{180};
+    bool enable_smoothen_outlier_{true};
+    bool enable_edge_{false};
+    std::uint32_t edge_jump_distance_{6};
+    std::uint32_t edge_bounce_distance_{3};
+    bool interpolate_master_cloud{true};
+    /** window for interpolation (number if slices from interpolation
+     * distance/center in either direction) */
+    std::uint32_t smoothness_interpolation_window_{5};
+    /** distance from start slice where the interpolation center is */
+    std::uint32_t smoothness_interpolation_distance_{25};
+    Chain reSegStartingChain_;
+    PointSet masterCloud_;
     /** Estimated material thickness in um */
     double materialThickness_{100};
     /** Maximum number of threads */

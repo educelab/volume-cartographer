@@ -27,7 +27,7 @@ using PointSet = OpticalFlowSegmentation::PointSet;
 // estimating the 2D normal to the curve in the z plane
 namespace
 {
-auto Estimate2DNormalAtIndex(const FittedCurve& curve, std::size_t index)
+auto Estimate2DNormalAtIndex(const FittedCurve& curve, const std::size_t index)
     -> cv::Vec2f
 {
     auto prevIndex = (index - 1 + curve.size()) % curve.size();
@@ -49,7 +49,9 @@ auto Estimate2DNormalAtIndex(const FittedCurve& curve, std::size_t index)
 
 // fast method to get mean pixel value of window size by using an integral image
 auto GetMeanPixelValue(
-    const cv::Mat& integralImg, const cv::Point& pt, int windowSize) -> float
+    const cv::Mat& integralImg,
+    const cv::Point& pt,
+    const int windowSize) -> float
 {
     const int xMin = std::max(pt.x - windowSize / 2, 0);
     const int xMax = std::min(pt.x + windowSize / 2, integralImg.cols - 2);
@@ -73,30 +75,94 @@ auto IsInBounds(const cv::Point2f& p, const cv::Mat& img)
 }
 }  // namespace
 
-void OpticalFlowSegmentation::setTargetZIndex(int z) { endIndex_ = z; }
+void OpticalFlowSegmentation::setStartZIndex(const int z) { startIndex_ = z; }
 
-void OpticalFlowSegmentation::setOutsideThreshold(std::uint8_t outside)
+auto OpticalFlowSegmentation::getStartZIndex() const -> int
+{
+    return startIndex_;
+}
+
+void OpticalFlowSegmentation::setTargetZIndex(const int z) { endIndex_ = z; }
+
+auto OpticalFlowSegmentation::getTargetZIndex() const -> int
+{
+    return endIndex_;
+}
+
+void OpticalFlowSegmentation::setOptimizationIterations(const std::size_t n)
+{
+    numIters_ = n;
+}
+
+void OpticalFlowSegmentation::setOutsideThreshold(const std::uint8_t outside)
 {
     outsideThreshold_ = outside;
 }
 
-void OpticalFlowSegmentation::setOFThreshold(std::uint8_t ofThr)
+void OpticalFlowSegmentation::setOFThreshold(const std::uint8_t ofThr)
 {
     opticalFlowPixelThreshold_ = ofThr;
 }
 
-void OpticalFlowSegmentation::setOFDispThreshold(std::uint32_t ofDispThrs)
+void OpticalFlowSegmentation::setOFDispThreshold(const std::uint32_t ofDispThrs)
 {
     opticalFlowDisplacementThreshold_ = ofDispThrs;
 }
 
 void OpticalFlowSegmentation::setSmoothBrightnessThreshold(
-    std::uint8_t brightness)
+    const std::uint8_t brightness)
 {
     smoothByBrightness_ = brightness;
 }
 
-void OpticalFlowSegmentation::setMaterialThickness(double m)
+void OpticalFlowSegmentation::setEnableSmoothOutliers(const bool enable)
+{
+    enable_smoothen_outlier_ = enable;
+}
+
+void OpticalFlowSegmentation::setEnableEdgeDetection(const bool enable)
+{
+    enable_edge_ = enable;
+}
+
+void OpticalFlowSegmentation::setEdgeJumpDistance(const std::uint32_t distance)
+{
+    edge_jump_distance_ = distance;
+}
+
+void OpticalFlowSegmentation::setEdgeBounceDistance(
+    const std::uint32_t distance)
+{
+    edge_bounce_distance_ = distance;
+}
+
+void OpticalFlowSegmentation::setInterpolationWindow(const std::uint32_t window)
+{
+    smoothness_interpolation_window_ = window;
+}
+auto OpticalFlowSegmentation::getInterpolationWindow() const -> std::uint32_t
+{
+    return smoothness_interpolation_window_;
+}
+void OpticalFlowSegmentation::setInterpolationDistance(
+    const std::uint32_t distance)
+{
+    smoothness_interpolation_distance_ = distance;
+}
+auto OpticalFlowSegmentation::getInterpolationDistance() const -> std::uint32_t
+{
+    return smoothness_interpolation_distance_;
+}
+void OpticalFlowSegmentation::setOrderedPointSet(PointSet masterCloud)
+{
+    masterCloud_ = std::move(masterCloud);
+}
+
+void OpticalFlowSegmentation::setReSegmentationChain(Chain c)
+{
+    reSegStartingChain_ = std::move(c);
+}
+void OpticalFlowSegmentation::setMaterialThickness(const double m)
 {
     materialThickness_ = m;
 }
@@ -108,9 +174,9 @@ void OpticalFlowSegmentation::setMaxThreads(std::uint32_t t)
 
 void OpticalFlowSegmentation::resetMaxThreads() { maxThreads_.reset(); }
 
-void OpticalFlowSegmentation::setVisualize(bool b) { visualize_ = b; }
+void OpticalFlowSegmentation::setVisualize(const bool b) { visualize_ = b; }
 
-void OpticalFlowSegmentation::setDumpVis(bool b) { dumpVis_ = b; }
+void OpticalFlowSegmentation::setDumpVis(const bool b) { dumpVis_ = b; }
 
 auto OpticalFlowSegmentation::progressIterations() const -> std::size_t
 {
@@ -453,9 +519,9 @@ auto OpticalFlowSegmentation::create_final_pointset_(
 
 auto OpticalFlowSegmentation::draw_particle_on_slice_(
     const FittedCurve& curve,
-    int sliceIndex,
-    int particleIndex,
-    bool showSpline) const -> cv::Mat
+    const int sliceIndex,
+    const int particleIndex,
+    const bool showSpline) const -> cv::Mat
 {
     auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
     pkgSlice.convertTo(

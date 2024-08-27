@@ -68,9 +68,6 @@ public:
     /** @brief Set the target z-index */
     void setTargetZIndex(int z) { endIndex_ = z; }
 
-    /** @brief Set the number of curve optimization iterations per step */
-    void setOptimizationIterations(int n) { numIters_ = n; }
-
     /**
      * @brief Set the threshold of what pixel brightness is considered inside a sheet (higher as threshold) and outside (lower as threshold)
      */
@@ -81,13 +78,11 @@ public:
      */
     void setOFThreshold(int of_thr) { optical_flow_pixel_threshold_ = of_thr; }
 
-    /** @brief Set whether to enable outlier points smoothening
-     */
+    /** @brief Set whether to enable outlier points smoothening */
     void setEnableSmoothenOutlier(bool enable_smoothen_outlier) { enable_smoothen_outlier_ = enable_smoothen_outlier; }
     /**@}*/
 
-    /** @brief Set whether to enable edge detection
-     */
+    /** @brief Set whether to enable edge detection */
     void setEnableEdge(bool enable_edge) { enable_edge_ = enable_edge; }
     /**@}*/
 
