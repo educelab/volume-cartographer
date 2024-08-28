@@ -29,8 +29,8 @@ using Params = std::vector<double>;
 namespace
 {
 
-// Compilation-unit local thread pool so threads are shared across runs
-// TODO: At some point, this should become a singleton in vc::core.
+// Compilation-unit local thread pool so threads are shared across splines
+// This computation is quick enough that splines get their own pool
 BS::thread_pool POOL;
 
 template <typename T>

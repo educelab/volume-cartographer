@@ -114,6 +114,8 @@ public:
      */
     void setEdgeBounceDistance(std::uint32_t distance);
 
+    void setInterpolate(bool b);
+
     /** @brief Set how wide the interpolation window should be
      */
     void setInterpolationWindow(std::uint32_t window);
@@ -134,7 +136,7 @@ public:
 
     /** @brief Set the already computed masterCloud OrderedPointSet
      */
-    void setOrderedPointSet(PointSet masterCloud);
+    void setMasterCloud(PointSet masterCloud);
 
     /** @brief Set the input chain of re-segmentation points */
     void setReSegmentationChain(Chain c);
@@ -169,8 +171,9 @@ private:
      * @brief Compute the curve for z + 1 given a curve on z using the optical
      * flow between the two slices
      */
-    auto compute_curve_(const FittedCurve& currentCurve, int zIndex)
-        -> std::vector<Voxel>;
+    [[nodiscard]] auto compute_curve_(
+        const FittedCurve& currentCurve,
+        int zIndex) const -> std::vector<Voxel>;
 
     /**
      * @brief Debug: Draw curve on slice image
@@ -231,13 +234,13 @@ private:
     bool enable_edge_{false};
     std::uint32_t edge_jump_distance_{6};
     std::uint32_t edge_bounce_distance_{3};
-    bool interpolate_master_cloud{true};
-    /** window for interpolation (number if slices from interpolation
-     * distance/center in either direction) */
-    std::uint32_t smoothness_interpolation_window_{5};
+    bool requestInterp_{true};
+    /** window for interpolation (number of slices from interpolation
+     * distance/center in either direction). must be positive. */
+    std::uint32_t interpWindow_{5};
     /** distance from start slice where the interpolation center is */
-    std::uint32_t smoothness_interpolation_distance_{25};
-    Chain reSegStartingChain_;
+    std::uint32_t interpDist_{25};
+    Chain resegStartingChain_;
     PointSet masterCloud_;
     /** Estimated material thickness in um */
     double materialThickness_{100};

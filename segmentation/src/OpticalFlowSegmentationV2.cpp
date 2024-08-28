@@ -773,6 +773,7 @@ OpticalFlowSegmentation::PointSet OpticalFlowSegmentation::compute()
         fs::create_directory(outputDir);
         fs::create_directory(wholeChainDir);
     }
+    // TODO: Pickup here
 
     // Collection to hold all positions
     std::vector<std::vector<Voxel>> reSegPoints;
