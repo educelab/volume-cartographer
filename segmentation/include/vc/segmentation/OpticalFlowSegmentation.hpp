@@ -134,7 +134,8 @@ public:
      */
     [[nodiscard]] auto getInterpolationDistance() const -> std::uint32_t;
 
-    /** @brief Set the already computed masterCloud OrderedPointSet
+    /**
+     * @brief Set the already computed masterCloud OrderedPointSet
      */
     void setMasterCloud(PointSet masterCloud);
 
@@ -192,6 +193,23 @@ private:
     auto create_final_pointset_(const std::vector<std::vector<Voxel>>& points)
         -> PointSet;
 
+    auto interpolate_(
+        int interpStart,
+        int interpEnd,
+        int startChain,
+        int startResegChain) -> std::vector<std::vector<Voxel>>;
+    auto run_ofs_(
+        Chain currentVs,
+        int startChainIndex,
+        int anchorEndIdx,
+        int targetIndex,
+        int stepAdjustment,
+        bool backwards,
+        std::size_t& iteration,
+        bool insertFront,
+        const filesystem::path& outputDir,
+        const filesystem::path& wholeChainDir)
+        -> std::tuple<std::vector<std::vector<Voxel>>, Status>;
     /** Start z-index */
     int startIndex_{0};
     /** Target z-index */
