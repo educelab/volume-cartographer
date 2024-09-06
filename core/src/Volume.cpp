@@ -213,10 +213,10 @@ auto Volume::interpolateAt(const double x, const double y, const double z) const
 
     const auto c00 =
         intensityAt(x0, y0, z0) * (1 - dx) + intensityAt(x1, y0, z0) * dx;
-    const auto c10 =
-        intensityAt(x0, y1, z0) * (1 - dx) + intensityAt(x1, y0, z0) * dx;
     const auto c01 =
         intensityAt(x0, y0, z1) * (1 - dx) + intensityAt(x1, y0, z1) * dx;
+    const auto c10 =
+        intensityAt(x0, y1, z0) * (1 - dx) + intensityAt(x1, y1, z0) * dx;
     const auto c11 =
         intensityAt(x0, y1, z1) * (1 - dx) + intensityAt(x1, y1, z1) * dx;
 
