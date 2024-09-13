@@ -1,4 +1,4 @@
-FROM ghcr.io/educelab/ci-docker:dynamic.12.1
+FROM ghcr.io/educelab/ci-docker:dynamic.12.1.1-dev2
 MAINTAINER Seth Parker <c.seth.parker@uky.edu>
 
 # Install volcart
