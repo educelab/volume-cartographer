@@ -1,5 +1,12 @@
-FROM ghcr.io/educelab/ci-docker:dynamic.12.1.1-dev2
-MAINTAINER Seth Parker <c.seth.parker@uky.edu>
+FROM ghcr.io/educelab/ci-docker:dynamic.12.1.1-dev3
+LABEL org.opencontainers.image.authors="Seth Parker <c.seth.parker@uky.edu>"
+
+ARG VC_GIT_SHA1
+
+#ENV LANG=en_US.UTF-8
+#ENV LANGUAGE=en_US:en
+#ENV LC_ALL=en_US.UTF-8
+ENV QT_PLUGIN_PATH=/usr/local/Qt-6.7.2/plugins
 
 # Install volcart
 COPY ./ /volume-cartographer/
@@ -16,4 +23,5 @@ RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.7.2/" \
     && rm -rf /volume-cartographer/
 
 # Start an interactive shell
-CMD ["/bin/bash"]
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["vc_version"]
