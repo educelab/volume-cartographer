@@ -17,7 +17,8 @@
 3. Restart XQuartz
 4. Launch the GUI app from the Docker container with appropriate X11 forwarding:
    ```shell
-   # Launch XQuartz
+   # Give Docker permission to access the X server (will also launch XQuartz)
+   # Needs to be run every time the XQuartz process is launched
    xhost +localhost
    
    # Launch the container
@@ -26,10 +27,35 @@
    
 ## Linux
 ```shell
+# Give Docker permission to access the X server
+# Needs to be run every time the X server is relaunched (e.g. after reboots)
+xhost +local:docker
+
 docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ghcr.io/educelab/volume-cartographer VC
 ```
 
-If you get error `could not connect to display :<your display number>`, run this command first to allow Docker access to X before trying again:
+**Note:** On some distributions, you may need to run Docker with superuser 
+privileges: `sudo docker ...`
+
+## FAQ
+### Qt complains that it can't connect to the display
+If you get error `could not connect to display <your display number>`, make 
+sure you run the following command to give Docker access to the X server:
+
 ```shell
+# macOS: needs to be run every time the XQuartz process is launched
+xhost +localhost
+
+# Linux: needs to be run every time the X server is relaunched (e.g. after reboots)
 xhost +local:docker
 ```
+
+### I've done that, but Qt still can't connect to the display
+
+Are you using the Docker snap package? We've learned the hard way that the 
+snap sandbox makes it extremely difficult to forward X11 windows to the host 
+system. We recommend 
+[installing Docker Engine with apt](https://docs.docker.com/engine/install/)
+(or the equivalent for your flavor of Linux). If you absolutely need to use 
+the snap package, or still have issues connecting to the display, you may be 
+interested in [x11docker](https://github.com/mviereck/x11docker).

@@ -7,5 +7,5 @@ using namespace volcart;
 auto main() -> int
 {
     std::cout << ProjectInfo::NameAndVersion();
-    std::cout << " (" << ProjectInfo::RepositoryHash() << ")\n";
+    std::cout << " (" << ProjectInfo::RepositoryShortHash() << ")\n";
 }

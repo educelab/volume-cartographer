@@ -7,3 +7,5 @@
 **/*.md
 docs/*
 Brewfile.lock.json
+build/
+cmake-build*/
