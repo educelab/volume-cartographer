@@ -18,7 +18,7 @@
 4. Launch the GUI app from the Docker container with appropriate X11 forwarding:
    ```shell
    # Give Docker permission to access the X server (will also launch XQuartz)
-   # Needs to be run everytime the XQuartz process is launched
+   # Needs to be run every time the XQuartz process is launched
    xhost +localhost
    
    # Launch the container
@@ -27,8 +27,15 @@
    
 ## Linux
 ```shell
+# Give Docker permission to access the X server
+# Needs to be run every time the X server is relaunched (e.g. after reboots)
+xhost +local:docker
+
 docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ghcr.io/educelab/volume-cartographer VC
 ```
+
+**Note:** On some distributions, you may need to run Docker with superuser 
+privileges: `sudo docker ...`
 
 ## FAQ
 ### Qt complains that it can't connect to the display
@@ -36,10 +43,10 @@ If you get error `could not connect to display <your display number>`, make
 sure you run the following command to give Docker access to the X server:
 
 ```shell
-# macOS: needs to be run everytime the XQuartz process is launched
+# macOS: needs to be run every time the XQuartz process is launched
 xhost +localhost
 
-# Linux
+# Linux: needs to be run every time the X server is relaunched (e.g. after reboots)
 xhost +local:docker
 ```
 
