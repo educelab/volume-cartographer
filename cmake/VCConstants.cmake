@@ -17,10 +17,18 @@ set(share_install_dir "share/${PROJECT_NAME}")
 set(targets_export_name "${PROJECT_NAME}Targets")
 set(namespace "${PROJECT_NAME}::")
 
-# Get Git hash
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+# Get Git hash (prefer manual hash from env)
+if(DEFINED ENV{VC_GIT_SHA1} AND NOT $ENV{VC_GIT_SHA1} STREQUAL "")
+    message(STATUS "Loading Git SHA from environment")
+    set(GIT_SHA1 $ENV{VC_GIT_SHA1})
+else()
+    include(GetGitRevisionDescription)
+    get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+endif()
+
+# Create short sha1sum
 if(GIT_SHA1)
+    message(STATUS "Git SHA: ${GIT_SHA1}")
     string(SUBSTRING ${GIT_SHA1} 0 7 GIT_SHA1_SHORT)
 else()
     set(GIT_SHA1 Untracked)
