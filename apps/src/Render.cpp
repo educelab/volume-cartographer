@@ -151,7 +151,7 @@ auto GetUVOpts() -> po::options_description
                 "  2 = Orthographic Projection")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
-        ("uv-align-to-axis",
+        ("uv-align-to-axis", po::value<UVMap::AlignmentAxis>(),
             "Rotate the UV map so that the specified volume direction is aligned "
             "as well as possible to \'up\' in the texture image (-Y). "
             "Performed before uv-rotate and uv-flip. Options: None, +Z, -Z, "
