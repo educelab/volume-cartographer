@@ -5,6 +5,14 @@
 namespace vc = volcart;
 namespace fs = vc::filesystem;
 
+auto vc::endian::little() -> bool
+{
+    constexpr int i{1};
+    return *reinterpret_cast<const char*>(&i) == 1;
+}
+
+auto vc::endian::big() -> bool { return not little(); }
+
 vc::mmap_info::operator bool() const { return addr and size > 0; }
 
 vc::auto_mmap_info::auto_mmap_info(const mmap_info& rhs) : mmap_info(rhs) {}

@@ -9,6 +9,15 @@
 namespace volcart
 {
 
+namespace endian
+{
+/** Returns whether the system is little endian */
+auto little() -> bool;
+
+/** Returns whether the system is big endian */
+auto big() -> bool;
+}  // namespace endian
+
 /** @brief Memmap record */
 struct mmap_info {
     /** Whether this is a valid mapping */
