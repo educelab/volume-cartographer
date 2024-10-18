@@ -12,6 +12,19 @@
 
 namespace volcart::segmentation
 {
+
+/**
+ * @brief Combine X and Y values into an npoints x 2 matrix
+ */
+template <class Vector>
+auto MakeWideMtx(const Vector& xs, const Vector& ys) -> Eigen::MatrixXd
+{
+    Eigen::MatrixXd mat{2, xs.size()};
+    mat.row(0) = Eigen::VectorXd::Map(xs.data(), xs.size());
+    mat.row(1) = Eigen::VectorXd::Map(ys.data(), ys.size());
+    return mat;
+}
+
 /**
  * @class Spline
  * @brief Simple spline wrapper around Eigen::Spline
@@ -22,8 +35,9 @@ template <typename Scalar = double, int Degree = 3>
 class Spline
 {
 public:
-    using ScalarVector = std::vector<Scalar>;
+    using Vector = std::vector<Scalar>;
     using SplineType = Eigen::Spline<Scalar, 2>;
+    using Fitting = Eigen::SplineFitting<SplineType>;
 
     Spline() = default;
 
@@ -33,11 +47,10 @@ public:
      * @param xs Vector of X values
      * @param ys Vector of Y values
      */
-    Spline(const ScalarVector& xs, const ScalarVector& ys) : npoints_{xs.size()}
+    Spline(const Vector& xs, const Vector& ys) : npoints_{xs.size()}
     {
         assert(xs.size() == ys.size() && "xs and ys must be same length");
-        auto points = make_wide_matrix_(xs, ys);
-        spline_ = Eigen::SplineFitting<SplineType>::Interpolate(points, Degree);
+        spline_ = Fitting::Interpolate(MakeWideMtx(xs, ys), Degree);
     }
 
     /**
@@ -52,21 +65,9 @@ public:
 
 private:
     /** Number of points on the spline */
-    std::size_t npoints_;
-
+    std::size_t npoints_{0};
+    /** Eigen spline */
     SplineType spline_;
-
-    /**
-     * @brief Combine X and Y values into an npoints_ x 2 matrix
-     */
-    Eigen::MatrixXd make_wide_matrix_(
-        const ScalarVector& xs, const ScalarVector& ys)
-    {
-        Eigen::MatrixXd mat{2, xs.size()};
-        mat.row(0) = Eigen::VectorXd::Map(xs.data(), xs.size());
-        mat.row(1) = Eigen::VectorXd::Map(ys.data(), ys.size());
-        return mat;
-    }
 };
 
 /**

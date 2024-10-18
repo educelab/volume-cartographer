@@ -67,7 +67,7 @@ TEST(ConstantFittedCurve, CheckIncreasingXAndConstantYFromInitialCurve)
     for (std::size_t i = 1; i < curve.size(); ++i) {
         auto prev = curve(i - 1);
         auto curr = curve(i);
-        EXPECT_TRUE(prev(0) < curr(0));
+        EXPECT_LT(prev(0), curr(0));
         volcart::testing::ExpectNear(curr(1), yConstant, tol);
     }
 }

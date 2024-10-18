@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <tuple>
 #include <vector>
+
 #include <opencv2/core.hpp>
 
 #define BGR_RED cv::Scalar(0, 0, 0xFF)
@@ -15,7 +16,7 @@
 #define BGR_BLACK cv::Scalar(0, 0, 0)
 
 using IndexIntensityPair = std::pair<int, double>;
-using IndexIntensityPairVec = typename std::vector<IndexIntensityPair>;
+using IndexIntensityPairVec = std::vector<IndexIntensityPair>;
 using Voxel = cv::Vec3d;
 using Pixel = cv::Vec2d;
 
