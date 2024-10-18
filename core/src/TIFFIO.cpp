@@ -80,6 +80,7 @@ struct TIFFHeader {
     std::uint16_t config = 0;
     std::uint64_t* stripOffsets{nullptr};
     tio::Compression compression{tio::Compression::NONE};
+    bool bigEndian{false};
 };
 
 auto ReadHeader(lt::TIFF* tif)
@@ -95,6 +96,7 @@ auto ReadHeader(lt::TIFF* tif)
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &hdr.compression);
     TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &hdr.rowsPerStrip);
     TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, &hdr.stripOffsets);
+    hdr.bigEndian = lt::TIFFIsBigEndian(tif) != 0;
     return hdr;
 }
 
@@ -144,13 +146,15 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
 // Returns whether this TIFF file is encoded for memory mapping
 auto CanMMap(const TIFFHeader& hdr) -> bool
 {
-    auto res = hdr.config == PLANARCONFIG_CONTIG;
-    res &= hdr.type == SAMPLEFORMAT_UINT;
-    res &= hdr.depth == 16 and hdr.channels == 1;
-    res &= hdr.compression == tio::Compression::NONE;
-    // important: full image is in a single strip
-    res &= hdr.rowsPerStrip == hdr.height;
-    return res;
+    const auto isContig = hdr.config == PLANARCONFIG_CONTIG;
+    const auto isUint = hdr.type == SAMPLEFORMAT_UINT;
+    const auto is16bpc = hdr.depth == 16;
+    const auto isMono = hdr.channels == 1;
+    const auto uncompressed = hdr.compression == tio::Compression::NONE;
+    const auto singleStrip = hdr.rowsPerStrip == hdr.height;
+    const auto endianMatch = hdr.bigEndian == vc::endian::big();
+    return isContig and isUint and is16bpc and isMono and uncompressed and
+           singleStrip and endianMatch;
 }
 
 // Memory mapp the tiff

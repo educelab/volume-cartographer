@@ -47,6 +47,7 @@ struct VolumeInfo {
     Flip flipOption{Flip::None};
     vc::Metadata meta;
     bool compress{false};
+    bool forceWrite{false};
 };
 
 static bool DoAnalyze{true};
@@ -99,7 +100,8 @@ auto main(int argc, char* argv[]) -> int
 
     po::options_description all("Usage");
     all.add(helpOpts).add_options()(
-        "analyze", po::value<bool>()->default_value(true), "Analyze volume");
+        "analyze", po::value<bool>()->default_value(true), "Analyze volume")
+        ("force-write", "Force writing new TIFF files even if they could be copied");
     // clang-format on
 
     // Parse the command line and separate out flags for volumes
@@ -194,6 +196,7 @@ auto main(int argc, char* argv[]) -> int
     ///// Add Volumes /////
     for (const auto& v : vargs) {
         VolumeInfo info = GetVolumeInfo(v);
+        info.forceWrite = args.count("force-write") > 0;
         AddVolume(volpkg, info);
     }
 }
@@ -475,7 +478,7 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
         auto& slice = pair.second;
         // Convert or flip
         if (slice.needsConvert() || slice.needsScale() || needsFlip ||
-            info.compress) {
+            info.compress || info.forceWrite) {
             // Override slice min/max with volume min/max
             if (slice.needsScale()) {
                 slice.setScale(volMax, volMin);

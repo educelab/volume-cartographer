@@ -96,6 +96,10 @@ jobs:
         run: |
           sudo xcode-select -s /Library/Developer/CommandLineTools
 
+      - name: Remove problematic SDKs
+        run: |
+          sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX15*.sdk
+
       - name: Install dependencies
         run: |
           brew bundle
