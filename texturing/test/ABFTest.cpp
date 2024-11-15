@@ -2,8 +2,6 @@
 
 #include <cstddef>
 
-#include <vc/core/io/MeshIO.hpp>
-
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
