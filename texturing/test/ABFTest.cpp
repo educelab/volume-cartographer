@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+#include <vc/core/io/MeshIO.hpp>
+
 #include "vc/core/shapes/Arch.hpp"
 #include "vc/core/shapes/Plane.hpp"
 #include "vc/core/types/SimpleMesh.hpp"
@@ -135,7 +137,6 @@ public:
 
 TEST_F(CreatePlaneABFUVFixture, PlaneABFUVTest)
 {
-
     // check size of uvMap and number of points in mesh
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints());
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());
