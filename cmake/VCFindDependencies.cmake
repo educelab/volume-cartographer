@@ -53,8 +53,9 @@ include(BuildACVD)
 ### Eigen ###
 find_package(Eigen3 3.3 REQUIRED)
 if(CMAKE_GENERATOR MATCHES "Ninja|.*Makefiles.*" AND "${CMAKE_BUILD_TYPE}" MATCHES "^$|Debug")
-    message(AUTHOR_WARNING "Configuring a Debug build. Eigen performance will be degraded. If you need debug symbols, \
-    consider setting CMAKE_BUILD_TYPE to RelWithDebInfo. Otherwise, set to Release to maximize performance.")
+    message(AUTHOR_WARNING "Configuring a Debug build. Eigen performance will \
+    be degraded. If you need debug symbols, consider setting CMAKE_BUILD_TYPE \
+    to RelWithDebInfo. Otherwise, set to Release to maximize performance.")
 endif()
 
 ### OpenCV ###
@@ -101,16 +102,10 @@ if(VC_BUILD_TESTS)
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
         GIT_TAG        v1.14.0
-        CMAKE_CACHE_ARGS
-            -DINSTALL_GTEST:BOOL=OFF
+        EXCLUDE_FROM_ALL
     )
-
-    FetchContent_GetProperties(googletest)
-    if(NOT googletest_POPULATED)
-        set(INSTALL_GTEST OFF CACHE BOOL OFF FORCE)
-        FetchContent_Populate(googletest)
-        add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
-    endif()
+    set(INSTALL_GTEST OFF CACHE INTERNAL "")
+    FetchContent_MakeAvailable(googletest)
 endif()
 
 # Python bindings
