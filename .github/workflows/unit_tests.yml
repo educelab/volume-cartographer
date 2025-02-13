@@ -59,7 +59,7 @@ jobs:
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
     env:
-      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON -DVC_BUILD_JSON=OFF"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
     env:
-      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON -DVC_BUILD_JSON=OFF"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
