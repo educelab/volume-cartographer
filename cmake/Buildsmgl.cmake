@@ -2,11 +2,6 @@ FetchContent_Declare(
     smgl
     GIT_REPOSITORY https://gitlab.com/educelab/smgl.git
     GIT_TAG v0.10.1
-    CMAKE_CACHE_ARGS
-        -DSMGL_BUILD_JSON:BOOL=ON
-        -DSMGL_USE_BOOSTFS:BOOL=ON
-        -DSMGL_BUILD_TESTS:BOOL=OFF
-        -DSMGL_BUILD_DOCS:BOOL=OFF
     EXCLUDE_FROM_ALL
 )
 set(SMGL_BUILD_JSON ${VC_BUILD_JSON} CACHE INTERNAL "")
