@@ -1,4 +1,4 @@
-option(VC_BUILD_JSON "Build in-source JSON library" off)
+option(VC_BUILD_JSON "Build in-source JSON library" on)
 if(VC_BUILD_JSON)
     FetchContent_Declare(
         json
