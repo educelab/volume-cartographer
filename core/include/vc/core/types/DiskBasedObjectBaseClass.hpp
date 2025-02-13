@@ -46,6 +46,18 @@ public:
     /** @brief Set the human-readable name of the object */
     void setName(std::string n);
 
+    template <typename T>
+    void setMetadataEntry(const std::string& key, T value)
+    {
+        metadata_.set(key, value);
+    }
+
+    template <typename T>
+    auto getMetadataEntry(const std::string& key) const -> std::optional<T>
+    {
+        return metadata_.get<T>(key);
+    }
+
     /** @brief Update metadata on disk */
     void saveMetadata() const;
 
