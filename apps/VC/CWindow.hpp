@@ -78,16 +78,16 @@ public slots:
 
 public:
     CWindow();
-    ~CWindow(void);
+    ~CWindow();
 
 protected:
     void mousePressEvent(QMouseEvent* nEvent);
     void keyPressEvent(QKeyEvent* event);
 
 private:
-    void CreateWidgets(void);
-    void CreateMenus(void);
-    void CreateActions(void);
+    void CreateWidgets();
+    void CreateMenus();
+    void CreateActions();
     void CreateBackend();
 
     void closeEvent(QCloseEvent* closing);
@@ -96,41 +96,41 @@ private:
 
     bool InitializeVolumePkg(const std::string& nVpkgPath);
     void setDefaultWindowWidth(volcart::Volume::Pointer volume);
-    SaveResponse SaveDialog(void);
+    SaveResponse SaveDialog();
 
-    void UpdateView(void);
+    void UpdateView();
     void ChangePathItem(std::string segID);
 
-    void SplitCloud(void);
-    void DoSegmentation(void);
-    void CleanupSegmentation(void);
-    bool SetUpSegParams(void);
+    void SplitCloud();
+    void DoSegmentation();
+    void CleanupSegmentation();
+    bool SetUpSegParams();
 
-    void SetUpCurves(void);
+    void SetUpCurves();
     void SetCurrentCurve(int nCurrentSliceIndex);
 
-    void OpenSlice(void);
+    void OpenSlice();
 
-    void InitPathList(void);
+    void InitPathList();
 
-    void SetPathPointCloud(void);
+    void SetPathPointCloud();
 
-    void OpenVolume(void);
-    void CloseVolume(void);
+    void OpenVolume();
+    void CloseVolume();
 
-    void ResetPointCloud(void);
+    void ResetPointCloud();
 
 private slots:
-    void Open(void);
-    void Close(void);
-    void About(void);
+    void Open();
+    void Close();
+    void About();
     void SavePointCloud();
 
-    void OnNewPathClicked(void);
+    void OnNewPathClicked();
     void OnPathItemClicked(QListWidgetItem* nItem);
 
-    void TogglePenTool(void);
-    void ToggleSegmentationTool(void);
+    void TogglePenTool();
+    void ToggleSegmentationTool();
 
     void OnChangeSegAlgo(int index);
 
@@ -147,15 +147,15 @@ private slots:
     void OnEdtStartingSliceValChange(QString nText);
     void OnEdtEndingSliceValChange();
 
-    void OnBtnStartSegClicked(void);
+    void OnBtnStartSegClicked();
 
     void OnEdtImpactRange(int nImpactRange);
 
     void OnLoadAnySlice(int nSliceIndex);
-    void OnLoadNextSlice(void);
-    void OnLoadPrevSlice(void);
+    void OnLoadNextSlice();
+    void OnLoadPrevSlice();
 
-    void OnPathChanged(void);
+    void OnPathChanged();
 
 private:
     // data model
