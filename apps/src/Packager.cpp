@@ -450,6 +450,14 @@ void AddVolume(vc::VolumePkg::Pointer& volpkg, const VolumeInfo& info)
     volume->setSliceHeight(slices.front().height());
     volume->setVoxelSize(info.voxelsize);
 
+    // SkyScan-specific dataset name
+    if (info.meta.hasKey("outputDirectory")) {
+        const auto outputDir = info.meta.get<std::string>("outputDirectory");
+        if (outputDir.has_value()) {
+            volume->setMetadataEntry("original_dataset", outputDir.value());
+        }
+    }
+
     // Scale min/max values
     if (slices.begin()->needsScale()) {
         volume->setMin(MIN_16BPC);

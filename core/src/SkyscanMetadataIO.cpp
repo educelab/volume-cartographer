@@ -44,6 +44,7 @@ void SkyscanMetadataIO::parse_()
     // Reconstruction
     std::regex secRecon{"^\\[Reconstruction\\]"};
     std::regex datasetPrefix{"^Dataset Prefix"};
+    std::regex outputDirectory{"^Output Directory"};
     std::regex dateTime{"^Time and Date"};
     std::regex resultFileType{"^Result File Type"};
     std::regex resultFileHeaderLength{"^Result File Header Length"};
@@ -124,6 +125,12 @@ void SkyscanMetadataIO::parse_()
 
         else if (std::regex_match(lineTokens[0], dateTime)) {
             metadata_.set<std::string>("dateTime", lineTokens[1]);
+        }
+
+        else if (std::regex_match(lineTokens[0], outputDirectory)) {
+            // split into path parts (Windows-style path)
+            auto parts = split(lineTokens[1], '\\');
+            metadata_.set<std::string>("outputDirectory", parts.back());
         }
 
         else if (std::regex_match(lineTokens[0], resultFileType)) {

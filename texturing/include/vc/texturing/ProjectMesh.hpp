@@ -52,7 +52,9 @@ public:
         /** @brief PPM dimensions determine image plane sample rate */
         Dimensions
     };
+    /** Composite transform type */
     using CompositeTransform = itk::CompositeTransform<double, 2>;
+    /** Transform point type */
     using Point = itk::Point<double, 2>;
 
     /** @brief Default constructor */

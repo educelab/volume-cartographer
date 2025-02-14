@@ -111,7 +111,7 @@ public:
     /**@}*/
 protected:
     /** JSON data storage */
-    nlohmann::json json_;
+    nlohmann::json json_{};
     /** Location where the JSON file will be stored*/
     filesystem::path path_;
 };

@@ -46,6 +46,34 @@ public:
     /** @brief Set the human-readable name of the object */
     void setName(std::string n);
 
+    /**
+     * @brief Set a metadata entry
+     *
+     * @see Metadata::set
+     *
+     * @warning This provides direct access to the underlying metadata object,
+     * making it possible to manually override metadata values for standard
+     * VC types (e.g. Volume, Segmentation, Render). This can lead to unexpected
+     * behavior if you modify one of the required metadata entries incorrect.
+     * Prefer to use the metadata setter functions provided by child classes.
+     */
+    template <typename T>
+    void setMetadataEntry(const std::string& key, T value)
+    {
+        metadata_.set(key, value);
+    }
+
+    /**
+     * @brief Get a metadata entry
+     *
+     * @see Metadata::get
+     */
+    template <typename T>
+    auto getMetadataEntry(const std::string& key) const -> std::optional<T>
+    {
+        return metadata_.get<T>(key);
+    }
+
     /** @brief Update metadata on disk */
     void saveMetadata() const;
 
