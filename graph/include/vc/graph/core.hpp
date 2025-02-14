@@ -795,9 +795,10 @@ private:
 };
 
 /**
- * @copybrief VolumePkg::transform(Transform3D::Identifier)
+ * @copybrief VolumePkg::transform
  *
- * @see VolumePkg::transform(Transform3D::Identifier)
+ * @see VolumePkg::transform
+ *
  * @ingroup Graph
  */
 class TransformSelectorNode : public smgl::Node
