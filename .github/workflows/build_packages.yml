@@ -28,8 +28,8 @@ jobs:
       - name: Install Homebrew dependencies
         run: |
           brew update
-          brew unlink libtiff libpng
           brew install ninja python@3.12
+          brew unlink libtiff libpng
 
       - name: Remove conflicting packages
         run: |
