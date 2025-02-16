@@ -80,7 +80,7 @@ explicitly support other platforms.
 #### Dependencies
 **Required**
 * C++17 compiler which uses the Itanium ABI
-* CMake 3.24+
+* CMake 3.28+
 * OpenCV 3+
 * Insight Toolkit (itk) 4.10+
 * Visualization Toolkit (vtk) 7 or 8
