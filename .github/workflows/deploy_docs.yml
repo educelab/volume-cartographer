@@ -12,7 +12,7 @@ jobs:
     name: Build documentation
     runs-on: ubuntu-latest
     container: ghcr.io/educelab/ci-docker:static.12.1
-    if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
+    if: ${{ github.event_name  == 'merge_request_event' || !(github.ref && CI_OPEN_MERGE_REQUESTS) || github.ref }}
     timeout-minutes: 180
     env:
       CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
@@ -37,11 +37,12 @@ jobs:
           path: public/
 
   deploy:
+    name: Deploy documentation
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    if: ${{ github.ref }} == "develop"
+    if: ${{ github.ref_name == 'develop' }}
     needs: build
     steps:
       - name: Deploy to GitHub Pages
