@@ -178,31 +178,31 @@ auto CanMMap(const TIFFHeader& hdr) -> std::pair<bool, std::string>
     ss << std::boolalpha;
     bool hasValue{false};
     if (not isContig) {
-        ss << (hasValue ? ", " : "") << "contig: " << isContig;
+        ss << (hasValue ? ", " : "") << "not contig";
         hasValue = true;
     }
     if (not isUint) {
-        ss << (hasValue ? ", " : "") << "uint: " << isUint;
+        ss << (hasValue ? ", " : "") << "not uint";
         hasValue = true;
     }
     if (not is16bpc) {
-        ss << (hasValue ? ", " : "") << "16bpc: " << is16bpc;
+        ss << (hasValue ? ", " : "") << "not 16bpc";
         hasValue = true;
     }
     if (not isMono) {
-        ss << (hasValue ? ", " : "") << "mono: " << isMono;
+        ss << (hasValue ? ", " : "") << "not mono";
         hasValue = true;
     }
     if (not uncompressed) {
-        ss << (hasValue ? ", " : "") << "uncompressed: " << uncompressed;
+        ss << (hasValue ? ", " : "") << "not uncompressed";
         hasValue = true;
     }
     if (not singleStrip) {
-        ss << (hasValue ? ", " : "") << "single strip: " << singleStrip;
+        ss << (hasValue ? ", " : "") << "not single strip";
         hasValue = true;
     }
     if (not endianMatch) {
-        ss << (hasValue ? ", " : "") << "endian match: " << endianMatch;
+        ss << (hasValue ? ", " : "") << "wrong endian";
     }
 
     return {
@@ -243,6 +243,7 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
         throw IOException("File does not exist");
     }
 
+    // Log errors and warnings to VC's logger
     lt::TIFFSetErrorHandler(TIFFErrorHandler);
     lt::TIFFSetWarningHandler(TIFFWarningHandler);
 
@@ -296,6 +297,7 @@ void tio::WriteTIFF(
             "Invalid file extension " + path.extension().string());
     }
 
+    // Log errors and warnings to VC's logger
     lt::TIFFSetErrorHandler(TIFFErrorHandler);
     lt::TIFFSetWarningHandler(TIFFWarningHandler);
 
