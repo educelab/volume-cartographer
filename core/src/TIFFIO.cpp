@@ -257,8 +257,8 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
     cv::Mat img;
 
     // Load memmap'd image
-    const auto [res, msg] = CanMMap(hdr);
-    if (MEMMAP_SUPPORTED and mmap_info and res) {
+    if (const auto [res, msg] = CanMMap(hdr);
+        MEMMAP_SUPPORTED and mmap_info and res) {
         // Try to mmap
         std::tie(img, *mmap_info) = MMapImage(path, hdr);
         if (img.empty()) {
