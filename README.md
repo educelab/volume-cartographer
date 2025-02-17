@@ -196,7 +196,7 @@ ctest -V --test-dir build/
 
 ## API Documentation
 Visit our API documentation
-[here](https://educelab.gitlab.io/volume-cartographer/docs/).
+[here](https://educelab.github.io/volume-cartographer/).
 
 Library documentation is built using Doxygen and can be enabled/disabled by
 setting the `VC_BUILD_DOCS` flag. This requires Doxygen and optionally Graphviz.
