@@ -29,7 +29,7 @@ namespace
 {
 constexpr bool MEMMAP_SUPPORTED = VC_MEMMAP_SUPPORTED;
 
-void TIFFWarningHandler(const char* module, const char* fmt, const va_list ap)
+void TIFFWarningHandler(const char* module, const char* fmt, va_list ap)
 {
     std::array<char, 1024> buf{};
     std::vsnprintf(buf.data(), buf.size(), fmt, ap);
@@ -37,7 +37,7 @@ void TIFFWarningHandler(const char* module, const char* fmt, const va_list ap)
         "[TIFFIO] {}: {}", module, std::string_view(buf.data()));
 }
 
-void TIFFErrorHandler(const char* module, const char* fmt, const va_list ap)
+void TIFFErrorHandler(const char* module, const char* fmt, va_list ap)
 {
     std::array<char, 1024> buf{};
     std::vsnprintf(buf.data(), buf.size(), fmt, ap);
