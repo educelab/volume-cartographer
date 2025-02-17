@@ -2,7 +2,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
+#include <sstream>
+#include <string_view>
 #include <utility>
 
 #include <opencv2/imgproc.hpp>
@@ -25,6 +28,22 @@ namespace fs = volcart::filesystem;
 namespace
 {
 constexpr bool MEMMAP_SUPPORTED = VC_MEMMAP_SUPPORTED;
+
+void TIFFWarningHandler(const char* module, const char* fmt, const va_list ap)
+{
+    std::array<char, 1024> buf{};
+    std::vsnprintf(buf.data(), buf.size(), fmt, ap);
+    vc::Logger()->debug(
+        "[TIFFIO] {}: {}", module, std::string_view(buf.data()));
+}
+
+void TIFFErrorHandler(const char* module, const char* fmt, const va_list ap)
+{
+    std::array<char, 1024> buf{};
+    std::vsnprintf(buf.data(), buf.size(), fmt, ap);
+    vc::Logger()->error(
+        "[TIFFIO] {}: {}", module, std::string_view(buf.data()));
+}
 
 // Return a CV Mat type using TIFF type (signed, unsigned, float),
 // bit-depth, and number of channels
@@ -144,7 +163,7 @@ auto ReadImage(lt::TIFF* tif, const TIFFHeader& hdr) -> cv::Mat
 }
 
 // Returns whether this TIFF file is encoded for memory mapping
-auto CanMMap(const TIFFHeader& hdr) -> bool
+auto CanMMap(const TIFFHeader& hdr) -> std::pair<bool, std::string>
 {
     const auto isContig = hdr.config == PLANARCONFIG_CONTIG;
     const auto isUint = hdr.type == SAMPLEFORMAT_UINT;
@@ -153,8 +172,43 @@ auto CanMMap(const TIFFHeader& hdr) -> bool
     const auto uncompressed = hdr.compression == tio::Compression::NONE;
     const auto singleStrip = hdr.rowsPerStrip == hdr.height;
     const auto endianMatch = hdr.bigEndian == vc::endian::big();
-    return isContig and isUint and is16bpc and isMono and uncompressed and
-           singleStrip and endianMatch;
+
+    // build result string
+    std::stringstream ss;
+    ss << std::boolalpha;
+    bool hasValue{false};
+    if (not isContig) {
+        ss << (hasValue ? ", " : "") << "contig: " << isContig;
+        hasValue = true;
+    }
+    if (not isUint) {
+        ss << (hasValue ? ", " : "") << "uint: " << isUint;
+        hasValue = true;
+    }
+    if (not is16bpc) {
+        ss << (hasValue ? ", " : "") << "16bpc: " << is16bpc;
+        hasValue = true;
+    }
+    if (not isMono) {
+        ss << (hasValue ? ", " : "") << "mono: " << isMono;
+        hasValue = true;
+    }
+    if (not uncompressed) {
+        ss << (hasValue ? ", " : "") << "uncompressed: " << uncompressed;
+        hasValue = true;
+    }
+    if (not singleStrip) {
+        ss << (hasValue ? ", " : "") << "single strip: " << singleStrip;
+        hasValue = true;
+    }
+    if (not endianMatch) {
+        ss << (hasValue ? ", " : "") << "endian match: " << endianMatch;
+    }
+
+    return {
+        isContig and isUint and is16bpc and isMono and uncompressed and
+            singleStrip and endianMatch,
+        ss.str()};
 }
 
 // Memory mapp the tiff
@@ -189,6 +243,9 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
         throw IOException("File does not exist");
     }
 
+    lt::TIFFSetErrorHandler(TIFFErrorHandler);
+    lt::TIFFSetWarningHandler(TIFFWarningHandler);
+
     // Open the file read-only
     lt::TIFF* tif = lt::TIFFOpen(path.c_str(), "rc");
     if (tif == nullptr) {
@@ -200,7 +257,8 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
     cv::Mat img;
 
     // Load memmap'd image
-    if (MEMMAP_SUPPORTED and mmap_info and CanMMap(hdr)) {
+    const auto [res, msg] = CanMMap(hdr);
+    if (MEMMAP_SUPPORTED and mmap_info and res) {
         // Try to mmap
         std::tie(img, *mmap_info) = MMapImage(path, hdr);
         if (img.empty()) {
@@ -212,9 +270,8 @@ auto tio::ReadTIFF(const fs::path& path, mmap_info* mmap_info) -> cv::Mat
         // If we requested memory mapping (and it's available), log the failure
         if (MEMMAP_SUPPORTED and mmap_info) {
             Logger()->debug(
-                "TIFF cannot be memory mapped: {}. Image will be read into "
-                "memory instead",
-                path.string());
+                "TIFF cannot be memory mapped: {}. Reason: {}", path.string(),
+                msg);
         }
         img = ReadImage(tif, hdr);
     }
@@ -238,6 +295,9 @@ void tio::WriteTIFF(
         throw IOException(
             "Invalid file extension " + path.extension().string());
     }
+
+    lt::TIFFSetErrorHandler(TIFFErrorHandler);
+    lt::TIFFSetWarningHandler(TIFFWarningHandler);
 
     // Image metadata
     const auto channels = img.channels();
