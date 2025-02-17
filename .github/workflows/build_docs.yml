@@ -61,7 +61,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
       
     runs-on: ubuntu-latest
-    depends: build
+    needs: build
     if: ${{ github.ref_name == 'develop' }}
     steps:
       - name: Checkout
