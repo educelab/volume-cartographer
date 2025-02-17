@@ -13,7 +13,7 @@ variables:
 .build_script: &build_script
     - mkdir -p build/
     - cd build/
-    - echo $CMAKE_CMD
+    - echo "$CMAKE_CMD"
     - $CMAKE_CMD
     - ninja
 
@@ -24,7 +24,8 @@ variables:
     variables:
         EXTRA_CMAKE_FLAGS: ""
     before_script:
-        - export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
+        - |
+          export CMAKE_CMD="cmake -GNinja $EXTRA_CMAKE_FLAGS .."
     script:
         - *build_script
     rules:
