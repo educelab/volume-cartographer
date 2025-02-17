@@ -1,0 +1,49 @@
+name: Build docs
+on:
+  workflow_dispatch:
+  push:
+    branches: ["develop"]
+  pull_request:
+    branches:
+      - "develop"
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    container: ghcr.io/educelab/ci-docker:static.12.1
+    if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
+    timeout-minutes: 180
+    env:
+      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install documentation requirements
+        run: |
+          apt-get -y update
+          apt-get install --fix-missing --fix-broken -y doxygen graphviz
+
+      - name: Build documentation
+        run: |
+          cmake -S . -B build/ -GNinja -DVC_BUILD_DOCS=ON -DVC_BUILD_APPS=OFF -DVC_BUILD_UTILS=OFF
+          cmake --build build/ --target docs
+          mv build/docs/html/ public/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    if: ${{ github.ref }} == "develop"
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
