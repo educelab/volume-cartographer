@@ -16,6 +16,7 @@
 #include <vtkPointData.h>
 #include <vtkProbeFilter.h>
 #include <vtkSmartPointer.h>
+#include <vtkLogger.h>
 
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
@@ -89,6 +90,9 @@ auto main(int argc, char* argv[]) -> int
         std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
+
+    // only print VTK warnings or errors
+    vtkLogger::SetStderrVerbosity(vtkLogger::VERBOSITY_WARNING);
 
     // Canny values
     CannySettings cannySettings;
