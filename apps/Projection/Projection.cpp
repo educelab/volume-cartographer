@@ -14,6 +14,7 @@
 #include <vtkAppendPolyData.h>
 #include <vtkCleanPolyData.h>
 #include <vtkCutter.h>
+#include <vtkLogger.h>
 #include <vtkPlane.h>
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
@@ -84,6 +85,9 @@ auto main(int argc, char* argv[]) -> int
         vc::Logger()->error(e.what());
         return EXIT_FAILURE;
     }
+
+    // only print VTK warnings or errors
+    vtkLogger::SetStderrVerbosity(vtkLogger::VERBOSITY_WARNING);
 
     // Get options
     vc::ProjectionSettings projectionSettings;
