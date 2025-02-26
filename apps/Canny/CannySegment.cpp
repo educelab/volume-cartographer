@@ -13,6 +13,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCutter.h>
 #include <vtkLine.h>
+#include <vtkLogger.h>
 #include <vtkPointData.h>
 #include <vtkProbeFilter.h>
 #include <vtkSmartPointer.h>
@@ -89,6 +90,9 @@ auto main(int argc, char* argv[]) -> int
         std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
+
+    // only print VTK warnings or errors
+    vtkLogger::SetStderrVerbosity(vtkLogger::VERBOSITY_WARNING);
 
     // Canny values
     CannySettings cannySettings;
