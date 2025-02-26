@@ -13,10 +13,10 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCutter.h>
 #include <vtkLine.h>
+#include <vtkLogger.h>
 #include <vtkPointData.h>
 #include <vtkProbeFilter.h>
 #include <vtkSmartPointer.h>
-#include <vtkLogger.h>
 
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
