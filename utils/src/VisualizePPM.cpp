@@ -19,7 +19,11 @@ auto main(int argc, char* argv[]) -> int
     po::options_description required("General Options");
     required.add_options()
         ("help,h", "Show this message")
-        ("volpkg,v", po::value<std::string>(), "VolumePkg path")
+        ("dims,d", po::value<std::vector<int>>()->multitoken(),
+            "Volume dimensions (X Y Z). Required if normalizing the outputs "
+            "and --volpkg is not provided")
+        ("volpkg,v", po::value<std::string>(), "VolumePkg path. Required if "
+            "normalizing the outputs and --dims is not provided.")
         ("volume", po::value<std::string>(), "Volume to use for position "
             "normalization. Default: The first volume in the volume package.")
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
@@ -61,29 +65,47 @@ auto main(int argc, char* argv[]) -> int
     vc::Volume::Pointer vol;
     cv::Vec3d dims;
     if (normalize) {
-        if (parsed.count("volpkg") == 0) {
+        const auto have_dims = parsed.count("dims") > 0;
+        const auto have_vpkg = parsed.count("volpkg") > 0;
+        if (have_dims and have_vpkg) {
             vc::Logger()->error(
-                "the option '--volpkg' is required but missing");
+                "The options '--dims' and '--volpkg' are "
+                "mutually exclusive");
             return EXIT_FAILURE;
         }
-        const fs::path volpkgPath = parsed["volpkg"].as<std::string>();
-        auto vpkg = vc::VolumePkg::New(volpkgPath);
-        try {
-            if (parsed.count("volume") > 0) {
-                vol = vpkg->volume(parsed["volume"].as<std::string>());
-            } else {
-                vol = vpkg->volume();
+        if (have_dims) {
+            const auto d = parsed["dims"].as<std::vector<int>>();
+            if (d.size() != 3) {
+                vc::Logger()->error("Volume dims should be 3D");
             }
-        } catch (const std::exception& e) {
+            dims[0] = d[0];
+            dims[1] = d[1];
+            dims[2] = d[2];
+        } else if (have_vpkg) {
+            const fs::path volpkgPath = parsed["volpkg"].as<std::string>();
+            auto vpkg = vc::VolumePkg::New(volpkgPath);
+            try {
+                if (parsed.count("volume") > 0) {
+                    vol = vpkg->volume(parsed["volume"].as<std::string>());
+                } else {
+                    vol = vpkg->volume();
+                }
+            } catch (const std::exception&) {
+                vc::Logger()->error(
+                    "Cannot load volume. Please check that the Volume Package "
+                    "has volumes and that the volume ID is correct.");
+                return EXIT_FAILURE;
+            }
+            dims = {
+                static_cast<double>(vol->sliceWidth()),
+                static_cast<double>(vol->sliceHeight()),
+                static_cast<double>(vol->numSlices())};
+        } else {
             vc::Logger()->error(
-                "Cannot load volume. Please check that the Volume Package has "
-                "volumes and that the volume ID is correct.");
+                "must provided '--dims' or '--volpkg' when normalizing"
+                "PPM values");
             return EXIT_FAILURE;
         }
-        dims = {
-            static_cast<double>(vol->sliceWidth()),
-            static_cast<double>(vol->sliceHeight()),
-            static_cast<double>(vol->numSlices())};
     }
 
     // Get input file
