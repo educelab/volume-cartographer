@@ -147,6 +147,11 @@ target_link_libraries(vc_flatten_mesh
     VC::texturing
     ${VC_FS_LIB}
     Boost::program_options
+    Eigen3::Eigen
+)
+target_include_directories(vc_core
+    PUBLIC
+        $<BUILD_INTERFACE:${libcore_SOURCE_DIR}/include>
 )
 list(APPEND utils_install_list vc_flatten_mesh)
 

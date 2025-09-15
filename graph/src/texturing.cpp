@@ -40,6 +40,12 @@ NLOHMANN_JSON_SERIALIZE_ENUM(Direction, {
 namespace volcart::texturing
 {
 // clang-format off
+using Solver = AngleBasedFlattening::Solver;
+NLOHMANN_JSON_SERIALIZE_ENUM(Solver, {
+    {Solver::SparseLU, "sparse_lu"},
+    {Solver::ConjugateGradient, "conjugate_gradient"}
+})
+
 using Shading = PPMGeneratorNode::Shading;
 NLOHMANN_JSON_SERIALIZE_ENUM(Shading, {
     {Shading::Flat, "flat"},
@@ -81,11 +87,13 @@ ABFNode::ABFNode()
     : Node{true}
     , input{&abf_, &ABF::setMesh}
     , useABF{&abf_, &ABF::setUseABF}
+    , solver{&abf_, &ABF::setSolver}
     , output{&mesh_}
     , uvMap{&uvMap_}
 {
     registerInputPort("input", input);
     registerInputPort("useABF", useABF);
+    registerInputPort("solver", solver);
     registerOutputPort("output", output);
     registerOutputPort("uvMap", uvMap);
 
@@ -101,6 +109,7 @@ auto ABFNode::serialize_(bool useCache, const fs::path& cacheDir)
 {
     smgl::Metadata meta{
         {"useABF", abf_.useABF()},
+        {"solver", abf_.solver()},
         {"abfMaxIterations", abf_.abfMaxIterations()}};
 
     if (useCache and uvMap_ and not uvMap_->empty()) {
@@ -115,6 +124,7 @@ auto ABFNode::serialize_(bool useCache, const fs::path& cacheDir)
 void ABFNode::deserialize_(const smgl::Metadata& meta, const fs::path& cacheDir)
 {
     abf_.setUseABF(meta["useABF"].get<bool>());
+    abf_.setSolver(meta["solver"].get<Solver>());
     abf_.setABFMaxIterations(meta["abfMaxIterations"].get<std::size_t>());
 
     if (meta.contains("uvMap")) {

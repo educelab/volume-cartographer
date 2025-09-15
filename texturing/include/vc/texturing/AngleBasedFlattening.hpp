@@ -33,7 +33,7 @@ public:
     enum class Solver { SparseLU = 0, ConjugateGradient = 1 };
 
     /** Default maximum number of ABF iterations */
-    static const std::size_t DEFAULT_ITERATIONS{10};
+    static constexpr std::size_t DEFAULT_ITERATIONS{10};
 
     /** Pointer */
     using Pointer = std::shared_ptr<AngleBasedFlattening>;

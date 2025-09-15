@@ -32,6 +32,9 @@ enum class SmoothOpt { Off = 0, Before, After, Both };
 // Flattening algorithm opt
 enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
 
+// Flattening solver opt
+using FlatteningSolver = texturing::AngleBasedFlattening::Solver;
+
 // Available texturing algorithms
 enum class Method { Composite = 0, Intersection, Integral, Thickness, Layers };
 
@@ -693,11 +696,13 @@ auto main(int argc, char* argv[]) -> int
         Logger()->debug("Adding UV computation node");
         auto method =
             static_cast<FlatteningAlgorithm>(parsed["uv-algorithm"].as<int>());
+        auto solver = static_cast<FlatteningSolver>(parsed["solver"].as<int>());
         if (method == FlatteningAlgorithm::ABF ||
             method == FlatteningAlgorithm::LSCM) {
             auto flatten = graph->insertNode<ABFNode>();
             flatten->input = *results["mesh"];
-            flatten->useABF = (method == FlatteningAlgorithm::ABF);
+            flatten->useABF = method == FlatteningAlgorithm::ABF;
+            flatten->solver = solver;
             results["uvMap"] = &flatten->uvMap;
             results["uvMesh"] = &flatten->output;
 

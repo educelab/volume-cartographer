@@ -18,6 +18,10 @@ auto GetUVOpts() -> po::options_description
                 "  2 = Orthographic Projection")
         ("reuse-uv", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
+        ("uv-solver", po::value<int>()->default_value(0),
+            "Numerical solver method for ABF/LSCM flattening:\n"
+            "  0 = SparseLU\n"
+            "  1 = Conjugate Gradient")
         ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
             "angle in degrees (counterclockwise).")
         ("uv-flip", po::value<int>(),
