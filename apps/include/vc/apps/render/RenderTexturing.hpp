@@ -2,9 +2,6 @@
 
 #include <boost/program_options.hpp>
 
-/** Get the flattening/UV options */
-auto GetUVOpts() -> boost::program_options::options_description;
-
 /** Get the generic texture filtering options */
 auto GetFilteringOpts() -> boost::program_options::options_description;
 

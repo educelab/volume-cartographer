@@ -6,45 +6,6 @@
 
 namespace po = boost::program_options;
 
-auto GetUVOpts() -> po::options_description
-{
-    // clang-format off
-    po::options_description opts("Flattening & UV Options");
-    opts.add_options()
-        ("uv-algorithm", po::value<int>()->default_value(0),
-            "Select the flattening algorithm:\n"
-                "  0 = ABF\n"
-                "  1 = LSCM\n"
-                "  2 = Orthographic Projection")
-        ("reuse-uv", "If input-mesh is specified, attempt to use its existing "
-            "UV map instead of generating a new one.")
-        ("uv-solver", po::value<int>()->default_value(0),
-            "Numerical solver method for ABF/LSCM flattening:\n"
-            "  0 = SparseLU\n"
-            "  1 = Conjugate Gradient")
-        ("uv-rotate", po::value<double>(), "Rotate the generated UV map by an "
-            "angle in degrees (counterclockwise).")
-        ("uv-flip", po::value<int>(),
-            "Flip the UV map along an axis. If uv-rotate is specified, flip is "
-            "performed after rotation.\n"
-            "Axis along which to flip:\n"
-                "  0 = Vertical\n"
-                "  1 = Horizontal\n"
-                "  2 = Both")
-        ("uv-plot", po::value<std::string>(), "Plot the UV points and save "
-            "it to the provided image path.")
-        ("uv-plot-error", po::value<std::string>(), "Plot the UV L-stretch "
-            "error metrics and save them to the provided image path. The "
-            "provided filename will have \'_l2\' and \'lInf\' appended for "
-            "each metric: e.g. providing \'foo.png\' to this argument will "
-            "produce image files \'foo_l2.png\' and \'foo_lInf.png\'")
-        ("uv-plot-error-legend", po::value<bool>()->default_value(true),
-            "If enabled (default), add a legend to the UV error plot images");
-    // clang-format on
-
-    return opts;
-}
-
 auto GetFilteringOpts() -> po::options_description
 {
     // clang-format off
