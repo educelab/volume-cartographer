@@ -19,7 +19,7 @@ namespace volcart::shapes
  * This class generates a half-circle arch shape, like a half-pipe. The width
  * parameter determines the number of points on the circumference of one arch of
  * the half-pipe. The height determines the number of arches, which can be
- * thought of as the the length of the half-pipe. Each arch is separated by
+ * thought of as the length of the half-pipe. Each arch is separated by
  * 1 unit.
  *
  * The shape will have a number of points equal to width x height. The points
