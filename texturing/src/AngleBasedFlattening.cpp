@@ -14,15 +14,14 @@ using namespace volcart::texturing;
 
 using MatrixType = Eigen::SparseMatrix<double>;
 using HalfEdgeMesh = OpenABF::detail::ABF::Mesh<double>;
-using CGSolver =
-    Eigen::ConjugateGradient<MatrixType, Eigen::Lower | Eigen::Upper>;
 
 // SparseLU
 using ABF = OpenABF::ABFPlusPlus<double>;
 using LSCM = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh>;
 // ConjugateGradient
-using ABF_CG = OpenABF::ABFPlusPlus<double, HalfEdgeMesh, CGSolver>;
-using LSCM_CG = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh, CGSolver>;
+using CG = Eigen::ConjugateGradient<MatrixType, Eigen::Lower | Eigen::Upper>;
+using ABF_CG = OpenABF::ABFPlusPlus<double, HalfEdgeMesh, CG>;
+using LSCM_CG = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh, CG>;
 
 AngleBasedFlattening::AngleBasedFlattening(const ITKMesh::Pointer& m)
     : FlatteningAlgorithm(m)
