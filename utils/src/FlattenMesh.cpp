@@ -31,7 +31,9 @@ auto main(int argc, char** argv) -> int
             "Output mesh file")
         ("method,m", po::value<std::string>()->default_value("ABF"), "Flattening method: [ABF, LSCM]")
         ("solver,s", po::value<std::string>()->default_value("SparseLU"), "Numerical solver method: [SparseLU, CG]")
-        ("threads,t", po::value<int>()->default_value(0), "Maximum number of threads");
+        ("threads,t", po::value<int>()->default_value(0), "Maximum number of threads")
+        ("log-level", po::value<std::string>()->default_value("info"),
+             "Options: off, critical, error, warn, info, debug");
 
     po::options_description all("Usage");
     all.add(required);
@@ -54,6 +56,10 @@ auto main(int argc, char** argv) -> int
         std::cerr << "ERROR: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
+
+    // Set logging level
+    auto logLevel = parsed["log-level"].as<std::string>();
+    vc::logging::SetLogLevel(logLevel);
 
     // Get the method
     bool useABF{true};
