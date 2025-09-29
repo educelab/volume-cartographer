@@ -17,6 +17,5 @@ RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.7.2/" \
     && cmake --install /volume-cartographer/build/ \
     && rm -rf /volume-cartographer/
 
-# Start an interactive shell
-ENTRYPOINT ["/bin/bash", "-c"]
+# Report the version
 CMD ["vc_version"]
