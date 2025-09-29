@@ -9,7 +9,7 @@ concurrency: docker
 jobs:
   docker:
     name: Build Docker image
-    runs-on: ubuntu-latest-arm
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Extract Docker metadata
         id: meta
