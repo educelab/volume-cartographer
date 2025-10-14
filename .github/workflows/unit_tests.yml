@@ -53,38 +53,6 @@ jobs:
     - name: Run tests
       run: ctest -V --test-dir build/
 
-  macos_14:
-    name: macOS 14
-    runs-on: macos-14
-    if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
-    timeout-minutes: 180
-    env:
-      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON -DVC_BUILD_JSON=OFF"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Use the Command Line Tools
-        run: |
-          sudo xcode-select -s /Library/Developer/CommandLineTools
-
-      - name: Remove problematic SDKs
-        run: |
-          sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX14*.sdk
-
-      - name: Install dependencies
-        run: |
-          brew bundle
-          brew install ninja
-
-      - name: Build volume-cartographer
-        run: |
-          cmake -S . -B build/ -GNinja $EXTRA_CMAKE_FLAGS
-          cmake --build build/
-
-      - name: Run tests
-        run: ctest -V --test-dir build/
-
   macos_15:
     name: macOS 15
     runs-on: macos-15
