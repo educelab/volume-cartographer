@@ -135,7 +135,6 @@ public:
 
 TEST_F(CreatePlaneABFUVFixture, PlaneABFUVTest)
 {
-
     // check size of uvMap and number of points in mesh
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _in_Mesh->GetNumberOfPoints());
     EXPECT_EQ(_out_Mesh->GetNumberOfPoints(), _SavedPoints.size());

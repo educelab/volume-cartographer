@@ -46,15 +46,10 @@ auto AngleBasedFlattening::compute() -> ITKMesh::Pointer
 
     // Copy the faces
     Logger()->debug("Inserting faces into half-edge mesh");
-    OpenABF::Vec<std::size_t, 3> indices;
-    for (auto cell = mesh_->GetCells()->Begin();
-         cell != mesh_->GetCells()->End(); ++cell) {
-
-        indices[0] = cell.Value()->GetPointIdsContainer()[0];
-        indices[1] = cell.Value()->GetPointIdsContainer()[1];
-        indices[2] = cell.Value()->GetPointIdsContainer()[2];
-        hem->insert_face(indices);
+    for (const auto cell : *mesh_->GetCells()) {
+        hem->insert_face(cell->GetPointIdsContainer());
     }
+    hem->update_boundary();
 
     // Sanity check
     Logger()->debug("Checking that half-edge mesh is manifold");
