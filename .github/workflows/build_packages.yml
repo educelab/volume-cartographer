@@ -34,6 +34,7 @@ jobs:
       - name: Remove conflicting packages
         run: |
           sudo rm -rf /Library/Frameworks/Mono.framework/
+          sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX14*.sdk
 
       - name: Use the Command Line Tools
         run: |
