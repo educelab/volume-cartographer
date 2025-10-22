@@ -19,21 +19,15 @@ namespace volcart
  *
  * @ingroup Types
  */
-class IOException : public std::exception
+class IOException : public std::runtime_error
 {
 public:
     /**@{*/
     /** Constructor */
-    explicit IOException(const char* msg) : msg_(msg) {}
+    explicit IOException(const char* msg) : std::runtime_error(msg) {}
 
     /** @copydoc IOException(const char* msg) */
-    explicit IOException(std::string msg) : msg_(std::move(msg)) {}
+    explicit IOException(const std::string& msg) : std::runtime_error(msg) {}
     /**@}*/
-
-    /** Return exception message */
-    const char* what() const noexcept override { return msg_.c_str(); }
-
-protected:
-    std::string msg_;
 };
 }  // namespace volcart
