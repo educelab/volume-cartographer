@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include <Eigen/Eigen>
 #include <boost/program_options.hpp>
 #include <smgl/smgl.hpp>
 
@@ -32,6 +33,9 @@ enum class SmoothOpt { Off = 0, Before, After, Both };
 // Flattening algorithm opt
 enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
 
+// Flattening solver opt
+using FlatteningSolver = texturing::AngleBasedFlattening::Solver;
+
 // Available texturing algorithms
 enum class Method { Composite = 0, Intersection, Integral, Thickness, Layers };
 
@@ -50,6 +54,8 @@ auto GetGeneralOpts() -> po::options_description
         ("cache-memory-limit", po::value<std::string>(),
          "Maximum size of the slice cache in bytes. Accepts the suffixes: "
          "(K|M|G|T)(B). Default: 50% of the total system memory.")
+        ("threads", po::value<int>()->default_value(0),
+            "Maximum number of threads.")
         ("log-level", po::value<std::string>()->default_value("info"),
          "Options: off, critical, error, warn, info, debug");
     // clang-format on
@@ -149,6 +155,10 @@ auto GetUVOpts() -> po::options_description
                 "  0 = ABF\n"
                 "  1 = LSCM\n"
                 "  2 = Orthographic Projection")
+        ("uv-solver", po::value<int>()->default_value(0),
+            "Numerical solver method for ABF/LSCM flattening:\n"
+            "  0 = SparseLU\n"
+            "  1 = Conjugate Gradient")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
         ("uv-align-to-axis", po::value<UVMap::AlignmentAxis>(),
@@ -323,6 +333,9 @@ auto main(int argc, char* argv[]) -> int
 
     // Register VC graph nodes
     vc::RegisterNodes();
+
+    // Limit threads (Eigen+OpenMP)
+    Eigen::setNbThreads(parsed["threads"].as<int>());
 
     ///// Load the volume package /////
     fs::path volpkgPath = parsed["volpkg"].as<std::string>();
@@ -693,11 +706,14 @@ auto main(int argc, char* argv[]) -> int
         Logger()->debug("Adding UV computation node");
         auto method =
             static_cast<FlatteningAlgorithm>(parsed["uv-algorithm"].as<int>());
+        auto solver =
+            static_cast<FlatteningSolver>(parsed["uv-solver"].as<int>());
         if (method == FlatteningAlgorithm::ABF ||
             method == FlatteningAlgorithm::LSCM) {
             auto flatten = graph->insertNode<ABFNode>();
             flatten->input = *results["mesh"];
-            flatten->useABF = (method == FlatteningAlgorithm::ABF);
+            flatten->useABF = method == FlatteningAlgorithm::ABF;
+            flatten->solver = solver;
             results["uvMap"] = &flatten->uvMap;
             results["uvMesh"] = &flatten->output;
 

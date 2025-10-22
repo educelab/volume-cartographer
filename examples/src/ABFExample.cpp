@@ -15,7 +15,7 @@ auto main() -> int
     // Create the mesh writer
     volcart::io::OBJWriter mesh_writer;
 
-    // Setup the test objects
+    // Set up the test objects
     volcart::shapes::Plane plane;
     volcart::shapes::Arch arch;
     volcart::shapes::Spiral spiral(20, 10);

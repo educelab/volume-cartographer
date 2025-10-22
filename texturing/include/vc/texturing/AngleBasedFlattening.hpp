@@ -29,8 +29,11 @@ namespace volcart::texturing
 class AngleBasedFlattening : public FlatteningAlgorithm
 {
 public:
+    /** Solver implementation */
+    enum class Solver { SparseLU = 0, ConjugateGradient = 1 };
+
     /** Default maximum number of ABF iterations */
-    static const std::size_t DEFAULT_ITERATIONS{10};
+    static constexpr std::size_t DEFAULT_ITERATIONS{10};
 
     /** Pointer */
     using Pointer = std::shared_ptr<AngleBasedFlattening>;
@@ -74,6 +77,23 @@ public:
     /**@}*/
 
     /**@{*/
+    /**
+     * @brief The numerical solver method
+     *
+     * @note When compiled with OpenMP support, certain Eigen solvers (e.g.
+     * ConjugateGradient) are multithreaded. The number of threads used is
+     * controlled globally through the OpenMP and/or Eigen interfaces. See
+     * [Eigen and
+     * multi-threading](https://libeigen.gitlab.io/eigen/docs-nightly/TopicMultiThreading.html)
+     * for more information.
+     */
+    void setSolver(Solver solver);
+
+    /** @copydoc setSolver(Solver) */
+    [[nodiscard]] auto solver() const -> Solver;
+    /**@}*/
+
+    /**@{*/
     /** @brief Compute the parameterization */
     auto compute() -> ITKMesh::Pointer override;
     /**@}*/
@@ -81,6 +101,8 @@ public:
 private:
     /** Whether to use ABF minimization */
     bool useABF_{true};
+    /** Solver method */
+    Solver solver_{Solver::SparseLU};
     /** Maximum number of ABF minimization iterations */
     std::size_t maxABFIterations_{DEFAULT_ITERATIONS};
 };

@@ -29,6 +29,10 @@ set(private_deps
 )
 set(defs "")
 
+if(VC_USE_OPENMP)
+    list(APPEND private_deps OpenMP::OpenMP_CXX)
+endif()
+
 add_library(vc_texturing ${srcs})
 add_library(VC::texturing ALIAS vc_texturing)
 target_compile_definitions(vc_texturing PUBLIC ${defs})

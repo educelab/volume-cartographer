@@ -1,5 +1,6 @@
 #include "vc/texturing/AngleBasedFlattening.hpp"
 
+#include <Eigen/IterativeLinearSolvers>
 #include <OpenABF/OpenABF.hpp>
 
 #include "vc/core/util/Logging.hpp"
@@ -11,9 +12,16 @@ using namespace volcart::meshmath;
 using namespace volcart::meshing;
 using namespace volcart::texturing;
 
+using MatrixType = Eigen::SparseMatrix<double>;
+using HalfEdgeMesh = OpenABF::detail::ABF::Mesh<double>;
+
+// SparseLU
 using ABF = OpenABF::ABFPlusPlus<double>;
-using HalfEdgeMesh = ABF::Mesh;
 using LSCM = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh>;
+// ConjugateGradient
+using CG = Eigen::ConjugateGradient<MatrixType, Eigen::Lower | Eigen::Upper>;
+using ABF_CG = OpenABF::ABFPlusPlus<double, HalfEdgeMesh, CG>;
+using LSCM_CG = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh, CG>;
 
 AngleBasedFlattening::AngleBasedFlattening(const ITKMesh::Pointer& m)
     : FlatteningAlgorithm(m)
@@ -63,7 +71,11 @@ auto AngleBasedFlattening::compute() -> ITKMesh::Pointer
         std::size_t iters{0};
         double grad{0};
         try {
-            ABF::Compute(hem, iters, grad, maxABFIterations_);
+            if (solver_ == Solver::SparseLU) {
+                ABF::Compute(hem, iters, grad, maxABFIterations_);
+            } else if (solver_ == Solver::ConjugateGradient) {
+                ABF_CG::Compute(hem, iters, grad, maxABFIterations_);
+            }
         } catch (const OpenABF::SolverException& e) {
             Logger()->warn("Failed to solve ABF++. Falling back to LSCM.");
             Logger()->debug("SolverException: {}", e.what());
@@ -74,15 +86,18 @@ auto AngleBasedFlattening::compute() -> ITKMesh::Pointer
 
     // LSCM
     Logger()->info("Solving LSCM");
-    LSCM::Compute(hem);
+    if (solver_ == Solver::SparseLU) {
+        LSCM::Compute(hem);
+    } else if (solver_ == Solver::ConjugateGradient) {
+        LSCM_CG::Compute(hem);
+    }
 
     // Fill output
     // OpenABF flattens to XY, but we want it on XZ
     Logger()->debug("Converting half-edge mesh to output mesh");
-    auto flatMesh = ITKMesh::New();
-    DeepCopy(mesh_, flatMesh);
+    auto flatMesh = DeepCopy(mesh_);
     ITKPoint pt;
-    cv::Vec3d norm{0.0, 1.0, 0.0};
+    const cv::Vec3d norm{0.0, 1.0, 0.0};
     for (const auto& v : hem->vertices()) {
         pt[0] = v->pos[0];
         pt[1] = 0.0;
@@ -106,3 +121,7 @@ auto AngleBasedFlattening::abfMaxIterations() const -> std::size_t
 {
     return maxABFIterations_;
 }
+
+void AngleBasedFlattening::setSolver(const Solver solver) { solver_ = solver; }
+
+auto AngleBasedFlattening::solver() const -> Solver { return solver_; }

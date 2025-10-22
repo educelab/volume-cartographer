@@ -34,6 +34,8 @@ tools should be immediately available in Terminal:
 vc_render --help
 ```
 
+__NOTE:__ The macOS package is not currently built with OpenMP support.
+
 ### Using Docker
 We provide multi-architecture Docker images in the GitHub Container Registry.
 Simply pull our container and Docker will select the appropriate image for your
@@ -92,6 +94,8 @@ explicitly support other platforms.
 * Qt 6.5+: Required if building GUI applications or utilities.
 
 **Optional**
+* OpenMP: For multi-threading certain algorithms. At the moment, only 
+`AngleBasedFlattening` with the `ConjugateGradient` solver is supported.
 * Boost Filesystem 1.58+
     - This project will automatically check if the compiler provides
     `std::filesystem`. If it is not found, then Boost Filesystem is required.
@@ -176,6 +180,29 @@ cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake/
 
 # Ubuntu, Qt6 installed from source
 cmake -S . -B build/ -DCMAKE_PREFIX_PATH=/usr/local/Qt-6.5.0/lib/cmake/
+```
+
+##### Enabling OpenMP
+OpenMP support is automatically enabled when detected on the system. Often 
+OpenMP is provided by your compiler, and you don't need to do anything specific
+for CMake to find it. If your compiler provides OpenMP, please see the
+compiler's documentation for how to enable OpenMP. Support in this project can 
+be explicitly disabled by providing CMake with the `-DVC_USE_OPENMP=OFF` flag.
+
+On macOS, the compiler does not provide OpenMP, and there are many suggestions 
+for how to enable it by installing alternative compilers. If you are simply 
+building for local development, we recommend the following method which uses 
+the OpenMP libraries provided by Homebrew:
+```shell
+# install the library version of OpenMP
+brew install libomp
+
+# configure the environment so CMake can find the library
+export LDFLAGS=-L$(brew --prefix)/opt/libomp/lib
+export OpenMP_ROOT=$(brew --prefix)/opt/libomp
+
+# configure the project
+cmake -S . -B build/ # ... other configuration flags
 ```
 
 #### Unit tests

@@ -85,6 +85,10 @@ include(Buildsmgl)
 ### libcore ###
 include(Buildlibcore)
 
+### OpenMP ###
+find_package(OpenMP)
+cmake_dependent_option(VC_USE_OPENMP "Compile with OpenMP support" ON OpenMP_CXX_FOUND OFF)
+
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
     find_package(Boost 1.70 CONFIG REQUIRED COMPONENTS program_options)

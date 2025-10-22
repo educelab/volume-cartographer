@@ -36,7 +36,6 @@ namespace volcart
  */
 class ABFNode : public smgl::Node
 {
-private:
     /** Flattening class type */
     using ABF = texturing::AngleBasedFlattening;
     /** Flattening class */
@@ -51,6 +50,8 @@ public:
     smgl::InputPort<ITKMesh::Pointer> input;
     /** @copydoc ABF::setUseABF(bool) */
     smgl::InputPort<bool> useABF;
+    /** @copydoc ABF::setSolver(Solver) */
+    smgl::InputPort<ABF::Solver> solver;
     /** @brief Flattened mesh */
     smgl::OutputPort<ITKMesh::Pointer> output;
     /** @brief UVMap generated from flattened mesh */

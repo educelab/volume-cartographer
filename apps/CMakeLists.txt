@@ -92,6 +92,7 @@ target_link_libraries(vc_render
     VC::graph
     ${VC_FS_LIB}
     Boost::program_options
+    Eigen3::Eigen
 )
 
 ## Render from PPM
