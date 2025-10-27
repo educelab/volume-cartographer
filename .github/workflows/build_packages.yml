@@ -11,13 +11,13 @@ on:
 jobs:
   build_macos:
     name: Create macOS package
-    runs-on: macos-15
+    runs-on: macos-14
     outputs:
       package_name: ${{ steps.name_pkg.outputs.package_name }}
     timeout-minutes: 240
     env:
-      MACOSX_DEPLOYMENT_TARGET: "15.5"
-      QT_VERSION: "6.9.3"
+      MACOSX_DEPLOYMENT_TARGET: "14.5"
+      QT_VERSION: "6.10.0"
       EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_JSON=ON -DCMAKE_OSX_ARCHITECTURES:STRING='x86_64;arm64'"
     steps:
       - name: Checkout code
@@ -34,7 +34,7 @@ jobs:
       - name: Remove conflicting packages
         run: |
           sudo rm -rf /Library/Frameworks/Mono.framework/
-          sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX14*.sdk
+          sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX15*.sdk
 
       - name: Use the Command Line Tools
         run: |
