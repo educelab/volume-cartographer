@@ -52,9 +52,9 @@ include(BuildACVD)
 
 ### Eigen ###
 # Try Eigen 5 first, then fall back to Eigen 3+
-find_package(Eigen3 5 QUIET)
+find_package(Eigen3 5 QUIET CONFIG)
 if(NOT Eigen3_FOUND)
-    find_package(Eigen3 3.3 REQUIRED)
+    find_package(Eigen3 3.3 REQUIRED CONFIG)
 endif()
 if(CMAKE_GENERATOR MATCHES "Ninja|.*Makefiles.*" AND "${CMAKE_BUILD_TYPE}" MATCHES "^$|Debug")
     message(AUTHOR_WARNING "Configuring a Debug build. Eigen performance will \
