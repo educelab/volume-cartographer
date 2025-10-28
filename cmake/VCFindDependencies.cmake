@@ -51,7 +51,11 @@ find_package(VTK 9 QUIET REQUIRED)
 include(BuildACVD)
 
 ### Eigen ###
-find_package(Eigen3 3.3...5 REQUIRED)
+# Try Eigen 5 first, then fall back to Eigen 3+
+find_package(Eigen3 5 QUIET)
+if(NOT Eigen3_FOUND)
+    find_package(Eigen3 3.3 REQUIRED)
+endif()
 if(CMAKE_GENERATOR MATCHES "Ninja|.*Makefiles.*" AND "${CMAKE_BUILD_TYPE}" MATCHES "^$|Debug")
     message(AUTHOR_WARNING "Configuring a Debug build. Eigen performance will \
     be degraded. If you need debug symbols, consider setting CMAKE_BUILD_TYPE \
