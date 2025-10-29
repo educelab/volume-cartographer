@@ -51,7 +51,6 @@ find_package(VTK 9 QUIET REQUIRED)
 include(BuildACVD)
 
 ### Eigen ###
-# Try Eigen 5 first, then fall back to Eigen 3+
 find_package(Eigen3 5 QUIET CONFIG)
 if(NOT Eigen3_FOUND)
     find_package(Eigen3 3.3 REQUIRED CONFIG)
