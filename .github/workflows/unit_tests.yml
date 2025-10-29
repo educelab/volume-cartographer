@@ -20,9 +20,8 @@ jobs:
           - version: "12.2"
         build:
           - type: "static"
-            cmake_flags: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
           - type: "dynamic"
-            cmake_flags: "-DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+            cmake_flags: "-DBUILD_SHARED_LIBS=ON"
     container: ghcr.io/educelab/ci-docker:${{ matrix.build.type }}.${{ matrix.image.version }}
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
@@ -35,7 +34,7 @@ jobs:
 
     - name: Build volume-cartographer
       run: |
-        cmake -S . -B build/ -GNinja $EXTRA_CMAKE_FLAGS
+        cmake -S . -B build/ -GNinja -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON $EXTRA_CMAKE_FLAGS
         cmake --build build/
 
     - name: Run tests
