@@ -3,7 +3,7 @@ From: ghcr.io/educelab/volume-cartographer:latest
 
 %labels
   MAINTAINER Seth Parker <c.seth.parker@uky.edu>
-  OS Debian 12
+  OS Debian 13
 
 %post -c /bin/bash
   # Basic installs
