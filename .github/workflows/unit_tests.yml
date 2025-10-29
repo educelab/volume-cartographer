@@ -11,35 +11,23 @@ concurrency:
   group: "${{ github.ref }}"
   cancel-in-progress: true
 jobs:
-  debian_static:
-    name: Debian 12 (static libraries)
+  debian:
+    name: Debian
     runs-on: ubuntu-latest
-    container: ghcr.io/educelab/ci-docker:static.12.2
+    strategy:
+      matrix:
+        image:
+          - version: "12.2"
+        build:
+          - type: "static"
+            cmake_flags: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+          - type: "dynamic"
+            cmake_flags: "-DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+    container: ghcr.io/educelab/ci-docker:${{ matrix.build.type }}.${{ matrix.image.version }}
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
     env:
-      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
-      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.10.0/"
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Build volume-cartographer
-      run: |
-        cmake -S . -B build/ -GNinja $EXTRA_CMAKE_FLAGS
-        cmake --build build/
-
-    - name: Run tests
-      run: ctest -V --test-dir build/
-
-  debian_dynamic:
-    name: Debian 12 (shared libraries)
-    runs-on: ubuntu-latest
-    container: ghcr.io/educelab/ci-docker:dynamic.12.2
-    if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
-    timeout-minutes: 180
-    env:
-      EXTRA_CMAKE_FLAGS: "-DBUILD_SHARED_LIBS=ON -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
+      EXTRA_CMAKE_FLAGS: ${{ matrix.build.cmake_flags }}
       CMAKE_PREFIX_PATH: "/usr/local/Qt-6.10.0/"
     steps:
     - name: Checkout code
