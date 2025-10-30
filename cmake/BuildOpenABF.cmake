@@ -1,7 +1,7 @@
 FetchContent_Declare(
-    openabf
+    OpenABF
     GIT_REPOSITORY https://gitlab.com/educelab/OpenABF.git
-    GIT_TAG v2.0.0
+    GIT_TAG 34a14f4d
     EXCLUDE_FROM_ALL
 )
-FetchContent_MakeAvailable(openabf)
+FetchContent_MakeAvailable(OpenABF)
