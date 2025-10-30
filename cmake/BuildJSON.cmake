@@ -1,4 +1,5 @@
-option(VC_BUILD_JSON "Build in-source JSON library" on)
+find_package(nlohmann_json 3.9.1)
+cmake_dependent_option(VC_BUILD_JSON "Build in-source JSON library" OFF nlohmann_json_FOUND ON)
 if(VC_BUILD_JSON)
     FetchContent_Declare(
         json
