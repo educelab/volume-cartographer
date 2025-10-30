@@ -1,4 +1,4 @@
-FROM ghcr.io/educelab/ci-docker:dynamic.13.0
+FROM ghcr.io/educelab/ci-docker:dynamic.12.2
 LABEL org.opencontainers.image.authors="Seth Parker <c.seth.parker@uky.edu>"
 
 ARG VC_GIT_SHA1

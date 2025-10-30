@@ -30,10 +30,10 @@ jobs:
   build:
     name: Build documentation
     runs-on: ubuntu-latest
-    container: ghcr.io/educelab/ci-docker:static.12.1
+    container: ghcr.io/educelab/ci-docker:static.12.2
     timeout-minutes: 180
     env:
-      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
+      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.10.0/"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

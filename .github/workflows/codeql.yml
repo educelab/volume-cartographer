@@ -28,7 +28,7 @@ jobs:
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
     runs-on: 'ubuntu-latest'
-    container: ghcr.io/educelab/ci-docker:static.12.1
+    container: ghcr.io/educelab/ci-docker:static.12.2
     timeout-minutes: 360
     permissions:
       # required for all workflows
@@ -38,7 +38,7 @@ jobs:
       packages: read
     env:
       EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
-      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.7.2/"
+      CMAKE_PREFIX_PATH: "/usr/local/Qt-6.10.0/"
     strategy:
       fail-fast: false
       matrix:
