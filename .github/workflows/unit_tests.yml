@@ -18,6 +18,7 @@ jobs:
       matrix:
         image:
           - version: "12.2"
+          - version: "13.0"
         build:
           - type: "static"
           - type: "dynamic"
@@ -46,9 +47,9 @@ jobs:
       matrix:
         os:
           - version: "15"
-            bad_sdk: "14"
+            exclude_sdk: "14"
           - version: "26"
-            bad_sdk: "{14..15}"
+            exclude_sdk: "{14..15}"
     runs-on: macos-${{ matrix.os.version }}
     if: ${{ github.event_name }} == "merge_request_event" || !(${{ github.ref }} && $CI_OPEN_MERGE_REQUESTS) || ${{ github.ref }}
     timeout-minutes: 180
@@ -64,7 +65,7 @@ jobs:
 
       - name: Remove problematic SDKs
         run: |
-          sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX${{ matrix.os.bad_sdk }}*.sdk
+          sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX${{ matrix.os.exclude_sdk }}*.sdk
 
       - name: Install dependencies
         run: |
