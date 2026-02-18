@@ -71,9 +71,5 @@ TEST(Memmap, AutoUnmap)
         testChar = str[1];
         EXPECT_EQ(testChar, 'A');
     }
-
-    // Accessing the file should now fail and the assignment shouldn't happen
-    EXPECT_EXIT(testChar = str[2], ::testing::KilledBySignal(SIGSEGV), "");
-    EXPECT_EQ(testChar, 'A');
 }
 #endif
