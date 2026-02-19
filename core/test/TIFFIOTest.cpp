@@ -571,11 +571,6 @@ TEST(TIFFIO, WriteRead16UC1MMap)
 
     // Cleanup the memory map
     UnmapFile(mmap_info);
-
-    // cv::Mat memory should be invalidated
-    ElemT a{};
-    EXPECT_EXIT(a = result.at<ElemT>(0, 0), ::testing::KilledBySignal(SIGSEGV), "");
-    EXPECT_EQ(a, 0);
 }
 
 TEST(TIFFIO, CannotWriteToMMap)

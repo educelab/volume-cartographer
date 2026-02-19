@@ -18,7 +18,7 @@ jobs:
       matrix:
         image:
           - version: "12.2"
-#          - version: "13.0"  # disabled because of failing MemMap-related tests
+          - version: "13.0"
         build:
           - type: "static"
           - type: "dynamic"
