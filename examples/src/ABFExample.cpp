@@ -1,7 +1,8 @@
 /*
- * Purpose: Run volcart::texturing::abf() and write results to file for each
- * shape. Saved file will be read in by the abfTest.cpp file under
- * vc/testing/texturing.
+ * Purpose: Run volcart::texturing::AngleBasedFlattening and write results to
+ * file for each shape. The ABF+LSCM and LSCM-only output files are read by
+ * ABFTest.cpp as reference meshes. The ABF+HLSCM and HLSCM-only cases
+ * demonstrate the new HierarchicalLSCM API but do not produce reference files.
  */
 
 #include "vc/core/io/OBJWriter.hpp"
@@ -20,6 +21,9 @@ auto main() -> int
     volcart::shapes::Arch arch;
     volcart::shapes::Spiral spiral(20, 10);
     volcart::texturing::AngleBasedFlattening abf;
+
+    // Disable HLSCM for all reference-file cases so output matches ABFTest.cpp
+    abf.setUseHLSCM(false);
 
     //// Plane tests ////
     // Plane ABF & LSCM
@@ -71,6 +75,29 @@ auto main() -> int
     mesh_writer.setPath("abf_Spiral_LSCMOnly.obj");
     mesh_writer.setMesh(abf.getMesh());
     mesh_writer.write();
+
+    //// HierarchicalLSCM examples (default since useHLSCM=true) ////
+    abf.setUseHLSCM(true);
+
+    // Plane ABF + HierarchicalLSCM
+    abf.setMesh(plane.itkMesh());
+    abf.setUseABF(true);
+    abf.compute();
+
+    // Plane HierarchicalLSCM only
+    abf.setMesh(plane.itkMesh());
+    abf.setUseABF(false);
+    abf.compute();
+
+    // Arch ABF + HierarchicalLSCM
+    abf.setMesh(arch.itkMesh());
+    abf.setUseABF(true);
+    abf.compute();
+
+    // Arch HierarchicalLSCM only
+    abf.setMesh(arch.itkMesh());
+    abf.setUseABF(false);
+    abf.compute();
 
     return EXIT_SUCCESS;
 }

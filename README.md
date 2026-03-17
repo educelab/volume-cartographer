@@ -94,8 +94,10 @@ explicitly support other platforms.
 * Qt 6.5+: Required if building GUI applications or utilities.
 
 **Optional**
-* OpenMP: For multi-threading certain algorithms. At the moment, only 
-`AngleBasedFlattening` with the `ConjugateGradient` solver is supported.
+* OpenMP: For multi-threading certain algorithms. At the moment, only
+`AngleBasedFlattening` with the `ConjugateGradient` or
+`LeastSquaresConjugateGradient` solver (the latter used by
+`HierarchicalLSCM`) is supported.
 * Boost Filesystem 1.58+
     - This project will automatically check if the compiler provides
     `std::filesystem`. If it is not found, then Boost Filesystem is required.
