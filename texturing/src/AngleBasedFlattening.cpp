@@ -1,7 +1,6 @@
 #include "vc/texturing/AngleBasedFlattening.hpp"
 
 #include <Eigen/IterativeLinearSolvers>
-#include <OpenABF/HierarchicalLSCM.hpp>
 #include <OpenABF/OpenABF.hpp>
 
 #include "vc/core/util/Logging.hpp"

@@ -31,7 +31,13 @@ static constexpr int VOLPKG_MIN_VERSION = 6;
 enum class SmoothOpt { Off = 0, Before, After, Both };
 
 // Flattening algorithm opt
-enum class FlatteningAlgorithm { ABF = 0, LSCM, Orthographic };
+enum class FlatteningAlgorithm {
+    ABF_LSCM = 0,
+    ABF_HLSCM,
+    LSCM,
+    HLSCM,
+    Orthographic
+};
 
 // Flattening solver opt
 using FlatteningSolver = texturing::AngleBasedFlattening::Solver;
@@ -150,13 +156,16 @@ auto GetUVOpts() -> po::options_description
     // clang-format off
     po::options_description opts("Flattening & UV Options");
     opts.add_options()
-        ("uv-algorithm", po::value<int>()->default_value(0),
+        ("uv-algorithm", po::value<int>()->default_value(1),
             "Select the flattening algorithm:\n"
-                "  0 = ABF\n"
-                "  1 = LSCM\n"
-                "  2 = Orthographic Projection")
+                "  0 = ABF + LSCM\n"
+                "  1 = ABF + HierarchicalLSCM\n"
+                "  2 = LSCM\n"
+                "  3 = HierarchicalLSCM\n"
+                "  4 = Orthographic Projection")
         ("uv-solver", po::value<int>()->default_value(0),
-            "Numerical solver method for ABF/LSCM flattening:\n"
+            "Numerical solver method for ABF/LSCM flattening (ignored for "
+            "HierarchicalLSCM options):\n"
             "  0 = SparseLU\n"
             "  1 = Conjugate Gradient")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
@@ -708,11 +717,18 @@ auto main(int argc, char* argv[]) -> int
             static_cast<FlatteningAlgorithm>(parsed["uv-algorithm"].as<int>());
         auto solver =
             static_cast<FlatteningSolver>(parsed["uv-solver"].as<int>());
-        if (method == FlatteningAlgorithm::ABF ||
-            method == FlatteningAlgorithm::LSCM) {
+        if (method == FlatteningAlgorithm::ABF_LSCM ||
+            method == FlatteningAlgorithm::ABF_HLSCM ||
+            method == FlatteningAlgorithm::LSCM ||
+            method == FlatteningAlgorithm::HLSCM) {
             auto flatten = graph->insertNode<ABFNode>();
             flatten->input = *results["mesh"];
-            flatten->useABF = method == FlatteningAlgorithm::ABF;
+            flatten->useABF =
+                (method == FlatteningAlgorithm::ABF_LSCM ||
+                 method == FlatteningAlgorithm::ABF_HLSCM);
+            flatten->useHLSCM =
+                (method == FlatteningAlgorithm::ABF_HLSCM ||
+                 method == FlatteningAlgorithm::HLSCM);
             flatten->solver = solver;
             results["uvMap"] = &flatten->uvMap;
             results["uvMesh"] = &flatten->output;
