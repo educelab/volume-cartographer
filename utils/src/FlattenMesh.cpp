@@ -30,7 +30,8 @@ auto main(int argc, char** argv) -> int
         ("output-mesh,o", po::value<std::string>()->required(),
             "Output mesh file")
         ("method,m", po::value<std::string>()->default_value("ABF"), "Flattening method: [ABF, LSCM]")
-        ("solver,s", po::value<std::string>()->default_value("SparseLU"), "Numerical solver method: [SparseLU, CG]")
+        ("solver,s", po::value<std::string>()->default_value("SparseLU"), "Numerical solver method (ignored when using HLSCM): [SparseLU, CG]")
+        ("no-hlscm", po::bool_switch(), "Use AngleBasedLSCM instead of HierarchicalLSCM")
         ("threads,t", po::value<int>()->default_value(0), "Maximum number of threads")
         ("log-level", po::value<std::string>()->default_value("info"),
              "Options: off, critical, error, warn, info, debug");
@@ -97,6 +98,7 @@ auto main(int argc, char** argv) -> int
     // Run ABF
     vct::AngleBasedFlattening abf;
     abf.setUseABF(useABF);
+    abf.setUseHLSCM(!parsed["no-hlscm"].as<bool>());
     abf.setSolver(solver);
     abf.setMesh(mesh);
     mesh = abf.compute();

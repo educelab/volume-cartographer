@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <cstddef>
 
 #include "vc/core/shapes/Arch.hpp"
@@ -27,6 +28,7 @@ public:
 
         // Create uvMap from mesh
         volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
+        abf.setUseHLSCM(false);
         abf.compute();
         _out_Mesh = abf.getMesh();
 
@@ -55,6 +57,7 @@ public:
         // Create uvMap from mesh
         volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
         abf.setUseABF(false);
+        abf.setUseHLSCM(false);
         abf.compute();
         _out_Mesh = abf.getMesh();
 
@@ -82,6 +85,7 @@ public:
 
         // Create uvMap from mesh
         volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
+        abf.setUseHLSCM(false);
         abf.compute();
         _out_Mesh = abf.getMesh();
 
@@ -110,6 +114,7 @@ public:
         // Create uvMap from mesh
         volcart::texturing::AngleBasedFlattening abf(_in_Mesh);
         abf.setUseABF(false);
+        abf.setUseHLSCM(false);
         abf.compute();
         _out_Mesh = abf.getMesh();
 
@@ -206,4 +211,67 @@ TEST_F(CreateArchABFLSCMOnlyUVFixture, ArchABFLSCMOnlyUVTest)
         volcart::testing::SmallOrClose(
             _out_Mesh->GetPoint(point)[2], _SavedPoints[point].z);
     }
+}
+
+/*
+ *
+ *    HLSCM VALIDITY TESTS
+ *
+ * These tests verify that HierarchicalLSCM (the default) produces valid UV
+ * output: correct point count, finite XZ coordinates, and Y=0 (flat plane).
+ *
+ */
+
+static void CheckHLSCMValidity(
+    const ITKMesh::Pointer& inMesh, const ITKMesh::Pointer& outMesh)
+{
+    ASSERT_EQ(outMesh->GetNumberOfPoints(), inMesh->GetNumberOfPoints());
+    for (std::size_t i = 0; i < outMesh->GetNumberOfPoints(); ++i) {
+        auto p = outMesh->GetPoint(i);
+        EXPECT_TRUE(std::isfinite(p[0])) << "x not finite at point " << i;
+        EXPECT_DOUBLE_EQ(p[1], 0.0) << "y != 0 at point " << i;
+        EXPECT_TRUE(std::isfinite(p[2])) << "z not finite at point " << i;
+    }
+}
+
+TEST(HLSCMTest, PlaneABFHLSCM)
+{
+    volcart::shapes::Plane plane;
+    auto inMesh = plane.itkMesh();
+    volcart::texturing::AngleBasedFlattening abf(inMesh);
+    // useABF=true, useHLSCM=true (defaults)
+    auto outMesh = abf.compute();
+    CheckHLSCMValidity(inMesh, outMesh);
+}
+
+TEST(HLSCMTest, PlaneHLSCMOnly)
+{
+    volcart::shapes::Plane plane;
+    auto inMesh = plane.itkMesh();
+    volcart::texturing::AngleBasedFlattening abf(inMesh);
+    abf.setUseABF(false);
+    // useHLSCM=true (default)
+    auto outMesh = abf.compute();
+    CheckHLSCMValidity(inMesh, outMesh);
+}
+
+TEST(HLSCMTest, ArchABFHLSCM)
+{
+    volcart::shapes::Arch arch;
+    auto inMesh = arch.itkMesh();
+    volcart::texturing::AngleBasedFlattening abf(inMesh);
+    // useABF=true, useHLSCM=true (defaults)
+    auto outMesh = abf.compute();
+    CheckHLSCMValidity(inMesh, outMesh);
+}
+
+TEST(HLSCMTest, ArchHLSCMOnly)
+{
+    volcart::shapes::Arch arch;
+    auto inMesh = arch.itkMesh();
+    volcart::texturing::AngleBasedFlattening abf(inMesh);
+    abf.setUseABF(false);
+    // useHLSCM=true (default)
+    auto outMesh = abf.compute();
+    CheckHLSCMValidity(inMesh, outMesh);
 }

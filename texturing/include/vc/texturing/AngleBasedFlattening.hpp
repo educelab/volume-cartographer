@@ -16,13 +16,11 @@ namespace volcart::texturing
 /**
  * @brief Parameterize a mesh using ABF++
  *
- * First, uses ABF++ to calculate the optimal, interior angles of the flattened
- * mesh. Then uses an Angle-based formulation of Least Squares Conformal Maps to
- * convert this angle-optimized parameterization into a full mesh
- * parameterization.
+ * Optionally uses ABF++ to calculate optimal interior angles, then flattens
+ * the mesh using either HierarchicalLSCM (default) or AngleBasedLSCM.
  *
  * Implementation provided by the
- * [OpenABF library](https://gitlab.com/educelab/OpenABF).
+ * [OpenABF library](https://github.com/educelab/OpenABF).
  *
  * @ingroup UV
  */
@@ -61,8 +59,8 @@ public:
     /**
      * @brief Whether to perform Angle-based flattening computation
      *
-     * If `false`, the mesh is flattened using only the Angle-based LSCM
-     * algorithm.
+     * If `false`, the mesh is flattened using only the LSCM algorithm
+     * (standard or hierarchical, depending on @ref useHLSCM()).
      */
     void setUseABF(bool a);
 
@@ -74,6 +72,21 @@ public:
 
     /** @copydoc setABFMaxIterations(std::size_t) */
     [[nodiscard]] auto abfMaxIterations() const -> std::size_t;
+    /**@}*/
+
+    /**@{*/
+    /**
+     * @brief Whether to use HierarchicalLSCM for parameterization
+     *
+     * When `true` (default), uses HierarchicalLSCM with
+     * LeastSquaresConjugateGradient for the LSCM step. The @ref solver()
+     * setting is ignored for this path.
+     * When `false`, uses AngleBasedLSCM with the configured @ref solver().
+     */
+    void setUseHLSCM(bool h);
+
+    /** @brief Whether HierarchicalLSCM is used */
+    [[nodiscard]] auto useHLSCM() const -> bool;
     /**@}*/
 
     /**@{*/
@@ -101,7 +114,9 @@ public:
 private:
     /** Whether to use ABF minimization */
     bool useABF_{true};
-    /** Solver method */
+    /** Whether to use HierarchicalLSCM instead of AngleBasedLSCM */
+    bool useHLSCM_{true};
+    /** Solver method (only used when useHLSCM_ is false) */
     Solver solver_{Solver::SparseLU};
     /** Maximum number of ABF minimization iterations */
     std::size_t maxABFIterations_{DEFAULT_ITERATIONS};

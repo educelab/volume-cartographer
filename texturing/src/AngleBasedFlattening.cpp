@@ -1,6 +1,7 @@
 #include "vc/texturing/AngleBasedFlattening.hpp"
 
 #include <Eigen/IterativeLinearSolvers>
+#include <OpenABF/HierarchicalLSCM.hpp>
 #include <OpenABF/OpenABF.hpp>
 
 #include "vc/core/util/Logging.hpp"
@@ -22,6 +23,8 @@ using LSCM = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh>;
 using CG = Eigen::ConjugateGradient<MatrixType, Eigen::Lower | Eigen::Upper>;
 using ABF_CG = OpenABF::ABFPlusPlus<double, HalfEdgeMesh, CG>;
 using LSCM_CG = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh, CG>;
+// HierarchicalLSCM (uses LeastSquaresConjugateGradient by default)
+using HLSCM = OpenABF::HierarchicalLSCM<double, HalfEdgeMesh>;
 
 AngleBasedFlattening::AngleBasedFlattening(const ITKMesh::Pointer& m)
     : FlatteningAlgorithm(m)
@@ -85,8 +88,10 @@ auto AngleBasedFlattening::compute() -> ITKMesh::Pointer
     }
 
     // LSCM
-    Logger()->info("Solving LSCM");
-    if (solver_ == Solver::SparseLU) {
+    Logger()->info("Solving {}", useHLSCM_ ? "HierarchicalLSCM" : "LSCM");
+    if (useHLSCM_) {
+        HLSCM::Compute(hem);
+    } else if (solver_ == Solver::SparseLU) {
         LSCM::Compute(hem);
     } else if (solver_ == Solver::ConjugateGradient) {
         LSCM_CG::Compute(hem);
@@ -121,6 +126,10 @@ auto AngleBasedFlattening::abfMaxIterations() const -> std::size_t
 {
     return maxABFIterations_;
 }
+
+void AngleBasedFlattening::setUseHLSCM(bool h) { useHLSCM_ = h; }
+
+auto AngleBasedFlattening::useHLSCM() const -> bool { return useHLSCM_; }
 
 void AngleBasedFlattening::setSolver(const Solver solver) { solver_ = solver; }
 
