@@ -22,8 +22,8 @@ using LSCM = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh>;
 using CG = Eigen::ConjugateGradient<MatrixType, Eigen::Lower | Eigen::Upper>;
 using ABF_CG = OpenABF::ABFPlusPlus<double, HalfEdgeMesh, CG>;
 using LSCM_CG = OpenABF::AngleBasedLSCM<double, HalfEdgeMesh, CG>;
-// HierarchicalLSCM (uses LeastSquaresConjugateGradient by default)
-using HLSCM = OpenABF::HierarchicalLSCM<double, HalfEdgeMesh>;
+// HierarchicalLSCM (uses ConjugateGradient for warm-started hierarchy)
+using HLSCM = OpenABF::HierarchicalLSCM<double, HalfEdgeMesh, CG>;
 
 AngleBasedFlattening::AngleBasedFlattening(const ITKMesh::Pointer& m)
     : FlatteningAlgorithm(m)

@@ -95,9 +95,8 @@ explicitly support other platforms.
 
 **Optional**
 * OpenMP: For multi-threading certain algorithms. At the moment, only
-`AngleBasedFlattening` with the `ConjugateGradient` or
-`LeastSquaresConjugateGradient` solver (the latter used by
-`HierarchicalLSCM`) is supported.
+`AngleBasedFlattening` with the `ConjugateGradient` solver (used by both
+LSCM and HierarchicalLSCM) is supported.
 * Boost Filesystem 1.58+
     - This project will automatically check if the compiler provides
     `std::filesystem`. If it is not found, then Boost Filesystem is required.
@@ -191,15 +190,16 @@ for CMake to find it. If your compiler provides OpenMP, please see the
 compiler's documentation for how to enable OpenMP. Support in this project can 
 be explicitly disabled by providing CMake with the `-DVC_USE_OPENMP=OFF` flag.
 
-On macOS, the compiler does not provide OpenMP, and there are many suggestions 
-for how to enable it by installing alternative compilers. If you are simply 
-building for local development, we recommend the following method which uses 
-the OpenMP libraries provided by Homebrew:
+On macOS, the Apple-provided compiler does not provide OpenMP, and there are 
+many suggestions for how to enable it by installing alternative compilers. If 
+you are simply building for local development, we recommend the following 
+method which uses the OpenMP libraries provided by Homebrew:
 ```shell
 # install the library version of OpenMP
 brew install libomp
 
 # configure the environment so CMake can find the library
+export CPPFLAGS=-I$(brew --prefix)/opt/libomp/include;
 export LDFLAGS=-L$(brew --prefix)/opt/libomp/lib
 export OpenMP_ROOT=$(brew --prefix)/opt/libomp
 

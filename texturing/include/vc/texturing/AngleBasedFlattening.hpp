@@ -78,10 +78,10 @@ public:
     /**
      * @brief Whether to use HierarchicalLSCM for parameterization
      *
-     * When `true` (default), uses HierarchicalLSCM with
-     * LeastSquaresConjugateGradient for the LSCM step. The @ref solver()
-     * setting is ignored for this path.
-     * When `false`, uses AngleBasedLSCM with the configured @ref solver().
+     * When `true`, uses HierarchicalLSCM with ConjugateGradient for the
+     * LSCM step. The @ref solver() setting is ignored for this path.
+     * When `false` (default), uses AngleBasedLSCM with the configured
+     * @ref solver().
      */
     void setUseHLSCM(bool h);
 
@@ -115,7 +115,7 @@ private:
     /** Whether to use ABF minimization */
     bool useABF_{true};
     /** Whether to use HierarchicalLSCM instead of AngleBasedLSCM */
-    bool useHLSCM_{true};
+    bool useHLSCM_{false};
     /** Solver method (only used when useHLSCM_ is false) */
     Solver solver_{Solver::SparseLU};
     /** Maximum number of ABF minimization iterations */

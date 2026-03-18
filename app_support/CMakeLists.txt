@@ -29,7 +29,7 @@ set(gui_support_srcs
     src/ImageScrollArea.cpp
 )
 # AUTOMOC doesn't work on libs so run MOC manually. Adds generated files to srcs
-qt_wrap_cpp(gui_support_srcs ${gui_support_hdrs})
+qt6_wrap_cpp(gui_support_srcs ${gui_support_hdrs})
 
 add_library(gui_support STATIC ${gui_support_srcs})
 add_library(VC::gui_support ALIAS gui_support)

@@ -156,7 +156,7 @@ auto GetUVOpts() -> po::options_description
     // clang-format off
     po::options_description opts("Flattening & UV Options");
     opts.add_options()
-        ("uv-algorithm", po::value<int>()->default_value(1),
+        ("uv-algorithm", po::value<int>()->default_value(0),
             "Select the flattening algorithm:\n"
                 "  0 = ABF + LSCM\n"
                 "  1 = ABF + HierarchicalLSCM\n"

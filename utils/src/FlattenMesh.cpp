@@ -29,7 +29,7 @@ auto main(int argc, char** argv) -> int
             "Input mesh file")
         ("output-mesh,o", po::value<std::string>()->required(),
             "Output mesh file")
-        ("method,m", po::value<std::string>()->default_value("ABF-HLSCM"),
+        ("method,m", po::value<std::string>()->default_value("ABF"),
             "Flattening method: [ABF, ABF-HLSCM, LSCM, HLSCM]")
         ("solver,s", po::value<std::string>()->default_value("SparseLU"),
             "Numerical solver method (ignored for HLSCM methods): [SparseLU, CG]")
@@ -97,7 +97,11 @@ auto main(int argc, char** argv) -> int
     }
 
     // Set the number of threads (OpenMP only)
-    Eigen::setNbThreads(parsed["threads"].as<int>());
+    auto threads = parsed["threads"].as<int>();
+    Eigen::setNbThreads(threads);
+    vc::Logger()->debug(
+        "Requested threads: {}, actual threads: {}", threads,
+        Eigen::nbThreads());
 
     // Load mesh
     vc::Logger()->info("Loading mesh...");
