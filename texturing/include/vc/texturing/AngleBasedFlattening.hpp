@@ -17,7 +17,7 @@ namespace volcart::texturing
  * @brief Parameterize a mesh using ABF++
  *
  * Optionally uses ABF++ to calculate optimal interior angles, then flattens
- * the mesh using either HierarchicalLSCM (default) or AngleBasedLSCM.
+ * the mesh using either AngleBasedLSCM (default) or HierarchicalLSCM.
  *
  * Implementation provided by the
  * [OpenABF library](https://github.com/educelab/OpenABF).

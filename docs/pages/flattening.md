@@ -22,15 +22,16 @@ The flattening pipeline has two independent stages:
 | Method | CLI name | Description |
 |--------|----------|-------------|
 | ABF + LSCM (SparseLU) | `ABF` | **Default.** Fastest option. Uses a direct solver for the LSCM system. May run out of memory on very large meshes. |
-| ABF + LSCM (CG) | `ABF` with `--solver CG` | Uses an iterative conjugate gradient solver. Lower memory than LU but roughly 2x slower than HLSCM. |
+| ABF + LSCM (CG) | `ABF` with `--solver CG` | Uses an iterative conjugate gradient solver. Lower memory than LU but generally slower than HLSCM. |
 | ABF + HLSCM | `ABF-HLSCM` | Uses a cascadic multigrid LSCM solver. Slower than LU but significantly lower memory usage. **Preferred over LSCM (CG) when memory is a concern.** |
 | LSCM (SparseLU) | `LSCM` | LSCM without ABF++ pre-optimization. |
 | LSCM (CG) | `LSCM` with `--solver CG` | LSCM (CG) without ABF++ pre-optimization. |
 | HLSCM | `HLSCM` | HierarchicalLSCM without ABF++ pre-optimization. |
 
-@note The `--solver` option only applies to the standard LSCM path.
-HierarchicalLSCM always uses ConjugateGradient internally to enable
-warm-starting across hierarchy levels.
+@note The `--solver` option (`--uv-solver` in `vc_render`) controls the solver
+for both the ABF and standard LSCM steps. When using HierarchicalLSCM, the LSCM
+step always uses ConjugateGradient internally, but `--solver` still affects the
+ABF step if ABF is enabled.
 
 ### Choosing a method
 
@@ -76,22 +77,32 @@ $ vc_flatten_mesh -i input.obj -o output.obj --method HLSCM
 
 # ABF + LSCM with ConjugateGradient
 $ vc_flatten_mesh -i input.obj -o output.obj --solver CG
+
+# ABF + HLSCM with 4 threads
+$ vc_flatten_mesh -i input.obj -o output.obj --method ABF-HLSCM --threads 4
 ```
 
-In `vc_render`, the algorithm is selected with `--uv-algorithm`:
+In `vc_render`, the algorithm is selected with `--uv-algorithm` and the solver
+with `--uv-solver` (integer values):
 
 ```{.unparsed}
 # Default: ABF + LSCM (algorithm 0)
 $ vc_render ... --uv-algorithm 0
 
-# ABF + HLSCM (algorithm 1)
+# LSCM only (algorithm 1)
 $ vc_render ... --uv-algorithm 1
 
-# LSCM only (algorithm 2)
+# Orthographic Projection (algorithm 2)
 $ vc_render ... --uv-algorithm 2
 
-# HLSCM only (algorithm 3)
+# ABF + HLSCM (algorithm 3)
 $ vc_render ... --uv-algorithm 3
+
+# HLSCM only (algorithm 4)
+$ vc_render ... --uv-algorithm 4
+
+# ABF + LSCM with ConjugateGradient solver
+$ vc_render ... --uv-algorithm 0 --uv-solver 1
 ```
 
 ### C++ usage

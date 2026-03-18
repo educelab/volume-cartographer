@@ -76,7 +76,7 @@ auto main() -> int
     mesh_writer.setMesh(abf.getMesh());
     mesh_writer.write();
 
-    //// HierarchicalLSCM examples (default since useHLSCM=true) ////
+    //// HierarchicalLSCM examples ////
     abf.setUseHLSCM(true);
 
     // Plane ABF + HierarchicalLSCM

@@ -32,7 +32,8 @@ auto main(int argc, char** argv) -> int
         ("method,m", po::value<std::string>()->default_value("ABF"),
             "Flattening method: [ABF, ABF-HLSCM, LSCM, HLSCM]")
         ("solver,s", po::value<std::string>()->default_value("SparseLU"),
-            "Numerical solver method (ignored for HLSCM methods): [SparseLU, CG]")
+            "Numerical solver method. Affects both ABF and LSCM steps. "
+            "Ignored for the LSCM step when using HLSCM methods: [SparseLU, CG]")
         ("threads,t", po::value<int>()->default_value(0), "Maximum number of threads")
         ("log-level", po::value<std::string>()->default_value("info"),
              "Options: off, critical, error, warn, info, debug");
