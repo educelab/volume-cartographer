@@ -50,6 +50,8 @@ public:
     smgl::InputPort<ITKMesh::Pointer> input;
     /** @copydoc ABF::setUseABF(bool) */
     smgl::InputPort<bool> useABF;
+    /** @copydoc ABF::setUseHLSCM(bool) */
+    smgl::InputPort<bool> useHLSCM;
     /** @copydoc ABF::setSolver(Solver) */
     smgl::InputPort<ABF::Solver> solver;
     /** @brief Flattened mesh */

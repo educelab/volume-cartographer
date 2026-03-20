@@ -29,8 +29,11 @@ auto main(int argc, char** argv) -> int
             "Input mesh file")
         ("output-mesh,o", po::value<std::string>()->required(),
             "Output mesh file")
-        ("method,m", po::value<std::string>()->default_value("ABF"), "Flattening method: [ABF, LSCM]")
-        ("solver,s", po::value<std::string>()->default_value("SparseLU"), "Numerical solver method: [SparseLU, CG]")
+        ("method,m", po::value<std::string>()->default_value("ABF"),
+            "Flattening method: [ABF, ABF-HLSCM, LSCM, HLSCM]")
+        ("solver,s", po::value<std::string>()->default_value("SparseLU"),
+            "Numerical solver method. Affects both ABF and LSCM steps. "
+            "Ignored for the LSCM step when using HLSCM methods: [SparseLU, CG]")
         ("threads,t", po::value<int>()->default_value(0), "Maximum number of threads")
         ("log-level", po::value<std::string>()->default_value("info"),
              "Options: off, critical, error, warn, info, debug");
@@ -63,10 +66,21 @@ auto main(int argc, char** argv) -> int
 
     // Get the method
     bool useABF{true};
+    bool useHLSCM{false};
     auto method = el::to_lower_copy(parsed["method"].as<std::string>());
-    if (method == "lscm") {
+    if (method == "abf") {
+        useABF = true;
+        useHLSCM = false;
+    } else if (method == "abf-hlscm") {
+        useABF = true;
+        useHLSCM = true;
+    } else if (method == "lscm") {
         useABF = false;
-    } else if (method != "abf") {
+        useHLSCM = false;
+    } else if (method == "hlscm") {
+        useABF = false;
+        useHLSCM = true;
+    } else {
         std::cerr << "ERROR: Unknown flattening method: " << method;
         std::cerr << '\n';
         return EXIT_FAILURE;
@@ -84,7 +98,11 @@ auto main(int argc, char** argv) -> int
     }
 
     // Set the number of threads (OpenMP only)
-    Eigen::setNbThreads(parsed["threads"].as<int>());
+    auto threads = parsed["threads"].as<int>();
+    Eigen::setNbThreads(threads);
+    vc::Logger()->debug(
+        "Requested threads: {}, actual threads: {}", threads,
+        Eigen::nbThreads());
 
     // Load mesh
     vc::Logger()->info("Loading mesh...");
@@ -97,6 +115,7 @@ auto main(int argc, char** argv) -> int
     // Run ABF
     vct::AngleBasedFlattening abf;
     abf.setUseABF(useABF);
+    abf.setUseHLSCM(useHLSCM);
     abf.setSolver(solver);
     abf.setMesh(mesh);
     mesh = abf.compute();

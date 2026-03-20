@@ -87,12 +87,14 @@ ABFNode::ABFNode()
     : Node{true}
     , input{&abf_, &ABF::setMesh}
     , useABF{&abf_, &ABF::setUseABF}
+    , useHLSCM{&abf_, &ABF::setUseHLSCM}
     , solver{&abf_, &ABF::setSolver}
     , output{&mesh_}
     , uvMap{&uvMap_}
 {
     registerInputPort("input", input);
     registerInputPort("useABF", useABF);
+    registerInputPort("useHLSCM", useHLSCM);
     registerInputPort("solver", solver);
     registerOutputPort("output", output);
     registerOutputPort("uvMap", uvMap);
@@ -109,6 +111,7 @@ auto ABFNode::serialize_(bool useCache, const fs::path& cacheDir)
 {
     smgl::Metadata meta{
         {"useABF", abf_.useABF()},
+        {"useHLSCM", abf_.useHLSCM()},
         {"solver", abf_.solver()},
         {"abfMaxIterations", abf_.abfMaxIterations()}};
 
@@ -124,6 +127,9 @@ auto ABFNode::serialize_(bool useCache, const fs::path& cacheDir)
 void ABFNode::deserialize_(const smgl::Metadata& meta, const fs::path& cacheDir)
 {
     abf_.setUseABF(meta["useABF"].get<bool>());
+    if (meta.contains("useHLSCM")) {
+        abf_.setUseHLSCM(meta["useHLSCM"].get<bool>());
+    }
     abf_.setSolver(meta["solver"].get<Solver>());
     abf_.setABFMaxIterations(meta["abfMaxIterations"].get<std::size_t>());
 

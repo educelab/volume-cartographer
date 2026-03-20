@@ -1,6 +1,7 @@
 #include <cstddef>
 
 #include <boost/program_options.hpp>
+#include <educelab/core/utils/String.hpp>
 
 #include "vc/app_support/ProgressIndicator.hpp"
 #include "vc/core/filesystem.hpp"
@@ -16,6 +17,9 @@ namespace vcm = volcart::meshing;
 namespace vct = volcart::texturing;
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
+namespace el = educelab;
+
+using Solver = vct::AngleBasedFlattening::Solver;
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -29,6 +33,11 @@ auto main(int argc, char* argv[]) -> int
             "Path for the output ppm")
         ("uv-reuse", "If input-mesh is specified, attempt to use its existing "
             "UV map instead of generating a new one.")
+        ("uv-method,m", po::value<std::string>()->default_value("ABF"),
+            "Flattening method: [ABF, ABF-HLSCM, LSCM, HLSCM]")
+        ("uv-solver,s", po::value<std::string>()->default_value("SparseLU"),
+            "Numerical solver method (ignored for HLSCM methods): "
+            "[SparseLU, CG]")
         ("orient-normals", "Auto-orient surface normals towards the mesh centroid");
     // clang-format on
 
@@ -68,11 +77,44 @@ auto main(int argc, char* argv[]) -> int
         mesh = orient.compute();
     }
 
+    // Parse flattening method
+    bool useABF{true};
+    bool useHLSCM{false};
+    auto method = el::to_lower_copy(parsed["uv-method"].as<std::string>());
+    if (method == "abf") {
+        useABF = true;
+        useHLSCM = false;
+    } else if (method == "abf-hlscm") {
+        useABF = true;
+        useHLSCM = true;
+    } else if (method == "lscm") {
+        useABF = false;
+        useHLSCM = false;
+    } else if (method == "hlscm") {
+        useABF = false;
+        useHLSCM = true;
+    } else {
+        vc::Logger()->error("Unknown flattening method: {}", method);
+        return EXIT_FAILURE;
+    }
+
+    // Parse solver
+    auto solver = Solver::SparseLU;
+    auto solverStr = el::to_lower_copy(parsed["uv-solver"].as<std::string>());
+    if (solverStr == "cg") {
+        solver = Solver::ConjugateGradient;
+    } else if (solverStr != "sparselu") {
+        vc::Logger()->error("Unknown solver: {}", solverStr);
+        return EXIT_FAILURE;
+    }
+
     // Generate UV map
     auto genUV = parsed.count("uv-reuse") == 0;
     if (genUV or not uvMap) {
-        // ABF
         vct::AngleBasedFlattening abf;
+        abf.setUseABF(useABF);
+        abf.setUseHLSCM(useHLSCM);
+        abf.setSolver(solver);
         abf.setMesh(mesh);
         abf.compute();
 

@@ -26,6 +26,10 @@ endif()
 message(STATUS "Using filesystem library: ${VC_FS_LIB}")
 list(APPEND VC_CUSTOM_MODULES "${CMAKE_MODULE_PATH}/FindFilesystem.cmake")
 
+### OpenMP ###
+find_package(OpenMP)
+cmake_dependent_option(VC_USE_OPENMP "Compile with OpenMP support" ON OpenMP_CXX_FOUND OFF)
+
 ### Qt6 ###
 if((VC_BUILD_APPS OR VC_BUILD_UTILS) AND VC_BUILD_GUI)
     find_package(Qt6 6.5 QUIET REQUIRED COMPONENTS Widgets Gui Core Network)
@@ -87,10 +91,6 @@ include(Buildsmgl)
 
 ### libcore ###
 include(Buildlibcore)
-
-### OpenMP ###
-find_package(OpenMP)
-cmake_dependent_option(VC_USE_OPENMP "Compile with OpenMP support" ON OpenMP_CXX_FOUND OFF)
 
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
