@@ -1,0 +1,46 @@
+{
+  "status": "complete",
+  "project_type": "brownfield",
+  "current_section": "complete",
+  "current_question": 0,
+  "completed_sections": ["product", "guidelines", "tech_stack", "workflow", "styleguides"],
+  "answers": {
+    "project_name": "Volume Cartographer",
+    "description": "A toolkit for processing volumetric CT data to extract and flatten surfaces of ancient documents",
+    "problem": "Ancient scrolls and manuscripts are too fragile to physically unroll, requiring virtual unwrapping from CT scans",
+    "target_users": ["Researchers and scientists (e.g., Vesuvius Challenge)", "Digital humanities teams and archaeologists with CT scan data", "Developers building virtual unwrapping pipelines"],
+    "key_goals": [
+      "Provide both GUI and CLI tools for the full segmentation-to-texture pipeline",
+      "Produce high-quality, readable texture images from CT volumes of ancient scrolls",
+      "Maintain a modular, extensible C++ library for algorithm research and development"
+    ],
+    "voice_tone": "Concise and direct",
+    "design_principles": [
+      "Modularity — algorithms are swappable, pipeline is composable",
+      "Developer/researcher experience focused",
+      "Performance first — CT volumes are large, efficiency matters"
+    ],
+    "languages": ["C++", "Python (pybind11 bindings)"],
+    "frontend": "Qt6 + Python bindings (pybind11)",
+    "distribution": ["Built from source (CMake)", "Homebrew + GitHub Releases", "Docker-based CI + prebuilt binaries"],
+    "storage": "Custom .volpkg directory format (JSON metadata + TIFF slices)",
+    "tdd_strictness": "strict",
+    "commit_strategy": "conventional_commits",
+    "code_review": "required_all",
+    "verification": "after_phase",
+    "styleguides": ["cpp", "python"],
+    "clang_format": true
+  },
+  "files_created": [
+    "conductor/index.md",
+    "conductor/product.md",
+    "conductor/product-guidelines.md",
+    "conductor/tech-stack.md",
+    "conductor/workflow.md",
+    "conductor/tracks.md",
+    "conductor/code_styleguides/cpp.md",
+    "conductor/code_styleguides/python.md"
+  ],
+  "started_at": "2026-03-20T00:00:00Z",
+  "last_updated": "2026-03-20T00:00:00Z"
+}

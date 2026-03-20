@@ -1,0 +1,17 @@
+{
+  "id": "vol-zarr-backend_20260320",
+  "title": "Zarr Volume Backend",
+  "type": "feature",
+  "status": "pending",
+  "created": "2026-03-20T00:00:00Z",
+  "updated": "2026-03-20T00:00:00Z",
+  "phases": {
+    "total": 4,
+    "completed": 0
+  },
+  "tasks": {
+    "total": 18,
+    "completed": 0
+  },
+  "github_issue": 134
+}
