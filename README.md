@@ -199,7 +199,7 @@ method which uses the OpenMP libraries provided by Homebrew:
 brew install libomp
 
 # configure the environment so CMake can find the library
-export CPPFLAGS=-I$(brew --prefix)/opt/libomp/include;
+export CPPFLAGS=-I$(brew --prefix)/opt/libomp/include
 export LDFLAGS=-L$(brew --prefix)/opt/libomp/lib
 export OpenMP_ROOT=$(brew --prefix)/opt/libomp
 
