@@ -82,7 +82,8 @@ auto FittedCurve::sample(const std::size_t numPoints) const
 
 auto FittedCurve::operator()(const int index) const -> Voxel
 {
-    assert(index >= 0 && index < static_cast<int>(ts_.size()) && "out of bounds");
+    assert(
+        index >= 0 && index < static_cast<int>(ts_.size()) && "out of bounds");
     auto p = spline_(ts_[index]);
     return {p(0), p(1), static_cast<double>(zIndex_)};
 }

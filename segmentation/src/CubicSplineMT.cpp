@@ -3,13 +3,14 @@
 #include "vc/segmentation/lrps/CubicSplineMT.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <tuple>
 #include <utility>
 #include <vector>
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 #include "vc/core/util/Iteration.hpp"
 
@@ -27,8 +28,7 @@ auto linspace(const std::size_t num, const T low, const T high)
     -> std::vector<T>
 {
     std::vector<T> v(num);
-    const auto step =
-        num > 1 ? (high - low) / static_cast<T>(num - 1) : T{0};
+    const auto step = num > 1 ? (high - low) / static_cast<T>(num - 1) : T{0};
     std::generate(
         v.begin(), v.end(), [n = std::size_t{0}, &low, &step]() mutable {
             return low + step * n++;
@@ -39,45 +39,51 @@ auto linspace(const std::size_t num, const T low, const T high)
 auto Interpolate(const VectorXd& x, const VectorXd& y)
     -> std::tuple<VectorXd, VectorXd, VectorXd, VectorXd>
 {
-    // Result size
     const auto n = x.size() - 1;
     VectorXd h = x.segment(1, n) - x.segment(0, n);
 
-    // Value must be non-zero
+    // Clamp near-zero intervals to avoid division by zero
     for (int i = 0; i < h.size(); ++i) {
         if (h(i) == 0) {
             h(i) = 1e-8;
         }
     }
 
-    // Result params
-    const VectorXd a = y.segment(0, n);
-    VectorXd b = VectorXd::Zero(n);
+    // Natural spline: c[0] = c[n] = 0.
+    // Solve the (n-1)×(n-1) tridiagonal system for c[1..n-1] using the
+    // Thomas algorithm — O(n) time and O(n) memory.
     VectorXd c = VectorXd::Zero(n + 1);
-    VectorXd d = VectorXd::Zero(n);
+    if (n > 1) {
+        const auto m = n - 1;
+        VectorXd diag(m), rhs(m);
+        for (int j = 0; j < m; ++j) {
+            diag(j) = 2 * (h[j] + h[j + 1]);
+            rhs(j) = 3 * ((y[j + 2] - y[j + 1]) / h[j + 1] -
+                          (y[j + 1] - y[j]) / h[j]);
+        }
 
-    MatrixXd A = MatrixXd::Zero(n + 1, n + 1);
-    VectorXd B = VectorXd::Zero(n + 1);
+        // Forward elimination
+        for (int j = 1; j < m; ++j) {
+            const double w = h[j] / diag(j - 1);
+            diag(j) -= w * h[j];
+            rhs(j) -= w * rhs(j - 1);
+        }
 
-    A(0, 0) = 1;
-    A(n, n) = 1;
-
-    for (int i = 1; i < n; ++i) {
-        A(i, i - 1) = h[i - 1];
-        A(i, i) = 2 * (h[i - 1] + h[i]);
-        A(i, i + 1) = h[i];
-        B(i) = 3 * ((y[i + 1] - y[i]) / h[i] - (y[i] - y[i - 1]) / h[i - 1]);
+        // Back substitution (solution maps to c[1..n-1])
+        c(m) = rhs(m - 1) / diag(m - 1);
+        for (int j = m - 2; j >= 0; --j) {
+            c(j + 1) = (rhs(j) - h[j + 1] * c(j + 2)) / diag(j);
+        }
     }
 
-    c = A.colPivHouseholderQr().solve(B);
-
+    const VectorXd a = y.segment(0, n);
+    VectorXd b(n), d(n);
     for (int i = 0; i < n; ++i) {
         b(i) = (y[i + 1] - y[i]) / h[i] - h[i] * (c[i + 1] + 2 * c[i]) / 3;
         d(i) = (c[i + 1] - c[i]) / (3 * h[i]);
     }
 
     c.conservativeResize(n);
-
     return {a, b, c, d};
 }
 
@@ -141,17 +147,11 @@ auto SplineLength(
 {
     // 5-point Gauss-Legendre nodes and weights on [-1, 1]
     static constexpr double kNodes[5] = {
-        0.0,
-        -0.5384693101056831,
-         0.5384693101056831,
-        -0.9061798459386640,
-         0.9061798459386640};
+        0.0, -0.5384693101056831, 0.5384693101056831, -0.9061798459386640,
+        0.9061798459386640};
     static constexpr double kWeights[5] = {
-        0.5688888888888889,
-        0.4786286704993665,
-        0.4786286704993665,
-        0.2369268850561891,
-        0.2369268850561891};
+        0.5688888888888889, 0.4786286704993665, 0.4786286704993665,
+        0.2369268850561891, 0.2369268850561891};
 
     // Transform from [-1, 1] to [tSub0, tSub1]
     const double half = 0.5 * (tSub1 - tSub0);
@@ -226,6 +226,9 @@ CubicSplineMT::CubicSplineMT(const std::vector<Voxel>& vs)
 // Evaluate the spline at a given value of t
 auto CubicSplineMT::operator()(const double t) const -> Pixel
 {
+    assert(
+        !cumuLens_.empty() &&
+        "operator() called on a default-constructed CubicSplineMT");
     // Total length
     const auto totalLen = cumuLens_.back();
     const auto targetLen = totalLen * t;

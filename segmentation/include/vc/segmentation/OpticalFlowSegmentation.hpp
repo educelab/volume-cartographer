@@ -62,9 +62,6 @@ public:
     /** @brief Get the target z-index */
     [[nodiscard]] auto getTargetZIndex() const -> int;
 
-    /** @brief Set the number of curve optimization iterations per step */
-    void setOptimizationIterations(std::size_t n);
-
     /**
      * @brief Set the threshold of what pixel brightness is considered inside a
      * sheet (higher as threshold) and outside (lower as threshold)
@@ -159,13 +156,25 @@ public:
     [[nodiscard]] auto progressIterations() const -> std::size_t override;
 
 private:
+    /** @brief Configuration for a single run_ofs_() invocation */
+    struct OfsConfig {
+        /** True to propagate toward lower z-indices */
+        bool backwards{false};
+        /** True to prepend each new row rather than append */
+        bool insertFront{false};
+        /** Directory for per-slice debug visualizations */
+        filesystem::path outputDir;
+        /** Directory for whole-chain debug visualizations */
+        filesystem::path wholeChainDir;
+    };
+
     /**
      * @brief Compute the curve for z + 1 given a curve on z using the optical
      * flow between the two slices
      */
     [[nodiscard]] auto compute_curve_(
-        const FittedCurve& currentCurve,
-        int zIndex) const -> std::vector<Voxel>;
+        const FittedCurve& currentCurve, int zIndex) const
+        -> std::vector<Voxel>;
 
     /**
      * @brief Debug: Draw curve on slice image
@@ -184,22 +193,36 @@ private:
     auto create_final_pointset_(const std::vector<std::vector<Voxel>>& points)
         -> PointSet;
 
+    /**
+     * @brief Blend the re-segmentation run into the forward run over an
+     * interpolation window
+     * @param interpStart First z-slice of the interpolation window
+     * @param interpEnd Last z-slice of the interpolation window
+     * @param startChain Z-index of the primary starting chain
+     * @param startResegChain Z-index of the re-segmentation starting chain
+     */
     auto interpolate_(
-        int interpStart,
-        int interpEnd,
-        int startChain,
-        int startResegChain) -> std::vector<std::vector<Voxel>>;
+        int interpStart, int interpEnd, int startChain, int startResegChain)
+        -> std::vector<std::vector<Voxel>>;
+
+    /**
+     * @brief Run the optical flow segmentation in one direction
+     * @param currentVs Starting chain of points
+     * @param startChainIndex Z-index of the starting chain
+     * @param anchorEndIdx Z-index at which to stop and return
+     * @param targetIndex Final target z-index (used for bounds checking)
+     * @param stepAdjustment Initial step offset to align with the grid
+     * @param iteration Running progress counter (updated in place)
+     * @param cfg Direction, insertion order, and debug-output settings
+     */
     auto run_ofs_(
         Chain currentVs,
         int startChainIndex,
         int anchorEndIdx,
         int targetIndex,
         int stepAdjustment,
-        bool backwards,
         std::size_t& iteration,
-        bool insertFront,
-        const filesystem::path& outputDir,
-        const filesystem::path& wholeChainDir)
+        const OfsConfig& cfg)
         -> std::tuple<std::vector<std::vector<Voxel>>, Status>;
 
     /**
@@ -209,9 +232,8 @@ private:
      * @param backwards Direction of the OFS run
      */
     auto interpolateWithMasterCloud(
-        std::vector<std::vector<Voxel>> points,
-        int windowSize,
-        bool backwards) -> std::vector<std::vector<Voxel>>;
+        std::vector<std::vector<Voxel>> points, int windowSize, bool backwards)
+        -> std::vector<std::vector<Voxel>>;
 
     /**
      * @brief Fill in missing z-slices between curve rows using linear
@@ -224,8 +246,6 @@ private:
     int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
-    /** Number of curve optimization iterations */
-    std::size_t numIters_{15};
     /**
      * Darker pixels are considered outside the sheet. This parameter sets the
      * threshold of what pixel brightness is considered too deep inside a sheet

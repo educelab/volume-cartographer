@@ -34,13 +34,6 @@ auto LocalResliceSegmentation::progressIterations() const -> std::size_t
     return static_cast<std::size_t>((endIndex_ - startIndex) / stepSize_);
 }
 
-void LocalResliceSegmentation::setStartZIndex(int z) { startIndex_ = z; }
-
-auto LocalResliceSegmentation::getStartZIndex() const -> int
-{
-    return startIndex_;
-}
-
 void LocalResliceSegmentation::setTargetZIndex(int z) { endIndex_ = z; }
 
 auto LocalResliceSegmentation::getTargetZIndex() const -> int

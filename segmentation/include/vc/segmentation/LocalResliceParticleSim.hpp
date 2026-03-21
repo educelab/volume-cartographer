@@ -51,12 +51,6 @@ public:
             std::forward<Args>(args)...);
     }
 
-    /** @brief Set the start z-index */
-    void setStartZIndex(int z);
-
-    /** @brief Get the start z-index */
-    [[nodiscard]] auto getStartZIndex() const -> int;
-
     /** @brief Set the target z-index */
     void setTargetZIndex(int z);
 
@@ -155,8 +149,6 @@ private:
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
-    /** Start z-index */
-    int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
     /** Active Contour weight parameter */

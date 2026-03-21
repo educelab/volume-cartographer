@@ -72,6 +72,7 @@ set(test_srcs
     test/FittedCurveTest.cpp
     test/IntensityMapTest.cpp
     test/LocalResliceParticleSimTest.cpp
+    test/OpticalFlowSegmentationTest.cpp
 )
 
 # Add a test executable for each src

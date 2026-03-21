@@ -62,9 +62,8 @@ auto Estimate2DNormalAtIndex(const FittedCurve& curve, const std::size_t index)
 
 // fast method to get mean pixel value of window size by using an integral image
 auto GetMeanPixelValue(
-    const cv::Mat& integralImg,
-    const cv::Point& pt,
-    const int windowSize) -> float
+    const cv::Mat& integralImg, const cv::Point& pt, const int windowSize)
+    -> float
 {
     const int xMin = std::max(pt.x - windowSize / 2, 0);
     const int xMax = std::min(pt.x + windowSize / 2, integralImg.cols - 2);
@@ -100,11 +99,6 @@ void OpticalFlowSegmentation::setTargetZIndex(const int z) { endIndex_ = z; }
 auto OpticalFlowSegmentation::getTargetZIndex() const -> int
 {
     return endIndex_;
-}
-
-void OpticalFlowSegmentation::setOptimizationIterations(const std::size_t n)
-{
-    numIters_ = n;
 }
 
 void OpticalFlowSegmentation::setOutsideThreshold(const std::uint8_t outside)
@@ -374,7 +368,8 @@ auto OpticalFlowSegmentation::compute() -> PointSet
     interpStart = std::clamp(interpStart, 0, vol_->numSlices() - 1);
     interpEnd = std::clamp(interpEnd, 0, vol_->numSlices() - 1);
     if (interpStart == interpEnd) {
-        // TODO: Error?
+        Logger()->warn(
+            "[OFS] Interpolation window collapsed to a single slice");
     }
 
     // Update the user-defined boundary
@@ -451,8 +446,8 @@ auto OpticalFlowSegmentation::compute() -> PointSet
         const auto dir = backwards ? -1 : 1;
         const auto anchorEnd = endIndex_ + dir;
         std::tie(points, std::ignore) = run_ofs_(
-            startingChain_, startIndexChain, anchorEnd, endIndex_, 0, backwards,
-            iteration, backwards, outputDir, wholeChainDir);
+            startingChain_, startIndexChain, anchorEnd, endIndex_, 0, iteration,
+            {backwards, backwards, outputDir, wholeChainDir});
     }
 
     /////////////////////////////////////////////////////////
@@ -507,7 +502,8 @@ auto OpticalFlowSegmentation::draw_particle_on_slice_(
     } else {
         // Draw circles on the pkgSlice window for each point
         for (std::size_t i = 0; i < curve.size(); ++i) {
-            const cv::Point real{static_cast<int>(curve(i)(0)), static_cast<int>(curve(i)(1))};
+            const cv::Point real{
+                static_cast<int>(curve(i)(0)), static_cast<int>(curve(i)(1))};
             cv::circle(pkgSlice, real, 2, color::GREEN, -1);
         }
     }
@@ -516,7 +512,8 @@ auto OpticalFlowSegmentation::draw_particle_on_slice_(
     if (particleIndex != -1) {
         const Voxel particle = curve(particleIndex);
         cv::circle(
-            pkgSlice, {static_cast<int>(particle(0)), static_cast<int>(particle(1))},
+            pkgSlice,
+            {static_cast<int>(particle(0)), static_cast<int>(particle(1))},
             (showSpline ? 2 : 1), color::RED, -1);
     }
 
@@ -629,27 +626,27 @@ auto OpticalFlowSegmentation::interpolateGaps(
         }
     }
 
-    // Merge gap rows into points in ascending position order
+    // Rebuild result by interleaving original rows with gap rows
+    std::vector<std::vector<Voxel>> result;
+    result.reserve(points.size() + gapPoints.size());
     int gapRowIdx{0};
-    int inserted{0};
-    for (const auto& [pos, size] : gapInfo) {
-        for (int i = 0; i < size; ++i) {
-            points.insert(
-                std::next(points.begin(), inserted + pos + 1 + i),
-                gapPoints[gapRowIdx++]);
+    for (int row = 0; row < static_cast<int>(points.size()); ++row) {
+        result.push_back(std::move(points[row]));
+        auto it = gapInfo.find(row);
+        if (it != gapInfo.end()) {
+            for (int i = 0; i < it->second; ++i) {
+                result.push_back(std::move(gapPoints[gapRowIdx++]));
+            }
         }
-        inserted += size;
     }
-    return points;
+    return result;
 }
 
 // Re-segment from the end index till start of interpolation window (overwrite
 // existing points)
 auto OpticalFlowSegmentation::interpolate_(
-    int interpStart,
-    int interpEnd,
-    int startChain,
-    int startResegChain) -> RawPointSet
+    int interpStart, int interpEnd, int startChain, int startResegChain)
+    -> RawPointSet
 {
     // Basic setup
     std::size_t iteration{0};
@@ -697,32 +694,37 @@ auto OpticalFlowSegmentation::interpolate_(
     // TODO:
     auto [resegPoints, status] = run_ofs_(
         resegStartingChain_, startResegChain, startChain, interpBorder,
-        initStepAdjust, !backwards, iteration, !backwards, outputDir,
-        wholeChainDir);
+        initStepAdjust, iteration,
+        {!backwards, !backwards, outputDir, wholeChainDir});
     if (status == Status::ReturnedEarly) {
         return {startingChain_};
     }
     if (status == Status::Failure) {
-        // TODO: FAILURE
+        Logger()->error("[OFS] Re-segmentation run failed");
+        status_ = Status::Failure;
+        return {resegPoints};
     }
 
     // If step size > 1, we need to interpolate missing slices
     if (stepSize_ > 1) {
         // Add the reseg chain to the start/end for an interp anchor
-        const auto pos = backwards ? resegPoints.begin() : resegPoints.end();
-        resegPoints.insert(pos, resegStartingChain_);
+        if (backwards) {
+            resegPoints.insert(resegPoints.begin(), resegStartingChain_);
+        } else {
+            resegPoints.push_back(resegStartingChain_);
+        }
 
         // if interp to chain dist is < step size, add the start chain too
         if (std::abs(interpStart - startChain) < stepSize_) {
-            const auto it = backwards ? resegPoints.end() : resegPoints.begin();
-            resegPoints.insert(it, startingChain_);
+            if (backwards) {
+                resegPoints.push_back(startingChain_);
+            } else {
+                resegPoints.insert(resegPoints.begin(), startingChain_);
+            }
         }
 
         // Interpolate the gaps between points
         resegPoints = interpolateGaps(resegPoints);
-
-        // Remove the reseg chain from further steps
-        resegPoints.erase(pos);
 
         // Remove the end anchor and everything before the interp start
         // May have end anchor from gap interp, but it should be removed here
@@ -792,32 +794,37 @@ auto OpticalFlowSegmentation::interpolate_(
     }
     RawPointSet points;
     std::tie(points, status) = run_ofs_(
-        startingChain_, startChain, startResegChain, interpBorder, 0, backwards,
-        iteration, backwards, outputDir, wholeChainDir);
+        startingChain_, startChain, startResegChain, interpBorder, 0, iteration,
+        {backwards, backwards, outputDir, wholeChainDir});
     if (status == Status::ReturnedEarly) {
         return points;
     }
     if (status == Status::Failure) {
-        // TODO: FAILURE
+        Logger()->error("[OFS] Forward segmentation run failed");
+        status_ = Status::Failure;
+        return points;
     }
 
     // For step sizes greater than 1 we have to interpolate the results
     if (stepSize_ > 1) {
         // Add the starting chain to start/end for an interp anchor
-        const auto pos = backwards ? points.end() : points.begin();
-        points.insert(pos, startingChain_);
+        if (backwards) {
+            points.push_back(startingChain_);
+        } else {
+            points.insert(points.begin(), startingChain_);
+        }
 
         // if interp to chain dist < step size, add the reseg chain too
         if (std::abs(interpEnd - startResegChain) < stepSize_) {
-            const auto it = backwards ? points.begin() : points.end();
-            points.insert(it, resegStartingChain_);
+            if (backwards) {
+                points.insert(points.begin(), resegStartingChain_);
+            } else {
+                points.push_back(resegStartingChain_);
+            }
         }
 
         // Interpolate the gaps between points
         points = interpolateGaps(points);
-
-        // Remove starting chain
-        points.erase(pos);
 
         // Remove the start anchor and everything after the interp end
         // May have start anchor from gap interp, but it should be removed here
@@ -867,12 +874,13 @@ auto OpticalFlowSegmentation::run_ofs_(
     int anchorEndIdx,
     int targetIndex,
     int stepAdjustment,
-    bool backwards,
     std::size_t& iteration,
-    bool insertFront,
-    const fs::path& outputDir,
-    const fs::path& wholeChainDir) -> std::tuple<RawPointSet, Status>
+    const OfsConfig& cfg) -> std::tuple<RawPointSet, Status>
 {
+    const auto backwards = cfg.backwards;
+    const auto insertFront = cfg.insertFront;
+    const auto& outputDir = cfg.outputDir;
+    const auto& wholeChainDir = cfg.wholeChainDir;
     // Result pointset
     RawPointSet points;
 
@@ -899,6 +907,9 @@ auto OpticalFlowSegmentation::run_ofs_(
                 ? nextZIndex <= anchorEndIdx or nextZIndex >= anchorStartIdx
                 : nextZIndex >= anchorEndIdx or nextZIndex <= anchorStartIdx) {
             // TODO: Review status usage
+            if (insertFront) {
+                std::reverse(points.begin(), points.end());
+            }
             return {points, status_};
         }
 
@@ -1001,12 +1012,11 @@ auto OpticalFlowSegmentation::run_ofs_(
         // 5. Set up for next iteration
         currentVs = nextVs;
 
-        if (insertFront) {
-            points.insert(points.begin(), nextVs);
-        } else {
-            points.push_back(nextVs);
-        }
+        points.push_back(nextVs);
     }
 
+    if (insertFront) {
+        std::reverse(points.begin(), points.end());
+    }
     return {points, status_};
 }
