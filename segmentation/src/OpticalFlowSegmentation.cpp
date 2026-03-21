@@ -498,9 +498,8 @@ auto OpticalFlowSegmentation::draw_particle_on_slice_(
     if (showSpline) {
         constexpr int n = 500;
         double sum = 0;
-        constexpr int i = 0;
         std::vector<cv::Point> contour;
-        while (i < n && sum <= 1.0) {
+        while (sum <= 1.0) {
             contour.emplace_back(curve.eval(sum));
             sum += 1.0 / (n - 1);
         }
@@ -508,7 +507,7 @@ auto OpticalFlowSegmentation::draw_particle_on_slice_(
     } else {
         // Draw circles on the pkgSlice window for each point
         for (std::size_t i = 0; i < curve.size(); ++i) {
-            const cv::Point real{int(curve(i)(0)), int(curve(i)(1))};
+            const cv::Point real{static_cast<int>(curve(i)(0)), static_cast<int>(curve(i)(1))};
             cv::circle(pkgSlice, real, 2, color::GREEN, -1);
         }
     }
@@ -517,7 +516,7 @@ auto OpticalFlowSegmentation::draw_particle_on_slice_(
     if (particleIndex != -1) {
         const Voxel particle = curve(particleIndex);
         cv::circle(
-            pkgSlice, {int(particle(0)), int(particle(1))},
+            pkgSlice, {static_cast<int>(particle(0)), static_cast<int>(particle(1))},
             (showSpline ? 2 : 1), color::RED, -1);
     }
 

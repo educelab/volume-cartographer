@@ -5,16 +5,13 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <numeric>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include <Eigen/Dense>
-#include <gsl/gsl_integration.h>
 
 #include "vc/core/util/Iteration.hpp"
-#include "vc/core/util/Logging.hpp"
 
 using namespace volcart;
 using namespace volcart::segmentation;
@@ -30,7 +27,8 @@ auto linspace(const std::size_t num, const T low, const T high)
     -> std::vector<T>
 {
     std::vector<T> v(num);
-    auto step = (high - low) / static_cast<T>(num);
+    const auto step =
+        num > 1 ? (high - low) / static_cast<T>(num - 1) : T{0};
     std::generate(
         v.begin(), v.end(), [n = std::size_t{0}, &low, &step]() mutable {
             return low + step * n++;
@@ -129,21 +127,7 @@ auto FitSplineMT(
     return {aVec, bVec, cVec, dVec};
 }
 
-auto Integrand2D(const double t, void* params) -> double
-{
-    const auto* coeffs = static_cast<double*>(params);
-    const double bX = coeffs[0];
-    const double cX = coeffs[1];
-    const double dX = coeffs[2];
-    const double bY = coeffs[3];
-    const double cY = coeffs[4];
-    const double dY = coeffs[5];
-    const double t0 = coeffs[6];
-    const double dsdx = bX + 2 * cX * (t - t0) + 3 * dX * (t - t0) * (t - t0);
-    const double dsdy = bY + 2 * cY * (t - t0) + 3 * dY * (t - t0) * (t - t0);
-    return std::sqrt(dsdx * dsdx + dsdy * dsdy);
-}
-
+// 5-point Gauss-Legendre arc-length integrand for a cubic spline segment
 auto SplineLength(
     const double bX,
     const double cX,
@@ -155,16 +139,32 @@ auto SplineLength(
     const double tSub0,
     const double tSub1) -> double
 {
-    auto* w = gsl_integration_workspace_alloc(1000);
+    // 5-point Gauss-Legendre nodes and weights on [-1, 1]
+    static constexpr double kNodes[5] = {
+        0.0,
+        -0.5384693101056831,
+         0.5384693101056831,
+        -0.9061798459386640,
+         0.9061798459386640};
+    static constexpr double kWeights[5] = {
+        0.5688888888888889,
+        0.4786286704993665,
+        0.4786286704993665,
+        0.2369268850561891,
+        0.2369268850561891};
+
+    // Transform from [-1, 1] to [tSub0, tSub1]
+    const double half = 0.5 * (tSub1 - tSub0);
+    const double mid = 0.5 * (tSub1 + tSub0);
     double result{0};
-    double error{0};
-    double coeffs[7] = {bX, cX, dX, bY, cY, dY, t0};
-    gsl_function F;
-    F.function = &Integrand2D;
-    F.params = &coeffs;
-    gsl_integration_qags(&F, tSub0, tSub1, 0, 1e-8, 1000, w, &result, &error);
-    gsl_integration_workspace_free(w);
-    return std::abs(result);
+    for (int i = 0; i < 5; ++i) {
+        const double t = mid + half * kNodes[i];
+        const double dt = t - t0;
+        const double dsdx = bX + 2 * cX * dt + 3 * dX * dt * dt;
+        const double dsdy = bY + 2 * cY * dt + 3 * dY * dt * dt;
+        result += kWeights[i] * std::sqrt(dsdx * dsdx + dsdy * dsdy);
+    }
+    return std::abs(half * result);
 }
 
 // Compute lengths of 2D spline segments
@@ -223,43 +223,6 @@ CubicSplineMT::CubicSplineMT(const std::vector<Voxel>& vs)
         SubsegmentLengths(rangeXY_, bX_, cX_, dX_, bY_, cY_, dY_);
 }
 
-CubicSplineMT::CubicSplineMT(const CubicSplineMT& other)
-{
-    aX_ = other.aX_;
-    bX_ = other.bX_;
-    cX_ = other.cX_;
-    dX_ = other.dX_;
-    aY_ = other.aY_;
-    bY_ = other.bY_;
-    cY_ = other.cY_;
-    dY_ = other.dY_;
-    rangeXY_ = other.rangeXY_;
-    subsegLens_ = other.subsegLens_;
-    cumuLens_ = other.cumuLens_;
-
-    // mtx is deliberately not copied
-}
-
-auto CubicSplineMT::operator=(const CubicSplineMT& other) -> CubicSplineMT&
-{
-    if (this != &other) {
-        aX_ = other.aX_;
-        bX_ = other.bX_;
-        cX_ = other.cX_;
-        dX_ = other.dX_;
-        aY_ = other.aY_;
-        bY_ = other.bY_;
-        cY_ = other.cY_;
-        dY_ = other.dY_;
-        rangeXY_ = other.rangeXY_;
-        subsegLens_ = other.subsegLens_;
-        cumuLens_ = other.cumuLens_;
-        // mtx is deliberately not copied
-    }
-
-    return *this;
-}
-
 // Evaluate the spline at a given value of t
 auto CubicSplineMT::operator()(const double t) const -> Pixel
 {
@@ -298,12 +261,12 @@ auto CubicSplineMT::operator()(const double t) const -> Pixel
     const double dRange = rangeT - range0;
     // Compute the x position at rangeT
     double xT = aX_[segIdx] + bX_[segIdx] * dRange +
-                cX_[segIdx] * std::pow(dRange, 2) +
-                dX_[segIdx] * std::pow(dRange, 3);
+                cX_[segIdx] * dRange * dRange +
+                dX_[segIdx] * dRange * dRange * dRange;
     // Compute the y position at rangeT
     double yT = aY_[segIdx] + bY_[segIdx] * dRange +
-                cY_[segIdx] * std::pow(dRange, 2) +
-                dY_[segIdx] * std::pow(dRange, 3);
+                cY_[segIdx] * dRange * dRange +
+                dY_[segIdx] * dRange * dRange * dRange;
 
     return {xT, yT};
 }

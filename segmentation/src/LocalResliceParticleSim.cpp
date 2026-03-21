@@ -12,6 +12,7 @@
 
 #include "vc/core/filesystem.hpp"
 #include "vc/core/math/StructureTensor.hpp"
+#include "vc/core/util/Logging.hpp"
 #include "vc/segmentation/LocalResliceParticleSim.hpp"
 #include "vc/segmentation/lrps/Common.hpp"
 #include "vc/segmentation/lrps/Derivative.hpp"
@@ -66,12 +67,14 @@ void LocalResliceSegmentation::setMaterialThickness(double m)
 {
     materialThickness_ = m;
 }
+
 void LocalResliceSegmentation::setResliceSize(int s) { resliceSize_ = s; }
 
 void LocalResliceSegmentation::setDistanceWeightFactor(int f)
 {
     peakDistanceWeight_ = f;
 }
+
 void LocalResliceSegmentation::setConsiderPrevious(bool b)
 {
     considerPrevious_ = b;
@@ -94,7 +97,7 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
         })) {
         status_ = Status::ReturnedEarly;
         progressComplete();
-        std::cout << "[Error]: Starting chain out of bounds!" << std::endl;
+        Logger()->error("[LRPS] Starting chain out of bounds");
         return create_final_pointset_({currentVs});
     }
 
@@ -378,7 +381,9 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
     // 6. Output final mesh
     return create_final_pointset_(points);
 }
+
 void LocalResliceSegmentation::setVisualize(bool b) { visualize_ = b; }
+
 void LocalResliceSegmentation::setDumpVis(bool b) { dumpVis_ = b; }
 
 auto LocalResliceSegmentation::estimate_normal_at_index_(

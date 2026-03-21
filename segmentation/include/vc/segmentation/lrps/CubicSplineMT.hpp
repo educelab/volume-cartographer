@@ -26,16 +26,16 @@ public:
     CubicSplineMT() = default;
     /** Construct and fit to separated x, y knot pairs */
     CubicSplineMT(const std::vector<double>& x, const std::vector<double>& y);
-    /** Construct and fit to a set of know */
+    /** Construct and fit to a set of knots */
     explicit CubicSplineMT(const std::vector<Voxel>& vs);
     /** Default destructor */
     ~CubicSplineMT() = default;
 
     /** Copy constructor */
-    CubicSplineMT(const CubicSplineMT& other);
+    CubicSplineMT(const CubicSplineMT&) = default;
 
-    /** Custom copy assignment operator */
-    auto operator=(const CubicSplineMT& other) -> CubicSplineMT&;
+    /** Copy assignment operator */
+    auto operator=(const CubicSplineMT&) -> CubicSplineMT& = default;
 
     /**
      * @brief %Spline evaluation at t-space value t in [0, 1]

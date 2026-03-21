@@ -1,7 +1,6 @@
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"
 
 #include <cstddef>
-#include <iostream>
 #include <numeric>
 
 #include "vc/segmentation/lrps/Derivative.hpp"

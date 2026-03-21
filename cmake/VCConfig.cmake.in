@@ -50,8 +50,6 @@ if(@VC_USE_OPENMP@)
     find_dependency(OpenMP QUIET REQUIRED)
 endif()
 
-### GNU Scientific Library ###
-find_dependency(GSL QUIET REQUIRED)
 #####################################################################
 
 ### Include VC targets ###

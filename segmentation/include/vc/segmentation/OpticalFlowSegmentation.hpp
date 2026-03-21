@@ -258,17 +258,23 @@ private:
      * Range: 0-255. Smooth curve at pixels above this threshold.
      */
     std::uint8_t smoothByBrightness_{180};
+    /** Enable smoothing of detected outlier points */
     bool enableSmoothenOutlier_{true};
+    /** Enable edge detection to constrain point movement */
     bool enableEdge_{false};
+    /** Minimum displacement (voxels) considered an edge jump */
     std::uint32_t edgeJumpDistance_{6};
+    /** Maximum displacement (voxels) allowed as a bounce from an edge */
     std::uint32_t edgeBounceDistance_{3};
+    /** Enable blending of OFS output against the master cloud */
     bool requestInterp_{true};
-    /** window for interpolation (number of slices from interpolation
-     * distance/center in either direction). must be positive. */
+    /** Half-width of the interpolation window in slices (must be positive) */
     std::uint32_t interpWindow_{5};
-    /** distance from start slice where the interpolation center is */
+    /** Distance in slices from the start slice to the interpolation center */
     std::uint32_t interpDist_{25};
+    /** Re-segmentation starting chain provided by the caller */
     Chain resegStartingChain_;
+    /** Pre-computed master cloud used for interpolation blending */
     PointSet masterCloud_;
     /** Estimated material thickness in um */
     double materialThickness_{100};

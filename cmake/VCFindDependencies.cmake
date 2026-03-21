@@ -77,9 +77,6 @@ find_package(TIFF 4.0 REQUIRED)
 ### spdlog ###
 find_package(spdlog 1.4.2 CONFIG REQUIRED)
 
-### GNU Scientific Library ###
-find_package(GSL REQUIRED)
-
 ### OpenABF ###
 include(BuildOpenABF)
 
@@ -94,11 +91,6 @@ include(Buildsmgl)
 
 ### libcore ###
 include(Buildlibcore)
-
-### OpenMP ###
-find_package(OpenMP)
-cmake_dependent_option(
-    VC_USE_OPENMP "Compile with OpenMP support" ON OpenMP_CXX_FOUND OFF)
 
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)
