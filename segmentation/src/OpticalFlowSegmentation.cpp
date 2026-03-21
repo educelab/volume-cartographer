@@ -85,6 +85,181 @@ auto IsInBounds(const cv::Point2f& p, const cv::Mat& img)
 {
     return p.x >= 0 and p.x < img.cols and p.y >= 0 and p.y < img.rows;
 }
+
+using volcart::range;
+namespace color = volcart::color;
+
+auto CreateFinalPointSet(const RawPointSet& points) -> PointSet
+{
+    const auto rows = points.size();
+    const auto cols = points[0].size();
+    std::vector<cv::Vec3d> tempRow;
+    PointSet result;
+    result.setWidth(cols);
+    for (std::size_t i = 0; i < rows; ++i) {
+        for (std::size_t j = 0; j < cols; ++j) {
+            const Voxel v = points[i][j];
+            tempRow.emplace_back(v(0), v(1), v(2));
+        }
+        result.pushRow(tempRow);
+        tempRow.clear();
+    }
+    return result;
+}
+
+auto DrawParticleOnSlice(
+    const FittedCurve& curve,
+    const int sliceIndex,
+    const volcart::Volume::Pointer& vol,
+    const int particleIndex = -1,
+    const bool showSpline = false) -> cv::Mat
+{
+    auto pkgSlice = vol->getSliceDataCopy(sliceIndex);
+    pkgSlice.convertTo(
+        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<std::uint8_t>::max());
+    cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
+
+    if (showSpline) {
+        constexpr int n = 500;
+        double sum = 0;
+        std::vector<cv::Point> contour;
+        while (sum <= 1.0) {
+            contour.emplace_back(curve.eval(sum));
+            sum += 1.0 / (n - 1);
+        }
+        cv::polylines(pkgSlice, contour, false, color::BLUE, 1, cv::LINE_AA);
+    } else {
+        for (std::size_t i = 0; i < curve.size(); ++i) {
+            const cv::Point real{
+                static_cast<int>(curve(i)(0)), static_cast<int>(curve(i)(1))};
+            cv::circle(pkgSlice, real, 2, color::GREEN, -1);
+        }
+    }
+
+    if (particleIndex != -1) {
+        const Voxel particle = curve(particleIndex);
+        cv::circle(
+            pkgSlice,
+            {static_cast<int>(particle(0)), static_cast<int>(particle(1))},
+            (showSpline ? 2 : 1), color::RED, -1);
+    }
+
+    return pkgSlice;
+}
+
+auto InterpolateWithMasterCloud(
+    RawPointSet points,
+    const PointSet& masterCloud,
+    const int windowSize,
+    const bool backwards) -> RawPointSet
+{
+    if (points.empty()) {
+        return points;
+    }
+
+    const auto& startZ = points[0][0][2];
+    std::size_t masterStart{0};
+    bool found{false};
+    for (const auto rowIdx : range(masterCloud.height())) {
+        if (startZ == masterCloud.getRow(rowIdx)[0][2]) {
+            masterStart = rowIdx;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        return points;
+    }
+    if (!backwards && startZ < masterCloud.getRow(0)[0][2]) {
+        return points;
+    }
+
+    const auto blendRows =
+        std::min<std::size_t>(2 * windowSize + 1, points.size());
+    for (const auto u : range(blendRows)) {
+        const auto masterRowIdx = masterStart + u;
+        if (masterRowIdx >= masterCloud.height()) {
+            break;
+        }
+
+        const auto w =
+            static_cast<float>(u + 1) / static_cast<float>(2 * windowSize + 2);
+        const float wPts = backwards ? 1.f - w : w;
+        const float wMaster = backwards ? w : 1.f - w;
+
+        const auto& masterRow = masterCloud.getRow(masterRowIdx);
+        for (const auto j : range(masterCloud.width())) {
+            if (j >= points[u].size()) {
+                break;
+            }
+            points[u][j] = Voxel(
+                wPts * points[u][j][0] + wMaster * masterRow[j][0],
+                wPts * points[u][j][1] + wMaster * masterRow[j][1],
+                points[u][j][2]);
+        }
+
+        FittedCurve blended(
+            points[u], static_cast<int>(std::round(points[u][0][2])));
+        points[u] = blended.evenlySpacePoints();
+    }
+    return points;
+}
+
+auto InterpolateGaps(RawPointSet points, const std::size_t width) -> RawPointSet
+{
+    if (points.empty()) {
+        return points;
+    }
+
+    std::vector<std::vector<Voxel>> gapPoints;
+    std::map<int, int> gapInfo;
+
+    for (int row = 0; row < static_cast<int>(points.size()); ++row) {
+        if (row + 1 >= static_cast<int>(points.size())) {
+            break;
+        }
+        const double deltaZ = points[row + 1][0][2] - points[row][0][2];
+        if (deltaZ <= 1) {
+            continue;
+        }
+
+        gapInfo[row] = static_cast<int>(deltaZ) - 1;
+
+        std::vector<Voxel> deltas(width);
+        for (const auto w : range(width)) {
+            deltas[w][0] = (points[row + 1][w][0] - points[row][w][0]) / deltaZ;
+            deltas[w][1] = (points[row + 1][w][1] - points[row][w][1]) / deltaZ;
+        }
+
+        for (int gap = 1; gap < static_cast<int>(deltaZ); ++gap) {
+            std::vector<Voxel> gapRow(width);
+            for (const auto w : range(width)) {
+                gapRow[w] = Voxel(
+                    points[row][w][0] + gap * deltas[w][0],
+                    points[row][w][1] + gap * deltas[w][1],
+                    points[row][w][2] + gap);
+            }
+            FittedCurve evened(
+                gapRow, static_cast<int>(std::round(gapRow[0][2])));
+            gapPoints.push_back(evened.evenlySpacePoints());
+        }
+    }
+
+    RawPointSet result;
+    result.reserve(points.size() + gapPoints.size());
+    int gapRowIdx{0};
+    for (int row = 0; row < static_cast<int>(points.size()); ++row) {
+        result.push_back(std::move(points[row]));
+        auto it = gapInfo.find(row);
+        if (it != gapInfo.end()) {
+            for (int i = 0; i < it->second; ++i) {
+                result.push_back(std::move(gapPoints[gapRowIdx++]));
+            }
+        }
+    }
+    return result;
+}
 }  // namespace
 
 void OpticalFlowSegmentation::setStartZIndex(const int z) { startIndex_ = z; }
@@ -397,14 +572,14 @@ auto OpticalFlowSegmentation::compute() -> PointSet
         status_ = Status::ReturnedEarly;
         progressComplete();
         Logger()->error("[OFS] Starting chain out of bounds");
-        return create_final_pointset_({startingChain_});
+        return result_ = CreateFinalPointSet({startingChain_});
     }
     if (std::any_of(
             resegStartingChain_.begin(), resegStartingChain_.end(), inBounds)) {
         status_ = Status::ReturnedEarly;
         progressComplete();
         Logger()->error("[OFS] Re-segmentation starting chain out of bounds");
-        return create_final_pointset_({startingChain_});
+        return result_ = CreateFinalPointSet({startingChain_});
     }
 
     // Are we doing interp?
@@ -455,191 +630,7 @@ auto OpticalFlowSegmentation::compute() -> PointSet
     progressComplete();
 
     // 6. Output final mesh
-    return create_final_pointset_(points);
-}
-
-auto OpticalFlowSegmentation::create_final_pointset_(
-    const std::vector<std::vector<Voxel>>& points) -> PointSet
-{
-    const auto rows = points.size();
-    const auto cols = points[0].size();
-    std::vector<cv::Vec3d> tempRow;
-    result_.clear();
-    result_.setWidth(cols);
-
-    for (std::size_t i = 0; i < rows; ++i) {
-        for (std::size_t j = 0; j < cols; ++j) {
-            Voxel v = points[i][j];
-            tempRow.emplace_back(v(0), v(1), v(2));
-        }
-        result_.pushRow(tempRow);
-        tempRow.clear();
-    }
-    return result_;
-}
-
-auto OpticalFlowSegmentation::draw_particle_on_slice_(
-    const FittedCurve& curve,
-    const int sliceIndex,
-    const int particleIndex,
-    const bool showSpline) const -> cv::Mat
-{
-    auto pkgSlice = vol_->getSliceDataCopy(sliceIndex);
-    pkgSlice.convertTo(
-        pkgSlice, CV_8UC3, 1.0 / std::numeric_limits<std::uint8_t>::max());
-    cv::cvtColor(pkgSlice, pkgSlice, cv::COLOR_GRAY2BGR);
-
-    // Superimpose interpolated currentCurve on window
-    if (showSpline) {
-        constexpr int n = 500;
-        double sum = 0;
-        std::vector<cv::Point> contour;
-        while (sum <= 1.0) {
-            contour.emplace_back(curve.eval(sum));
-            sum += 1.0 / (n - 1);
-        }
-        cv::polylines(pkgSlice, contour, false, color::BLUE, 1, cv::LINE_AA);
-    } else {
-        // Draw circles on the pkgSlice window for each point
-        for (std::size_t i = 0; i < curve.size(); ++i) {
-            const cv::Point real{
-                static_cast<int>(curve(i)(0)), static_cast<int>(curve(i)(1))};
-            cv::circle(pkgSlice, real, 2, color::GREEN, -1);
-        }
-    }
-
-    // Only highlight a point if particleIndex isn't default -1
-    if (particleIndex != -1) {
-        const Voxel particle = curve(particleIndex);
-        cv::circle(
-            pkgSlice,
-            {static_cast<int>(particle(0)), static_cast<int>(particle(1))},
-            (showSpline ? 2 : 1), color::RED, -1);
-    }
-
-    return pkgSlice;
-}
-
-auto OpticalFlowSegmentation::interpolateWithMasterCloud(
-    std::vector<std::vector<Voxel>> points,
-    const int windowSize,
-    const bool backwards) -> std::vector<std::vector<Voxel>>
-{
-    if (points.empty()) {
-        return points;
-    }
-
-    // Find the starting row in the master cloud that matches points[0]
-    const auto& startZ = points[0][0][2];
-    std::size_t masterStart{0};
-    bool found{false};
-    for (const auto rowIdx : range(masterCloud_.height())) {
-        if (startZ == masterCloud_.getRow(rowIdx)[0][2]) {
-            masterStart = rowIdx;
-            found = true;
-            break;
-        }
-    }
-
-    // If the segmentation is fully contained in the new one, skip blending
-    if (!found) {
-        return points;
-    }
-    if (!backwards && startZ < masterCloud_.getRow(0)[0][2]) {
-        return points;
-    }
-
-    // Blend each row in the 2*windowSize+1 overlap region
-    const auto blendRows =
-        std::min<std::size_t>(2 * windowSize + 1, points.size());
-    for (const auto u : range(blendRows)) {
-        const auto masterRowIdx = masterStart + u;
-        if (masterRowIdx >= masterCloud_.height()) {
-            break;
-        }
-
-        const auto w =
-            static_cast<float>(u + 1) / static_cast<float>(2 * windowSize + 2);
-        const float wPts = backwards ? 1.f - w : w;
-        const float wMaster = backwards ? w : 1.f - w;
-
-        const auto& masterRow = masterCloud_.getRow(masterRowIdx);
-        for (const auto j : range(masterCloud_.width())) {
-            if (j >= points[u].size()) {
-                break;
-            }
-            points[u][j] = Voxel(
-                wPts * points[u][j][0] + wMaster * masterRow[j][0],
-                wPts * points[u][j][1] + wMaster * masterRow[j][1],
-                points[u][j][2]);
-        }
-
-        // Re-space the blended row evenly
-        FittedCurve blended(
-            points[u], static_cast<int>(std::round(points[u][0][2])));
-        points[u] = blended.evenlySpacePoints();
-    }
-    return points;
-}
-
-auto OpticalFlowSegmentation::interpolateGaps(
-    std::vector<std::vector<Voxel>> points) -> std::vector<std::vector<Voxel>>
-{
-    if (points.empty()) {
-        return points;
-    }
-
-    std::vector<std::vector<Voxel>> gapPoints;
-    std::map<int, int> gapInfo;  // row index → gap size
-
-    for (int row = 0; row < static_cast<int>(points.size()); ++row) {
-        if (row + 1 >= static_cast<int>(points.size())) {
-            break;
-        }
-        const double deltaZ = points[row + 1][0][2] - points[row][0][2];
-        if (deltaZ <= 1) {
-            continue;
-        }
-
-        gapInfo[row] = static_cast<int>(deltaZ) - 1;
-
-        // Compute per-point deltas across the gap
-        const auto width = masterCloud_.width();
-        std::vector<Voxel> deltas(width);
-        for (const auto w : range(width)) {
-            deltas[w][0] = (points[row + 1][w][0] - points[row][w][0]) / deltaZ;
-            deltas[w][1] = (points[row + 1][w][1] - points[row][w][1]) / deltaZ;
-        }
-
-        // Generate one interpolated row per missing z-slice
-        for (int gap = 1; gap < static_cast<int>(deltaZ); ++gap) {
-            std::vector<Voxel> gapRow(width);
-            for (const auto w : range(width)) {
-                gapRow[w] = Voxel(
-                    points[row][w][0] + gap * deltas[w][0],
-                    points[row][w][1] + gap * deltas[w][1],
-                    points[row][w][2] + gap);
-            }
-            FittedCurve evened(
-                gapRow, static_cast<int>(std::round(gapRow[0][2])));
-            gapPoints.push_back(evened.evenlySpacePoints());
-        }
-    }
-
-    // Rebuild result by interleaving original rows with gap rows
-    std::vector<std::vector<Voxel>> result;
-    result.reserve(points.size() + gapPoints.size());
-    int gapRowIdx{0};
-    for (int row = 0; row < static_cast<int>(points.size()); ++row) {
-        result.push_back(std::move(points[row]));
-        auto it = gapInfo.find(row);
-        if (it != gapInfo.end()) {
-            for (int i = 0; i < it->second; ++i) {
-                result.push_back(std::move(gapPoints[gapRowIdx++]));
-            }
-        }
-    }
-    return result;
+    return result_ = CreateFinalPointSet(points);
 }
 
 // Re-segment from the end index till start of interpolation window (overwrite
@@ -724,7 +715,7 @@ auto OpticalFlowSegmentation::interpolate_(
         }
 
         // Interpolate the gaps between points
-        resegPoints = interpolateGaps(resegPoints);
+        resegPoints = InterpolateGaps(resegPoints, masterCloud_.width());
 
         // Remove the end anchor and everything before the interp start
         // May have end anchor from gap interp, but it should be removed here
@@ -824,7 +815,7 @@ auto OpticalFlowSegmentation::interpolate_(
         }
 
         // Interpolate the gaps between points
-        points = interpolateGaps(points);
+        points = InterpolateGaps(points, masterCloud_.width());
 
         // Remove the start anchor and everything after the interp end
         // May have start anchor from gap interp, but it should be removed here
@@ -854,8 +845,8 @@ auto OpticalFlowSegmentation::interpolate_(
     points.erase(b, e);
 
     // Interpolate against the master cloud
-    interpPts =
-        interpolateWithMasterCloud(interpPts, interpWindow_, !backwards);
+    interpPts = InterpolateWithMasterCloud(
+        interpPts, masterCloud, interpWindow_, !backwards);
 
     // Merge the interpolated points with the starting curve points
     auto insertPos = backwards ? points.begin() : points.end();
@@ -930,7 +921,7 @@ auto OpticalFlowSegmentation::run_ofs_(
             const auto wholeChainPath = wholeChainDir / (zStr + "_chain.png");
             WriteImage(
                 wholeChainPath,
-                draw_particle_on_slice_(currentCurve, zIndex, -1, true));
+                DrawParticleOnSlice(currentCurve, zIndex, vol_, -1, true));
         }
 
         // Partition the curve into overlapping segments for parallel processing
@@ -1002,7 +993,7 @@ auto OpticalFlowSegmentation::run_ofs_(
             // Since points can change due to 2nd deriv optimization after main
             // optimization, refit a curve and draw that
             const FittedCurve newChain(nextVs, nextZIndex);
-            auto chain = draw_particle_on_slice_(newChain, nextZIndex);
+            auto chain = DrawParticleOnSlice(newChain, nextZIndex, vol_);
             cv::namedWindow("Next curve", cv::WINDOW_NORMAL);
             cv::imshow("Next curve", chain);
             cv::waitKey(0);

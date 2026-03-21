@@ -176,23 +176,6 @@ private:
         -> std::vector<Voxel>;
 
     /**
-     * @brief Debug: Draw curve on slice image
-     * @param curve Input curve
-     * @param sliceIndex %Slice on which to draw
-     * @param particleIndex Highlight point at particleIndex
-     * @param showSpline Draw interpolated curve. Default only draws points
-     */
-    [[nodiscard]] auto draw_particle_on_slice_(
-        const FittedCurve& curve,
-        int sliceIndex,
-        int particleIndex = -1,
-        bool showSpline = false) const -> cv::Mat;
-
-    /** @brief Convert the internal storage array into a final PointSet */
-    auto create_final_pointset_(const std::vector<std::vector<Voxel>>& points)
-        -> PointSet;
-
-    /**
      * @brief Blend the re-segmentation run into the forward run over an
      * interpolation window
      * @param interpStart First z-slice of the interpolation window
@@ -223,23 +206,6 @@ private:
         std::size_t& iteration,
         const OfsConfig& cfg)
         -> std::tuple<std::vector<std::vector<Voxel>>, Status>;
-
-    /**
-     * @brief Interpolate a set of curve rows against the master cloud
-     * @param points Curve rows to blend
-     * @param windowSize Number of rows on each side to blend
-     * @param backwards Direction of the OFS run
-     */
-    auto interpolateWithMasterCloud(
-        std::vector<std::vector<Voxel>> points, int windowSize, bool backwards)
-        -> std::vector<std::vector<Voxel>>;
-
-    /**
-     * @brief Fill in missing z-slices between curve rows using linear
-     * interpolation
-     */
-    auto interpolateGaps(std::vector<std::vector<Voxel>> points)
-        -> std::vector<std::vector<Voxel>>;
 
     /** Start z-index */
     int startIndex_{0};
