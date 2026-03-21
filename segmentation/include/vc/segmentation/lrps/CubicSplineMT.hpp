@@ -2,7 +2,6 @@
 
 /** @file */
 
-#include <mutex>
 #include <vector>
 
 #include "vc/segmentation/lrps/Common.hpp"
@@ -54,8 +53,6 @@ private:
     std::vector<double> subsegLens_;
     /** Cumulative lengths of subsegments */
     std::vector<double> cumuLens_;
-    /** Parameter write mutex */
-    std::mutex mtx_;
 };
 
 }  // namespace volcart::segmentation

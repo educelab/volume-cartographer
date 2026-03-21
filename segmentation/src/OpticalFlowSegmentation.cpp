@@ -1,13 +1,10 @@
 #include "vc/segmentation/OpticalFlowSegmentation.hpp"
 
 #include <algorithm>
-#include <future>
 #include <iomanip>
 #include <limits>
 #include <map>
 #include <tuple>
-
-#include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -34,9 +31,6 @@ using Status = OpticalFlowSegmentation::Status;
 // estimating the 2D normal to the curve in the z plane
 namespace
 {
-// Compilation-unit local thread pool so threads are shared across instances
-BS::thread_pool POOL;
-
 template <class Iterable, typename RetType = int>
 auto minimum_elem(const Iterable& iterable, std::size_t elem = 2) -> RetType
 {
@@ -929,55 +923,39 @@ auto OpticalFlowSegmentation::run_ofs_(
                 draw_particle_on_slice_(currentCurve, zIndex, -1, true));
         }
 
-        // Calculate the num threads we're going to use
-        // TODO: Review this logic in more detail
-        constexpr std::uint32_t minPointsPerThread{15};
+        // Partition the curve into overlapping segments for parallel processing
+        constexpr std::uint32_t minPointsPerSegment{15};
         const auto numPts = currentVs.size();
-        const auto ptsPerThread = static_cast<std::uint32_t>(std::floor(
-            static_cast<float>(numPts) /
-            static_cast<float>(minPointsPerThread)));
-        const auto numThreads =
-            std::max(1U, std::min(ptsPerThread, POOL.get_thread_count()));
-        const auto baseSegmentLength = static_cast<std::uint32_t>(std::floor(
-            static_cast<float>(numPts) / static_cast<float>(numThreads)));
-        const auto numThreadsWithExtraPoint = numPts % numThreads;
+        const auto numSegments = std::max(
+            std::size_t{1},
+            numPts / static_cast<std::size_t>(minPointsPerSegment));
+        const auto baseSegmentLength = numPts / numSegments;
+        const auto remainder = numPts % numSegments;
 
-        // Parallel computation of curve segments
-        RawPointSet subsegmentVectors(numThreads);
+        RawPointSet subsegmentVectors(numSegments);
         std::size_t startIdx{0};
-        for (const auto& i : range(numThreads)) {
-            auto segmentLength =
-                baseSegmentLength + (i < numThreadsWithExtraPoint ? 1 : 0);
-            auto endIdx = startIdx + segmentLength;
+        for (const auto& i : range(numSegments)) {
+            const auto segLen = baseSegmentLength + (i < remainder ? 1 : 0);
+            const auto endIdx = startIdx + segLen;
 
-            // Change start_idx and end_idx to include overlap
-            auto startIdxPadded =
-                static_cast<std::int64_t>((i == 0) ? 0 : (startIdx - 2));
-            auto endIdxPadded = static_cast<std::int64_t>(
-                (i == numThreads - 1) ? numPts : (endIdx + 2));
+            // Extend each segment by 2 points on each side for smooth stitching
+            const auto startPadded =
+                static_cast<std::ptrdiff_t>((i == 0) ? 0 : startIdx - 2);
+            const auto endPadded = static_cast<std::ptrdiff_t>(
+                (i == numSegments - 1) ? numPts : endIdx + 2);
 
-            // Copy from currentVs to our vector
-            auto startIt = std::next(currentVs.begin(), startIdxPadded);
-            auto endIt = std::next(currentVs.begin(), endIdxPadded);
-            subsegmentVectors.emplace_back(startIt, endIt);
+            subsegmentVectors[i] = Chain(
+                std::next(currentVs.begin(), startPadded),
+                std::next(currentVs.begin(), endPadded));
             startIdx = endIdx;
         }
 
-        // Queue the jobs
-        std::vector<std::future<void>> futures;
-        RawPointSet subsegmentPoints(numThreads);
-        for (const auto& i : range(numThreads)) {
-            futures.emplace_back(POOL.submit_task(
-                [this, &subsegmentVectors, &zIndex, &subsegmentPoints, i]() {
-                    const Chain subsegmentChain(subsegmentVectors[i]);
-                    const FittedCurve curve(subsegmentChain, zIndex);
-                    subsegmentPoints[i] = compute_curve_(curve, zIndex);
-                }));
-        }
-
-        // Wait for all threads to complete
-        for (const auto& t : futures) {
-            t.wait();
+        // Process segments in parallel
+        RawPointSet subsegmentPoints(numSegments);
+#pragma omp parallel for schedule(static)
+        for (int i = 0; i < static_cast<int>(numSegments); ++i) {
+            const FittedCurve curve(subsegmentVectors[i], zIndex);
+            subsegmentPoints[i] = compute_curve_(curve, zIndex);
         }
 
         // Stitch curve segments together, discarding overlapping points
@@ -989,7 +967,7 @@ auto OpticalFlowSegmentation::run_ofs_(
             if (i > 0) {
                 startIt = std::next(segment.begin(), 2);
             }
-            if (i < numThreads - 1) {
+            if (i < numSegments - 1) {
                 endIt = std::next(segment.end(), -2);
             }
             stitched.insert(stitched.end(), startIt, endIt);

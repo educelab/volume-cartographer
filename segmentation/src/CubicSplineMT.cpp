@@ -5,15 +5,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <future>
-#include <mutex>
 #include <numeric>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include <Eigen/Dense>
-#include <BS_thread_pool.hpp>
 #include <gsl/gsl_integration.h>
 
 #include "vc/core/util/Iteration.hpp"
@@ -27,10 +24,6 @@ using Params = std::vector<double>;
 
 namespace
 {
-
-// Compilation-unit local thread pool so threads are shared across splines
-// This computation is quick enough that splines get their own pool
-BS::thread_pool POOL;
 
 template <typename T>
 auto linspace(const std::size_t num, const T low, const T high)
@@ -90,38 +83,39 @@ auto Interpolate(const VectorXd& x, const VectorXd& y)
     return {a, b, c, d};
 }
 
-void FitSplineWindow(
-    const Params& x,
-    const Params& y,
-    const std::size_t startIdx,
-    const std::size_t endIdx,
-    const std::size_t winSize,
-    const std::size_t bufSize,
-    std::mutex& mtx,
-    Params& aVec,
-    Params& bVec,
-    Params& cVec,
-    Params& dVec)
+auto FitSplineMT(
+    const Params& range,
+    const Params& val,
+    const std::size_t winSize = 100,
+    const std::size_t bufSize = 10)
+    -> std::tuple<Params, Params, Params, Params>
 {
-    for (auto i = startIdx; i < endIdx; i += winSize) {
-        const auto winEnd = std::min(i + winSize + bufSize, x.size());
+    const auto n = range.size();
+    Params aVec(n, 0.0);
+    Params bVec(n, 0.0);
+    Params cVec(n, 0.0);
+    Params dVec(n, 0.0);
+
+    // Each window writes to a non-overlapping range of the output vectors,
+    // so no synchronization is needed.
+    const auto nWindows = static_cast<std::ptrdiff_t>(
+        std::ceil(static_cast<double>(n) / static_cast<double>(winSize)));
+#pragma omp parallel for schedule(dynamic)
+    for (std::ptrdiff_t wi = 0; wi < nWindows; ++wi) {
+        const auto i = static_cast<std::size_t>(wi) * winSize;
+        const auto winEnd = std::min(i + winSize + bufSize, n);
         std::size_t winStart{0};
         if (winEnd > winSize and winEnd - winSize > 2 * bufSize) {
             winStart = winEnd - winSize - 2 * bufSize;
         }
         const auto winStride = static_cast<Index>(winEnd - winStart);
 
-        // Map vectors to Eigen vectors for interp
-        auto xWin = Eigen::Map<const VectorXd>(&x[winStart], winStride);
-        auto yWin = Eigen::Map<const VectorXd>(&y[winStart], winStride);
-
-        // Interpolate
+        auto xWin = Eigen::Map<const VectorXd>(&range[winStart], winStride);
+        auto yWin = Eigen::Map<const VectorXd>(&val[winStart], winStride);
         auto [a, b, c, d] = Interpolate(xWin, yWin);
 
-        // Copy results to vectors
         const auto updateStart = i - winStart;
-        const auto updateEnd = std::min(i + winSize, x.size()) - winStart;
-        std::lock_guard lock(mtx);
+        const auto updateEnd = std::min(i + winSize, n) - winStart;
         std::copy(
             a.data() + updateStart, a.data() + updateEnd, aVec.begin() + i);
         std::copy(
@@ -130,74 +124,6 @@ void FitSplineWindow(
             c.data() + updateStart, c.data() + updateEnd, cVec.begin() + i);
         std::copy(
             d.data() + updateStart, d.data() + updateEnd, dVec.begin() + i);
-    }
-}
-
-auto FitSplineMT(
-    const Params& range,
-    const Params& val,
-    std::mutex& mtx,
-    const std::size_t winSize = 100,
-    const std::size_t bufSize = 10,
-    int numThreads = -1) -> std::tuple<Params, Params, Params, Params>
-{
-    // Init output params
-    const auto n = range.size();
-    std::vector aVec(n, 0.0);
-    std::vector bVec(n, 0.0);
-    std::vector cVec(n, 0.0);
-    std::vector dVec(n, 0.0);
-
-    // Thread futures
-    std::vector<std::future<void>> futures;
-
-    // Reset pool to the requested number of threads
-    if (numThreads < 1 and
-        POOL.get_thread_count() != std::thread::hardware_concurrency()) {
-        POOL.reset();
-    } else if (numThreads >= 1 and POOL.get_thread_count() != numThreads) {
-        POOL.reset(numThreads);
-    }
-    numThreads = static_cast<int>(POOL.get_thread_count());
-    Logger()->debug("Using {} threads", numThreads);
-    futures.reserve(numThreads);
-
-    // Fit spline windows on multiple threads
-    const auto steps = static_cast<std::size_t>(
-        std::ceil(static_cast<double>(n) / static_cast<double>(winSize)));
-    const auto stepsPerThread = steps / numThreads;
-    const auto remainder = steps % numThreads;
-    std::size_t currentStep = 0;
-    for (std::size_t i = 0; i < numThreads; ++i) {
-        auto startIdx = currentStep * winSize;
-        auto endIdx = (currentStep + stepsPerThread) * winSize;
-
-        // Add one window from the remainder to every thread
-        if (i < remainder) {
-            endIdx += winSize;
-            currentStep += 1;
-        }
-        endIdx = std::min(endIdx, n);
-
-        // Update the step index
-        currentStep += stepsPerThread;
-        if (startIdx >= endIdx) {
-            continue;
-        }
-
-        // Queue the job
-        futures.emplace_back(
-            POOL.submit_task([&range, &val, startIdx, endIdx, winSize, bufSize,
-                              &mtx, &aVec, &bVec, &cVec, &dVec] {
-                FitSplineWindow(
-                    range, val, startIdx, endIdx, winSize, bufSize, mtx, aVec,
-                    bVec, cVec, dVec);
-            }));
-    }
-
-    // Wait for all threads to complete
-    for (const auto& t : futures) {
-        t.wait();
     }
 
     return {aVec, bVec, cVec, dVec};
@@ -280,8 +206,8 @@ auto SubsegmentLengths(
 CubicSplineMT::CubicSplineMT(const Params& x, const Params& y)
 {
     rangeXY_ = linspace(x.size(), 0., static_cast<double>(x.size() - 1));
-    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, x, mtx_);
-    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, y, mtx_);
+    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, x);
+    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, y);
     std::tie(subsegLens_, cumuLens_) =
         SubsegmentLengths(rangeXY_, bX_, cX_, dX_, bY_, cY_, dY_);
 }
@@ -291,8 +217,8 @@ CubicSplineMT::CubicSplineMT(const std::vector<Voxel>& vs)
     auto [xs, ys] = Unzip(vs);
 
     rangeXY_ = linspace(xs.size(), 0., static_cast<double>(xs.size() - 1));
-    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, xs, mtx_);
-    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, ys, mtx_);
+    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, xs);
+    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, ys);
     std::tie(subsegLens_, cumuLens_) =
         SubsegmentLengths(rangeXY_, bX_, cX_, dX_, bY_, cY_, dY_);
 }

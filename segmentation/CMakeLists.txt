@@ -22,7 +22,6 @@ add_library(VC::segmentation ALIAS "vc_segmentation")
 target_include_directories(vc_segmentation
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${threadpool_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 target_compile_options(vc_segmentation
@@ -38,6 +37,7 @@ target_link_libraries(vc_segmentation
         opencv_video
         ${VC_FS_LIB}
         GSL::gsl
+        $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>
 )
 target_compile_features(vc_segmentation PUBLIC cxx_std_17)
 set_target_properties(vc_segmentation PROPERTIES
