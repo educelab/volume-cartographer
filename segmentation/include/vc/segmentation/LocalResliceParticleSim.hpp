@@ -51,67 +51,77 @@ public:
             std::forward<Args>(args)...);
     }
 
+    /** @brief Set the start z-index */
+    void setStartZIndex(int z);
+
+    /** @brief Get the start z-index */
+    [[nodiscard]] auto getStartZIndex() const -> int;
+
     /** @brief Set the target z-index */
-    void setTargetZIndex(int z) { endIndex_ = z; }
+    void setTargetZIndex(int z);
+
+    /** @brief Get the target z-index */
+    [[nodiscard]] auto getTargetZIndex() const -> int;
 
     /** @brief Set the number of curve optimization iterations per step */
-    void setOptimizationIterations(int n) { numIters_ = n; }
+    void setOptimizationIterations(int n);
 
     /**
      * @brief Set the weight for the Active Contour metric
-     * @see double ActiveContourInternal()
+     * @see ActiveContourInternal()
      */
-    void setAlpha(double a) { alpha_ = a; }
+    void setAlpha(double a);
 
     /**
      * @brief Set the stretch weight factor
-     * @see double ActiveContourInternal()
+     * @see ActiveContourInternal()
      */
-    void setK1(double k) { k1_ = k; }
+    void setK1(double k);
 
     /**
      * @brief Set the curvature weight factor
-     * @see double ActiveContourInternal()
+     * @see ActiveContourInternal()
      */
-    void setK2(double k) { k2_ = k; }
+    void setK2(double k);
 
     /**
      * @brief Set the weight for the Absolute Curvature Sum metric
-     * @see double AbsCurvatureSum()
+     * @see AbsCurvatureSum()
      */
-    void setBeta(double b) { beta_ = b; }
+    void setBeta(double b);
 
     /**
      * @brief Set the weight for the Arc Length metric
-     * @see double WindowedArcLength()
+     * @see WindowedArcLength()
      */
-    void setDelta(double d) { delta_ = d; }
+    void setDelta(double d);
 
     /**
      * @brief Set the estimated thickness of the substrate (in um)
      *
      * Used to generate the radius of the structure tensor calculation
      */
-    void setMaterialThickness(double m) { materialThickness_ = m; }
+    void setMaterialThickness(double m);
 
     /** @brief Set the reslice window size */
-    void setResliceSize(int s) { resliceSize_ = s; }
+    void setResliceSize(int s);
 
     /** @brief Set the distance weight factor for candidate positions */
-    void setDistanceWeightFactor(int f) { peakDistanceWeight_ = f; }
+    void setDistanceWeightFactor(int f);
 
-    /** @brief Set whether to consider previous position as candidate position
+    /**
+     * @brief Set whether to consider previous position as candidate position
      */
-    void setConsiderPrevious(bool b) { considerPrevious_ = b; }
+    void setConsiderPrevious(bool b);
 
     /** @brief Compute the segmentation */
     auto compute() -> PointSet override;
 
     /** Debug: Shows intensity maps in GUI window */
-    void setVisualize(bool b) { visualize_ = b; }
+    void setVisualize(bool b);
 
     /** Debug: Dumps reslices and intensity maps to disk */
-    void setDumpVis(bool b) { dumpVis_ = b; }
+    void setDumpVis(bool b);
 
     /** @brief Returns the maximum progress value */
     [[nodiscard]] auto progressIterations() const -> std::size_t override;
@@ -145,6 +155,8 @@ private:
     /** Default minimum energy gradient */
     constexpr static double DEFAULT_MIN_ENERGY_GRADIENT = 1e-7;
 
+    /** Start z-index */
+    int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
     /** Active Contour weight parameter */

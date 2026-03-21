@@ -77,6 +77,9 @@ find_package(TIFF 4.0 REQUIRED)
 ### spdlog ###
 find_package(spdlog 1.4.2 CONFIG REQUIRED)
 
+### GNU Scientific Library ###
+find_package(GSL REQUIRED)
+
 ### OpenABF ###
 include(BuildOpenABF)
 
@@ -91,6 +94,9 @@ include(Buildsmgl)
 
 ### libcore ###
 include(Buildlibcore)
+
+### thread-pool ###
+include(Buildthreadpool)
 
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)

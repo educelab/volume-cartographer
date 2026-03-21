@@ -33,6 +33,50 @@ auto LocalResliceSegmentation::progressIterations() const -> std::size_t
     return static_cast<std::size_t>((endIndex_ - startIndex) / stepSize_);
 }
 
+void LocalResliceSegmentation::setStartZIndex(int z) { startIndex_ = z; }
+
+auto LocalResliceSegmentation::getStartZIndex() const -> int
+{
+    return startIndex_;
+}
+
+void LocalResliceSegmentation::setTargetZIndex(int z) { endIndex_ = z; }
+
+auto LocalResliceSegmentation::getTargetZIndex() const -> int
+{
+    return endIndex_;
+}
+
+void LocalResliceSegmentation::setOptimizationIterations(int n)
+{
+    numIters_ = n;
+}
+
+void LocalResliceSegmentation::setAlpha(double a) { alpha_ = a; }
+
+void LocalResliceSegmentation::setK1(double k) { k1_ = k; }
+
+void LocalResliceSegmentation::setK2(double k) { k2_ = k; }
+
+void LocalResliceSegmentation::setBeta(double b) { beta_ = b; }
+
+void LocalResliceSegmentation::setDelta(double d) { delta_ = d; }
+
+void LocalResliceSegmentation::setMaterialThickness(double m)
+{
+    materialThickness_ = m;
+}
+void LocalResliceSegmentation::setResliceSize(int s) { resliceSize_ = s; }
+
+void LocalResliceSegmentation::setDistanceWeightFactor(int f)
+{
+    peakDistanceWeight_ = f;
+}
+void LocalResliceSegmentation::setConsiderPrevious(bool b)
+{
+    considerPrevious_ = b;
+}
+
 auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
 {
     // reset progress
@@ -50,6 +94,7 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
         })) {
         status_ = Status::ReturnedEarly;
         progressComplete();
+        std::cout << "[Error]: Starting chain out of bounds!" << std::endl;
         return create_final_pointset_({currentVs});
     }
 
@@ -67,7 +112,7 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
     auto startIndex = static_cast<int>(std::floor((*minZPoint)[2]));
 
     if (endIndex_ <= startIndex) {
-        throw std::domain_error("end index <= start index");
+        throw std::domain_error("End index <= start index");
     }
 
     // Collection to hold all positions
@@ -144,9 +189,11 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
 
             // Convert maxima to voxel positions
             std::deque<Voxel> maximaQueue;
-            for (auto&& maxima : allMaxima) {
-                maximaQueue.emplace_back(reslice.sliceToVoxelCoord<double>(
-                    {maxima.first, nextLayerIndex}));
+            for (const auto& [x, _] : allMaxima) {
+                auto coord = reslice.sliceToVoxelCoord<double>(
+                    {static_cast<double>(x),
+                     static_cast<double>(nextLayerIndex)});
+                maximaQueue.push_back(coord);
             }
             nextPositions.push_back(maximaQueue);
         }
@@ -331,6 +378,8 @@ auto LocalResliceSegmentation::compute() -> LocalResliceSegmentation::PointSet
     // 6. Output final mesh
     return create_final_pointset_(points);
 }
+void LocalResliceSegmentation::setVisualize(bool b) { visualize_ = b; }
+void LocalResliceSegmentation::setDumpVis(bool b) { dumpVis_ = b; }
 
 auto LocalResliceSegmentation::estimate_normal_at_index_(
     const FittedCurve& currentCurve, int index) -> cv::Vec3d

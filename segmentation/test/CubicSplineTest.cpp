@@ -12,7 +12,7 @@
 using namespace volcart::segmentation;
 
 // Global float comparison percent tolerance
-static const double floatComparePercentTolerance = 0.01;  // %
+static constexpr double floatComparePercentTolerance = 0.01;  // %
 
 auto generateTVals(std::size_t count) -> std::vector<double>;
 
@@ -72,8 +72,6 @@ struct ParabolicCubicSpline {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Test tval generation
-// Note: use BOOST_REQUIRE_* here so we don't go on to other tests if this check
-// fails since those tests rely on this functionality
 TEST(CubicSplineTest, CanGenerateCorrectTValues)
 {
     // Create N t-values to evaluate the spline at and make sure we get a

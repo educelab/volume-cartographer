@@ -1,22 +1,37 @@
+#include "vc/segmentation/lrps/FittedCurve.hpp"
+
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 
 #include "vc/segmentation/lrps/Derivative.hpp"
-#include "vc/segmentation/lrps/FittedCurve.hpp"
 
 using namespace volcart::segmentation;
 
-auto GenerateTVals(std::size_t count) -> std::vector<double>;
-
-FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int zIndex)
-    : npoints_(vs.size()), zIndex_(zIndex), ts_(GenerateTVals(npoints_))
+namespace
 {
-    std::vector<double> xs, ys;
-    std::tie(xs, ys) = Unzip(vs);
+auto GenerateTVals(std::size_t count) -> std::vector<double>
+{
+    std::vector<double> ts(count);
+    if (count > 0) {
+        ts[0] = 0;
+        double sum = 0;
+        std::generate(std::begin(ts) + 1, std::end(ts) - 1, [count, &sum]() {
+            return sum += 1.0 / static_cast<double>(count - 1);
+        });
+        ts.back() = 1;
+    }
+    return ts;
+}
+}  // namespace
 
-    spline_ = CubicSpline<double>(xs, ys);
-
+FittedCurve::FittedCurve(const std::vector<Voxel>& vs, const int zIndex)
+    : npoints_(vs.size())
+    , zIndex_(zIndex)
+    , ts_(GenerateTVals(npoints_))
+    , spline_(CubicSplineMT(vs))
+{
     // Calculate new voxel positions from the spline
     points_.reserve(vs.size());
     for (const auto t : ts_) {
@@ -24,10 +39,22 @@ FittedCurve::FittedCurve(const std::vector<Voxel>& vs, int zIndex)
         points_.emplace_back(p(0), p(1), zIndex_);
     }
 }
-
-auto FittedCurve::resample(double resamplePerc) -> std::vector<Voxel>
+auto FittedCurve::size() const -> std::size_t { return npoints_; }
+auto FittedCurve::points() const -> const std::vector<Voxel>&
 {
-    npoints_ = std::size_t(std::round(resamplePerc * npoints_));
+    return points_;
+}
+auto FittedCurve::spline() const -> const Spline& { return spline_; }
+auto FittedCurve::eval(const double t) const -> Pixel { return spline_(t); }
+auto FittedCurve::evenlySpacePoints() -> std::vector<Voxel>
+{
+    return resample(1.0);
+}
+
+auto FittedCurve::resample(const double resamplePerc) -> std::vector<Voxel>
+{
+    const auto np = std::round(resamplePerc * static_cast<double>(npoints_));
+    npoints_ = static_cast<std::size_t>(np);
 
     // If we're resampling at 100%, re-use last tvals
     if (resamplePerc != 1.0) {
@@ -39,7 +66,8 @@ auto FittedCurve::resample(double resamplePerc) -> std::vector<Voxel>
     return points_;
 }
 
-auto FittedCurve::sample(std::size_t numPoints) const -> std::vector<Voxel>
+auto FittedCurve::sample(const std::size_t numPoints) const
+    -> std::vector<Voxel>
 {
     std::vector<Voxel> newPoints(numPoints);
     newPoints.reserve(numPoints);
@@ -53,17 +81,16 @@ auto FittedCurve::sample(std::size_t numPoints) const -> std::vector<Voxel>
     return newPoints;
 }
 
-auto FittedCurve::operator()(int index) const -> Voxel
+auto FittedCurve::operator()(const int index) const -> Voxel
 {
-    assert(index >= 0 && index < int(ts_.size()) && "out of bounds");
-    Pixel p = spline_(ts_[index]);
-    return {p(0), p(1), double(zIndex_)};
+    assert(index >= 0 && index < ts_.size() && "out of bounds");
+    auto p = spline_(ts_[index]);
+    return {p(0), p(1), static_cast<double>(zIndex_)};
 }
 
-auto FittedCurve::curvature(int hstep) const -> std::vector<double>
+auto FittedCurve::curvature(const int hstep) const -> std::vector<double>
 {
-    std::vector<double> xs, ys;
-    std::tie(xs, ys) = Unzip(points_);
+    const auto [xs, ys] = Unzip(points_);
     const auto dx1 = D1(xs, hstep);
     const auto dy1 = D1(ys, hstep);
     const auto dx2 = D2(xs, hstep);
@@ -89,18 +116,4 @@ auto FittedCurve::arclength() const -> double
         length += cv::norm(points_[i], points_[i - 1]);
     }
     return length;
-}
-
-auto GenerateTVals(std::size_t count) -> std::vector<double>
-{
-    std::vector<double> ts(count);
-    if (count > 0) {
-        ts[0] = 0;
-        double sum = 0;
-        std::generate(std::begin(ts) + 1, std::end(ts) - 1, [count, &sum]() {
-            return sum += 1.0 / (count - 1);
-        });
-        ts.back() = 1;
-    }
-    return ts;
 }
