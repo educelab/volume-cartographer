@@ -14,7 +14,6 @@ namespace volcart::segmentation
  *
  * @author    Julian Schilliger
  * @date      September 2023
- * @copyright 2023 Julian Schilliger, MIT License.
  *
  * @details Cubic spline class which uses multiple threads to fit to the
  * provided knots.

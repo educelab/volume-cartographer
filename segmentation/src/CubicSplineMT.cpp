@@ -1,5 +1,3 @@
-/* This file is licensed under the MIT license. Please see CubicSplineMT.hpp. */
-
 #include "vc/segmentation/lrps/CubicSplineMT.hpp"
 
 #include <algorithm>

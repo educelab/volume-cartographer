@@ -18,7 +18,6 @@ namespace volcart::segmentation
  *
  * @author    Julian Schilliger
  * @date      May 2023
- * @copyright MIT License.
  *
  * This algorithm propagates a chain of points forward through a volume from a
  * starting z-index to an ending z-index (inclusive). It uses optical flow to
