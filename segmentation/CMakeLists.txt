@@ -37,7 +37,7 @@ target_link_libraries(vc_segmentation
         opencv_video
         ${VC_FS_LIB}
         GSL::gsl
-        $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>
+        $<$<BOOL:${VC_USE_OPENMP}>:OpenMP::OpenMP_CXX>
 )
 target_compile_features(vc_segmentation PUBLIC cxx_std_17)
 set_target_properties(vc_segmentation PROPERTIES
