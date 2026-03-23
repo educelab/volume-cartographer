@@ -242,7 +242,7 @@ private:
     /** Maximum displacement (voxels) allowed as a bounce from an edge */
     std::uint32_t edgeBounceDistance_{3};
     /** Enable blending of OFS output against the master cloud */
-    bool requestInterp_{true};
+    bool requestInterp_{false};
     /** Half-width of the interpolation window in slices (must be positive) */
     std::uint32_t interpWindow_{5};
     /** Distance in slices from the start slice to the interpolation center */
