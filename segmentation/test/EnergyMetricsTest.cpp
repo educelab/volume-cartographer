@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
-#include <iostream>
+#include <numeric>
+#include <vector>
 
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"
 #include "vc/testing/TestingUtils.hpp"

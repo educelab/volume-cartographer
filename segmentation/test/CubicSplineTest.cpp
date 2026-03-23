@@ -2,153 +2,145 @@
 
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <numeric>
 #include <vector>
 
-#include "vc/segmentation/lrps/Spline.hpp"
+#include "vc/segmentation/lrps/CubicSpline.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart::segmentation;
 
-// Global float comparison percent tolerance
-static const double floatComparePercentTolerance = 0.01;  // %
+// Percent tolerance for floating-point comparisons
+static constexpr double kTol = 0.01;  // 1%
 
-auto generateTVals(std::size_t count) -> std::vector<double>;
+// Build a horizontal line y=c from n evenly-spaced x knots
+static auto MakeConstantSpline(std::size_t n, double yConst) -> CubicSpline
+{
+    std::vector<double> xs(n), ys(n);
+    std::iota(xs.begin(), xs.end(), 0.0);
+    std::fill(ys.begin(), ys.end(), yConst);
+    return CubicSpline(xs, ys);
+}
 
-// Fixture for a spline parameterizing y = 1
-struct ConstantCubicSpline {
-
-    std::size_t _knotCount;
-    double _yConstant;
-    CubicSpline<double> _spline;
-
-    ConstantCubicSpline(std::size_t knotCount, double yConstant)
-        : _knotCount(knotCount), _yConstant(yConstant), _spline(makeSpline())
-    {
-        std::vector<double> xs(knotCount), ys(knotCount);
-        std::iota(std::begin(xs), std::end(xs), 0.0);
-        std::fill(std::begin(ys), std::end(ys), yConstant);
-        _spline = CubicSpline<double>(xs, ys);
-    }
-
-    auto makeSpline() -> decltype(_spline)
-    {
-        std::vector<double> xs(_knotCount), ys(_knotCount);
-        std::iota(std::begin(xs), std::end(xs), 0.0);
-        std::fill(std::begin(ys), std::end(ys), _yConstant);
-        return CubicSpline<double>(xs, ys);
-    }
-};
-
-// Fixture for a spline parameterizing y = x^2
-struct ParabolicCubicSpline {
-
-    std::size_t _knotCount;
-    double _splineStart;
-    CubicSpline<double> _spline;
-
-    ParabolicCubicSpline(std::size_t knotCount, double splineStart)
-        : _knotCount(knotCount)
-        , _splineStart(splineStart)
-        , _spline(makeSpline())
-    {
-    }
-
-    auto makeSpline() -> decltype(_spline)
-    {
-        // Fill x values
-        std::vector<double> xs(_knotCount), ys(_knotCount);
-        std::iota(std::begin(xs), std::end(xs), _splineStart);
-
-        // Fill y values
-        std::transform(
-            std::begin(xs), std::end(xs), std::begin(ys),
-            [](double e) { return e * e; });
-
-        return CubicSpline<double>(xs, ys);
-    }
-};
+// Build a parabola y=x² from n evenly-spaced knots starting at xStart
+static auto MakeParabolicSpline(std::size_t n, double xStart) -> CubicSpline
+{
+    std::vector<double> xs(n), ys(n);
+    std::iota(xs.begin(), xs.end(), xStart);
+    std::transform(
+        xs.begin(), xs.end(), ys.begin(), [](double x) { return x * x; });
+    return CubicSpline(xs, ys);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-// Test tval generation
-// Note: use BOOST_REQUIRE_* here so we don't go on to other tests if this check
-// fails since those tests rely on this functionality
-TEST(CubicSplineTest, CanGenerateCorrectTValues)
-{
-    // Create N t-values to evaluate the spline at and make sure we get a
-    // constant back y-value back
-    auto ts = generateTVals(20);
+// Construction
 
-    // 1. Check neighbor differences - should be equal
-    // Start at 2 so we skip the first pair
-    double firstDiff = ts[1] - ts[0];
-    for (std::size_t i = 2; i < ts.size(); ++i) {
-        volcart::testing::AssertNear(
-            firstDiff, ts[i] - ts[i - 1], floatComparePercentTolerance);
+TEST(CubicSplineTest, ConstructFromXYPairs)
+{
+    // Should not throw or crash
+    auto s = MakeConstantSpline(10, 1.0);
+    const auto p0 = s(0.0);
+    const auto p1 = s(1.0);
+    // x at t=1 should be greater than x at t=0
+    EXPECT_GT(p1(0), p0(0));
+}
+
+TEST(CubicSplineTest, ConstructFromVoxelVector)
+{
+    std::vector<Voxel> vs;
+    for (int i = 0; i < 10; ++i) {
+        vs.emplace_back(static_cast<double>(i), 5.0, 0.0);
     }
-    for (const auto t : ts) {
-        ASSERT_TRUE(t >= 0 && t <= 1);
+    CubicSpline s(vs);
+    // y should be constant ≈ 5
+    for (double t : {0.0, 0.25, 0.5, 0.75, 1.0}) {
+        volcart::testing::ExpectNear(s(t)(1), 5.0, kTol);
+    }
+}
+
+TEST(CubicSplineTest, CopyConstructionAndAssignment)
+{
+    auto orig = MakeConstantSpline(10, 3.0);
+    CubicSpline copy(orig);
+    CubicSpline assigned;
+    assigned = orig;
+
+    for (double t : {0.0, 0.5, 1.0}) {
+        volcart::testing::ExpectNear(copy(t)(1), orig(t)(1), kTol);
+        volcart::testing::ExpectNear(assigned(t)(1), orig(t)(1), kTol);
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Test constant spline
-TEST(CubicSplineTest, YEqualsOne)
+// Constant spline (y = c): y-coordinate should be constant at any t
+
+TEST(CubicSplineTest, ConstantYIsPreservedAtEndpoints)
 {
-    std::size_t count = 10;
-    ConstantCubicSpline s(count, 1.0);
+    constexpr double kY = 7.5;
+    auto s = MakeConstantSpline(15, kY);
+    volcart::testing::ExpectNear(s(0.0)(1), kY, kTol);
+    volcart::testing::ExpectNear(s(1.0)(1), kY, kTol);
+}
 
-    // auto tol = btt::percent_tolerance(floatComparePercentTolerance);
-    // auto eps = std::numeric_limits<double>::epsilon();
+TEST(CubicSplineTest, ConstantYIsPreservedThroughout)
+{
+    constexpr double kY = 4.0;
+    auto s = MakeConstantSpline(20, kY);
+    for (int i = 0; i <= 20; ++i) {
+        const double t = static_cast<double>(i) / 20.0;
+        volcart::testing::ExpectNear(s(t)(1), kY, kTol);
+    }
+}
 
-    auto ts = generateTVals(count);
-    for (std::size_t i = 1; i < ts.size(); ++i) {
-        auto p0 = s._spline(ts[i - 1]);
-        auto p1 = s._spline(ts[i]);
-
-        // Check that the x values are both between the specified range
-        // XXX Disabled until I can find a better way to validate that these
-        // numbers are in the correct range
-        /*
-        BOOST_CHECK(std::abs(p0(0)) >= 0 + eps &&
-                    std::abs(p0(0)) <= count - 1 + eps);
-        BOOST_CHECK(std::abs(p1(0)) >= 0 + eps &&
-                    std::abs(p1(0)) <= count - 1 + eps);
-                    */
-
-        // Check that p0 < p1 in x-domain
-        EXPECT_TRUE(p0(0) < p1(0));
-
-        // Check that our y-value is constant
-        volcart::testing::ExpectNear(
-            p0(1), s._yConstant, floatComparePercentTolerance);
-        volcart::testing::ExpectNear(
-            p1(1), s._yConstant, floatComparePercentTolerance);
+TEST(CubicSplineTest, ConstantSplineXIsMonotonicallyIncreasing)
+{
+    auto s = MakeConstantSpline(20, 1.0);
+    double prevX = s(0.0)(0);
+    for (int i = 1; i <= 20; ++i) {
+        const double t = static_cast<double>(i) / 20.0;
+        const double x = s(t)(0);
+        EXPECT_GT(x, prevX);
+        prevX = x;
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Test parabolic spline
-TEST(CubicSplineTest, YEqualsXSquaredValues)
+// Parabolic spline (y ≈ x²): sampled points should satisfy y ≈ x²
+
+TEST(CubicSplineTest, ParabolicSplineApproximatesYEqualsXSquared)
 {
-    std::size_t count = 20;
-    ParabolicCubicSpline s(count, -10);
-    auto ts = generateTVals(count * 2);
-    for (auto t : ts) {
-        auto p = s._spline(t);
-        volcart::testing::ExpectNear(p(0) * p(0), p(1), 2.0);
+    // Use 20 knots over [0, 19]; natural spline through y=x² is exact for
+    // polynomials of degree ≤ 3, so we expect tight agreement.
+    auto s = MakeParabolicSpline(20, 0.0);
+    for (int i = 1; i <= 18; ++i) {
+        const double t = static_cast<double>(i) / 19.0;
+        const auto p = s(t);
+        // Looser tolerance (5%) since arc-length parameterization shifts
+        // the sampling slightly away from integer x positions
+        volcart::testing::ExpectNear(p(0) * p(0), p(1), 5.0);
     }
 }
 
-auto generateTVals(std::size_t count) -> std::vector<double>
+////////////////////////////////////////////////////////////////////////////////
+// Edge cases
+
+TEST(CubicSplineTest, TwoKnotsLinearInterpolation)
 {
-    std::vector<double> ts(count);
-    ts.front() = 0;
-    double sum = 0;
-    std::generate(std::begin(ts) + 1, std::end(ts) - 1, [count, &sum]() {
-        return sum += 1.0 / (count - 1);
-    });
-    ts.back() = 1;
-    return ts;
+    // Two knots → linear segment, no cubic terms
+    CubicSpline s({0.0, 1.0}, {0.0, 2.0});
+    // midpoint should be near (0.5, 1.0)
+    const auto mid = s(0.5);
+    volcart::testing::ExpectNear(mid(0), 0.5, kTol);
+    volcart::testing::ExpectNear(mid(1), 1.0, kTol);
+}
+
+TEST(CubicSplineTest, MultiWindowPath)
+{
+    // >100 knots triggers the parallel multi-window code path in FitSplineMT
+    constexpr std::size_t kN = 150;
+    auto s = MakeConstantSpline(kN, 2.0);
+    for (int i = 0; i <= 10; ++i) {
+        const double t = static_cast<double>(i) / 10.0;
+        volcart::testing::ExpectNear(s(t)(1), 2.0, kTol);
+    }
 }

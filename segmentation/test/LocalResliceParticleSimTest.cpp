@@ -119,7 +119,7 @@ TEST_F(LocalResliceSegmentationFix, DefaultSegmentationTest)
 
 TEST_F(LocalResliceSegmentationFix, NoMemMapSegmentationTest)
 {
-    // Disable memory mapping
+    // Disable memory mapping to exercise the non-mmap I/O path through Volume
     pkg_.volume()->setMemoryMapSlices(false);
 
     // Get the cloud to compare against
@@ -129,9 +129,6 @@ TEST_F(LocalResliceSegmentationFix, NoMemMapSegmentationTest)
     // Get the starting cloud to segment
     auto pathSeed = pkg_.segmentation("starting-path")->getPointSet().getRow(0);
 
-    // Run segmentation
-    // XXX These params are manually input now, later they will be dynamically
-    // read from the parameters.json file in each segmentation directory
     int endIndex = 182;
     int numIters = 15;
     int stepNumLayers = 1;
@@ -162,17 +159,13 @@ TEST_F(LocalResliceSegmentationFix, NoMemMapSegmentationTest)
     segmenter_.setDumpVis(dumpVis);
     auto resultCloud = segmenter_.compute();
 
-    // Save the results
-    auto testCloudSeg = pkg_.newSegmentation("lrps-test-results");
+    auto testCloudSeg = pkg_.newSegmentation("lrps-test-results-nomemmap");
     testCloudSeg->setPointSet(resultCloud);
 
-    // First compare cloud sizes
     ASSERT_EQ(groundTruthCloud.size(), resultCloud.size());
     ASSERT_EQ(groundTruthCloud.width(), resultCloud.width());
     ASSERT_EQ(groundTruthCloud.height(), resultCloud.height());
 
-    // Compare clouds, make sure each point is within a certain tolerance.
-    // Currently set in this file, may be set outside later on
     constexpr double voxelDiffTol = 10;  // %
     std::size_t diffCount = 0;
     for (std::size_t i = 0; i < groundTruthCloud.size(); ++i) {
@@ -194,11 +187,8 @@ TEST_F(LocalResliceSegmentationFix, NoMemMapSegmentationTest)
         EXPECT_PRED_FORMAT2(::testing::DoubleLE, zdiff, voxelDiffTol);
     }
 
-    // Check that the clouds never vary in point differences by 10%
     auto maxAllowedDiffCount =
         std::size_t(std::round(0.1 * groundTruthCloud.size()));
-    std::cout << "# different points: " << diffCount
-              << " (max allowed: " << maxAllowedDiffCount << ")" << '\n';
     EXPECT_TRUE(diffCount < maxAllowedDiffCount);
 }
 

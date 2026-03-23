@@ -16,7 +16,8 @@ namespace volcart::segmentation
 /**
  * @brief Optical Flow Segmentation
  *
- * @author Julian Schilliger (May 2023)
+ * @author    Julian Schilliger
+ * @date      May 2023
  *
  * This algorithm propagates a chain of points forward through a volume from a
  * starting z-index to an ending z-index (inclusive). It uses optical flow to
@@ -48,8 +49,17 @@ public:
             std::forward<Args>(args)...);
     }
 
+    /** @brief Set the start z-index */
+    void setStartZIndex(int z);
+
+    /** @brief Get the start z-index */
+    [[nodiscard]] auto getStartZIndex() const -> int;
+
     /** @brief Set the target z-index */
     void setTargetZIndex(int z);
+
+    /** @brief Get the target z-index */
+    [[nodiscard]] auto getTargetZIndex() const -> int;
 
     /**
      * @brief Set the threshold of what pixel brightness is considered inside a
@@ -77,6 +87,47 @@ public:
      * the sheet again.
      */
     void setSmoothBrightnessThreshold(std::uint8_t brightness);
+
+    /** @brief Set whether to enable outlier points smoothening */
+    void setEnableSmoothOutliers(bool enable);
+
+    /** @brief Set whether to enable edge detection */
+    void setEnableEdgeDetection(bool enable);
+
+    /** @brief Set the minimum jump distance for edge detection */
+    void setEdgeJumpDistance(std::uint32_t distance);
+
+    /** @brief Set the maximum bounce distance for edge detection */
+    void setEdgeBounceDistance(std::uint32_t distance);
+
+    /** @brief Set whether to interpolate against the master cloud */
+    void setInterpolate(bool b);
+
+    /** @brief Set how wide the interpolation window should be
+     */
+    void setInterpolationWindow(std::uint32_t window);
+
+    /** @brief Get how wide the interpolation window should be
+     */
+    [[nodiscard]] auto getInterpolationWindow() const -> std::uint32_t;
+
+    /** @brief Set how many slices the interpolation center is away from the
+     * start slice
+     */
+    void setInterpolationDistance(std::uint32_t distance);
+
+    /** @brief Get how many slices the interpolation center is away from the
+     * start slice
+     */
+    [[nodiscard]] auto getInterpolationDistance() const -> std::uint32_t;
+
+    /**
+     * @brief Set the already computed masterCloud OrderedPointSet
+     */
+    void setMasterCloud(PointSet masterCloud);
+
+    /** @brief Set the input chain of re-segmentation points */
+    void setReSegmentationChain(Chain c);
 
     /**
      * @brief Set the estimated thickness of the substrate (in um)
@@ -108,26 +159,46 @@ private:
      * @brief Compute the curve for z + 1 given a curve on z using the optical
      * flow between the two slices
      */
-    auto compute_curve_(const FittedCurve& currentCurve, int zIndex)
+    [[nodiscard]] auto compute_curve_(
+        const FittedCurve& currentCurve, int zIndex) const
         -> std::vector<Voxel>;
 
     /**
-     * @brief Debug: Draw curve on slice image
-     * @param curve Input curve
-     * @param sliceIndex %Slice on which to draw
-     * @param particleIndex Highlight point at particleIndex
-     * @param showSpline Draw interpolated curve. Default only draws points
+     * @brief Blend the re-segmentation run into the forward run over an
+     * interpolation window
+     * @param interpStart First z-slice of the interpolation window
+     * @param interpEnd Last z-slice of the interpolation window
+     * @param startChain Z-index of the primary starting chain
+     * @param startResegChain Z-index of the re-segmentation starting chain
      */
-    [[nodiscard]] auto draw_particle_on_slice_(
-        const FittedCurve& curve,
-        int sliceIndex,
-        int particleIndex = -1,
-        bool showSpline = false) const -> cv::Mat;
+    auto interpolate_(
+        int interpStart, int interpEnd, int startChain, int startResegChain)
+        -> std::vector<std::vector<Voxel>>;
 
-    /** @brief Convert the internal storage array into a final PointSet */
-    auto create_final_pointset_(const std::vector<std::vector<Voxel>>& points)
-        -> PointSet;
+    /**
+     * @brief Run the optical flow segmentation in one direction
+     * @param currentVs Starting chain of points
+     * @param startChainIndex Z-index of the starting chain
+     * @param anchorEndIdx Z-index at which to stop and return
+     * @param targetIndex Final target z-index (used for bounds checking)
+     * @param stepAdjustment Initial step offset to align with the grid
+     * @param iteration Running progress counter (updated in place)
+     * @param backwards True to propagate toward lower z-indices
+     * @param debugDir Root directory for debug visualizations
+     */
+    auto run_ofs_(
+        Chain currentVs,
+        int startChainIndex,
+        int anchorEndIdx,
+        int targetIndex,
+        int stepAdjustment,
+        std::size_t& iteration,
+        bool backwards,
+        const filesystem::path& debugDir)
+        -> std::tuple<std::vector<std::vector<Voxel>>, Status>;
 
+    /** Start z-index */
+    int startIndex_{0};
     /** Target z-index */
     int endIndex_{0};
     /**
@@ -147,7 +218,7 @@ private:
      */
     std::uint8_t opticalFlowPixelThreshold_{80};
     /**
-     * Threshold of how many pixel optical flow can displace a point, if
+     * Threshold of how many pixels optical flow can displace a point, if
      * higher, recompute optical flow with region's average flow. This
      * parameter sets the maximum single pixel optical flow displacement before
      * interpolating a pixel region. Range minimum: 0. Higher values allow more
@@ -162,6 +233,24 @@ private:
      * Range: 0-255. Smooth curve at pixels above this threshold.
      */
     std::uint8_t smoothByBrightness_{180};
+    /** Enable smoothing of detected outlier points */
+    bool enableSmoothenOutlier_{true};
+    /** Enable edge detection to constrain point movement */
+    bool enableEdge_{false};
+    /** Minimum displacement (voxels) considered an edge jump */
+    std::uint32_t edgeJumpDistance_{6};
+    /** Maximum displacement (voxels) allowed as a bounce from an edge */
+    std::uint32_t edgeBounceDistance_{3};
+    /** Enable blending of OFS output against the master cloud */
+    bool requestInterp_{false};
+    /** Half-width of the interpolation window in slices (must be positive) */
+    std::uint32_t interpWindow_{5};
+    /** Distance in slices from the start slice to the interpolation center */
+    std::uint32_t interpDist_{25};
+    /** Re-segmentation starting chain provided by the caller */
+    Chain resegStartingChain_;
+    /** Pre-computed master cloud used for interpolation blending */
+    PointSet masterCloud_;
     /** Estimated material thickness in um */
     double materialThickness_{100};
     /** Maximum number of threads */

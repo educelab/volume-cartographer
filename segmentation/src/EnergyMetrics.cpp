@@ -1,7 +1,7 @@
 #include "vc/segmentation/lrps/EnergyMetrics.hpp"
 
 #include <cstddef>
-#include <iostream>
+#include <numeric>
 
 #include "vc/segmentation/lrps/Derivative.hpp"
 
@@ -111,7 +111,7 @@ auto EnergyMetrics::WindowedArcLength(const FittedCurve& curve, int windowSize)
 
     double sum = 0;
     for (std::size_t i = 0; i < curve.size(); ++i) {
-        sum += EnergyMetrics::LocalWindowedArcLength(curve, i, windowSize);
+        sum += LocalWindowedArcLength(curve, static_cast<int>(i), windowSize);
     }
-    return sum / curve.size();
+    return sum / static_cast<double>(curve.size());
 }

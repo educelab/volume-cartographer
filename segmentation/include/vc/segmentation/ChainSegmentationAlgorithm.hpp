@@ -24,14 +24,14 @@ public:
     using Pointer = std::shared_ptr<ChainSegmentationAlgorithm>;
 
     /** Default destructor for virtual base class */
-    virtual ~ChainSegmentationAlgorithm() = default;
+    ~ChainSegmentationAlgorithm() override = default;
 
     /** Chain type */
     using Chain = std::vector<cv::Vec3d>;
     /** PointSet type */
-    using PointSet = volcart::OrderedPointSet<cv::Vec3d>;
+    using PointSet = OrderedPointSet<cv::Vec3d>;
     /** Bounding Box type */
-    using Bounds = volcart::BoundingBox<double, 3>;
+    using Bounds = BoundingBox<double, 3>;
     /** Computation result status */
     enum class Status { Success, Failure, ReturnedEarly };
 
@@ -46,7 +46,7 @@ public:
     /**
      * @brief Set the bounding box for computation
      *
-     * Used by an derived algorithm to determine a out-of-bounds stop condition
+     * Used by a derived algorithm to determine an out-of-bounds stop condition
      * for computation.
      */
     void setBounds(Bounds b) { bb_ = std::move(b); }

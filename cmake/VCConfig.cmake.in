@@ -49,6 +49,7 @@ find_dependency(smgl @smgl_VERSION@ CONFIG QUIET REQUIRED)
 if(@VC_USE_OPENMP@)
     find_dependency(OpenMP QUIET REQUIRED)
 endif()
+
 #####################################################################
 
 ### Include VC targets ###
