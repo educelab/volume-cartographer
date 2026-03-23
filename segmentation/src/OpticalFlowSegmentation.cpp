@@ -317,25 +317,32 @@ void OpticalFlowSegmentation::setEdgeBounceDistance(
     edgeBounceDistance_ = distance;
 }
 
-void OpticalFlowSegmentation::setInterpolate(bool b) { requestInterp_ = b; }
+void OpticalFlowSegmentation::setInterpolate(const bool b)
+{
+    requestInterp_ = b;
+}
 
 void OpticalFlowSegmentation::setInterpolationWindow(const std::uint32_t window)
 {
     interpWindow_ = window;
 }
+
 auto OpticalFlowSegmentation::getInterpolationWindow() const -> std::uint32_t
 {
     return interpWindow_;
 }
+
 void OpticalFlowSegmentation::setInterpolationDistance(
     const std::uint32_t distance)
 {
     interpDist_ = distance;
 }
+
 auto OpticalFlowSegmentation::getInterpolationDistance() const -> std::uint32_t
 {
     return interpDist_;
 }
+
 void OpticalFlowSegmentation::setMasterCloud(PointSet masterCloud)
 {
     masterCloud_ = std::move(masterCloud);
@@ -345,12 +352,13 @@ void OpticalFlowSegmentation::setReSegmentationChain(Chain c)
 {
     resegStartingChain_ = std::move(c);
 }
+
 void OpticalFlowSegmentation::setMaterialThickness(const double m)
 {
     materialThickness_ = m;
 }
 
-void OpticalFlowSegmentation::setMaxThreads(std::uint32_t t)
+void OpticalFlowSegmentation::setMaxThreads(const std::uint32_t t)
 {
     maxThreads_ = t;
 }
@@ -383,8 +391,8 @@ auto OpticalFlowSegmentation::compute_curve_(
     int yMin = std::numeric_limits<int>::max();
     int xMax = std::numeric_limits<int>::min();
     int yMax = std::numeric_limits<int>::min();
-    for (int i = 0; i < currentCurve.size(); ++i) {
-        auto point = currentCurve(i);
+    for (int i = 0; i < static_cast<int>(currentCurve.size()); ++i) {
+        const auto point = currentCurve(i);
         xMin = std::min(xMin, static_cast<int>(point[0]));
         yMin = std::min(yMin, static_cast<int>(point[1]));
         xMax = std::max(xMax, static_cast<int>(point[0]));
@@ -419,9 +427,9 @@ auto OpticalFlowSegmentation::compute_curve_(
     int windowSize = 5;
     const cv::Point2f minPt(static_cast<float>(xMin), static_cast<float>(yMin));
     std::vector<Voxel> nextVs;
-    for (int i = 0; i < currentCurve.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(currentCurve.size()); ++i) {
         // Get the current point
-        auto cp = currentCurve(i);
+        const auto cp = currentCurve(i);
         const cv::Point2f pt(cp[0], cp[1]);
 
         // Convert pt to ROI coordinates
@@ -442,7 +450,8 @@ auto OpticalFlowSegmentation::compute_curve_(
                     static_cast<float>(x), static_cast<float>(y)};
                 const auto neighborPt = roiPt + xyPt;
                 if (::IsInBounds(neighborPt, flow)) {
-                    auto neighborIntensity = gray2.at<std::uint8_t>(neighborPt);
+                    const auto neighborIntensity =
+                        gray2.at<std::uint8_t>(neighborPt);
                     if (neighborIntensity > opticalFlowPixelThreshold_) {
                         avgFlow += flow.at<cv::Vec2f>(neighborPt);
                         count++;
@@ -456,22 +465,24 @@ auto OpticalFlowSegmentation::compute_curve_(
         }
 
         // Move the point along with respect to the optical flow vector
-        auto updatedPt = pt + cv::Point2f(flowVec);
+        const auto updatedPt = pt + cv::Point2f(flowVec);
 
         // Add the updated point to the updated curve
         nextVs.emplace_back(updatedPt.x, updatedPt.y, zIndex + 1);
     }
 
-    // Smooth black pixels by moving them closer to the edge
-    // Smooth very bright pixels by moving them closer to the edge
+    // Smooth points that fall outside the expected intensity range back toward
+    // the curve: below outsideThreshold_ (too dark / outside sheet) or above
+    // smoothByBrightness_ (too bright / deep inside sheet).
     windowSize = static_cast<int>(
         std::ceil(materialThickness_ / vol_->voxelSize()) * 0.25);
-    for (int i = 0; i < nextVs.size(); ++i) {
-        auto curr = nextVs[i];
+    for (int i = 0; i < static_cast<int>(nextVs.size()); ++i) {
+        const auto curr = nextVs[i];
         const cv::Point pt(
             static_cast<int>(curr[0]) - xMin, static_cast<int>(curr[1]) - yMin);
-        auto currIntensity = gray2.at<std::uint8_t>(pt);
-        auto meanIntensity = ::GetMeanPixelValue(integralImg, pt, windowSize);
+        const auto currIntensity = gray2.at<std::uint8_t>(pt);
+        const auto meanIntensity =
+            ::GetMeanPixelValue(integralImg, pt, windowSize);
 
         if (meanIntensity < static_cast<float>(outsideThreshold_) ||
             currIntensity < outsideThreshold_ ||
@@ -481,8 +492,8 @@ auto OpticalFlowSegmentation::compute_curve_(
             const auto normal = ::Estimate2DNormalAtIndex(currentCurve, i);
 
             // Get the previous and next points
-            auto prev = nextVs[(i - 1 + nextVs.size()) % nextVs.size()];
-            auto next = nextVs[(i + 1) % nextVs.size()];
+            const auto prev = nextVs[(i - 1 + nextVs.size()) % nextVs.size()];
+            const auto next = nextVs[(i + 1) % nextVs.size()];
 
             // Calculate the direction vector between prev and next points
             cv::Vec2d direction(next[0] - prev[0], next[1] - prev[1]);
@@ -491,7 +502,7 @@ auto OpticalFlowSegmentation::compute_curve_(
             // Project the current point onto the line between prev and next
             // points
             const cv::Vec2d prevToCurr(curr[0] - prev[0], curr[1] - prev[1]);
-            auto projLen = prevToCurr.dot(direction);
+            const auto projLen = prevToCurr.dot(direction);
             const cv::Vec2d proj(
                 prev[0] + projLen * direction[0],
                 prev[1] + projLen * direction[1]);
@@ -521,15 +532,16 @@ auto OpticalFlowSegmentation::compute() -> PointSet
         startIndexResegChain = minimum_elem(resegStartingChain_);
     }
 
-    // check if we're segment +/-Z
-    bool backwards = startIndexChain > endIndex_;
+    // Determine propagation direction
+    const bool backwards = startIndexChain > endIndex_;
 
-    // Interpolation start = side/edge of the interpolation window that is
-    // nearest to start index Example for backwards (forward is
-    // mirrored/reveresed): | End Slice (50) | Interpolation End (70) |
-    // Interpolation Start (80) | Start Slice (100) |
-    auto dist = static_cast<std::int32_t>(interpDist_);
-    auto win = static_cast<std::int32_t>(interpWindow_);
+    // Compute the interpolation window boundaries relative to startIndex_.
+    // For forward propagation (left is start, right is end):
+    //   | Start (100) | InterpStart (125) | InterpEnd (135) | End (200) |
+    // For backward propagation (mirrored):
+    //   | End (50) | InterpEnd (70) | InterpStart (80) | Start (100) |
+    const auto dist = static_cast<std::int32_t>(interpDist_);
+    const auto win = static_cast<std::int32_t>(interpWindow_);
     int interpStart{startIndex_};
     int interpEnd{startIndex_};
     if (backwards) {
@@ -624,11 +636,7 @@ auto OpticalFlowSegmentation::compute() -> PointSet
             backwards, outputDir);
     }
 
-    /////////////////////////////////////////////////////////
-    // Update progress
     progressComplete();
-
-    // 6. Output final mesh
     return result_ = CreateFinalPointSet(points);
 }
 
@@ -640,16 +648,15 @@ auto OpticalFlowSegmentation::interpolate_(
 {
     // Basic setup
     std::size_t iteration{0};
-    auto backwards = startChain > endIndex_;
+    const bool backwards = startChain > endIndex_;
     const int stepSizeI = static_cast<int>(stepSize_);
     const auto direction = backwards ? -1 : 1;
 
     // Create debug directories
     const fs::path outputDir("debugvis");
-    const auto wholeChainDir = outputDir / "whole_chain";
     if (dumpVis_) {
         fs::create_directory(outputDir);
-        fs::create_directory(wholeChainDir);
+        fs::create_directory(outputDir / "whole_chain");
     }
 
     int interpBorder = interpStart;
@@ -680,8 +687,7 @@ auto OpticalFlowSegmentation::interpolate_(
         }
     }
 
-    // Run OFS with the reseg chain
-    // TODO:
+    // Run OFS backward from the re-segmentation chain toward the start chain
     auto [resegPoints, status] = run_ofs_(
         resegStartingChain_, startResegChain, startChain, interpBorder,
         initStepAdjust, iteration, !backwards, outputDir);
@@ -704,7 +710,7 @@ auto OpticalFlowSegmentation::interpolate_(
         }
 
         // if interp to chain dist is < step size, add the start chain too
-        if (std::abs(interpStart - startChain) < stepSize_) {
+        if (std::abs(interpStart - startChain) < stepSizeI) {
             if (backwards) {
                 resegPoints.push_back(startingChain_);
             } else {
@@ -732,12 +738,17 @@ auto OpticalFlowSegmentation::interpolate_(
     // Copy and overwrite points in local master cloud for later interp
     auto masterCloud = masterCloud_;
     if (not resegPoints.empty()) {
-        // Find the interp window starting row in the master cloud
+        // Find the interp window starting row in the master cloud. The master
+        // cloud is always stored in ascending z order; rows are located by
+        // z-coordinate regardless of propagation direction, so this lookup
+        // works identically for both forward and backward runs.
         const auto target = backwards ? endIndex_ : interpStart;
         std::size_t ptIdx{0};
         bool foundOverlap{false};
         for (const auto rowIdx : range(masterCloud.height())) {
-            if (target == masterCloud(rowIdx, 0)[2]) {
+            // z-coordinates are always integer-valued doubles, so exact
+            // equality with an int target is safe here.
+            if (target == static_cast<int>(masterCloud(rowIdx, 0)[2])) {
                 ptIdx = rowIdx * masterCloud.width();
                 foundOverlap = true;
                 break;
@@ -748,8 +759,9 @@ auto OpticalFlowSegmentation::interpolate_(
                 "resegmented points do not overlap provided master cloud");
         }
 
-        // Copy from resegPoints to the master cloud
-        // TODO: Why does this work for backwards if master cloud is forwards?
+        // Overwrite the corresponding rows in the local master cloud copy with
+        // the re-segmented points so that interpolation blends against the
+        // updated surface rather than the original.
         for (const auto& row : resegPoints) {
             for (const auto& pt : row) {
                 masterCloud[ptIdx++] = pt;
@@ -804,7 +816,7 @@ auto OpticalFlowSegmentation::interpolate_(
         }
 
         // if interp to chain dist < step size, add the reseg chain too
-        if (std::abs(interpEnd - startResegChain) < stepSize_) {
+        if (std::abs(interpEnd - startResegChain) < stepSizeI) {
             if (backwards) {
                 points.insert(points.begin(), resegStartingChain_);
             } else {
@@ -815,9 +827,10 @@ auto OpticalFlowSegmentation::interpolate_(
         // Interpolate the gaps between points
         points = InterpolateGaps(points, masterCloud_.width());
 
-        // Remove the start anchor and everything after the interp end
-        // May have start anchor from gap interp, but it should be removed here
-        auto outOrAnchor = [backwards, interpEnd, startChain](auto row) {
+        // Remove the start anchor and everything after the interp end.
+        // The gap interpolation may have re-introduced the anchor slice;
+        // strip it along with any out-of-window rows.
+        auto outOrAnchor = [backwards, interpEnd, startChain](const auto& row) {
             const auto& z = row[0][2];
             const auto isOut = backwards ? z < interpEnd : z > interpEnd;
             const auto isAnchor = z == startChain;
@@ -829,16 +842,12 @@ auto OpticalFlowSegmentation::interpolate_(
     }
 
     // Split the points into the overwrite and interpolation portions
-    int beginOffset = interpStart - startIndex_;
-    int endOffset = interpStart - interpEnd + 1;
-    RawPointSet::iterator b, e;
-    if (backwards) {
-        b = points.begin();
-        e = std::next(points.begin(), endOffset);
-    } else {
-        b = std::next(points.begin(), beginOffset);
-        e = points.end();
-    }
+    const int beginOffset = interpStart - startIndex_;
+    const int endOffset = interpStart - interpEnd + 1;
+    const auto b =
+        backwards ? points.begin() : std::next(points.begin(), beginOffset);
+    const auto e =
+        backwards ? std::next(points.begin(), endOffset) : points.end();
     auto interpPts = RawPointSet(b, e);
     points.erase(b, e);
 
@@ -867,7 +876,6 @@ auto OpticalFlowSegmentation::run_ofs_(
     const bool backwards,
     const fs::path& debugDir) -> std::tuple<RawPointSet, Status>
 {
-    const auto& outputDir = debugDir;
     const auto wholeChainDir = debugDir / "whole_chain";
     // Result pointset
     RawPointSet points;
@@ -875,26 +883,26 @@ auto OpticalFlowSegmentation::run_ofs_(
     // Padding for reporting/debugvis
     const int padding = vol_->numSlices();
 
-    // Calculate the direction aware step size
-    auto dir = backwards ? -1 : 1;
+    // Calculate the direction-aware step size (+forward, -backward)
+    const auto dir = backwards ? -1 : 1;
     auto stepSize = dir * (static_cast<int>(stepSize_) + stepAdjustment);
     for (auto zIndex = anchorStartIdx;
          backwards ? zIndex > targetIndex : zIndex < targetIndex;
          zIndex += stepSize) {
 
-        // Remove the step size adjustment after the first loop
+        // Remove the step size adjustment after the first step
         if (zIndex == anchorStartIdx + stepSize) {
             stepSize = dir * static_cast<int>(stepSize_);
         }
 
         // Get the next z index
-        auto nextZIndex = zIndex + stepSize;
+        const auto nextZIndex = zIndex + stepSize;
 
-        // Return early if we've hit the next anchor
+        // Return early if we've reached or passed the anchor boundary.
+        // Callers interpret the returned status to decide what to do next.
         if (backwards
                 ? nextZIndex <= anchorEndIdx or nextZIndex >= anchorStartIdx
                 : nextZIndex >= anchorEndIdx or nextZIndex <= anchorStartIdx) {
-            // TODO: Review status usage
             if (backwards) {
                 std::reverse(points.begin(), points.end());
             }
@@ -905,11 +913,9 @@ auto OpticalFlowSegmentation::run_ofs_(
         progressUpdated(iteration++);
 
         // Directory for dump vis
-        auto zStr = to_padded_string(zIndex, padding);
-        const fs::path zIdxDir = outputDir / zStr;
+        const auto zStr = to_padded_string(zIndex, padding);
 
-        //////////////////////////////////////////////////////////
-        // 0. Resample current positions so they are evenly spaced
+        // Resample current positions so they are evenly spaced
         FittedCurve currentCurve(currentVs, zIndex);
         currentVs = currentCurve.evenlySpacePoints();
 
@@ -971,7 +977,11 @@ auto OpticalFlowSegmentation::run_ofs_(
             stitched.insert(stitched.end(), startIt, endIt);
         }
 
-        // Generate nextVs by evenly spacing points in the stitched curve
+        // Generate nextVs by evenly spacing points in the stitched curve.
+        // compute_curve_ always does a one-step optical flow (zIndex →
+        // zIndex+1), so the stitched points are always at zIndex+1 regardless
+        // of stepSize_. When stepSize_ > 1, the gap between zIndex+1 and
+        // nextZIndex is filled later by InterpolateGaps.
         FittedCurve stitchedFittedCurve(stitched, zIndex + 1);
         auto nextVs = stitchedFittedCurve.evenlySpacePoints();
 
@@ -984,11 +994,9 @@ auto OpticalFlowSegmentation::run_ofs_(
             return {points, status_};
         }
 
-        /////////////////////////////////////////////////////////
-        // 4. Visualize if specified by user
+        // Visualize if specified by user
         if (visualize_) {
-            // Since points can change due to 2nd deriv optimization after main
-            // optimization, refit a curve and draw that
+            // Refit a curve to the updated points before drawing
             const FittedCurve newChain(nextVs, nextZIndex);
             auto chain = DrawParticleOnSlice(newChain, nextZIndex, vol_);
             cv::namedWindow("Next curve", cv::WINDOW_NORMAL);
@@ -996,8 +1004,7 @@ auto OpticalFlowSegmentation::run_ofs_(
             cv::waitKey(0);
         }
 
-        /////////////////////////////////////////////////////////
-        // 5. Set up for next iteration
+        // Set up for next iteration
         currentVs = nextVs;
 
         points.push_back(nextVs);
