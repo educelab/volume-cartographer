@@ -19,13 +19,29 @@ We provide pre-built binaries for our tools through our
 [Homebrew Casks tap](https://github.com/educelab/homebrew-casks):
 
 ```shell
-brew install --no-quarantine educelab/casks/volume-cartographer
+brew install educelab/casks/volume-cartographer
 ```
 
 Our binaries are signed with a generic signature and thus do not pass macOS
-Gatekeeper on Apple Silicon devices without explicit approval. Since many of
-our tools are run from the command line, we suggest installing with Homebrew's
-`--no-quarantine` flag.
+Gatekeeper on Apple Silicon devices without explicit approval. When trying 
+to run our programs, you may receive error macOS error messages stating 
+that the program is corrupt or cannot be opened. If you encounter these 
+errors, you may need to remove the GateKeeper quarantine flag from the
+affected executable:
+
+```shell
+# Go to the cask directory for your installed version
+cd /opt/homebrew/Caskroom/volume-cartographer/2.28.0/
+
+# Remove the GateKeeper flag
+xattr -d com.apple.quarantine bin/vc_* CannySegment.app MeshProject.app VC.app
+```
+
+> [!CAUTION]
+> Only remove the GateKeeper quarantine flag for applications and packages you
+> know and trust. We recommend that you verify the SHASUM of the downloaded
+> package against the [release packages](https://github.com/educelab/volume-cartographer/releases)
+> in this repository.
 
 The main `VC.app` GUI will be installed to `/Applications/` and the command line
 tools should be immediately available in Terminal:
@@ -34,7 +50,8 @@ tools should be immediately available in Terminal:
 vc_render --help
 ```
 
-__NOTE:__ The macOS package is not currently built with OpenMP support.
+> [!NOTE]
+> The macOS package is not currently built with OpenMP support.
 
 ### Using Docker
 We provide multi-architecture Docker images in the GitHub Container Registry.
@@ -90,21 +107,19 @@ explicitly support other platforms.
 * [libtiff](https://gitlab.com/libtiff/libtiff) 4.0+
 * Eigen3 3.2+
 * spdlog 1.4.2+
-* Boost Program Options 1.58+: Required if building applications or utilities.
-* Qt 6.5+: Required if building GUI applications or utilities.
+* Boost Program Options 1.58+: Required if building applications or utilities
+* Qt 6.5+: Required if building GUI applications or utilities
 
 **Optional**
-* OpenMP: For multi-threading certain algorithms. At the moment, only
-`AngleBasedFlattening` with the `ConjugateGradient` solver (used by both
-LSCM and HierarchicalLSCM) is supported.
+* OpenMP: For multi-threading certain algorithms
 * Boost Filesystem 1.58+
     - This project will automatically check if the compiler provides
     `std::filesystem`. If it is not found, then Boost Filesystem is required.
-    This behavior can be controlled with the `VC_USE_BOOSTFS` CMake flag.
+    This behavior can be controlled with the `VC_USE_BOOSTFS` CMake flag
 * [Doxygen](https://www.doxygen.nl/): Required to build
-documentation.
+documentation
 * [pybind11](https://github.com/pybind/pybind11): Required to build Python
-bindings.
+bindings
 
 ##### Homebrew-provided dependencies
 Homebrew can be used to install all of Volume Cartographer's dependencies. We 
@@ -145,8 +160,10 @@ cmake --install build/ # --prefix ~/custom/install/prefix/
 To assist with installing dependencies, we have created the
 [vc-deps project](https://github.com/educelab/vc-deps). While this project can
 be used on its own to install volume-cartographer dependencies to the system, it
-is also available as a git submodule within `volume-cartographer`. Note that
-`vc-deps` **does not** install CMake or Qt.
+is also available as a git submodule within `volume-cartographer`. 
+
+> [!NOTE]
+> `vc-deps` **does not** install CMake or Qt.
 
 To build and link against the in-source `vc-deps` libraries, run the following:
 ```shell
@@ -257,7 +274,8 @@ vol = vpkg.volume()
 r = vol.reslice(np.array([0,0,0]))
 ```
 
-__NOTE:__ Python modules are built as shared libraries, regardless of the
+> [!NOTE]
+> Python modules are built as shared libraries, regardless of the
 `BUILD_SHARED_LIBS` flag set by this project. This can cause problems if the
 Volume Cartographer dependencies are not built as shared libraries. Either
 install the shared versions of these libraries (preferred) or compile static
