@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "vc/segmentation/lrps/Common.hpp"
-#include "vc/segmentation/lrps/CubicSplineMT.hpp"
+#include "vc/segmentation/lrps/CubicSpline.hpp"
 
 namespace volcart::segmentation
 {
@@ -19,7 +19,7 @@ class FittedCurve
 {
 public:
     /** Spline type */
-    using Spline = CubicSplineMT;
+    using Spline = CubicSpline;
 
     /** @name Constructors */
     /**@{*/

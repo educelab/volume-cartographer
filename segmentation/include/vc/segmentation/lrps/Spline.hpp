@@ -69,11 +69,4 @@ private:
     }
 };
 
-/**
- * A spline of degree three
- *
- * @ingroup lrps
- * */
-template <typename Scalar>
-using CubicSpline = Spline<Scalar, 3>;
 }  // namespace volcart::segmentation

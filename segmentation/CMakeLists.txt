@@ -14,7 +14,7 @@ set(srcs
     src/StructureTensorParticleSim.cpp
     src/ThinnedFloodFillSegmentation.cpp
     src/ComputeVolumetricMask.cpp
-    src/CubicSplineMT.cpp
+    src/CubicSpline.cpp
 )
 
 add_library(vc_segmentation ${srcs})
@@ -28,15 +28,18 @@ target_compile_options(vc_segmentation
     PUBLIC
         -Wno-c++11-narrowing
 )
+set(private_deps
+    opencv_highgui
+    opencv_video
+    $<$<BOOL:${VC_USE_OPENMP}>:OpenMP::OpenMP_CXX>
+)
 target_link_libraries(vc_segmentation
     PUBLIC
         VC::core
         Eigen3::Eigen
-    PRIVATE
-        opencv_highgui
-        opencv_video
         ${VC_FS_LIB}
-        $<$<BOOL:${VC_USE_OPENMP}>:OpenMP::OpenMP_CXX>
+    PRIVATE
+        ${private_deps}
 )
 target_compile_features(vc_segmentation PUBLIC cxx_std_17)
 set_target_properties(vc_segmentation PROPERTIES

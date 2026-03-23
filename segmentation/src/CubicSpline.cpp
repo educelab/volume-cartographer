@@ -1,4 +1,4 @@
-#include "vc/segmentation/lrps/CubicSplineMT.hpp"
+#include "vc/segmentation/lrps/CubicSpline.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -85,7 +85,7 @@ auto Interpolate(const VectorXd& x, const VectorXd& y)
     return {a, b, c, d};
 }
 
-auto FitSplineMT(
+auto FitSpline(
     const Params& range,
     const Params& val,
     const std::size_t winSize = 100,
@@ -200,33 +200,31 @@ auto SubsegmentLengths(
 
 }  // namespace
 
-// Constructor implementation
-CubicSplineMT::CubicSplineMT(const Params& x, const Params& y)
+CubicSpline::CubicSpline(const Params& x, const Params& y)
 {
     rangeXY_ = linspace(x.size(), 0., static_cast<double>(x.size() - 1));
-    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, x);
-    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, y);
+    std::tie(aX_, bX_, cX_, dX_) = FitSpline(rangeXY_, x);
+    std::tie(aY_, bY_, cY_, dY_) = FitSpline(rangeXY_, y);
     std::tie(subsegLens_, cumuLens_) =
         SubsegmentLengths(rangeXY_, bX_, cX_, dX_, bY_, cY_, dY_);
 }
 
-CubicSplineMT::CubicSplineMT(const std::vector<Voxel>& vs)
+CubicSpline::CubicSpline(const std::vector<Voxel>& vs)
 {
     auto [xs, ys] = Unzip(vs);
 
     rangeXY_ = linspace(xs.size(), 0., static_cast<double>(xs.size() - 1));
-    std::tie(aX_, bX_, cX_, dX_) = FitSplineMT(rangeXY_, xs);
-    std::tie(aY_, bY_, cY_, dY_) = FitSplineMT(rangeXY_, ys);
+    std::tie(aX_, bX_, cX_, dX_) = FitSpline(rangeXY_, xs);
+    std::tie(aY_, bY_, cY_, dY_) = FitSpline(rangeXY_, ys);
     std::tie(subsegLens_, cumuLens_) =
         SubsegmentLengths(rangeXY_, bX_, cX_, dX_, bY_, cY_, dY_);
 }
 
-// Evaluate the spline at a given value of t
-auto CubicSplineMT::operator()(const double t) const -> Pixel
+auto CubicSpline::operator()(const double t) const -> Pixel
 {
     assert(
         !cumuLens_.empty() &&
-        "operator() called on a default-constructed CubicSplineMT");
+        "operator() called on a default-constructed CubicSpline");
     // Total length
     const auto totalLen = cumuLens_.back();
     const auto targetLen = totalLen * t;
@@ -260,11 +258,9 @@ auto CubicSplineMT::operator()(const double t) const -> Pixel
         rangeSub0 + (rangeSub1 - rangeSub0) * (remaining / subsegLens_[idx]);
 
     const double dRange = rangeT - range0;
-    // Compute the x position at rangeT
     double xT = aX_[segIdx] + bX_[segIdx] * dRange +
                 cX_[segIdx] * dRange * dRange +
                 dX_[segIdx] * dRange * dRange * dRange;
-    // Compute the y position at rangeT
     double yT = aY_[segIdx] + bY_[segIdx] * dRange +
                 cY_[segIdx] * dRange * dRange +
                 dY_[segIdx] * dRange * dRange * dRange;

@@ -110,8 +110,8 @@ auto EnergyMetrics::WindowedArcLength(const FittedCurve& curve, int windowSize)
     }
 
     double sum = 0;
-    for (int i = 0; i < curve.size(); ++i) {
-        sum += LocalWindowedArcLength(curve, i, windowSize);
+    for (std::size_t i = 0; i < curve.size(); ++i) {
+        sum += LocalWindowedArcLength(curve, static_cast<int>(i), windowSize);
     }
     return sum / static_cast<double>(curve.size());
 }

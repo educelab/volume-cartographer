@@ -46,7 +46,7 @@ public:
     /**
      * @brief Set the bounding box for computation
      *
-     * Used by an derived algorithm to determine a out-of-bounds stop condition
+     * Used by a derived algorithm to determine an out-of-bounds stop condition
      * for computation.
      */
     void setBounds(Bounds b) { bb_ = std::move(b); }

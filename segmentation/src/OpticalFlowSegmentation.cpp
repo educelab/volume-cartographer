@@ -22,6 +22,8 @@
 
 using namespace volcart::segmentation;
 namespace fs = volcart::filesystem;
+using volcart::range;
+namespace color = volcart::color;
 
 using PointSet = OpticalFlowSegmentation::PointSet;
 using RawPointSet = std::vector<std::vector<Voxel>>;
@@ -85,9 +87,6 @@ auto IsInBounds(const cv::Point2f& p, const cv::Mat& img)
 {
     return p.x >= 0 and p.x < img.cols and p.y >= 0 and p.y < img.rows;
 }
-
-using volcart::range;
-namespace color = volcart::color;
 
 auto CreateFinalPointSet(const RawPointSet& points) -> PointSet
 {
@@ -622,7 +621,7 @@ auto OpticalFlowSegmentation::compute() -> PointSet
         const auto anchorEnd = endIndex_ + dir;
         std::tie(points, std::ignore) = run_ofs_(
             startingChain_, startIndexChain, anchorEnd, endIndex_, 0, iteration,
-            {backwards, backwards, outputDir, wholeChainDir});
+            backwards, outputDir);
     }
 
     /////////////////////////////////////////////////////////
@@ -685,8 +684,7 @@ auto OpticalFlowSegmentation::interpolate_(
     // TODO:
     auto [resegPoints, status] = run_ofs_(
         resegStartingChain_, startResegChain, startChain, interpBorder,
-        initStepAdjust, iteration,
-        {!backwards, !backwards, outputDir, wholeChainDir});
+        initStepAdjust, iteration, !backwards, outputDir);
     if (status == Status::ReturnedEarly) {
         return {startingChain_};
     }
@@ -786,7 +784,7 @@ auto OpticalFlowSegmentation::interpolate_(
     RawPointSet points;
     std::tie(points, status) = run_ofs_(
         startingChain_, startChain, startResegChain, interpBorder, 0, iteration,
-        {backwards, backwards, outputDir, wholeChainDir});
+        backwards, outputDir);
     if (status == Status::ReturnedEarly) {
         return points;
     }
@@ -866,12 +864,11 @@ auto OpticalFlowSegmentation::run_ofs_(
     int targetIndex,
     int stepAdjustment,
     std::size_t& iteration,
-    const OfsConfig& cfg) -> std::tuple<RawPointSet, Status>
+    const bool backwards,
+    const fs::path& debugDir) -> std::tuple<RawPointSet, Status>
 {
-    const auto backwards = cfg.backwards;
-    const auto insertFront = cfg.insertFront;
-    const auto& outputDir = cfg.outputDir;
-    const auto& wholeChainDir = cfg.wholeChainDir;
+    const auto& outputDir = debugDir;
+    const auto wholeChainDir = debugDir / "whole_chain";
     // Result pointset
     RawPointSet points;
 
@@ -898,7 +895,7 @@ auto OpticalFlowSegmentation::run_ofs_(
                 ? nextZIndex <= anchorEndIdx or nextZIndex >= anchorStartIdx
                 : nextZIndex >= anchorEndIdx or nextZIndex <= anchorStartIdx) {
             // TODO: Review status usage
-            if (insertFront) {
+            if (backwards) {
                 std::reverse(points.begin(), points.end());
             }
             return {points, status_};
@@ -1006,7 +1003,7 @@ auto OpticalFlowSegmentation::run_ofs_(
         points.push_back(nextVs);
     }
 
-    if (insertFront) {
+    if (backwards) {
         std::reverse(points.begin(), points.end());
     }
     return {points, status_};

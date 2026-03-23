@@ -10,31 +10,31 @@ namespace volcart::segmentation
 {
 
 /**
- * @brief Multi-threaded cubic spline
+ * @brief Cubic spline
  *
  * @author    Julian Schilliger
  * @date      September 2023
  *
- * @details Cubic spline class which uses multiple threads to fit to the
- * provided knots.
+ * @details Cubic spline class which uses multiple threads (via OpenMP, when
+ * available) to fit to the provided knots.
  */
-class CubicSplineMT
+class CubicSpline
 {
 public:
     /** Default constructor */
-    CubicSplineMT() = default;
+    CubicSpline() = default;
     /** Construct and fit to separated x, y knot pairs */
-    CubicSplineMT(const std::vector<double>& x, const std::vector<double>& y);
+    CubicSpline(const std::vector<double>& x, const std::vector<double>& y);
     /** Construct and fit to a set of knots */
-    explicit CubicSplineMT(const std::vector<Voxel>& vs);
+    explicit CubicSpline(const std::vector<Voxel>& vs);
     /** Default destructor */
-    ~CubicSplineMT() = default;
+    ~CubicSpline() = default;
 
     /** Copy constructor */
-    CubicSplineMT(const CubicSplineMT&) = default;
+    CubicSpline(const CubicSpline&) = default;
 
     /** Copy assignment operator */
-    auto operator=(const CubicSplineMT&) -> CubicSplineMT& = default;
+    auto operator=(const CubicSpline&) -> CubicSpline& = default;
 
     /**
      * @brief %Spline evaluation at t-space value t in [0, 1]

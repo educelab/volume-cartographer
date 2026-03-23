@@ -29,7 +29,7 @@ FittedCurve::FittedCurve(const std::vector<Voxel>& vs, const int zIndex)
     : npoints_(vs.size())
     , zIndex_(zIndex)
     , ts_(GenerateTVals(npoints_))
-    , spline_(CubicSplineMT(vs))
+    , spline_(CubicSpline(vs))
 {
     // Calculate new voxel positions from the spline
     points_.reserve(vs.size());

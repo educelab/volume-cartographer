@@ -155,18 +155,6 @@ public:
     [[nodiscard]] auto progressIterations() const -> std::size_t override;
 
 private:
-    /** @brief Configuration for a single run_ofs_() invocation */
-    struct OfsConfig {
-        /** True to propagate toward lower z-indices */
-        bool backwards{false};
-        /** True to prepend each new row rather than append */
-        bool insertFront{false};
-        /** Directory for per-slice debug visualizations */
-        filesystem::path outputDir;
-        /** Directory for whole-chain debug visualizations */
-        filesystem::path wholeChainDir;
-    };
-
     /**
      * @brief Compute the curve for z + 1 given a curve on z using the optical
      * flow between the two slices
@@ -195,7 +183,8 @@ private:
      * @param targetIndex Final target z-index (used for bounds checking)
      * @param stepAdjustment Initial step offset to align with the grid
      * @param iteration Running progress counter (updated in place)
-     * @param cfg Direction, insertion order, and debug-output settings
+     * @param backwards True to propagate toward lower z-indices
+     * @param debugDir Root directory for debug visualizations
      */
     auto run_ofs_(
         Chain currentVs,
@@ -204,7 +193,8 @@ private:
         int targetIndex,
         int stepAdjustment,
         std::size_t& iteration,
-        const OfsConfig& cfg)
+        bool backwards,
+        const filesystem::path& debugDir)
         -> std::tuple<std::vector<std::vector<Voxel>>, Status>;
 
     /** Start z-index */

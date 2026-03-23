@@ -5,7 +5,7 @@
 #include <numeric>
 #include <vector>
 
-#include "vc/segmentation/lrps/CubicSplineMT.hpp"
+#include "vc/segmentation/lrps/CubicSpline.hpp"
 #include "vc/testing/TestingUtils.hpp"
 
 using namespace volcart::segmentation;
@@ -14,28 +14,28 @@ using namespace volcart::segmentation;
 static constexpr double kTol = 0.01;  // 1%
 
 // Build a horizontal line y=c from n evenly-spaced x knots
-static auto MakeConstantSpline(std::size_t n, double yConst) -> CubicSplineMT
+static auto MakeConstantSpline(std::size_t n, double yConst) -> CubicSpline
 {
     std::vector<double> xs(n), ys(n);
     std::iota(xs.begin(), xs.end(), 0.0);
     std::fill(ys.begin(), ys.end(), yConst);
-    return CubicSplineMT(xs, ys);
+    return CubicSpline(xs, ys);
 }
 
 // Build a parabola y=x² from n evenly-spaced knots starting at xStart
-static auto MakeParabolicSpline(std::size_t n, double xStart) -> CubicSplineMT
+static auto MakeParabolicSpline(std::size_t n, double xStart) -> CubicSpline
 {
     std::vector<double> xs(n), ys(n);
     std::iota(xs.begin(), xs.end(), xStart);
     std::transform(
         xs.begin(), xs.end(), ys.begin(), [](double x) { return x * x; });
-    return CubicSplineMT(xs, ys);
+    return CubicSpline(xs, ys);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Construction
 
-TEST(CubicSplineMTTest, ConstructFromXYPairs)
+TEST(CubicSplineTest, ConstructFromXYPairs)
 {
     // Should not throw or crash
     auto s = MakeConstantSpline(10, 1.0);
@@ -45,24 +45,24 @@ TEST(CubicSplineMTTest, ConstructFromXYPairs)
     EXPECT_GT(p1(0), p0(0));
 }
 
-TEST(CubicSplineMTTest, ConstructFromVoxelVector)
+TEST(CubicSplineTest, ConstructFromVoxelVector)
 {
     std::vector<Voxel> vs;
     for (int i = 0; i < 10; ++i) {
         vs.emplace_back(static_cast<double>(i), 5.0, 0.0);
     }
-    CubicSplineMT s(vs);
+    CubicSpline s(vs);
     // y should be constant ≈ 5
     for (double t : {0.0, 0.25, 0.5, 0.75, 1.0}) {
         volcart::testing::ExpectNear(s(t)(1), 5.0, kTol);
     }
 }
 
-TEST(CubicSplineMTTest, CopyConstructionAndAssignment)
+TEST(CubicSplineTest, CopyConstructionAndAssignment)
 {
     auto orig = MakeConstantSpline(10, 3.0);
-    CubicSplineMT copy(orig);
-    CubicSplineMT assigned;
+    CubicSpline copy(orig);
+    CubicSpline assigned;
     assigned = orig;
 
     for (double t : {0.0, 0.5, 1.0}) {
@@ -74,7 +74,7 @@ TEST(CubicSplineMTTest, CopyConstructionAndAssignment)
 ////////////////////////////////////////////////////////////////////////////////
 // Constant spline (y = c): y-coordinate should be constant at any t
 
-TEST(CubicSplineMTTest, ConstantYIsPreservedAtEndpoints)
+TEST(CubicSplineTest, ConstantYIsPreservedAtEndpoints)
 {
     constexpr double kY = 7.5;
     auto s = MakeConstantSpline(15, kY);
@@ -82,7 +82,7 @@ TEST(CubicSplineMTTest, ConstantYIsPreservedAtEndpoints)
     volcart::testing::ExpectNear(s(1.0)(1), kY, kTol);
 }
 
-TEST(CubicSplineMTTest, ConstantYIsPreservedThroughout)
+TEST(CubicSplineTest, ConstantYIsPreservedThroughout)
 {
     constexpr double kY = 4.0;
     auto s = MakeConstantSpline(20, kY);
@@ -92,7 +92,7 @@ TEST(CubicSplineMTTest, ConstantYIsPreservedThroughout)
     }
 }
 
-TEST(CubicSplineMTTest, ConstantSplineXIsMonotonicallyIncreasing)
+TEST(CubicSplineTest, ConstantSplineXIsMonotonicallyIncreasing)
 {
     auto s = MakeConstantSpline(20, 1.0);
     double prevX = s(0.0)(0);
@@ -107,7 +107,7 @@ TEST(CubicSplineMTTest, ConstantSplineXIsMonotonicallyIncreasing)
 ////////////////////////////////////////////////////////////////////////////////
 // Parabolic spline (y ≈ x²): sampled points should satisfy y ≈ x²
 
-TEST(CubicSplineMTTest, ParabolicSplineApproximatesYEqualsXSquared)
+TEST(CubicSplineTest, ParabolicSplineApproximatesYEqualsXSquared)
 {
     // Use 20 knots over [0, 19]; natural spline through y=x² is exact for
     // polynomials of degree ≤ 3, so we expect tight agreement.
@@ -124,17 +124,17 @@ TEST(CubicSplineMTTest, ParabolicSplineApproximatesYEqualsXSquared)
 ////////////////////////////////////////////////////////////////////////////////
 // Edge cases
 
-TEST(CubicSplineMTTest, TwoKnotsLinearInterpolation)
+TEST(CubicSplineTest, TwoKnotsLinearInterpolation)
 {
     // Two knots → linear segment, no cubic terms
-    CubicSplineMT s({0.0, 1.0}, {0.0, 2.0});
+    CubicSpline s({0.0, 1.0}, {0.0, 2.0});
     // midpoint should be near (0.5, 1.0)
     const auto mid = s(0.5);
     volcart::testing::ExpectNear(mid(0), 0.5, kTol);
     volcart::testing::ExpectNear(mid(1), 1.0, kTol);
 }
 
-TEST(CubicSplineMTTest, MultiWindowPath)
+TEST(CubicSplineTest, MultiWindowPath)
 {
     // >100 knots triggers the parallel multi-window code path in FitSplineMT
     constexpr std::size_t kN = 150;
