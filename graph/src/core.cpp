@@ -523,7 +523,6 @@ auto WriteImageSequenceNode::serialize_(bool useCache, const fs::path& cacheDir)
 {
     smgl::Metadata meta{{"path", path_.string()}, {"cacheArgs", cacheArgs_}};
     // TODO: Serialize writer options
-    // TODO: This will fail during eager writing
     if (useCache and cacheArgs_ and not images_.empty()) {
         auto file = path_.filename().replace_extension(".tif");
         WriteImageSequence(cacheDir / file, images_);

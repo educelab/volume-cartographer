@@ -2,10 +2,11 @@
 
 /** @file */
 
+#include "vc/texturing/TexturingAlgorithm.hpp"
+
 #include <educelab/core/types/Signals.hpp>
 
 #include "vc/core/neighborhood/LineGenerator.hpp"
-#include "vc/texturing/TexturingAlgorithm.hpp"
 
 namespace volcart::texturing
 {
