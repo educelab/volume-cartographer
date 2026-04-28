@@ -49,9 +49,6 @@ auto LayerTexture::compute() -> Texture
     if (eager_) {
         Logger()->debug("[LayerTexture] Starting layer generation (eager)");
         const auto offsets = gen_->offsets();
-        if (eagerCache_) {
-            result_.reserve(offsets.size());
-        }
         // Iterate over the output offsets
         for (auto [it, offset] : enumerate(offsets)) {
             cv::Mat result = cv::Mat::zeros(height, width, CV_16UC1);
@@ -77,6 +74,7 @@ auto LayerTexture::compute() -> Texture
             numCompleted += 1;
             imageComplete.send(it, offsets.size(), result);
             if (eagerCache_) {
+                result_.reserve(offsets.size());
                 result_.emplace_back(result);
             }
         }
