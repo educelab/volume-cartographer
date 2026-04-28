@@ -71,8 +71,26 @@ public:
     /** @brief Returns whether eager rendering mode is enabled */
     [[nodiscard]] auto getEagerMode() const -> bool;
 
+    /**
+     * @brief Enable or disable caching of layer images in eager mode
+     *
+     * When eager mode is enabled and caching is enabled, completed layer images
+     * are stored internally so they can be returned by compute(). When caching
+     * is disabled (the default), layers are only emitted via the imageComplete
+     * signal and compute() returns an empty result. Disabling the cache reduces
+     * peak memory usage when layers are being written to disk incrementally.
+     *
+     * Has no effect when eager mode is disabled.
+     *
+     * @see setEagerMode()
+     */
     void setEagerCache(bool enable);
 
+    /**
+     * @brief Returns whether layer caching is enabled in eager mode
+     *
+     * @see setEagerCache()
+     */
     [[nodiscard]] auto getEagerCache() const -> bool;
 
     /**

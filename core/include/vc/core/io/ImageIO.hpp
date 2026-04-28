@@ -52,6 +52,22 @@ struct WriteImageOpts {
 void WriteImage(
     const filesystem::path& path, const cv::Mat& img, WriteImageOpts = {});
 
+/**
+ * @brief Write a sequence of images to disk
+ *
+ * Writes each image in @p iterable to an individual file. The output filename
+ * is derived from @p path as follows:
+ *
+ * - If @p path is a directory, images are written as `###.tif` inside it.
+ * - Otherwise the stem of @p path may contain the placeholder `{}`, which is
+ *   replaced by a zero-padded integer index. If `{}` is absent, the index is
+ *   appended before the extension.
+ *
+ * @param path      Output directory or file path template (may contain `{}`)
+ * @param iterable  Range of cv::Mat images to write
+ * @param opts      Optional write options (compression, padding, etc.)
+ * @param idxOffset Starting index offset applied to each image's filename index
+ */
 template <class Iterable>
 void WriteImageSequence(
     const filesystem::path& path,
