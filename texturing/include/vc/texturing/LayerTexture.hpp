@@ -71,6 +71,10 @@ public:
     /** @brief Returns whether eager rendering mode is enabled */
     [[nodiscard]] auto getEagerMode() const -> bool;
 
+    void setEagerCache(bool enable);
+
+    [[nodiscard]] auto getEagerCache() const -> bool;
+
     /**
      * @brief Signal emitted after each layer image is completed in eager mode
      *
@@ -91,6 +95,8 @@ private:
 
     /** Eager mode */
     bool eager_{false};
+    /** Whether to cache images when eager mode is enabled */
+    bool eagerCache_{false};
 };
 
 }  // namespace volcart::texturing

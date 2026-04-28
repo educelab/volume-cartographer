@@ -25,13 +25,9 @@ auto LayerTexture::compute() -> Texture
 {
     // Setup
     result_.clear();
+    std::size_t numCompleted{0};
     const auto height = static_cast<int>(ppm_->height());
     const auto width = static_cast<int>(ppm_->width());
-
-    // Setup output images
-    for (std::size_t i = 0; i < gen_->extents()[0]; i++) {
-        result_.emplace_back(cv::Mat::zeros(height, width, CV_16UC1));
-    }
 
     // Get the mappings
     auto mappings = ppm_->getMappingCoords();
@@ -51,7 +47,7 @@ auto LayerTexture::compute() -> Texture
         const auto offsets = gen_->offsets();
         // Iterate over the output offsets
         for (auto [it, offset] : enumerate(offsets)) {
-
+            cv::Mat result = cv::Mat::zeros(height, width, CV_16UC1);
             // Iterate over the pixels
             for (const auto [idx, coord] : enumerate(mappings)) {
                 progressUpdated((idx + it * mappings.size()) / offsets.size());
@@ -65,16 +61,24 @@ auto LayerTexture::compute() -> Texture
                 const auto yy = static_cast<int>(y);
                 const auto xx = static_cast<int>(x);
                 const auto v = vol_->interpolateAt(pos + normal * offset);
-                result_.at(it).at<std::uint16_t>(yy, xx) = v;
+                result.at<std::uint16_t>(yy, xx) = v;
             }
 
             // Notify that the image is complete
-            imageComplete.send(it, offsets.size(), result_.at(it));
+            numCompleted += 1;
+            imageComplete.send(it, offsets.size(), result);
+            if (eagerCache_) {
+                result_.emplace_back(result);
+            }
         }
     }
     // Regular mode: Iterate the pixel stack
     else {
         Logger()->debug("[LayerTexture] Starting layer generation");
+        // Preallocate output images
+        for (std::size_t i = 0; i < gen_->extents()[0]; i++) {
+            result_.emplace_back(cv::Mat::zeros(height, width, CV_16UC1));
+        }
         for (const auto [idx, coord] : enumerate(mappings)) {
             progressUpdated(idx);
 
@@ -92,8 +96,9 @@ auto LayerTexture::compute() -> Texture
                 result_.at(it).at<std::uint16_t>(yy, xx) = v;
             }
         }
+        numCompleted = result_.size();
     }
     progressComplete();
-    Logger()->debug("[LayerTexture] Generated {} layers", result_.size());
+    Logger()->debug("[LayerTexture] Generated {} layers", numCompleted);
     return result_;
 }
