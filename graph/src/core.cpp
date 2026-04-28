@@ -513,8 +513,9 @@ void WriteImageSequenceNode::eagerWrite(
     auto opts = opts_;
     opts.padding = std::to_string(count).size();
     Logger()->debug(
-        "[graph.core] writing image sequence: " + path_.string(),
-        el::to_padded_string(idx, opts.padding.value()));
+        "[graph.core] writing image {} of sequence: {}",
+        el::to_padded_string(idx, opts.padding.value()),
+        path_.string());
     WriteImageSequence(path_, std::array{image}, opts, idx);
 }
 

@@ -21,6 +21,10 @@ void LayerTexture::setEagerMode(const bool enable) { eager_ = enable; }
 
 auto LayerTexture::getEagerMode() const -> bool { return eager_; }
 
+void LayerTexture::setEagerCache(const bool enable) { eagerCache_ = enable; }
+
+auto LayerTexture::getEagerCache() const -> bool { return eagerCache_; }
+
 auto LayerTexture::compute() -> Texture
 {
     // Setup
@@ -45,12 +49,17 @@ auto LayerTexture::compute() -> Texture
     if (eager_) {
         Logger()->debug("[LayerTexture] Starting layer generation (eager)");
         const auto offsets = gen_->offsets();
+        if (eagerCache_) {
+            result_.reserve(offsets.size());
+        }
         // Iterate over the output offsets
         for (auto [it, offset] : enumerate(offsets)) {
             cv::Mat result = cv::Mat::zeros(height, width, CV_16UC1);
+            // Precompute base progress for this layer
+            const auto baseProgress = it * mappings.size();
             // Iterate over the pixels
             for (const auto [idx, coord] : enumerate(mappings)) {
-                progressUpdated((idx + it * mappings.size()) / offsets.size());
+                progressUpdated((idx + baseProgress) / offsets.size());
                 // Get the mapping position
                 const auto [y, x] = coord;
                 const auto& m = ppm_->getMapping(y, x);
