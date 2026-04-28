@@ -32,6 +32,13 @@ struct WriteImageOpts {
 
     /** Manually specified padding when using WriteImageSequence */
     std::optional<int> padding;
+
+    /**
+     * Use the image's min/max range for intensity scaling when converting
+     * between bit-depths. If false, the input data type's range will be used
+     * instead.
+     */
+    bool scaleMinMax{true};
 };
 
 /**

@@ -1,8 +1,10 @@
 #include <boost/program_options.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include <educelab/core/utils/String.hpp>
+
 #include "vc/core/filesystem.hpp"
-#include "vc/core/io/TIFFIO.hpp"
+#include "vc/core/io/ImageIO.hpp"
 #include "vc/core/types/PerPixelMap.hpp"
 #include "vc/core/types/VolumePkg.hpp"
 #include "vc/core/util/Logging.hpp"
@@ -10,6 +12,7 @@
 namespace fs = volcart::filesystem;
 namespace po = boost::program_options;
 namespace vc = volcart;
+namespace el = educelab;
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -29,6 +32,8 @@ auto main(int argc, char* argv[]) -> int
         ("ppm,p", po::value<std::string>()->required(), "Input PPM file")
         ("output-prefix,o", po::value<std::string>()->required(),
             "Prefix for output files")
+        ("output-format,f", po::value<std::string>()->default_value("tif"),
+            "Output format: tif, jpg, png")
         ("raw,r", "Output the raw position and normal values. "
             "By default, values are normalized between [0, 1].")
         ("tspace-normals", "Project normals to tangent space (WIP)");
@@ -52,6 +57,14 @@ auto main(int argc, char* argv[]) -> int
         po::notify(parsed);
     } catch (po::error& e) {
         vc::Logger()->error(e.what());
+        return EXIT_FAILURE;
+    }
+
+    // get output format
+    const auto fmt =
+        el::to_lower_copy(parsed["output-format"].as<std::string>());
+    if (fmt != "tif" and fmt != "jpg" and fmt != "png") {
+        vc::Logger()->error("Unsupported output format: {}", fmt);
         return EXIT_FAILURE;
     }
 
@@ -188,7 +201,7 @@ auto main(int argc, char* argv[]) -> int
     // Write the images
     vc::Logger()->info("Saving images");
     auto prefix = parsed["output-prefix"].as<std::string>();
-    vc::tiffio::WriteTIFF(prefix + "pos.tif", pos);
-    vc::tiffio::WriteTIFF(prefix + "normal.tif", norm);
+    vc::WriteImage(prefix + "pos." + fmt, pos);
+    vc::WriteImage(prefix + "norm." + fmt, norm, {.scaleMinMax = false});
     vc::Logger()->info("Done.");
 }
