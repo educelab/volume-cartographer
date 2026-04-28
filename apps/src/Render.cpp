@@ -87,6 +87,7 @@ auto GetIOOpts() -> po::options_description
     ("output-ppm", po::value<std::string>(),
         "Output file path for the generated PPM.")
     ("compression", po::value<int>(), "Image compression level")
+    ("eager", "Perform eager IO operations where supported")
     ("save-graph", po::value<bool>()->default_value(true),
         "Save the generated render graph into the volume package.");
     // clang-format on
@@ -398,6 +399,9 @@ auto main(int argc, char* argv[]) -> int
     graph->setProjectMetadata(projectInfo);
     // Set up a map to keep a reference to important output ports
     std::unordered_map<std::string, smgl::Output*> results;
+
+    // Detect eager mode
+    auto eagerMode = parsed.count("eager") > 0;
 
     //// Load the segmentation/mesh ////
     const bool loadSeg = parsed.count("seg") > 0;
@@ -908,7 +912,8 @@ auto main(int argc, char* argv[]) -> int
     }
 
     // Neighborhood generator
-    const Method method = static_cast<Method>(parsed["method"].as<int>());
+    const auto method = static_cast<Method>(parsed["method"].as<int>());
+    Signal<std::size_t, std::size_t, cv::Mat>* imageGeneratedSignal{nullptr};
     if (method != Method::Intersection and method != Method::Thickness) {
         Logger()->debug("Adding neighborhood generator node");
         auto neighborGen = graph->insertNode<NeighborhoodGeneratorNode>();
@@ -1025,6 +1030,10 @@ auto main(int argc, char* argv[]) -> int
         Logger()->debug("Adding layer texture node");
         auto t = graph->insertNode<LayerTextureNode>();
         t->generator = *results["generator"];
+        t->eagerMode = eagerMode;
+        if (eagerMode) {
+            imageGeneratedSignal = t->imageComplete();
+        }
         texturing = t;
         textureIsSeq = true;
     }
@@ -1052,11 +1061,22 @@ auto main(int argc, char* argv[]) -> int
     // Save final outputs
     if (vc::IsFileType(outputPath, {"png", "jpg", "jpeg", "tiff", "tif"})) {
         if (textureIsSeq) {
-            Logger()->debug("Adding result image sequence writer node");
+            Logger()->debug(
+                "Adding result image sequence writer node (eager: {})",
+                eagerMode);
             auto writer = graph->insertNode<WriteImageSequenceNode>();
-            writer->path = outputPath;
+            writer->path(outputPath, true);
             writer->images = *results["texture"];
-            writer->options = writeOpts;
+            writer->options(writeOpts, true);
+            writer->eagerMode(eagerMode, true);
+            if (eagerMode and imageGeneratedSignal) {
+                imageGeneratedSignal->connect([writer](
+                                                  const std::size_t idx,
+                                                  const std::size_t count,
+                                                  const cv::Mat& img) {
+                    writer->eagerWrite(idx, count, img);
+                });
+            }
         } else {
             Logger()->debug("Adding result image writer node");
             auto writer = graph->insertNode<WriteImageNode>();

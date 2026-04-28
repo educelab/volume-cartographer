@@ -62,7 +62,8 @@ auto main(int argc, char* argv[]) -> int
             "that maps to the layer volume.")
         ("image-format,f", po::value<std::string>()->default_value("png"),
             "Image format for layer images. Default: png")
-        ("compression", po::value<int>(), "Image compression level");
+        ("compression", po::value<int>(), "Image compression level")
+        ("eager", "Perform eager IO operations where supported");
 
     po::options_description filterOptions("Generic Filtering Options");
     filterOptions.add_options()
@@ -85,7 +86,7 @@ auto main(int argc, char* argv[]) -> int
     po::options_description all("Usage");
     all.add(GetGeneralOpts())
         .add(ioOpts)
-        .add(::GetTransformOpts())
+        .add(GetTransformOpts())
         .add(filterOptions)
         .add(ppmOptions);
     // clang-format on
@@ -182,6 +183,12 @@ auto main(int argc, char* argv[]) -> int
         "Volume Cache :: Capacity: {} || Size: {}", volume->getCacheCapacity(),
         BytesToMemorySizeString(cacheBytes));
 
+    // Detect eager mode
+    auto eagerMode = parsed.count("eager") > 0;
+
+    // Output file path
+    const fs::path outFilePath = outDir / ("{}." + imgFmt);
+
     ///// Get some post-vpkg loading command line arguments /////
     // Get the texturing radius. If not specified, default to a radius
     // defined by the estimated thickness of the layer
@@ -233,6 +240,19 @@ auto main(int argc, char* argv[]) -> int
     layerGen.setVolume(volume);
     layerGen.setPerPixelMap(ppm);
     layerGen.setGenerator(line);
+    layerGen.setEagerMode(eagerMode);
+
+    // Set up eager image writing
+    if (eagerMode) {
+        layerGen.imageComplete.connect([outFilePath, writeOpts](
+                                           const std::size_t idx,
+                                           const std::size_t count,
+                                           const cv::Mat& image) {
+            auto opts = writeOpts;
+            opts.padding = std::to_string(count).size();
+            WriteImageSequence(outFilePath, std::array{image}, opts, idx);
+        });
+    }
 
     // Progress reporting
     auto enableProgress = parsed["progress"].as<bool>();
@@ -252,14 +272,15 @@ auto main(int argc, char* argv[]) -> int
     auto texture = layerGen.compute();
 
     // Write the image sequence
-    const fs::path filepath = outDir / ("{}." + imgFmt);
-    if (enableProgress) {
-        Logger()->debug("Writing layers...");
-        auto progIt = ProgressWrap(texture, "Writing layers:", cfg);
-        WriteImageSequence(filepath, progIt, writeOpts);
-    } else {
-        Logger()->info("Writing layers...");
-        WriteImageSequence(filepath, texture, writeOpts);
+    if (not eagerMode) {
+        if (enableProgress) {
+            Logger()->debug("Writing layers...");
+            auto progIt = ProgressWrap(texture, "Writing layers:", cfg);
+            WriteImageSequence(outFilePath, progIt, writeOpts);
+        } else {
+            Logger()->info("Writing layers...");
+            WriteImageSequence(outFilePath, texture, writeOpts);
+        }
     }
 
     if (parsed.count("output-ppm") > 0) {

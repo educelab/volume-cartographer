@@ -588,6 +588,8 @@ private:
     ImageSequence images_;
     /** Image writer options */
     WriteImageOpts opts_;
+    /** Eager mode */
+    bool eagerMode_{false};
     /** Include the saved file in the graph cache */
     bool cacheArgs_{false};
 
@@ -598,11 +600,16 @@ public:
     smgl::InputPort<ImageSequence> images;
     /** @brief Image writer options */
     smgl::InputPort<WriteImageOpts> options;
+    /** @brief Eager mode */
+    smgl::InputPort<bool> eagerMode;
     /** @brief Include the saved file in the graph cache */
     smgl::InputPort<bool> cacheArgs;
 
     /** Constructor */
     WriteImageSequenceNode();
+
+    void eagerWrite(
+        std::size_t idx, std::size_t count, const cv::Mat& image) const;
 
 private:
     /** smgl custom serialization */

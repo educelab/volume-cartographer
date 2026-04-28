@@ -559,6 +559,8 @@ private:
     using TAlgo = texturing::LayerTexture;
     /** Generator class type */
     using Generator = NeighborhoodGenerator::Pointer;
+    /** Eager image complete signal */
+    using ImageCompleteSignal = TAlgo::ImageCompleteSignal;
     /** Texturing algorithm */
     TAlgo textureGen_;
     /** Output layer images */
@@ -576,8 +578,13 @@ public:
      * LineGenerator.
      */
     smgl::InputPort<Generator> generator;
+
+    smgl::InputPort<bool> eagerMode;
+
     /** @brief Generated texture image */
     smgl::OutputPort<ImageList> texture;
+
+    auto imageComplete() -> ImageCompleteSignal*;
 
     /** Constructor */
     LayerTextureNode();

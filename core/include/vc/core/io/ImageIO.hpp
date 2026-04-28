@@ -56,9 +56,10 @@ template <class Iterable>
 void WriteImageSequence(
     const filesystem::path& path,
     const Iterable& iterable,
-    const WriteImageOpts& opts = {})
+    const WriteImageOpts& opts = {},
+    const std::size_t idxOffset = 0)
 {
-    namespace fs = volcart::filesystem;
+    namespace fs = filesystem;
 
     // components
     fs::path parent;
@@ -79,12 +80,13 @@ void WriteImageSequence(
 
         // Split into a prefix and suffix
         auto stem = path.stem().string();
-        std::tie(prefix, std::ignore, suffix) = partition(stem, "{}");
+        std::string sep;
+        std::tie(prefix, sep, suffix) = partition(stem, "{}");
 
         // Log when separator not found
-        if (suffix.empty()) {
+        if (sep.empty()) {
             Logger()->debug(
-                "Index placement separator \\{\\} not found in stem: {}", stem);
+                "Index placement separator {{}} not found in stem: {}", stem);
         }
     }
 
@@ -94,7 +96,8 @@ void WriteImageSequence(
 
     // Write images
     for (const auto [i, image] : enumerate(iterable)) {
-        const auto name = prefix + to_padded_string(i, pad) + suffix;
+        const auto name =
+            prefix + to_padded_string(idxOffset + i, pad) + suffix;
         auto filepath = (parent / name).replace_extension(ext);
         WriteImage(filepath, image, opts);
     }

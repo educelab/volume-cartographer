@@ -202,6 +202,6 @@ auto main(int argc, char* argv[]) -> int
     vc::Logger()->info("Saving images");
     auto prefix = parsed["output-prefix"].as<std::string>();
     vc::WriteImage(prefix + "pos." + fmt, pos);
-    vc::WriteImage(prefix + "norm." + fmt, norm, {.scaleMinMax = false});
+    vc::WriteImage(prefix + "normal." + fmt, norm, {.scaleMinMax = false});
     vc::Logger()->info("Done.");
 }

@@ -2,9 +2,10 @@
 
 /** @file */
 
-#include "vc/texturing/TexturingAlgorithm.hpp"
+#include <educelab/core/types/Signals.hpp>
 
 #include "vc/core/neighborhood/LineGenerator.hpp"
+#include "vc/texturing/TexturingAlgorithm.hpp"
 
 namespace volcart::texturing
 {
@@ -29,6 +30,9 @@ public:
     /** Pointer type */
     using Pointer = std::shared_ptr<LayerTexture>;
 
+    /** Signal type */
+    using ImageCompleteSignal = Signal<std::size_t, std::size_t, cv::Mat>;
+
     /** Make shared pointer */
     static auto New() -> Pointer;
 
@@ -50,7 +54,13 @@ public:
      *
      * This class only supports LineGenerator
      */
-    void setGenerator(LineGenerator::Pointer g) { gen_ = std::move(g); }
+    void setGenerator(LineGenerator::Pointer g);
+
+    void setEagerMode(bool enable);
+
+    [[nodiscard]] auto getEagerMode() const -> bool;
+
+    ImageCompleteSignal imageComplete;
 
     /**@{*/
     /** @brief Compute the Texture */
@@ -59,6 +69,9 @@ public:
 private:
     /** Neighborhood Generator */
     LineGenerator::Pointer gen_;
+
+    /** Eager mode */
+    bool eager_{false};
 };
 
 }  // namespace volcart::texturing

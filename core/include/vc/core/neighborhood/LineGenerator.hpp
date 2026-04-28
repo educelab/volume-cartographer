@@ -20,14 +20,16 @@ public:
 
     /**@{*/
     /** @brief Default Constructor */
-    LineGenerator() : NeighborhoodGenerator(1) {}
+    LineGenerator();
 
     /** @overload LineGenerator() */
-    static Pointer New() { return std::make_shared<LineGenerator>(); }
+    static Pointer New();
     /**@}*/
 
     /**@{*/
-    Neighborhood::Extent extents() const override;
+    [[nodiscard]] auto extents() const -> Neighborhood::Extent override;
+
+    [[nodiscard]] auto offsets() const -> std::vector<double>;
     /**@}*/
 
     /**@{*/
