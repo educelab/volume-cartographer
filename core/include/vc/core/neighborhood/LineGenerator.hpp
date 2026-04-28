@@ -20,14 +20,23 @@ public:
 
     /**@{*/
     /** @brief Default Constructor */
-    LineGenerator() : NeighborhoodGenerator(1) {}
+    LineGenerator();
 
     /** @overload LineGenerator() */
-    static Pointer New() { return std::make_shared<LineGenerator>(); }
+    static Pointer New();
     /**@}*/
 
     /**@{*/
-    Neighborhood::Extent extents() const override;
+    [[nodiscard]] auto extents() const -> Neighborhood::Extent override;
+
+    /**
+     * @brief Returns the list of scalar offsets along the neighborhood axis
+     *
+     * Each offset is a scalar distance from the origin point. The offsets
+     * are computed from the generator's radius, interval, and direction
+     * settings and correspond 1-to-1 with the samples returned by compute().
+     */
+    [[nodiscard]] auto offsets() const -> std::vector<double>;
     /**@}*/
 
     /**@{*/

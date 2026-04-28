@@ -66,9 +66,9 @@ void vc::WriteImage(
                 "supported bit depth.",
                 depth, path.extension().string());
             if (isPNG) {
-                output = QuantizeImage(output, CV_16U);
+                output = QuantizeImage(output, CV_16U, opts.scaleMinMax);
             } else {
-                output = QuantizeImage(output, CV_8U);
+                output = QuantizeImage(output, CV_8U, opts.scaleMinMax);
             }
         }
 

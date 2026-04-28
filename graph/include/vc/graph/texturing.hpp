@@ -559,6 +559,8 @@ private:
     using TAlgo = texturing::LayerTexture;
     /** Generator class type */
     using Generator = NeighborhoodGenerator::Pointer;
+    /** Eager image complete signal */
+    using ImageCompleteSignal = TAlgo::ImageCompleteSignal;
     /** Texturing algorithm */
     TAlgo textureGen_;
     /** Output layer images */
@@ -576,8 +578,27 @@ public:
      * LineGenerator.
      */
     smgl::InputPort<Generator> generator;
+
+    /**
+     * @brief Enable or disable eager rendering mode
+     * @see texturing::LayerTexture::setEagerMode()
+     */
+    smgl::InputPort<bool> eagerMode;
+
     /** @brief Generated texture image */
     smgl::OutputPort<ImageList> texture;
+
+    /**
+     * @brief Returns a pointer to the underlying eager-mode image-complete signal
+     *
+     * Connect to this signal to receive each layer image as it is produced
+     * during eager rendering. The signal is emitted with the layer index,
+     * total layer count, and the completed cv::Mat image.
+     *
+     * @see texturing::LayerTexture::imageComplete
+     * @see texturing::LayerTexture::setEagerMode()
+     */
+    auto imageComplete() -> ImageCompleteSignal*;
 
     /** Constructor */
     LayerTextureNode();

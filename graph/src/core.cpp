@@ -1,5 +1,6 @@
 #include "vc/graph/core.hpp"
 
+#include <educelab/core/utils/String.hpp>
 #include <nlohmann/json.hpp>
 
 #include "vc/core/io/PointSetIO.hpp"
@@ -9,6 +10,7 @@
 
 using namespace volcart;
 namespace fs = volcart::filesystem;
+namespace el = educelab;
 
 // Enum conversions
 namespace volcart
@@ -483,18 +485,38 @@ WriteImageSequenceNode::WriteImageSequenceNode()
     , path{&path_}
     , images{&images_}
     , options{&opts_}
+    , eagerMode{&eagerMode_}
     , cacheArgs{&cacheArgs_}
 {
     registerInputPort("path", path);
     registerInputPort("images", images);
     registerInputPort("options", options);
+    registerInputPort("eagerMode", eagerMode);
     registerInputPort("cacheArgs", cacheArgs);
     compute = [&]() {
+        if (eagerMode_) {
+            return;
+        }
         Logger()->debug(
             "[graph.core] writing image sequence: {}", path_.string());
         WriteImageSequence(path_, images_, opts_);
     };
     usesCacheDir = [&]() { return cacheArgs_; };
+}
+
+void WriteImageSequenceNode::eagerWrite(
+    std::size_t idx, std::size_t count, const cv::Mat& image) const
+{
+    if (not eagerMode_) {
+        return;
+    }
+    auto opts = opts_;
+    opts.padding = std::to_string(count).size();
+    Logger()->debug(
+        "[graph.core] writing image {} of sequence: {}",
+        el::to_padded_string(idx, opts.padding.value()),
+        path_.string());
+    WriteImageSequence(path_, std::array{image}, opts, idx);
 }
 
 auto WriteImageSequenceNode::serialize_(bool useCache, const fs::path& cacheDir)

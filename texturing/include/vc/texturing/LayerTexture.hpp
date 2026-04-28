@@ -4,6 +4,8 @@
 
 #include "vc/texturing/TexturingAlgorithm.hpp"
 
+#include <educelab/core/types/Signals.hpp>
+
 #include "vc/core/neighborhood/LineGenerator.hpp"
 
 namespace volcart::texturing
@@ -29,6 +31,9 @@ public:
     /** Pointer type */
     using Pointer = std::shared_ptr<LayerTexture>;
 
+    /** Signal type */
+    using ImageCompleteSignal = Signal<std::size_t, std::size_t, cv::Mat>;
+
     /** Make shared pointer */
     static auto New() -> Pointer;
 
@@ -50,7 +55,54 @@ public:
      *
      * This class only supports LineGenerator
      */
-    void setGenerator(LineGenerator::Pointer g) { gen_ = std::move(g); }
+    void setGenerator(LineGenerator::Pointer g);
+
+    /**
+     * @brief Enable or disable eager rendering mode
+     *
+     * When enabled, the algorithm generates one complete layer image at a time
+     * (iterating over pixels for each layer offset), rather than the default
+     * mode which iterates over pixels and computes all layer offsets per pixel.
+     * Eager mode emits the imageComplete signal after each layer is finished,
+     * allowing incremental output (e.g., writing layers to disk as they are
+     * produced).
+     */
+    void setEagerMode(bool enable);
+
+    /** @brief Returns whether eager rendering mode is enabled */
+    [[nodiscard]] auto getEagerMode() const -> bool;
+
+    /**
+     * @brief Enable or disable caching of layer images in eager mode
+     *
+     * When eager mode is enabled and caching is enabled, completed layer images
+     * are stored internally so they can be returned by compute(). When caching
+     * is disabled (the default), layers are only emitted via the imageComplete
+     * signal and compute() returns an empty result. Disabling the cache reduces
+     * peak memory usage when layers are being written to disk incrementally.
+     *
+     * Has no effect when eager mode is disabled.
+     *
+     * @see setEagerMode()
+     */
+    void setEagerCache(bool enable);
+
+    /**
+     * @brief Returns whether layer caching is enabled in eager mode
+     *
+     * @see setEagerCache()
+     */
+    [[nodiscard]] auto getEagerCache() const -> bool;
+
+    /**
+     * @brief Signal emitted after each layer image is completed in eager mode
+     *
+     * The signal is emitted with the layer index, the total number of layers,
+     * and the completed layer image (as a cv::Mat).
+     *
+     * @see setEagerMode()
+     */
+    ImageCompleteSignal imageComplete;
 
     /**@{*/
     /** @brief Compute the Texture */
@@ -59,6 +111,11 @@ public:
 private:
     /** Neighborhood Generator */
     LineGenerator::Pointer gen_;
+
+    /** Eager mode */
+    bool eager_{false};
+    /** Whether to cache images when eager mode is enabled */
+    bool eagerCache_{false};
 };
 
 }  // namespace volcart::texturing

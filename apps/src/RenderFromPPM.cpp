@@ -71,7 +71,7 @@ auto main(int argc, char* argv[]) -> int
     po::options_description all("Usage");
     all.add(GetGeneralOpts())
             .add(ioOpts)
-            .add(::GetTransformOpts())
+            .add(GetTransformOpts())
             .add(GetFilteringOpts())
             .add(GetCompositeOpts())
             .add(GetIntegralOpts())

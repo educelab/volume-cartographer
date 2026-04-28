@@ -625,7 +625,7 @@ void ThicknessTextureNode::deserialize_(
 LayerTextureNode::LayerTextureNode()
     : Node{true}
     , ppm{&textureGen_, &TAlgo::setPerPixelMap}
-    , generator{[&](auto ptr) {
+    , generator{[&](const auto& ptr) {
         auto derived = std::dynamic_pointer_cast<LineGenerator>(ptr);
         if (not derived) {
             throw std::runtime_error("Generator is not a LineGenerator");
@@ -633,18 +633,25 @@ LayerTextureNode::LayerTextureNode()
         textureGen_.setGenerator(derived);
     }}
     , volume{&textureGen_, &TAlgo::setVolume}
+    , eagerMode{&textureGen_, &TAlgo::setEagerMode}
     , texture{&texture_}
 {
     registerInputPort("ppm", ppm);
     registerInputPort("volume", volume);
     registerInputPort("generator", generator);
+    registerInputPort("eagerMode", eagerMode);
     registerOutputPort("texture", texture);
 
     compute = [&]() {
         Logger()->debug("[graph.texturing] generating layers");
         texture_ = textureGen_.compute();
-        Logger()->debug("[graph.texturing] done");
+        Logger()->debug("[graph.texturing] done ({} images)", texture_.size());
     };
+}
+
+auto LayerTextureNode::imageComplete() -> ImageCompleteSignal*
+{
+    return &textureGen_.imageComplete;
 }
 
 auto LayerTextureNode::serialize_(bool useCache, const fs::path& cacheDir)

@@ -32,6 +32,13 @@ struct WriteImageOpts {
 
     /** Manually specified padding when using WriteImageSequence */
     std::optional<int> padding;
+
+    /**
+     * Use the image's min/max range for intensity scaling when converting
+     * between bit-depths. If false, the input data type's range will be used
+     * instead.
+     */
+    bool scaleMinMax{true};
 };
 
 /**
@@ -45,13 +52,30 @@ struct WriteImageOpts {
 void WriteImage(
     const filesystem::path& path, const cv::Mat& img, WriteImageOpts = {});
 
+/**
+ * @brief Write a sequence of images to disk
+ *
+ * Writes each image in @p iterable to an individual file. The output filename
+ * is derived from @p path as follows:
+ *
+ * - If @p path is a directory, images are written as `###.tif` inside it.
+ * - Otherwise the stem of @p path may contain the placeholder `{}`, which is
+ *   replaced by a zero-padded integer index. If `{}` is absent, the index is
+ *   appended before the extension.
+ *
+ * @param path      Output directory or file path template (may contain `{}`)
+ * @param iterable  Range of cv::Mat images to write
+ * @param opts      Optional write options (compression, padding, etc.)
+ * @param idxOffset Starting index offset applied to each image's filename index
+ */
 template <class Iterable>
 void WriteImageSequence(
     const filesystem::path& path,
     const Iterable& iterable,
-    const WriteImageOpts& opts = {})
+    const WriteImageOpts& opts = {},
+    const std::size_t idxOffset = 0)
 {
-    namespace fs = volcart::filesystem;
+    namespace fs = filesystem;
 
     // components
     fs::path parent;
@@ -72,12 +96,13 @@ void WriteImageSequence(
 
         // Split into a prefix and suffix
         auto stem = path.stem().string();
-        std::tie(prefix, std::ignore, suffix) = partition(stem, "{}");
+        std::string sep;
+        std::tie(prefix, sep, suffix) = partition(stem, "{}");
 
         // Log when separator not found
-        if (suffix.empty()) {
+        if (sep.empty()) {
             Logger()->debug(
-                "Index placement separator \\{\\} not found in stem: {}", stem);
+                "Index placement separator {{}} not found in stem: {}", stem);
         }
     }
 
@@ -87,7 +112,8 @@ void WriteImageSequence(
 
     // Write images
     for (const auto [i, image] : enumerate(iterable)) {
-        const auto name = prefix + to_padded_string(i, pad) + suffix;
+        const auto name =
+            prefix + to_padded_string(idxOffset + i, pad) + suffix;
         auto filepath = (parent / name).replace_extension(ext);
         WriteImage(filepath, image, opts);
     }
