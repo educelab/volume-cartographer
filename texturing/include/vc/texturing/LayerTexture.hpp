@@ -56,10 +56,29 @@ public:
      */
     void setGenerator(LineGenerator::Pointer g);
 
+    /**
+     * @brief Enable or disable eager rendering mode
+     *
+     * When enabled, the algorithm generates one complete layer image at a time
+     * (iterating over pixels for each layer offset), rather than the default
+     * mode which iterates over pixels and computes all layer offsets per pixel.
+     * Eager mode emits the imageComplete signal after each layer is finished,
+     * allowing incremental output (e.g., writing layers to disk as they are
+     * produced).
+     */
     void setEagerMode(bool enable);
 
+    /** @brief Returns whether eager rendering mode is enabled */
     [[nodiscard]] auto getEagerMode() const -> bool;
 
+    /**
+     * @brief Signal emitted after each layer image is completed in eager mode
+     *
+     * The signal is emitted with the layer index, the total number of layers,
+     * and the completed layer image (as a cv::Mat).
+     *
+     * @see setEagerMode()
+     */
     ImageCompleteSignal imageComplete;
 
     /**@{*/

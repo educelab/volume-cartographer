@@ -600,7 +600,14 @@ public:
     smgl::InputPort<ImageSequence> images;
     /** @brief Image writer options */
     smgl::InputPort<WriteImageOpts> options;
-    /** @brief Eager mode */
+    /**
+     * @brief Enable or disable eager write mode
+     *
+     * When enabled, the node skips writing the full sequence during its normal
+     * compute step. Instead, individual images are written incrementally via
+     * eagerWrite() as they become available (e.g., when connected to
+     * LayerTextureNode's imageComplete signal).
+     */
     smgl::InputPort<bool> eagerMode;
     /** @brief Include the saved file in the graph cache */
     smgl::InputPort<bool> cacheArgs;
@@ -608,6 +615,17 @@ public:
     /** Constructor */
     WriteImageSequenceNode();
 
+    /**
+     * @brief Write a single image from the sequence when in eager mode
+     *
+     * This method is intended to be called from a signal handler (e.g.,
+     * LayerTextureNode::imageComplete) to write one layer image at a time
+     * as it is produced. Has no effect when eager mode is disabled.
+     *
+     * @param idx   Zero-based index of this image within the sequence
+     * @param count Total number of images in the sequence (used for padding)
+     * @param image The image to write
+     */
     void eagerWrite(
         std::size_t idx, std::size_t count, const cv::Mat& image) const;
 
