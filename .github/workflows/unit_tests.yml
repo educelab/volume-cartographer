@@ -30,7 +30,7 @@ jobs:
       CMAKE_PREFIX_PATH: "/usr/local/Qt-6.10.0/"
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Build volume-cartographer
       run: |
@@ -55,7 +55,7 @@ jobs:
       EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON -DVC_BUILD_JSON=OFF"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use the Command Line Tools
         run: |
