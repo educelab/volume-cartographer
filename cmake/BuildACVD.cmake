@@ -3,7 +3,7 @@ if(VC_BUILD_ACVD)
   FetchContent_Declare(
       acvd
       GIT_REPOSITORY https://gitlab.com/educelab/acvd.git
-      GIT_TAG v1.2.1
+      GIT_TAG a390c777
       EXCLUDE_FROM_ALL
   )
   FetchContent_MakeAvailable(acvd)

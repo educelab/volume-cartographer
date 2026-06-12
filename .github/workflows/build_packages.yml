@@ -21,7 +21,7 @@ jobs:
       EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_JSON=ON -DCMAKE_OSX_ARCHITECTURES:STRING='x86_64;arm64'"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 20
 
@@ -79,7 +79,7 @@ jobs:
           ditto -c -k "${{ env.install_dir }}" ${{ env.package_name }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: success()
         with:
           name: package-macos

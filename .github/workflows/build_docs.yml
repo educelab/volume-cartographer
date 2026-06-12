@@ -36,7 +36,7 @@ jobs:
       CMAKE_PREFIX_PATH: "/usr/local/Qt-6.10.0/"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install documentation requirements
         run: |
@@ -50,7 +50,7 @@ jobs:
           mv build/docs/html/ public/
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: public/
           
@@ -65,11 +65,11 @@ jobs:
     if: ${{ github.ref_name == 'develop' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
           
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

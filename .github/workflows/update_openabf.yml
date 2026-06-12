@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: develop
 
@@ -58,7 +58,7 @@ jobs:
 
       - name: Open pull request
         if: steps.latest.outputs.tag != steps.current.outputs.tag
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: ci/update-openabf-${{ steps.latest.outputs.tag }}
           base: develop

@@ -2,6 +2,14 @@
 
 #include <array>
 
+// Logging.hpp pulls in spdlog, which uses fmt. It must be included before any
+// VTK header: VTK 9.6+ ships a bundled fmt as `vtkfmt` and its base header
+// defines `fmt` as a macro expanding to `vtkfmt` (vtkfmt/base.h). If spdlog
+// headers are parsed after that macro is active, spdlog's `string_view_t`
+// resolves to `vtkfmt::basic_string_view`, producing link errors against the
+// real spdlog (which exports `fmt::basic_string_view` symbols).
+#include "vc/core/util/Logging.hpp"
+
 #include <vtkAnisotropicDiscreteRemeshing.h>
 #include <vtkCleanPolyData.h>
 #include <vtkIsotropicDiscreteRemeshing.h>
@@ -9,7 +17,6 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataNormals.h>
 
-#include "vc/core/util/Logging.hpp"
 #include "vc/meshing/ITK2VTK.hpp"
 
 using namespace volcart;
