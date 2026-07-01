@@ -1,7 +1,7 @@
 FetchContent_Declare(
     smgl
-    GIT_REPOSITORY https://gitlab.com/educelab/smgl.git
-    GIT_TAG v0.10.1
+    GIT_REPOSITORY https://github.com/educelab/smgl.git
+    GIT_TAG v0.11.0-rc.2
     EXCLUDE_FROM_ALL
 )
 set(SMGL_BUILD_JSON ${VC_BUILD_JSON} CACHE INTERNAL "")
