@@ -5,11 +5,19 @@ ARG VC_GIT_SHA1
 
 COPY ./ /volume-cartographer/
 
-# Not packaged for apt or bundled in this base image; must be installed for find_package().
+# smgl and libcore aren't packaged for apt or bundled in this base image, so
+# build them from source for find_package(). VC is built static below, so static deps.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nlohmann-json3-dev \
-    && /volume-cartographer/scripts/ci-install-smgl-libcore.sh \
-    && rm -rf /var/lib/apt/lists/* \
+    && git clone --quiet --depth 1 --branch v0.11.0-rc.2 https://github.com/educelab/smgl.git /tmp/smgl \
+    && cmake -S /tmp/smgl -B /tmp/smgl/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+        -DSMGL_BUILD_JSON=OFF -DSMGL_USE_BOOSTFS=OFF -DSMGL_BUILD_TESTS=OFF -DSMGL_BUILD_DOCS=OFF \
+    && cmake --build /tmp/smgl/build && cmake --install /tmp/smgl/build \
+    && git clone --quiet --depth 1 --branch v0.3.0-rc.1 https://github.com/educelab/libcore.git /tmp/libcore \
+    && cmake -S /tmp/libcore -B /tmp/libcore/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+        -DEDUCE_CORE_BUILD_TESTS=OFF -DEDUCE_CORE_BUILD_DOCS=OFF -DEDUCE_CORE_BUILD_EXAMPLES=OFF \
+    && cmake --build /tmp/libcore/build && cmake --install /tmp/libcore/build \
+    && rm -rf /tmp/smgl /tmp/libcore /var/lib/apt/lists/* \
     && ldconfig
 
 # Install volcart

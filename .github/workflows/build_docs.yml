@@ -43,11 +43,20 @@ jobs:
           apt-get -y update
           apt-get install --fix-missing --fix-broken -y doxygen graphviz
 
-      # Not packaged for apt or bundled in ci-docker; must be installed for find_package().
+      # smgl and libcore aren't packaged for apt or bundled in ci-docker, so build
+      # them from source for find_package(). This is a static build, so static deps.
       - name: Install smgl and libcore
         run: |
           apt-get install -y --no-install-recommends nlohmann-json3-dev
-          ./scripts/ci-install-smgl-libcore.sh
+          git clone --quiet --depth 1 --branch v0.11.0-rc.2 https://github.com/educelab/smgl.git /tmp/smgl
+          cmake -S /tmp/smgl -B /tmp/smgl/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DSMGL_BUILD_JSON=OFF -DSMGL_USE_BOOSTFS=OFF -DSMGL_BUILD_TESTS=OFF -DSMGL_BUILD_DOCS=OFF
+          cmake --build /tmp/smgl/build && cmake --install /tmp/smgl/build
+          git clone --quiet --depth 1 --branch v0.3.0-rc.1 https://github.com/educelab/libcore.git /tmp/libcore
+          cmake -S /tmp/libcore -B /tmp/libcore/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DEDUCE_CORE_BUILD_TESTS=OFF -DEDUCE_CORE_BUILD_DOCS=OFF -DEDUCE_CORE_BUILD_EXAMPLES=OFF
+          cmake --build /tmp/libcore/build && cmake --install /tmp/libcore/build
+          ldconfig
 
       - name: Build documentation
         run: |
