@@ -92,13 +92,13 @@ To run the GUI tools, you must additionally set up
 ### From source
 #### Supported platforms
 This project is primarily developed and tested on macOS and Debian/Ubuntu
-systems. Though it should compile with any C++17 compiler using the Itanium ABI,
-this has not been tested on Windows. We are accepting contributions to
-explicitly support other platforms.
+systems. Though it should compile with any C++17 compiler, this has not been
+tested on Windows. We are accepting contributions to explicitly support other
+platforms.
 
 #### Dependencies
 **Required**
-* C++17 compiler which uses the Itanium ABI
+* C++17 compiler
 * CMake 3.28+
 * OpenCV 3+
 * Insight Toolkit (itk) 4.10+
