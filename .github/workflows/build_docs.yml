@@ -43,6 +43,12 @@ jobs:
           apt-get -y update
           apt-get install --fix-missing --fix-broken -y doxygen graphviz
 
+      # Not packaged for apt or bundled in ci-docker; must be installed for find_package().
+      - name: Install smgl and libcore
+        run: |
+          apt-get install -y --no-install-recommends nlohmann-json3-dev
+          ./scripts/ci-install-smgl-libcore.sh
+
       - name: Build documentation
         run: |
           cmake -S . -B build/ -GNinja -DVC_BUILD_DOCS=ON -DVC_BUILD_APPS=OFF -DVC_BUILD_UTILS=OFF

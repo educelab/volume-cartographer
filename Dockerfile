@@ -3,8 +3,16 @@ LABEL org.opencontainers.image.authors="Seth Parker <c.seth.parker@uky.edu>"
 
 ARG VC_GIT_SHA1
 
-# Install volcart
 COPY ./ /volume-cartographer/
+
+# Not packaged for apt or bundled in this base image; must be installed for find_package().
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nlohmann-json3-dev \
+    && /volume-cartographer/scripts/ci-install-smgl-libcore.sh \
+    && rm -rf /var/lib/apt/lists/* \
+    && ldconfig
+
+# Install volcart
 RUN export CMAKE_PREFIX_PATH="/usr/local/Qt-6.10.0/" \
     && cmake  \
       -S /volume-cartographer/ \

@@ -18,6 +18,8 @@ set(srcs
 )
 set(public_deps
     VC::core
+    # LayerTexture.hpp's public interface exposes educelab::Signal
+    educelab::core
 )
 set(private_deps
     opencv_imgproc

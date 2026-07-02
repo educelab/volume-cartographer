@@ -107,6 +107,11 @@ platforms.
 * [libtiff](https://gitlab.com/libtiff/libtiff) 4.0+
 * Eigen3 3.2+
 * spdlog 1.4.2+
+* [smgl](https://github.com/educelab/smgl) 0.11.0+: Must be installed on the
+system (e.g. via the `educelab/code` Homebrew tap or built from source); it is
+not fetched automatically
+* [libcore](https://github.com/educelab/libcore) 0.3.0+: Same as smgl, must be
+installed on the system
 * Boost Program Options 1.58+: Required if building applications or utilities
 * Qt 6.5+: Required if building GUI applications or utilities
 
@@ -123,7 +128,8 @@ bindings
 
 ##### Homebrew-provided dependencies
 Homebrew can be used to install all of Volume Cartographer's dependencies. We 
-provide a `Brewfile` to simplify this process.
+provide a `Brewfile` to simplify this process. This includes smgl and libcore,
+which are published on our `educelab/code` tap.
 ```shell
 cd volume-cartographer/
 ./scripts/brew-pin-fmt.sh  # workaround for spdlog/fmt 12.2.0 incompatibility, see #147

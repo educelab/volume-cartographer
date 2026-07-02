@@ -78,6 +78,15 @@ jobs:
     # to build your code.
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+    # Not packaged for apt or bundled in ci-docker; must be installed for find_package().
+    - if: matrix.build-mode == 'manual'
+      name: Install smgl and libcore
+      shell: bash
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends nlohmann-json3-dev
+        ./scripts/ci-install-smgl-libcore.sh
+
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |

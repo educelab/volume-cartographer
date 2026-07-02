@@ -32,6 +32,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v6
 
+    # Not packaged for apt or bundled in ci-docker; must be installed for find_package().
+    - name: Install smgl and libcore
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends nlohmann-json3-dev
+        ./scripts/ci-install-smgl-libcore.sh
+
     - name: Build volume-cartographer
       run: |
         cmake -S . -B build/ -GNinja -DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON $EXTRA_CMAKE_FLAGS
@@ -52,7 +59,7 @@ jobs:
     runs-on: macos-${{ matrix.os.version }}
     timeout-minutes: 180
     env:
-      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON -DVC_BUILD_JSON=OFF"
+      EXTRA_CMAKE_FLAGS: "-DVC_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVC_BUILD_TESTS=ON"
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -73,6 +80,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Trust required for Homebrew to load this third-party tap non-interactively.
+          brew tap educelab/code
+          brew trust educelab/code
           brew bundle
           brew install ninja
 
