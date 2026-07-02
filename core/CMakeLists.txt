@@ -208,6 +208,10 @@ foreach(src ${test_srcs})
     )
 endforeach()
 
+# AnnotationTest includes educelab headers directly, but vc_core exposes libcore
+# only PRIVATEly, so link it here for the include dir.
+target_link_libraries(vc_core_AnnotationTest educelab::core)
+
 # Set test resource files
 set(COMMON_TEST_RES
     test/res/PlyWriter_Plane.ply
