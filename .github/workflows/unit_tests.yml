@@ -65,6 +65,12 @@ jobs:
         run: |
           sudo rm -rf /Library/Developer/CommandLineTools/SDKs/MacOSX${{ matrix.os.exclude_sdk }}*.sdk
 
+      # Homebrew's fmt 12.2.0 broke compilation against spdlog (a Brewfile
+      # dependency). Pin fmt to the last compatible release until spdlog
+      # supports fmt 12.2.0. Tracking issue: educelab/volume-cartographer#147
+      - name: Pin fmt to 12.1.0 (workaround for spdlog/fmt 12.2.0 incompatibility)
+        run: ./scripts/brew-pin-fmt.sh
+
       - name: Install dependencies
         run: |
           brew bundle

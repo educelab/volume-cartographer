@@ -126,6 +126,7 @@ Homebrew can be used to install all of Volume Cartographer's dependencies. We
 provide a `Brewfile` to simplify this process.
 ```shell
 cd volume-cartographer/
+./scripts/brew-pin-fmt.sh  # workaround for spdlog/fmt 12.2.0 incompatibility, see #147
 brew bundle
 ```
 
