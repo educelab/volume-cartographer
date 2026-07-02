@@ -47,12 +47,12 @@ jobs:
       # them from source for find_package(). This is a static build, so static deps.
       - name: Install smgl and libcore
         run: |
-          apt-get install -y --no-install-recommends nlohmann-json3-dev
-          git clone --quiet --depth 1 --branch v0.11.0-rc.2 https://github.com/educelab/smgl.git /tmp/smgl
+          apt-get install -y --no-install-recommends curl nlohmann-json3-dev
+          mkdir -p /tmp/smgl && curl -fsSL https://github.com/educelab/smgl/archive/refs/tags/v0.11.0-rc.2.tar.gz | tar -xz --strip-components=1 -C /tmp/smgl
           cmake -S /tmp/smgl -B /tmp/smgl/build -GNinja -DCMAKE_BUILD_TYPE=Release \
             -DSMGL_BUILD_JSON=OFF -DSMGL_USE_BOOSTFS=OFF -DSMGL_BUILD_TESTS=OFF -DSMGL_BUILD_DOCS=OFF
           cmake --build /tmp/smgl/build && cmake --install /tmp/smgl/build
-          git clone --quiet --depth 1 --branch v0.3.0-rc.1 https://github.com/educelab/libcore.git /tmp/libcore
+          mkdir -p /tmp/libcore && curl -fsSL https://github.com/educelab/libcore/archive/refs/tags/v0.3.0-rc.1.tar.gz | tar -xz --strip-components=1 -C /tmp/libcore
           cmake -S /tmp/libcore -B /tmp/libcore/build -GNinja -DCMAKE_BUILD_TYPE=Release \
             -DEDUCE_CORE_BUILD_TESTS=OFF -DEDUCE_CORE_BUILD_DOCS=OFF -DEDUCE_CORE_BUILD_EXAMPLES=OFF
           cmake --build /tmp/libcore/build && cmake --install /tmp/libcore/build
