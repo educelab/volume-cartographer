@@ -124,6 +124,7 @@ add_executable(vc_visualize_ppm src/VisualizePPM.cpp)
 target_link_libraries(vc_visualize_ppm
     VC::core
     VC::app_support
+    educelab::core
     ${VC_FS_LIB}
     Boost::program_options
 )
@@ -148,10 +149,6 @@ target_link_libraries(vc_flatten_mesh
     ${VC_FS_LIB}
     Boost::program_options
     Eigen3::Eigen
-)
-target_include_directories(vc_core
-    PUBLIC
-        $<BUILD_INTERFACE:${libcore_SOURCE_DIR}/include>
 )
 list(APPEND utils_install_list vc_flatten_mesh)
 

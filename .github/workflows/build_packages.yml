@@ -18,7 +18,7 @@ jobs:
     env:
       MACOSX_DEPLOYMENT_TARGET: "14.5"
       QT_VERSION: "6.10.0"
-      EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DVC_BUILD_JSON=ON -DCMAKE_OSX_ARCHITECTURES:STRING='x86_64;arm64'"
+      EXTRA_CMAKE_FLAGS: "-DCMAKE_BUILD_TYPE=Release -DVC_PREBUILT_LIBS=ON -DVC_BUILD_ACVD=ON -DCMAKE_OSX_ARCHITECTURES:STRING='x86_64;arm64'"
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -28,7 +28,10 @@ jobs:
       - name: Install Homebrew dependencies
         run: |
           brew update
-          brew install ninja python@3.12
+          # vc-deps doesn't provide smgl/libcore; trust required for the third-party tap.
+          brew tap educelab/code
+          brew trust educelab/code
+          brew install ninja python@3.12 educelab/code/smgl educelab/code/libcore
           brew unlink libtiff libpng
 
       - name: Remove conflicting packages

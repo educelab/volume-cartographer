@@ -81,16 +81,16 @@ find_package(spdlog 1.4.2 CONFIG REQUIRED)
 include(BuildOpenABF)
 
 ### Modern JSON ###
-include(BuildJSON)
+find_package(nlohmann_json 3.9.1 CONFIG REQUIRED)
 
 ### bvh ###
 include(Buildbvh)
 
 ### smgl ###
-include(Buildsmgl)
+find_package(smgl 0.11.0 CONFIG REQUIRED)
 
 ### libcore ###
-include(Buildlibcore)
+find_package(EduceLabCore 0.3.0 CONFIG REQUIRED)
 
 ### Boost and indicators (for app use only)
 if(VC_BUILD_APPS OR VC_BUILD_UTILS)

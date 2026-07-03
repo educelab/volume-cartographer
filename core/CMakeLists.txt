@@ -87,8 +87,10 @@ add_library(VC::core ALIAS vc_core)
 target_include_directories(vc_core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${libcore_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+    PRIVATE
+        # libcore usage here is header-only, so just grab its include dir.
+        $<TARGET_PROPERTY:educelab::core,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(vc_core
     PUBLIC
@@ -205,6 +207,10 @@ foreach(src ${test_srcs})
         COMMAND ${testname}
     )
 endforeach()
+
+# AnnotationTest includes educelab headers directly, but vc_core exposes libcore
+# only PRIVATEly, so link it here for the include dir.
+target_link_libraries(vc_core_AnnotationTest educelab::core)
 
 # Set test resource files
 set(COMMON_TEST_RES

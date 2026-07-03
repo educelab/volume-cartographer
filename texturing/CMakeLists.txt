@@ -18,6 +18,7 @@ set(srcs
 )
 set(public_deps
     VC::core
+    educelab::core
 )
 set(private_deps
     opencv_imgproc
