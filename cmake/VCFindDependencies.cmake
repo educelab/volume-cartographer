@@ -87,11 +87,9 @@ find_package(nlohmann_json 3.9.1 CONFIG REQUIRED)
 include(Buildbvh)
 
 ### smgl ###
-# PUBLIC dependency of vc_core; must be installed on the system, not fetched.
 find_package(smgl 0.11.0 CONFIG REQUIRED)
 
 ### libcore ###
-# PUBLIC dependency of vc_texturing; must be installed on the system.
 find_package(EduceLabCore 0.3.0 CONFIG REQUIRED)
 
 ### Boost and indicators (for app use only)
